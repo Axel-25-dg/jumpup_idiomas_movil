@@ -1,0 +1,121 @@
+# Miscellaneous
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+.atom/
+.build/
+.buildlog/
+.history
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+# Variables de entorno y archivos sensibles
+.env
+.env.*
+*.env
+*.env.local
+*.env.development.local
+*.env.test.local
+*.env.production.local
+*.pem
+*.key
+*.keystore
+*.jks
+*.p12
+*.pfx
+credentials.json
+service_account.json
+*.secret
+*.tokens
+*.bak
+*.backup
+*~
+Thumbs.db
+
+# IntelliJ related
+*.iml
+*.ipr
+*.iws
+.idea/
+*.sublime-project
+*.sublime-workspace
+.vscode/*
+!.vscode/extensions.json
+
+# Flutter/Dart/Pub related
+**/doc/api/
+**/ios/Flutter/.last_build_id
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+/build/
+/coverage/
+.packages
+.pubspec.lock
+*.g.dart
+*.freezed.dart
+*.mocks.dart
+
+# Symbolication related
+app.*.symbols
+
+# Obfuscation related
+app.*.map.json
+
+# Android specific
+/android/app/debug
+/android/app/profile
+/android/app/release
+/android/key.properties
+/android/app/key.jks
+/android/app/key.keystore
+/android/local.properties
+/.gradle/
+/gradlew
+/gradlew.bat
+/gradle/
+
+# iOS specific
+/ios/.generated/
+/ios/Flutter/Flutter.podspec
+/ios/Flutter/App.framework
+/ios/Flutter/Flutter.framework
+/ios/Flutter/ephemeral
+/ios/Pods/
+/ios/Symbols/
+/ios/Runner.xcworkspace/xcuserdata/
+/ios/Runner.xcodeproj/xcuserdata/
+/ios/Runner/GeneratedPluginRegistrant.h
+/ios/Runner/GeneratedPluginRegistrant.m
+
+# macOS specific
+/macos/.generated/
+/macos/Flutter/Flutter.podspec
+/macos/Flutter/ephemeral
+/macos/Pods/
+/macos/Runner.xcworkspace/xcuserdata/
+/macos/Runner.xcodeproj/xcuserdata/
+/macos/Runner/GeneratedPluginRegistrant.swift
+
+# Web specific
+/web/.dart_tool/
+
+# Windows specific
+/windows/flutter/ephemeral/
+
+# Linux specific
+/linux/flutter/ephemeral/
+
+# Testing and coverage
+coverage/
+*.lcov
+
+# OS generated files
+Thumbs.db
+.DS_Store
+
