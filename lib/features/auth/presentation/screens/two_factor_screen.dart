@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 
 class TwoFactorScreen extends StatefulWidget {
-  const TwoFactorScreen({Key? key}) : super(key: key);
+  const TwoFactorScreen({super.key});
 
   @override
   State<TwoFactorScreen> createState() => _TwoFactorScreenState();
 }
 
 class _TwoFactorScreenState extends State<TwoFactorScreen> {
-  final _formKey = GlobalKey<FormState>();
   final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
   final List<FocusNode> _focusNodes = List.generate(6, (_) => FocusNode());
