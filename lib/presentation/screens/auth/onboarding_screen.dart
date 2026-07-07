@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../../../core/routes/app_routes.dart';
+import '../../../core/routes/app_routes.dart';
 
 // Modelo temporal para idiomas (GET /api/languages/)
 class Language {

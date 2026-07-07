@@ -96,7 +96,7 @@ class AppTheme {
           hintStyle: const TextStyle(color: AppColors.grey),
           prefixIconColor: AppColors.accent,
         ),
-        cardTheme: CardTheme(
+        cardTheme: CardThemeData(
           color: AppColors.cardBackground,
           elevation: 4,
           shape: RoundedRectangleBorder(
