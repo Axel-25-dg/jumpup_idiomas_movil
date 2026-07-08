@@ -22,7 +22,9 @@ class ApiResponse<T> {
     return ApiResponse<T>(
       success: json['success'] as bool? ?? false,
       message: json['message']?.toString(),
-      data: fromJsonT != null && payload != null ? fromJsonT(payload) : payload as T?,
+      data: fromJsonT != null && payload != null
+          ? fromJsonT(payload)
+          : payload as T?,
       statusCode: json['statusCode'] as int?,
       errors: (json['errors'] as List<dynamic>?)
               ?.map((error) => error.toString())

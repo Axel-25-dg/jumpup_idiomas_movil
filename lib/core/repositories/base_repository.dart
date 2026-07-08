@@ -3,7 +3,8 @@ import '../error/api_exception.dart';
 abstract class BaseRepository {
   const BaseRepository();
 
-  Future<T> handleRequest<T>(Future<T> Function() request, {String? message}) async {
+  Future<T> handleRequest<T>(Future<T> Function() request,
+      {String? message}) async {
     try {
       return await request();
     } catch (error) {
