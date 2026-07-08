@@ -8,7 +8,8 @@ import 'package:jumpup_app/core/auth/models/auth_token_model.dart';
 void main() {
   group('auth models', () {
     test('LoginRequest serializa correctamente', () {
-      final request = LoginRequest(email: 'ana@example.com', password: '123456');
+      final request =
+          LoginRequest(email: 'ana@example.com', password: '123456');
       final json = request.toJson();
 
       expect(json['email'], 'ana@example.com');
@@ -17,13 +18,17 @@ void main() {
 
     test('RegisterRequest serializa correctamente', () {
       final request = RegisterRequest(
-        name: 'Ana',
+        firstName: 'Ana',
+        lastName: 'García',
+        username: 'ana_garcia',
         email: 'ana@example.com',
-        password: '123456',
+        password: 'secret123',
+        confirmPassword: 'secret123',
       );
       final json = request.toJson();
 
-      expect(json['name'], 'Ana');
+      expect(json['first_name'], 'Ana');
+      expect(json['last_name'], 'García');
       expect(json['email'], 'ana@example.com');
     });
 
