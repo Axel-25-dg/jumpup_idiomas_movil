@@ -27,6 +27,11 @@ dependencies:
   dio: ^5.7.0
 
   # ─────────────────────────────────────────────
+  # WebSocket (chat en vivo + notificaciones)
+  # ─────────────────────────────────────────────
+  web_socket_channel: ^3.0.1
+
+  # ─────────────────────────────────────────────
   # Almacenamiento seguro (JWT)
   # ─────────────────────────────────────────────
   flutter_secure_storage: ^9.2.2
