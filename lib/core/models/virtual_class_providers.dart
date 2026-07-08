@@ -44,3 +44,42 @@ final joinClassNotifierProvider =
     StateNotifierProvider<JoinClassNotifier, JoinClassStatus>((ref) {
   return JoinClassNotifier(ref.watch(virtualClassServiceProvider));
 });
+
+/// Provider para las clases/aulas en las que está inscrito el estudiante
+final classroomEnrollmentsProvider =
+    FutureProvider<List<VirtualClassModel>>((ref) async {
+  return ref.watch(virtualClassServiceProvider).getClassroomEnrollments();
+});
+
+/// Estado de la inscripción a un aula por código
+enum ClassroomEnrollStatus { idle, loading, success, failure }
+
+class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
+  ClassroomEnrollNotifier(this._service) : super(ClassroomEnrollStatus.idle);
+  final VirtualClassService _service;
+  String? errorMessage;
+
+  Future<bool> enrollByCode(String code) async {
+    state = ClassroomEnrollStatus.loading;
+    errorMessage = null;
+    try {
+      await _service.enrollInClassroom(code);
+      state = ClassroomEnrollStatus.success;
+      return true;
+    } catch (e) {
+      errorMessage = e.toString();
+      state = ClassroomEnrollStatus.failure;
+      return false;
+    }
+  }
+
+  void reset() {
+    state = ClassroomEnrollStatus.idle;
+    errorMessage = null;
+  }
+}
+
+final classroomEnrollNotifierProvider =
+    StateNotifierProvider<ClassroomEnrollNotifier, ClassroomEnrollStatus>((ref) {
+  return ClassroomEnrollNotifier(ref.watch(virtualClassServiceProvider));
+});

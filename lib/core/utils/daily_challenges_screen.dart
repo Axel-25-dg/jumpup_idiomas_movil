@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/progress_providers.dart';
 
-class DailyChallengesScreen extends StatelessWidget {
+class DailyChallengesScreen extends ConsumerWidget {
   const DailyChallengesScreen({super.key});
 
+  IconData _getIconData(String iconName) {
+    switch (iconName) {
+      case 'menu_book': return Icons.menu_book;
+      case 'quiz': return Icons.quiz;
+      case 'smart_toy': return Icons.smart_toy;
+      default: return Icons.star;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final challengesAsync = ref.watch(dailyChallengesProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
@@ -15,7 +28,9 @@ class DailyChallengesScreen extends StatelessWidget {
             icon: const Icon(Icons.offline_bolt, color: Color(0xFFFFD700)),
             tooltip: 'Modo Offline',
             onPressed: () {
-              // TODO: Mostrar gestión de descargas offline
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('Lecciones descargadas y listas para modo offline.')),
+              );
             },
           ),
         ],
@@ -45,7 +60,11 @@ class DailyChallengesScreen extends StatelessWidget {
                         const Text('Tienes 3 lecciones descargadas.', style: TextStyle(color: Colors.white70, fontSize: 13)),
                         const SizedBox(height: 8),
                         TextButton(
-                          onPressed: () {},
+                          onPressed: () {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Descargando paquete de lecciones de soporte (offline-pack)...')),
+                            );
+                          },
                           style: TextButton.styleFrom(
                             padding: EdgeInsets.zero,
                             minimumSize: const Size(0, 0),
@@ -65,32 +84,29 @@ class DailyChallengesScreen extends StatelessWidget {
             const Text('Retos de hoy', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
             const SizedBox(height: 16),
             
-            _ChallengeCard(
-              title: 'Completa 2 lecciones',
-              xpReward: 50,
-              progress: 0.5,
-              current: 1,
-              target: 2,
-              icon: Icons.menu_book,
-            ),
-            const SizedBox(height: 12),
-            _ChallengeCard(
-              title: 'Obtén 90% en un Quiz',
-              xpReward: 30,
-              progress: 0.0,
-              current: 0,
-              target: 1,
-              icon: Icons.quiz,
-            ),
-            const SizedBox(height: 12),
-            _ChallengeCard(
-              title: 'Practica 10 minutos con JumpUp AI',
-              xpReward: 40,
-              progress: 1.0,
-              current: 10,
-              target: 10,
-              icon: Icons.smart_toy,
-              isCompleted: true,
+            challengesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+              data: (challenges) {
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: challenges.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 12),
+                  itemBuilder: (_, i) {
+                    final ch = challenges[i];
+                    return _ChallengeCard(
+                      title: ch['title']?.toString() ?? '',
+                      xpReward: ch['xpReward'] as int? ?? 0,
+                      progress: (ch['progress'] as num?)?.toDouble() ?? 0.0,
+                      current: ch['current'] as int? ?? 0,
+                      target: ch['target'] as int? ?? 1,
+                      icon: _getIconData(ch['icon']?.toString() ?? ''),
+                      isCompleted: ch['isCompleted'] as bool? ?? false,
+                    );
+                  },
+                );
+              },
             ),
             const SizedBox(height: 24),
 

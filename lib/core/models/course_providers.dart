@@ -141,3 +141,17 @@ final exercisesByLessonProvider =
 
 /// Provider del índice del ejercicio activo durante una lección.
 final currentExerciseIndexProvider = StateProvider<int>((ref) => 0);
+
+/// Provider para obtener una lección por su ID.
+final lessonDetailsProvider =
+    FutureProvider.family<LessonModel, int>((ref, lessonId) async {
+  final service = ref.watch(courseServiceProvider);
+  return service.getLessonById(lessonId);
+});
+
+/// Provider para los recursos subidos por el docente para un aula.
+final teacherResourcesProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, int>((ref, classroomId) async {
+  final service = ref.watch(courseServiceProvider);
+  return service.getTeacherResources(classroomId);
+});

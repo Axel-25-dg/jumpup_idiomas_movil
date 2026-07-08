@@ -147,6 +147,27 @@ class _CertificateCard extends StatelessWidget {
                   ),
                 ],
                 const SizedBox(height: 16),
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: CustomPaint(
+                      size: const Size(90, 90),
+                      painter: _QrCodePainter(),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 6),
+                const Center(
+                  child: Text(
+                    'Escanear para verificar autenticidad',
+                    style: TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                ),
+                const SizedBox(height: 16),
                 
                 // ── Botones ─────────────────────────────────────
                 Row(
@@ -191,4 +212,55 @@ class _CertificateCard extends StatelessWidget {
   }
 
   String _formatDate(DateTime date) => '${date.day}/${date.month}/${date.year}';
+}
+
+class _QrCodePainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+    
+    // Background white
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(0, 0, size.width, size.height), const Radius.circular(8)), paint);
+    
+    paint.color = Colors.black;
+    final double cellSize = size.width / 15;
+    
+    void drawFinderPattern(double x, double y) {
+      canvas.drawRect(Rect.fromLTWH(x, y, cellSize * 7, cellSize * 7), paint);
+      paint.color = Colors.white;
+      canvas.drawRect(Rect.fromLTWH(x + cellSize, y + cellSize, cellSize * 5, cellSize * 5), paint);
+      paint.color = Colors.black;
+      canvas.drawRect(Rect.fromLTWH(x + cellSize * 2, y + cellSize * 2, cellSize * 3, cellSize * 3), paint);
+    }
+    
+    drawFinderPattern(0, 0);
+    drawFinderPattern(size.width - cellSize * 7, 0);
+    drawFinderPattern(0, size.height - cellSize * 7);
+    
+    final random = [
+      [8,0],[9,0],[11,0],[12,0],[13,0],
+      [8,1],[10,1],[14,1],
+      [8,2],[9,2],[10,2],[11,2],[13,2],
+      [8,3],[12,3],[14,3],
+      [8,4],[9,4],[11,4],[13,4],
+      [8,5],[10,5],[12,5],[14,5],
+      [8,6],[9,6],[11,6],[13,6],[14,6],
+      [0,8],[1,8],[2,8],[3,8],[4,8],[5,8],[6,8],[7,8],[8,8],[9,8],[10,8],[11,8],[12,8],[13,8],[14,8],
+      [0,9],[2,9],[3,9],[5,9],[6,9],[8,9],[10,9],[12,9],[14,9],
+      [0,10],[1,10],[4,10],[7,10],[9,10],[11,10],[13,10],
+      [0,11],[3,11],[5,11],[8,11],[10,11],[12,11],[14,11],
+      [0,12],[2,12],[4,12],[6,12],[9,12],[11,12],[13,12],
+      [0,13],[1,13],[3,13],[5,13],[7,13],[8,13],[10,13],[12,13],[14,13],
+      [0,14],[2,14],[4,14],[6,14],[9,14],[11,14],[13,14]
+    ];
+    
+    for (final dot in random) {
+      canvas.drawRect(Rect.fromLTWH(dot[0] * cellSize, dot[1] * cellSize, cellSize, cellSize), paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../models/course_models.dart';
 import '../../models/course_providers.dart';
+import '../../models/progress_providers.dart';
 
 /// Pantalla de ejercicio interactivo para una lección.
-/// Soporta los tipos: multiple_choice, fill_blank, true_false.
+/// Soporta los tipos: multiple_choice, fill_blank, true_false, translate, match, listen.
 class ExerciseScreen extends ConsumerStatefulWidget {
   const ExerciseScreen({super.key, required this.lessonId});
 
@@ -22,6 +23,20 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
   int _correctCount = 0;
   late AnimationController _feedbackController;
   late Animation<double> _feedbackAnimation;
+
+  // Variables de estado para ejercicios tipo Match (emparejamiento)
+  String? _selectedLeftMatch;
+  String? _selectedRightMatch;
+  final Map<String, String> _completedMatches = {};
+  final List<String> _leftMatchItems = [];
+  final List<String> _rightMatchItems = [];
+
+  // Variables de estado para ejercicios tipo Translate (burbujas de palabras)
+  List<String>? _availableTranslateWords;
+  List<String>? _selectedTranslateWords;
+
+  // Variables de estado para ejercicios tipo Listen (reproductor de audio)
+  bool _isPlayingAudioExercise = false;
 
   @override
   void initState() {
@@ -44,8 +59,15 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   void _submitAnswer(ExerciseModel exercise) {
     if (_hasAnswered) return;
-    final correct = _selectedAnswer?.toLowerCase().trim() ==
-        exercise.correctAnswer.toLowerCase().trim();
+    
+    // Para el tipo match, la respuesta correcta se compara con 'completed' si el usuario emparejó todas
+    bool correct;
+    if (exercise.exerciseType == 'match') {
+      correct = _selectedAnswer == 'completed';
+    } else {
+      correct = _selectedAnswer?.toLowerCase().trim() ==
+          exercise.correctAnswer.toLowerCase().trim();
+    }
 
     setState(() {
       _hasAnswered = true;
@@ -64,6 +86,16 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         _selectedAnswer = null;
         _hasAnswered = false;
         _isCorrect = false;
+        
+        // Resetear estados adicionales
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
+        _completedMatches.clear();
+        _leftMatchItems.clear();
+        _rightMatchItems.clear();
+        _availableTranslateWords = null;
+        _selectedTranslateWords = null;
+        _isPlayingAudioExercise = false;
       });
       _feedbackController.reset();
     } else {
@@ -73,6 +105,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   void _showCompletionDialog(int total) {
     final xp = _correctCount * 20;
+
+    // Registrar progreso en la API (POST /api/progress/)
+    ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+      lessonId: widget.lessonId,
+      status: 'completed',
+      score: (_correctCount / total) * 100,
+    );
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -228,6 +268,12 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                         _buildMultipleChoice(exercise)
                       else if (exercise.exerciseType == 'true_false')
                         _buildTrueFalse(exercise)
+                      else if (exercise.exerciseType == 'translate')
+                        _buildTranslate(exercise)
+                      else if (exercise.exerciseType == 'match')
+                        _buildMatch(exercise)
+                      else if (exercise.exerciseType == 'listen')
+                        _buildListen(exercise)
                       else
                         _buildFillBlank(exercise),
 
@@ -430,6 +476,264 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 2),
         ),
       ),
+    );
+  }
+
+  Widget _buildTranslate(ExerciseModel exercise) {
+    if (_availableTranslateWords == null) {
+      final parts = exercise.correctAnswer.split(' ');
+      _selectedTranslateWords = [];
+      _availableTranslateWords = List<String>.from(parts)
+        ..addAll(['té', 'café', 'vaso', 'leche', 'por', 'favor', 'mesa', 'caliente', 'frío'])
+        ..shuffle();
+      _availableTranslateWords = _availableTranslateWords!.toSet().toList();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: double.infinity,
+          minHeight: 100,
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: const Color(0xFF1A1828),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.3)),
+          ),
+          child: _selectedTranslateWords!.isEmpty
+              ? const Center(child: Text('Toca las palabras para traducir', style: TextStyle(color: Colors.white38, fontSize: 14)))
+              : Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: _selectedTranslateWords!.map((word) {
+                    return ActionChip(
+                      backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
+                      side: const BorderSide(color: Color(0xFF7C4DFF)),
+                      label: Text(word, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      onPressed: _hasAnswered
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedTranslateWords!.remove(word);
+                                _availableTranslateWords!.add(word);
+                                _selectedAnswer = _selectedTranslateWords!.join(' ');
+                              });
+                            },
+                    );
+                  }).toList(),
+                ),
+        ),
+        const SizedBox(height: 24),
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: _availableTranslateWords!.map((word) {
+            return ActionChip(
+              backgroundColor: const Color(0xFF1A1828),
+              side: const BorderSide(color: Colors.white12),
+              label: Text(word, style: const TextStyle(color: Colors.white)),
+              onPressed: _hasAnswered
+                  ? null
+                  : () {
+                      setState(() {
+                        _availableTranslateWords!.remove(word);
+                        _selectedTranslateWords!.add(word);
+                        _selectedAnswer = _selectedTranslateWords!.join(' ');
+                      });
+                    },
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMatch(ExerciseModel exercise) {
+    if (_leftMatchItems.isEmpty) {
+      final pairs = exercise.correctAnswer.split(', ');
+      for (final pair in pairs) {
+        final kv = pair.split('=');
+        if (kv.length == 2) {
+          _leftMatchItems.add(kv[0].trim());
+          _rightMatchItems.add(kv[1].trim());
+        }
+      }
+      _leftMatchItems.shuffle();
+      _rightMatchItems.shuffle();
+    }
+
+    final correctMap = <String, String>{};
+    final pairs = exercise.correctAnswer.split(', ');
+    for (final pair in pairs) {
+      final kv = pair.split('=');
+      if (kv.length == 2) {
+        correctMap[kv[0].trim()] = kv[1].trim();
+      }
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            children: _leftMatchItems.map((left) {
+              final isCompleted = _completedMatches.containsKey(left);
+              final isSelected = _selectedLeftMatch == left;
+              Color borderColor = Colors.white12;
+              Color bgColor = const Color(0xFF1A1828);
+
+              if (isCompleted) {
+                borderColor = const Color(0xFF4CAF50).withOpacity(0.5);
+                bgColor = const Color(0xFF4CAF50).withOpacity(0.1);
+              } else if (isSelected) {
+                borderColor = const Color(0xFF7C4DFF);
+                bgColor = const Color(0xFF7C4DFF).withOpacity(0.15);
+              }
+
+              return GestureDetector(
+                onTap: _hasAnswered || isCompleted
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedLeftMatch = left;
+                          _checkMatchSelection(correctMap);
+                        });
+                      },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor, width: 1.5),
+                  ),
+                  child: Text(
+                    left,
+                    style: TextStyle(
+                      color: isCompleted ? Colors.white38 : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            children: _rightMatchItems.map((right) {
+              final isCompleted = _completedMatches.containsValue(right);
+              final isSelected = _selectedRightMatch == right;
+              Color borderColor = Colors.white12;
+              Color bgColor = const Color(0xFF1A1828);
+
+              if (isCompleted) {
+                borderColor = const Color(0xFF4CAF50).withOpacity(0.5);
+                bgColor = const Color(0xFF4CAF50).withOpacity(0.1);
+              } else if (isSelected) {
+                borderColor = const Color(0xFF7C4DFF);
+                bgColor = const Color(0xFF7C4DFF).withOpacity(0.15);
+              }
+
+              return GestureDetector(
+                onTap: _hasAnswered || isCompleted
+                    ? null
+                    : () {
+                        setState(() {
+                          _selectedRightMatch = right;
+                          _checkMatchSelection(correctMap);
+                        });
+                      },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: bgColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor, width: 1.5),
+                  ),
+                  child: Text(
+                    right,
+                    style: TextStyle(
+                      color: isCompleted ? Colors.white38 : Colors.white,
+                      fontWeight: FontWeight.bold,
+                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _checkMatchSelection(Map<String, String> correctMap) {
+    if (_selectedLeftMatch != null && _selectedRightMatch != null) {
+      if (correctMap[_selectedLeftMatch] == _selectedRightMatch) {
+        _completedMatches[_selectedLeftMatch!] = _selectedRightMatch!;
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
+
+        if (_completedMatches.length == _leftMatchItems.length) {
+          _selectedAnswer = 'completed';
+        }
+      } else {
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No coinciden. ¡Inténtalo de nuevo!'), duration: Duration(milliseconds: 600)),
+        );
+      }
+    }
+  }
+
+  Widget _buildListen(ExerciseModel exercise) {
+    return Column(
+      children: [
+        Center(
+          child: Column(
+            children: [
+              GestureDetector(
+                onTap: () {
+                  setState(() => _isPlayingAudioExercise = true);
+                  Future.delayed(const Duration(seconds: 2), () {
+                    if (mounted) {
+                      setState(() => _isPlayingAudioExercise = false);
+                    }
+                  });
+                },
+                child: Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF7C4DFF)),
+                  ),
+                  child: Icon(
+                    _isPlayingAudioExercise ? Icons.volume_up : Icons.play_arrow,
+                    color: const Color(0xFF7C4DFF),
+                    size: 48,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                _isPlayingAudioExercise ? 'Escuchando...' : 'Toca para reproducir el audio',
+                style: const TextStyle(color: Colors.white54, fontSize: 13),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+        _buildFillBlank(exercise),
+      ],
     );
   }
 }

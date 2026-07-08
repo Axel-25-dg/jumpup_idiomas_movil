@@ -92,6 +92,50 @@ class ProgressService extends BaseRepository {
     }, message: 'No se pudo obtener el ranking');
   }
 
+  /// Obtiene los retos o misiones del día actual.
+  Future<List<Map<String, dynamic>>> getDailyChallenges() async {
+    return handleRequest<List<Map<String, dynamic>>>(() async {
+      // TODO: final response = await dio.get('/api/daily-challenges/');
+      return [
+        {
+          'title': 'Completa 2 lecciones',
+          'xpReward': 50,
+          'progress': 0.5,
+          'current': 1,
+          'target': 2,
+          'icon': 'menu_book',
+          'isCompleted': false,
+        },
+        {
+          'title': 'Obtén 90% en un Quiz',
+          'xpReward': 30,
+          'progress': 0.0,
+          'current': 0,
+          'target': 1,
+          'icon': 'quiz',
+          'isCompleted': false,
+        },
+        {
+          'title': 'Practica 10 minutos con JumpUp AI',
+          'xpReward': 40,
+          'progress': 1.0,
+          'current': 10,
+          'target': 10,
+          'icon': 'smart_toy',
+          'isCompleted': true,
+        }
+      ];
+    }, message: 'No se pudieron obtener los retos diarios');
+  }
+
+  /// Descarga el paquete offline para un grupo de lecciones.
+  Future<List<int>> getOfflinePack(List<int> lessonIds) async {
+    return handleRequest<List<int>>(() async {
+      // TODO: final response = await dio.get('/api/lessons/offline-pack/', queryParameters: {'lessons': lessonIds.join(',')});
+      return lessonIds;
+    }, message: 'No se pudo descargar el paquete offline');
+  }
+
   // ─── Mock Data ────────────────────────────────────────────────────────────
 
   Map<String, dynamic> _mockProgressSummary() => {

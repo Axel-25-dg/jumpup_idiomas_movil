@@ -85,3 +85,10 @@ final myRankingPositionProvider = FutureProvider<int?>((ref) async {
   // Para demo retorna null si no se encuentra
   return rankingAsync.isEmpty ? null : rankingAsync.first.position;
 });
+
+/// Provider para los retos diarios de hoy.
+final dailyChallengesProvider =
+    FutureProvider<List<Map<String, dynamic>>>((ref) async {
+  final service = ref.watch(progressServiceProvider);
+  return service.getDailyChallenges();
+});

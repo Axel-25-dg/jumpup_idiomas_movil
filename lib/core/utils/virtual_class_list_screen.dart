@@ -6,6 +6,89 @@ import '../../models/virtual_class_providers.dart';
 class VirtualClassListScreen extends ConsumerWidget {
   const VirtualClassListScreen({super.key});
 
+  void _showEnrollDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1A1828),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('Unirse a Aula Virtual', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: Form(
+          key: formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text('Ingresa el código de 6 dígitos proporcionado por tu docente:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: controller,
+                maxLength: 6,
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 4),
+                textAlign: TextAlign.center,
+                keyboardType: TextInputType.visiblePassword,
+                decoration: InputDecoration(
+                  hintText: 'CÓDIGO',
+                  hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 1),
+                  filled: true,
+                  fillColor: const Color(0xFF0F0E1A),
+                  counterText: '',
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
+                  ),
+                ),
+                validator: (val) {
+                  if (val == null || val.trim().length != 6) {
+                    return 'El código debe tener exactamente 6 caracteres';
+                  }
+                  if (!RegExp(r'^[a-zA-Z0-9]+$').hasMatch(val.trim())) {
+                    return 'El código solo debe contener letras y números';
+                  }
+                  return null;
+                },
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              if (formKey.currentState!.validate()) {
+                final code = controller.text.trim();
+                final success = await ref.read(classroomEnrollNotifierProvider.notifier).enrollByCode(code);
+                if (context.mounted) {
+                  if (success) {
+                    ref.refresh(classroomEnrollmentsProvider);
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('¡Inscrito al aula virtual con éxito!')),
+                    );
+                  } else {
+                    final err = ref.read(classroomEnrollNotifierProvider.notifier).errorMessage;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: ${err ?? "Inscripción fallida"}'), backgroundColor: Colors.redAccent),
+                    );
+                  }
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF)),
+            child: const Text('Unirse', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final classesAsync = ref.watch(virtualClassesProvider);
@@ -15,6 +98,13 @@ class VirtualClassListScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
         title: const Text('Clases Virtuales', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.vpn_key, color: Color(0xFF7C4DFF)),
+            label: const Text('Unirse con Código', style: TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+            onPressed: () => _showEnrollDialog(context, ref),
+          ),
+        ],
       ),
       body: classesAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),

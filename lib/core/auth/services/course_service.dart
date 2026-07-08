@@ -125,6 +125,26 @@ class CourseService extends BaseRepository {
     }, message: 'No se pudieron obtener las estadísticas de la lección');
   }
 
+  /// Obtiene una lección por su ID.
+  Future<LessonModel> getLessonById(int lessonId) async {
+    return handleRequest<LessonModel>(() async {
+      // TODO: final response = await dio.get('/api/lessons/$lessonId/');
+      return _mockLessons().firstWhere(
+        (l) => l.id == lessonId,
+        orElse: () => LessonModel(
+          id: lessonId,
+          module: 1,
+          moduleTitle: 'Saludos',
+          title: 'Lección $lessonId',
+          contentType: 'interactive',
+          order: 1,
+          xpReward: 20,
+          exercisesCount: 5,
+        ),
+      );
+    }, message: 'No se pudo obtener la lección');
+  }
+
   // ─── Exercises ──────────────────────────────────────────────────────────────
 
   /// Obtiene los ejercicios de una lección específica.
@@ -133,6 +153,29 @@ class CourseService extends BaseRepository {
       // TODO: final response = await dio.get('/api/exercises/?lesson=$lessonId');
       return _mockExercises().where((e) => e.lesson == lessonId).toList();
     }, message: 'No se pudieron cargar los ejercicios');
+  }
+
+  /// Obtiene los recursos subidos por el docente para un aula.
+  Future<List<Map<String, dynamic>>> getTeacherResources(int classroomId) async {
+    return handleRequest<List<Map<String, dynamic>>>(() async {
+      // TODO: final response = await dio.get('/api/teacher-resources/?classroom=$classroomId');
+      return [
+        {
+          'folder': 'Módulo 1: Conceptos Básicos',
+          'files': [
+            {'name': 'Guía de Gramática Básica.pdf', 'size': '2.4 MB', 'type': 'pdf'},
+            {'name': 'Lista de Vocabulario.xlsx', 'size': '150 KB', 'type': 'spreadsheet'},
+            {'name': 'Audio Pronunciación.mp3', 'size': '4.1 MB', 'type': 'audio'},
+          ]
+        },
+        {
+          'folder': 'Módulo 2: Conversación Práctica',
+          'files': [
+            {'name': 'Conversación de Ejemplo.pdf', 'size': '1.2 MB', 'type': 'pdf'},
+          ]
+        }
+      ];
+    }, message: 'No se pudieron cargar los recursos');
   }
 
   // ─── Mock Data ──────────────────────────────────────────────────────────────
@@ -175,6 +218,9 @@ class CourseService extends BaseRepository {
 
   List<ExerciseModel> _mockExercises() => [
         const ExerciseModel(id: 1, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: '¿Cómo se dice "Hola" en inglés?', exerciseType: 'multiple_choice', correctAnswer: 'Hello'),
-        const ExerciseModel(id: 2, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: '¿Cómo se dice "Adiós" en inglés?', exerciseType: 'fill_blank', correctAnswer: 'Goodbye'),
+        const ExerciseModel(id: 2, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: 'Traduce: "I want a cup of coffee, please."', exerciseType: 'translate', correctAnswer: 'Quiero una taza de café, por favor'),
+        const ExerciseModel(id: 3, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: 'Empareja los saludos correctos', exerciseType: 'match', correctAnswer: 'Hello=Hola, Goodbye=Adiós, Good morning=Buenos días'),
+        const ExerciseModel(id: 4, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: 'Escucha el audio y escribe lo que oyes', exerciseType: 'listen', correctAnswer: 'Welcome to JumpUp'),
+        const ExerciseModel(id: 5, lesson: 1, lessonTitle: 'Hello & Goodbye', questionText: '¿Cómo se dice "Adiós" en inglés?', exerciseType: 'fill_blank', correctAnswer: 'Goodbye'),
       ];
 }

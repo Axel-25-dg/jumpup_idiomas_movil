@@ -1,44 +1,63 @@
 import 'package:flutter/material.dart';
 
-class ClassroomResourcesScreen extends StatelessWidget {
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/course_providers.dart';
+
+class ClassroomResourcesScreen extends ConsumerWidget {
   const ClassroomResourcesScreen({super.key});
 
+  FileType _parseFileType(String? typeStr) {
+    switch (typeStr?.toLowerCase()) {
+      case 'pdf': return FileType.pdf;
+      case 'spreadsheet': return FileType.spreadsheet;
+      case 'audio': return FileType.audio;
+      default: return FileType.document;
+    }
+  }
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final resourcesAsync = ref.watch(teacherResourcesProvider(1)); // Demo classroomId = 1
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
         title: const Text('Recursos del Aula', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: const [
-          _FolderWidget(
-            title: 'Módulo 1: Conceptos Básicos',
-            fileCount: 3,
-            isExpanded: true,
-            files: [
-              _FileWidget(name: 'Guía de Gramática Básica.pdf', size: '2.4 MB', type: FileType.pdf),
-              _FileWidget(name: 'Lista de Vocabulario.xlsx', size: '150 KB', type: FileType.spreadsheet),
-              _FileWidget(name: 'Audio Pronunciación.mp3', size: '4.1 MB', type: FileType.audio),
-            ],
-          ),
-          SizedBox(height: 16),
-          _FolderWidget(
-            title: 'Módulo 2: Conversación Práctica',
-            fileCount: 2,
-            isExpanded: false,
-            files: [],
-          ),
-          SizedBox(height: 16),
-          _FolderWidget(
-            title: 'Material Extra (Lecturas)',
-            fileCount: 5,
-            isExpanded: false,
-            files: [],
-          ),
-        ],
+      body: resourcesAsync.when(
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+        data: (folders) {
+          if (folders.isEmpty) {
+            return const Center(child: Text('No hay recursos disponibles', style: TextStyle(color: Colors.white54)));
+          }
+          return ListView.separated(
+            padding: const EdgeInsets.all(16),
+            itemCount: folders.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 16),
+            itemBuilder: (_, i) {
+              final folder = folders[i];
+              final folderName = folder['folder']?.toString() ?? '';
+              final filesList = folder['files'] as List<dynamic>? ?? [];
+              
+              final List<_FileWidget> filesWidgets = filesList.map((f) {
+                return _FileWidget(
+                  name: f['name']?.toString() ?? '',
+                  size: f['size']?.toString() ?? '',
+                  type: _parseFileType(f['type']?.toString()),
+                );
+              }).toList();
+
+              return _FolderWidget(
+                title: folderName,
+                fileCount: filesWidgets.length,
+                isExpanded: i == 0,
+                files: filesWidgets,
+              );
+            },
+          );
+        },
       ),
     );
   }

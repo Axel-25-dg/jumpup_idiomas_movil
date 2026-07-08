@@ -48,6 +48,31 @@ class VirtualClassService extends BaseRepository {
     }, message: 'No se pudieron cargar los certificados');
   }
 
+  /// Obtiene las aulas/clases en las que está inscrito el estudiante.
+  Future<List<VirtualClassModel>> getClassroomEnrollments() async {
+    return handleRequest(() async {
+      // TODO: final response = await dio.get('/api/classroom-enrollments/');
+      return _mockVirtualClasses().sublist(0, 1);
+    }, message: 'No se pudieron obtener tus inscripciones');
+  }
+
+  /// Inscribe al estudiante en un aula virtual mediante un código de 6 dígitos.
+  Future<VirtualClassRegistrationModel> enrollInClassroom(String code) async {
+    return handleRequest(() async {
+      // TODO: final response = await dio.post('/api/classroom-enrollments/', data: {'code': code});
+      if (code.length != 6) {
+        throw Exception('El código de inscripción debe tener 6 dígitos');
+      }
+      final vClass = _mockVirtualClasses()[2]; // Francés para Viajeros
+      return VirtualClassRegistrationModel(
+        id: DateTime.now().millisecondsSinceEpoch,
+        virtualClass: vClass,
+        registeredAt: DateTime.now(),
+        status: 'registered',
+      );
+    }, message: 'No se pudo completar la inscripción');
+  }
+
   // ─── Mock Data ────────────────────────────────────────────────────────────
 
   List<VirtualClassModel> _mockVirtualClasses() => [

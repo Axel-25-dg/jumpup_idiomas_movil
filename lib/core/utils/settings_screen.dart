@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -26,12 +27,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
             child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: Logic for logout (borrar token local y redirigir a LoginScreen)
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Sesión cerrada correctamente')),
-              );
+              
+              // Cierre de sesión seguro: borrar token local
+              const storage = FlutterSecureStorage();
+              await storage.delete(key: 'access_token');
+              await storage.delete(key: 'refresh_token');
+              
+              if (context.mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('Sesión cerrada correctamente')),
+                );
+              }
             },
             style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             child: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
