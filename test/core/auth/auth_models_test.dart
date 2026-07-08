@@ -1,0 +1,56 @@
+import 'package:flutter_test/flutter_test.dart';
+import 'package:jumpup_app/core/auth/models/login_request.dart';
+import 'package:jumpup_app/core/auth/models/register_request.dart';
+import 'package:jumpup_app/core/auth/models/forgot_password_request.dart';
+import 'package:jumpup_app/core/auth/models/two_factor_request.dart';
+import 'package:jumpup_app/core/auth/models/auth_token_model.dart';
+
+void main() {
+  group('auth models', () {
+    test('LoginRequest serializa correctamente', () {
+      final request = LoginRequest(email: 'ana@example.com', password: '123456');
+      final json = request.toJson();
+
+      expect(json['email'], 'ana@example.com');
+      expect(json['password'], '123456');
+    });
+
+    test('RegisterRequest serializa correctamente', () {
+      final request = RegisterRequest(
+        name: 'Ana',
+        email: 'ana@example.com',
+        password: '123456',
+      );
+      final json = request.toJson();
+
+      expect(json['name'], 'Ana');
+      expect(json['email'], 'ana@example.com');
+    });
+
+    test('ForgotPasswordRequest serializa correctamente', () {
+      final request = ForgotPasswordRequest(email: 'ana@example.com');
+      final json = request.toJson();
+
+      expect(json['email'], 'ana@example.com');
+    });
+
+    test('TwoFactorRequest serializa correctamente', () {
+      final request = TwoFactorRequest(code: '123456');
+      final json = request.toJson();
+
+      expect(json['code'], '123456');
+    });
+
+    test('AuthTokenModel deserializa correctamente', () {
+      final token = AuthTokenModel.fromJson({
+        'accessToken': 'abc',
+        'refreshToken': 'def',
+        'expiresAt': '2026-01-01T00:00:00.000Z',
+      });
+
+      expect(token.accessToken, 'abc');
+      expect(token.refreshToken, 'def');
+      expect(token.expiresAt, isNotNull);
+    });
+  });
+}
