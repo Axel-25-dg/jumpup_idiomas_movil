@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jumpup_app/core/router/app_router.dart';
 import 'package:jumpup_app/core/theme/app_theme.dart';
@@ -32,17 +33,19 @@ class JumpUpApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'JumpUp',
-      debugShowCheckedModeBanner: false,
+    return ProviderScope(
+      child: MaterialApp.router(
+        title: 'JumpUp',
+        debugShowCheckedModeBanner: false,
 
-      // ── Tema azul/celeste/blanco ─────────────────────────────────────────
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: ThemeMode.system, // respeta la preferencia del SO
+        // ── Tema azul/celeste/blanco ─────────────────────────────────────────
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: ThemeMode.system, // respeta la preferencia del SO
 
-      // ── go_router ────────────────────────────────────────────────────────
-      routerConfig: buildAppRouter(),
+        // ── go_router ────────────────────────────────────────────────────────
+        routerConfig: buildAppRouter(),
+      ),
     );
   }
 }

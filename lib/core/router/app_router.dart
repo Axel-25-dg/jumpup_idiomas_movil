@@ -7,6 +7,7 @@ import 'package:jumpup_app/features/auth/presentation/loading_screen.dart';
 import 'package:jumpup_app/features/auth/presentation/login_screen.dart';
 import 'package:jumpup_app/features/auth/presentation/register_screen.dart';
 import 'package:jumpup_app/features/auth/presentation/splash_screen.dart';
+import 'package:jumpup_app/features/teacher-admin/presentation/create_classroom_screen.dart';
 import 'package:jumpup_app/features/social_media/presentation/social_media_shell.dart';
 
 /// Rutas nombradas de la aplicación.
@@ -82,11 +83,7 @@ GoRouter buildAppRouter() {
       GoRoute(
         path: AppRoutes.teacherDashboard,
         name: 'teacher',
-        builder: (_, __) => const _PlaceholderScreen(
-          title: 'Panel Profesor',
-          subtitle: 'Módulo del Programador 3',
-          color: Colors.teal,
-        ),
+        builder: (_, __) => const CreateClassroomScreen(),
       ),
       GoRoute(
         path: AppRoutes.studentDashboard,
