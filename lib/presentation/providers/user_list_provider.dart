@@ -4,7 +4,7 @@ import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart
 
 class UserListNotifier extends StateNotifier<AsyncValue<List<User>>> {
   final TeacherRepository _repo;
-  
+
   UserListNotifier(this._repo) : super(const AsyncValue.loading()) {
     fetchUsers();
   }
@@ -21,6 +21,7 @@ class UserListNotifier extends StateNotifier<AsyncValue<List<User>>> {
   }
 }
 
-final userListProvider = StateNotifierProvider<UserListNotifier, AsyncValue<List<User>>>((ref) {
+final userListProvider =
+    StateNotifierProvider<UserListNotifier, AsyncValue<List<User>>>((ref) {
   return UserListNotifier(TeacherRepository());
 });

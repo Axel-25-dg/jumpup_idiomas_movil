@@ -55,11 +55,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Mi Perfil', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Mi Perfil',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
           if (profileAsync.hasValue && !profileAsync.isLoading)
             IconButton(
-              icon: Icon(_isEditing ? Icons.check : Icons.edit, color: Colors.white),
+              icon: Icon(_isEditing ? Icons.check : Icons.edit,
+                  color: Colors.white),
               onPressed: updateState.isLoading
                   ? null
                   : () {
@@ -73,8 +75,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         ],
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (_, __) => const Center(child: Text('Error al cargar perfil', style: TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (_, __) => const Center(
+            child: Text('Error al cargar perfil',
+                style: TextStyle(color: Colors.redAccent))),
         data: (profile) => SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
@@ -86,33 +91,49 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 children: [
                   CircleAvatar(
                     radius: 60,
-                    backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
-                    backgroundImage: profile.avatarUrl != null ? NetworkImage(profile.avatarUrl!) : null,
+                    backgroundColor:
+                        const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+                    backgroundImage: profile.avatarUrl != null
+                        ? NetworkImage(profile.avatarUrl!)
+                        : null,
                     child: profile.avatarUrl == null
                         ? Text(
-                            profile.username.isNotEmpty ? profile.username[0].toUpperCase() : '?',
-                            style: const TextStyle(fontSize: 48, color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
+                            profile.username.isNotEmpty
+                                ? profile.username[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                                fontSize: 48,
+                                color: Color(0xFF7C4DFF),
+                                fontWeight: FontWeight.bold),
                           )
                         : null,
                   ),
                   if (_isEditing)
                     Container(
                       padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(color: Color(0xFF7C4DFF), shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      decoration: const BoxDecoration(
+                          color: Color(0xFF7C4DFF), shape: BoxShape.circle),
+                      child: const Icon(Icons.camera_alt,
+                          color: Colors.white, size: 20),
                     ),
                 ],
               ),
               const SizedBox(height: 24),
 
               // ── Formulario ──────────────────────────────────────────
-              _buildField('Nombre de usuario', _usernameController, profile.username, Icons.person),
+              _buildField('Nombre de usuario', _usernameController,
+                  profile.username, Icons.person),
               const SizedBox(height: 16),
-              _buildField('Correo electrónico', TextEditingController(), profile.email, Icons.email, isReadOnly: true),
+              _buildField('Correo electrónico', TextEditingController(),
+                  profile.email, Icons.email,
+                  isReadOnly: true),
               const SizedBox(height: 16),
-              _buildField('Idioma nativo', _nativeLangController, profile.nativeLanguage, Icons.language),
+              _buildField('Idioma nativo', _nativeLangController,
+                  profile.nativeLanguage, Icons.language),
               const SizedBox(height: 16),
-              _buildField('Biografía', _bioController, profile.bio ?? 'Sin biografía', Icons.info_outline, maxLines: 3),
+              _buildField('Biografía', _bioController,
+                  profile.bio ?? 'Sin biografía', Icons.info_outline,
+                  maxLines: 3),
               const SizedBox(height: 24),
 
               // ── Idiomas aprendiendo ─────────────────────────────────
@@ -127,20 +148,28 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('Idiomas que aprendes', style: TextStyle(color: Colors.white54, fontSize: 13)),
+                    const Text('Idiomas que aprendes',
+                        style: TextStyle(color: Colors.white54, fontSize: 13)),
                     const SizedBox(height: 12),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: profile.learningLanguages.map((lang) {
                         return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                            color:
+                                const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.5)),
+                            border: Border.all(
+                                color: const Color(0xFF7C4DFF)
+                                    .withValues(alpha: 0.5)),
                           ),
-                          child: Text(lang, style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                          child: Text(lang,
+                              style: const TextStyle(
+                                  color: Color(0xFF7C4DFF),
+                                  fontWeight: FontWeight.bold)),
                         );
                       }).toList(),
                     ),
@@ -159,7 +188,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, String displayValue, IconData icon, {bool isReadOnly = false, int maxLines = 1}) {
+  Widget _buildField(String label, TextEditingController controller,
+      String displayValue, IconData icon,
+      {bool isReadOnly = false, int maxLines = 1}) {
     if (!_isEditing) {
       return Container(
         width: double.infinity,
@@ -170,7 +201,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           border: Border.all(color: Colors.white12),
         ),
         child: Row(
-          crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+          crossAxisAlignment: maxLines > 1
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
           children: [
             Icon(icon, color: Colors.white54, size: 20),
             const SizedBox(width: 16),
@@ -178,9 +211,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(label,
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 12)),
                   const SizedBox(height: 4),
-                  Text(displayValue, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                  Text(displayValue,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 15)),
                 ],
               ),
             ),
@@ -200,7 +237,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         prefixIcon: Icon(icon, color: Colors.white54),
         filled: true,
         fillColor: isReadOnly ? Colors.white12 : const Color(0xFF1A1828),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
@@ -209,5 +248,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  String _formatDate(DateTime date) =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 }

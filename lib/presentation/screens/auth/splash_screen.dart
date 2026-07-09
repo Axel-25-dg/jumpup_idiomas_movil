@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 
-class SplashScreen extends StatefulWidget {
+class SplashScreen extends ConsumerStatefulWidget {
   const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen>
+class _SplashScreenState extends ConsumerState<SplashScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _ctrl;
   late final Animation<double> _fadeAnim;
@@ -59,13 +61,12 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _navigate() async {
+  void _navigate() {
     if (!mounted) return;
-    final tokenExists = await hasValidToken();
-    if (!mounted) return;
-
-    if (tokenExists) {
-      context.go(AppRoutes.loading);
+    final authState = ref.read(authProvider);
+    if (authState.status == AuthStatus.authenticated &&
+        authState.user != null) {
+      context.go(routeForRole(authState.user!.role));
     } else {
       context.go(AppRoutes.login);
     }
@@ -73,6 +74,14 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (next.status == AuthStatus.authenticated &&
+          next.user != null &&
+          mounted) {
+        context.go(routeForRole(next.user!.role));
+      }
+    });
+
     return Scaffold(
       body: Container(
         width: double.infinity,
@@ -91,9 +100,7 @@ class _SplashScreenState extends State<SplashScreen>
                   child: _LogoWidget(),
                 ),
               ),
-
               const SizedBox(height: 32),
-
               SlideTransition(
                 position: _slideAnim,
                 child: FadeTransition(
@@ -121,9 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-
               const SizedBox(height: 16),
-
               FadeTransition(
                 opacity: _fadeAnim,
                 child: Text(
@@ -135,9 +140,7 @@ class _SplashScreenState extends State<SplashScreen>
                   ),
                 ),
               ),
-
               const SizedBox(height: 80),
-
               FadeTransition(
                 opacity: _fadeAnim,
                 child: SizedBox(

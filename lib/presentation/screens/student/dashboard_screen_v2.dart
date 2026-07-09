@@ -16,9 +16,13 @@ class DashboardScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
         title: profileAsync.when(
-          data: (profile) => Text('Hola, ${profile.username} 👋', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          loading: () => const Text('Cargando...', style: TextStyle(color: Colors.white)),
-          error: (_, __) => const Text('Dashboard', style: TextStyle(color: Colors.white)),
+          data: (profile) => Text('Hola, ${profile.username} 👋',
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+          loading: () =>
+              const Text('Cargando...', style: TextStyle(color: Colors.white)),
+          error: (_, __) =>
+              const Text('Dashboard', style: TextStyle(color: Colors.white)),
         ),
         actions: [
           IconButton(
@@ -30,13 +34,16 @@ class DashboardScreen extends ConsumerWidget {
         ],
       ),
       body: summaryAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (_, __) => const Center(child: Text('Error al cargar dashboard', style: TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (_, __) => const Center(
+            child: Text('Error al cargar dashboard',
+                style: TextStyle(color: Colors.redAccent))),
         data: (summary) => RefreshIndicator(
           color: const Color(0xFF7C4DFF),
           onRefresh: () async {
-            ref.refresh(dashboardSummaryProvider);
-            ref.refresh(userProfileProvider);
+            ref.invalidate(dashboardSummaryProvider);
+            ref.invalidate(userProfileProvider);
           },
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
@@ -95,17 +102,23 @@ class DashboardScreen extends ConsumerWidget {
                 const SizedBox(height: 24),
 
                 // ── Actividad Reciente ───────────────────────────────────
-                const Text('Actividad Reciente', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                const Text('Actividad Reciente',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18)),
                 const SizedBox(height: 12),
                 if (summary.recentActivities.isEmpty)
                   const Center(
                     child: Padding(
                       padding: EdgeInsets.all(20),
-                      child: Text('No hay actividad reciente', style: TextStyle(color: Colors.white54)),
+                      child: Text('No hay actividad reciente',
+                          style: TextStyle(color: Colors.white54)),
                     ),
                   )
                 else
-                  ...summary.recentActivities.map((act) => _ActivityTile(activity: act)),
+                  ...summary.recentActivities
+                      .map((act) => _ActivityTile(activity: act)),
               ],
             ),
           ),
@@ -124,19 +137,30 @@ class _DailyGoalCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFF7C4DFF), Color(0xFF448AFF)]),
+        gradient: const LinearGradient(
+            colors: [Color(0xFF7C4DFF), Color(0xFF448AFF)]),
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 5))],
+        boxShadow: [
+          BoxShadow(
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+              blurRadius: 15,
+              offset: const Offset(0, 5))
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Meta Diaria', style: TextStyle(color: Colors.white70, fontSize: 14)),
+          const Text('Meta Diaria',
+              style: TextStyle(color: Colors.white70, fontSize: 14)),
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${(progress * 100).toInt()}% Completado', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+              Text('${(progress * 100).toInt()}% Completado',
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20)),
               if (progress >= 1.0)
                 const Icon(Icons.check_circle, color: Colors.white)
             ],
@@ -158,7 +182,11 @@ class _DailyGoalCard extends StatelessWidget {
 }
 
 class _StatCard extends StatelessWidget {
-  const _StatCard({required this.title, required this.value, required this.icon, required this.color});
+  const _StatCard(
+      {required this.title,
+      required this.value,
+      required this.icon,
+      required this.color});
   final String title;
   final String value;
   final IconData icon;
@@ -178,12 +206,19 @@ class _StatCard extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(height: 12),
-          Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
-          Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+          Text(value,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20)),
+          Text(title,
+              style: const TextStyle(color: Colors.white54, fontSize: 12)),
         ],
       ),
     );
@@ -229,7 +264,8 @@ class _ActivityTile extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: color.withOpacity(0.15), shape: BoxShape.circle),
+            decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.15), shape: BoxShape.circle),
             child: Icon(icon, color: color, size: 20),
           ),
           const SizedBox(width: 16),
@@ -237,9 +273,12 @@ class _ActivityTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(activity.description, style: const TextStyle(color: Colors.white, fontSize: 14)),
+                Text(activity.description,
+                    style: const TextStyle(color: Colors.white, fontSize: 14)),
                 const SizedBox(height: 4),
-                Text(_formatTimeAgo(activity.createdAt), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                Text(_formatTimeAgo(activity.createdAt),
+                    style:
+                        const TextStyle(color: Colors.white38, fontSize: 11)),
               ],
             ),
           ),

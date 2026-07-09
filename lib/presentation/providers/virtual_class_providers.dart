@@ -6,11 +6,13 @@ final virtualClassServiceProvider = Provider<VirtualClassService>((ref) {
   return const VirtualClassService();
 });
 
-final virtualClassesProvider = FutureProvider<List<VirtualClassModel>>((ref) async {
+final virtualClassesProvider =
+    FutureProvider<List<VirtualClassModel>>((ref) async {
   return ref.watch(virtualClassServiceProvider).getVirtualClasses();
 });
 
-final certificatesProvider = FutureProvider<List<CertificateModel>>((ref) async {
+final certificatesProvider =
+    FutureProvider<List<CertificateModel>>((ref) async {
   return ref.watch(virtualClassServiceProvider).getCertificates();
 });
 
@@ -77,6 +79,7 @@ class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
 }
 
 final classroomEnrollNotifierProvider =
-    StateNotifierProvider<ClassroomEnrollNotifier, ClassroomEnrollStatus>((ref) {
+    StateNotifierProvider<ClassroomEnrollNotifier, ClassroomEnrollStatus>(
+        (ref) {
   return ClassroomEnrollNotifier(ref.watch(virtualClassServiceProvider));
 });

@@ -18,7 +18,8 @@ class SubscriptionsScreen extends ConsumerWidget {
         await launchUrl(Uri.parse(url), mode: LaunchMode.externalApplication);
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text('Error: $e')));
     }
   }
 
@@ -38,8 +39,10 @@ class SubscriptionsScreen extends ConsumerWidget {
             return Card(
               margin: const EdgeInsets.all(10),
               child: ListTile(
-                title: Text(p.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: Text('Beneficios: ${p.features}\nDuración: ${p.durationDays} días'),
+                title: Text(p.name,
+                    style: const TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: Text(
+                    'Beneficios: ${p.features}\nDuración: ${p.durationDays} días'),
                 trailing: ElevatedButton(
                   onPressed: () => _handlePayment(p.id, context),
                   child: Text('\$${p.price}'),

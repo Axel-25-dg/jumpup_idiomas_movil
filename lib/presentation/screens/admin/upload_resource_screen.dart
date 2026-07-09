@@ -8,7 +8,8 @@ class UploadResourceScreen extends ConsumerStatefulWidget {
   const UploadResourceScreen({super.key});
 
   @override
-  ConsumerState<UploadResourceScreen> createState() => _UploadResourceScreenState();
+  ConsumerState<UploadResourceScreen> createState() =>
+      _UploadResourceScreenState();
 }
 
 class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
@@ -38,7 +39,8 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
 
     ref.listen(resourceUploadProvider, (prev, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(next.error.toString())));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(next.error.toString())));
       } else if (next.hasValue && prev?.isLoading == true) {
         Navigator.pop(context); // Cerramos si fue exitoso
       }
@@ -50,9 +52,13 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            BrandedTextField(controller: titleCtrl, label: 'Título del material'),
+            BrandedTextField(
+                controller: titleCtrl, label: 'Título del material'),
             const SizedBox(height: 10),
-            BrandedTextField(controller: courseCtrl, label: 'ID del Curso', keyboardType: TextInputType.number),
+            BrandedTextField(
+                controller: courseCtrl,
+                label: 'ID del Curso',
+                keyboardType: TextInputType.number),
             const SizedBox(height: 10),
             BrandedTextField(controller: urlCtrl, label: 'URL del archivo'),
             const SizedBox(height: 20),
@@ -61,10 +67,10 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
               loading: state.isLoading,
               onPressed: () {
                 ref.read(resourceUploadProvider.notifier).create(
-                  title: titleCtrl.text,
-                  courseId: int.parse(courseCtrl.text),
-                  fileUrl: urlCtrl.text,
-                );
+                      title: titleCtrl.text,
+                      courseId: int.parse(courseCtrl.text),
+                      fileUrl: urlCtrl.text,
+                    );
               },
             ),
           ],

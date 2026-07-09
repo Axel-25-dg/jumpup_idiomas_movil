@@ -131,7 +131,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+                    const Icon(Icons.error_outline,
+                        color: Colors.redAccent, size: 48),
                     const SizedBox(height: 12),
                     Text(
                       'Error al cargar cursos',
@@ -139,7 +140,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
-                      onPressed: () => ref.refresh(coursesProvider),
+                      onPressed: () => ref.invalidate(coursesProvider),
                       child: const Text('Reintentar'),
                     ),
                   ],
@@ -185,7 +186,10 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
             children: [
               const Text(
                 'Filtrar por idioma',
-                style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Consumer(
@@ -193,7 +197,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                   final languagesAsync = ref.watch(languagesProvider);
                   return languagesAsync.when(
                     loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const Text('Error al cargar idiomas', style: TextStyle(color: Colors.redAccent)),
+                    error: (_, __) => const Text('Error al cargar idiomas',
+                        style: TextStyle(color: Colors.redAccent)),
                     data: (languages) => Wrap(
                       spacing: 8,
                       children: languages.map((lang) {
@@ -217,10 +222,12 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                 width: double.infinity,
                 child: TextButton(
                   onPressed: () {
-                    ref.read(courseFiltersProvider.notifier).state = const CourseFilters();
+                    ref.read(courseFiltersProvider.notifier).state =
+                        const CourseFilters();
                     Navigator.pop(context);
                   },
-                  child: const Text('Limpiar filtros', style: TextStyle(color: Colors.white54)),
+                  child: const Text('Limpiar filtros',
+                      style: TextStyle(color: Colors.white54)),
                 ),
               ),
             ],
@@ -232,9 +239,12 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
 
   Color _levelColor(String level) {
     const colors = {
-      'A1': Color(0xFF4CAF50), 'A2': Color(0xFF8BC34A),
-      'B1': Color(0xFF03A9F4), 'B2': Color(0xFF2196F3),
-      'C1': Color(0xFFFF9800), 'C2': Color(0xFFF44336),
+      'A1': Color(0xFF4CAF50),
+      'A2': Color(0xFF8BC34A),
+      'B1': Color(0xFF03A9F4),
+      'B2': Color(0xFF2196F3),
+      'C1': Color(0xFFFF9800),
+      'C2': Color(0xFFF44336),
     };
     return colors[level] ?? Colors.purple;
   }
@@ -296,7 +306,7 @@ class _CourseCard extends StatelessWidget {
           end: Alignment.bottomRight,
           colors: [
             const Color(0xFF1A1828),
-            const Color(0xFF1A1828).withOpacity(0.8),
+            const Color(0xFF1A1828).withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -319,7 +329,8 @@ class _CourseCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
                         color: _levelColor(course.difficultyLevel),
                         borderRadius: BorderRadius.circular(8),
@@ -336,7 +347,8 @@ class _CourseCard extends StatelessWidget {
                     const SizedBox(width: 8),
                     Text(
                       course.languageName,
-                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 13),
                     ),
                     const Spacer(),
                     Text(
@@ -372,11 +384,16 @@ class _CourseCard extends StatelessWidget {
                 // ── Stats ────────────────────────────────────────────────
                 Row(
                   children: [
-                    _StatChip(icon: Icons.layers_outlined, label: '${course.modulesCount} módulos'),
+                    _StatChip(
+                        icon: Icons.layers_outlined,
+                        label: '${course.modulesCount} módulos'),
                     const SizedBox(width: 12),
-                    _StatChip(icon: Icons.menu_book_outlined, label: '${course.lessonsCount} lecciones'),
+                    _StatChip(
+                        icon: Icons.menu_book_outlined,
+                        label: '${course.lessonsCount} lecciones'),
                     const Spacer(),
-                    const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 14),
+                    const Icon(Icons.arrow_forward_ios,
+                        color: Colors.white24, size: 14),
                   ],
                 ),
               ],
@@ -389,9 +406,12 @@ class _CourseCard extends StatelessWidget {
 
   Color _levelColor(String level) {
     const colors = {
-      'A1': Color(0xFF4CAF50), 'A2': Color(0xFF8BC34A),
-      'B1': Color(0xFF03A9F4), 'B2': Color(0xFF2196F3),
-      'C1': Color(0xFFFF9800), 'C2': Color(0xFFF44336),
+      'A1': Color(0xFF4CAF50),
+      'A2': Color(0xFF8BC34A),
+      'B1': Color(0xFF03A9F4),
+      'B2': Color(0xFF2196F3),
+      'C1': Color(0xFFFF9800),
+      'C2': Color(0xFFF44336),
     };
     return colors[level] ?? Colors.purple;
   }
@@ -408,7 +428,8 @@ class _StatChip extends StatelessWidget {
       children: [
         Icon(icon, color: const Color(0xFF7C4DFF), size: 16),
         const SizedBox(width: 4),
-        Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+        Text(label,
+            style: const TextStyle(color: Colors.white54, fontSize: 12)),
       ],
     );
   }

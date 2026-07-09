@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/domain/model/auth_models.dart';
-import 'package:jumpup_app/data/repository/auth/auth_service.dart';
-import 'package:jumpup_app/core/error/api_exception.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/core/utils/validators.dart';
@@ -10,24 +9,20 @@ import 'package:jumpup_app/presentation/widgets/auth_header.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
   final _passwordCtrl = TextEditingController();
 
   bool _obscurePassword = true;
   bool _rememberMe = false;
-  bool _loading = false;
-  String? _errorMessage;
-
-  final _authService = AuthService();
 
   @override
   void dispose() {
@@ -38,39 +33,24 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (!(_formKey.currentState?.validate() ?? false)) return;
-    setState(() {
-      _loading = true;
-      _errorMessage = null;
-    });
-
-    try {
-      await _authService.login(
-        LoginRequest(
-          email: _emailCtrl.text.trim(),
-          password: _passwordCtrl.text,
-        ),
-      );
-      if (!mounted) return;
-      context.go(AppRoutes.loading);
-    } on ApiException catch (e) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = e.message;
-          _loading = false;
-        });
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _errorMessage = 'Error inesperado. Intente de nuevo.';
-          _loading = false;
-        });
-      }
-    }
+    await ref.read(authProvider.notifier).login(
+          _emailCtrl.text.trim(),
+          _passwordCtrl.text,
+        );
   }
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final loading = authState.status == AuthStatus.loading;
+    final errorMessage = authState.errorMessage;
+
+    ref.listen<AuthState>(authProvider, (prev, next) {
+      if (next.status == AuthStatus.authenticated && next.user != null) {
+        context.go(routeForRole(next.user!.role));
+      }
+    });
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: SafeArea(
@@ -82,14 +62,11 @@ class _LoginScreenState extends State<LoginScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: 24),
-
                 const AuthHeader(
                   title: 'Bienvenido',
                   subtitle: 'Ingresa a tu cuenta para continuar',
                 ),
-
                 const SizedBox(height: 40),
-
                 BrandedTextField(
                   controller: _emailCtrl,
                   label: 'Correo electrónico',
@@ -100,9 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   validator: Validators.email,
                   autofillHints: const [AutofillHints.email],
                 ),
-
                 const SizedBox(height: 16),
-
                 BrandedTextField(
                   controller: _passwordCtrl,
                   label: 'Contraseña',
@@ -124,9 +99,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
-
                 const SizedBox(height: 12),
-
                 Row(
                   children: [
                     SizedBox(
@@ -163,26 +136,19 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
-                if (_errorMessage != null) ...[
-                  _ErrorBanner(message: _errorMessage!),
+                if (errorMessage != null) ...[
+                  _ErrorBanner(message: errorMessage),
                   const SizedBox(height: 16),
                 ],
-
                 PrimaryButton(
                   label: 'Ingresar',
-                  loading: _loading,
+                  loading: loading,
                   onPressed: _login,
                 ),
-
                 const SizedBox(height: 20),
-
                 _OrDivider(),
-
                 const SizedBox(height: 20),
-
                 _SocialButton(
                   icon: Icons.g_mobiledata_rounded,
                   label: 'Continuar con Google',
@@ -194,9 +160,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     );
                   },
                 ),
-
                 const SizedBox(height: 32),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -223,7 +187,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
               ],
             ),

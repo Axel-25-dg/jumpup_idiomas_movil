@@ -16,11 +16,11 @@ class Announcement {
   });
 
   factory Announcement.fromJson(Map<String, dynamic> json) => Announcement(
-    id: json['id'],
-    title: json['title'],
-    content: json['content'],
-    startDate: DateTime.parse(json['start_date']),
-    endDate: DateTime.parse(json['end_date']),
-    isActive: json['is_active'],
-  );
+        id: json['id'],
+        title: json['title'],
+        content: json['content'],
+        startDate: DateTime.parse(json['start_date']),
+        endDate: DateTime.parse(json['end_date']),
+        isActive: json['is_active'],
+      );
 }

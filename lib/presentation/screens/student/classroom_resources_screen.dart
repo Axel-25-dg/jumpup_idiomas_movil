@@ -8,29 +8,40 @@ class ClassroomResourcesScreen extends ConsumerWidget {
 
   FileType _parseFileType(String? typeStr) {
     switch (typeStr?.toLowerCase()) {
-      case 'pdf': return FileType.pdf;
-      case 'spreadsheet': return FileType.spreadsheet;
-      case 'audio': return FileType.audio;
-      default: return FileType.document;
+      case 'pdf':
+        return FileType.pdf;
+      case 'spreadsheet':
+        return FileType.spreadsheet;
+      case 'audio':
+        return FileType.audio;
+      default:
+        return FileType.document;
     }
   }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final resourcesAsync = ref.watch(teacherResourcesProvider(1)); // Demo classroomId = 1
+    final resourcesAsync =
+        ref.watch(teacherResourcesProvider(1)); // Demo classroomId = 1
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Recursos del Aula', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Recursos del Aula',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: resourcesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (err, _) => Center(
+            child: Text('Error: $err',
+                style: const TextStyle(color: Colors.redAccent))),
         data: (folders) {
           if (folders.isEmpty) {
-            return const Center(child: Text('No hay recursos disponibles', style: TextStyle(color: Colors.white54)));
+            return const Center(
+                child: Text('No hay recursos disponibles',
+                    style: TextStyle(color: Colors.white54)));
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -40,7 +51,7 @@ class ClassroomResourcesScreen extends ConsumerWidget {
               final folder = folders[i];
               final folderName = folder['folder']?.toString() ?? '';
               final filesList = folder['files'] as List<dynamic>? ?? [];
-              
+
               final List<_FileWidget> filesWidgets = filesList.map((f) {
                 return _FileWidget(
                   name: f['name']?.toString() ?? '',
@@ -89,10 +100,18 @@ class _FolderWidget extends StatelessWidget {
       child: Column(
         children: [
           ListTile(
-            leading: const Icon(Icons.folder, color: Color(0xFF7C4DFF), size: 32),
-            title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-            subtitle: Text('$fileCount archivos', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-            trailing: Icon(isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down, color: Colors.white54),
+            leading:
+                const Icon(Icons.folder, color: Color(0xFF7C4DFF), size: 32),
+            title: Text(title,
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
+            subtitle: Text('$fileCount archivos',
+                style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            trailing: Icon(
+                isExpanded
+                    ? Icons.keyboard_arrow_up
+                    : Icons.keyboard_arrow_down,
+                color: Colors.white54),
           ),
           if (isExpanded && files.isNotEmpty) ...[
             const Divider(color: Colors.white12, height: 1),
@@ -149,11 +168,15 @@ class _FileWidget extends StatelessWidget {
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       leading: Container(
         padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(color: _color.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+        decoration: BoxDecoration(
+            color: _color.withValues(alpha: 0.15),
+            borderRadius: BorderRadius.circular(8)),
         child: Icon(_icon, color: _color, size: 20),
       ),
-      title: Text(name, style: const TextStyle(color: Colors.white, fontSize: 14)),
-      subtitle: Text(size, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      title:
+          Text(name, style: const TextStyle(color: Colors.white, fontSize: 14)),
+      subtitle: Text(size,
+          style: const TextStyle(color: Colors.white38, fontSize: 11)),
       trailing: IconButton(
         icon: const Icon(Icons.download, color: Colors.white54),
         onPressed: () {

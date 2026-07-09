@@ -32,13 +32,20 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(controller: _titleCtrl, decoration: const InputDecoration(labelText: 'Título')),
-            TextField(controller: _descCtrl, decoration: const InputDecoration(labelText: 'Descripción')),
+            TextField(
+                controller: _titleCtrl,
+                decoration: const InputDecoration(labelText: 'Título')),
+            TextField(
+                controller: _descCtrl,
+                decoration: const InputDecoration(labelText: 'Descripción')),
             const SizedBox(height: 16),
             languagesAsync.when(
               data: (langs) => DropdownButtonFormField<int>(
                 hint: const Text("Selecciona Idioma"),
-                items: langs.map((l) => DropdownMenuItem(value: l.id, child: Text(l.name))).toList(),
+                items: langs
+                    .map((l) =>
+                        DropdownMenuItem(value: l.id, child: Text(l.name)))
+                    .toList(),
                 onChanged: (val) => setState(() => _selectedLanguageId = val),
               ),
               loading: () => const LinearProgressIndicator(),
@@ -46,8 +53,10 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: (_isSaving || _selectedLanguageId == null || _titleCtrl.text.isEmpty)
-                  ? null 
+              onPressed: (_isSaving ||
+                      _selectedLanguageId == null ||
+                      _titleCtrl.text.isEmpty)
+                  ? null
                   : () async {
                       setState(() => _isSaving = true);
                       try {
@@ -60,12 +69,16 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                         if (mounted) Navigator.pop(context);
                       } catch (e) {
                         setState(() => _isSaving = false);
-                        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(SnackBar(content: Text('Error: $e')));
                       }
                     },
-              child: _isSaving 
-                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
-                : const Text('Guardar Curso'),
+              child: _isSaving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Text('Guardar Curso'),
             )
           ],
         ),

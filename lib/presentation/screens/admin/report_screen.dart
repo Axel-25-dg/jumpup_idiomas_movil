@@ -91,7 +91,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.inbox_outlined, size: 64, color: colors.outline),
+                        Icon(Icons.inbox_outlined,
+                            size: 64, color: colors.outline),
                         const SizedBox(height: 12),
                         Text(
                           _statusFilter != 'TODOS'
@@ -108,14 +109,16 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                 }
 
                 return RefreshIndicator(
-                  onRefresh: () => ref.read(reportsProvider.notifier).fetchReports(),
+                  onRefresh: () =>
+                      ref.read(reportsProvider.notifier).fetchReports(),
                   child: ListView.builder(
                     padding: const EdgeInsets.only(top: 8, bottom: 16),
                     itemCount: filtered.length,
                     itemBuilder: (ctx, i) {
                       final r = filtered[i];
                       return Card(
-                        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -132,7 +135,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                       vertical: 4,
                                     ),
                                     decoration: BoxDecoration(
-                                      color: _getStatusColor(r.status).withOpacity(0.12),
+                                      color: _getStatusColor(r.status)
+                                          .withValues(alpha: 0.12),
                                       borderRadius: BorderRadius.circular(8),
                                     ),
                                     child: Text(
@@ -200,7 +204,10 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               const SizedBox(height: 6),
                               Text(
                                 '📅 ${r.createdAt.toLocal().toString().split('.')[0]}',
-                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(
                                       color: colors.outline,
                                     ),
                               ),
@@ -238,7 +245,7 @@ class _StatusChip extends StatelessWidget {
     return FilterChip(
       label: Text(label),
       selected: selected,
-      selectedColor: color.withOpacity(0.2),
+      selectedColor: color.withValues(alpha: 0.2),
       onSelected: (_) => onTap(),
     );
   }

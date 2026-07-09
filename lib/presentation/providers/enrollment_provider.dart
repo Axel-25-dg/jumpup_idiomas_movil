@@ -5,8 +5,10 @@ import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart
 
 /// Provider para la lista de alumnos matriculados en un aula específica.
 /// Usamos [family] porque depende del ID del aula ([classroomId]).
-/// 
-final enrollmentsProvider = FutureProvider.family<List<ClassroomEnrollment>, int>((ref, classroomId) async {
+///
+final enrollmentsProvider =
+    FutureProvider.family<List<ClassroomEnrollment>, int>(
+        (ref, classroomId) async {
   return ref.read(teacherRepositoryProvider).fetchEnrollments(classroomId);
 });
 
@@ -21,6 +23,7 @@ class EnrollmentNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final enrollmentNotifierProvider = StateNotifierProvider<EnrollmentNotifier, AsyncValue<void>>((ref) {
+final enrollmentNotifierProvider =
+    StateNotifierProvider<EnrollmentNotifier, AsyncValue<void>>((ref) {
   return EnrollmentNotifier(ref.read(teacherRepositoryProvider));
 });

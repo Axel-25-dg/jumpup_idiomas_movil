@@ -6,13 +6,15 @@ final progressServiceProvider = Provider<ProgressService>((ref) {
   return const ProgressService();
 });
 
-final progressSummaryProvider = FutureProvider<ProgressSummaryModel>((ref) async {
+final progressSummaryProvider =
+    FutureProvider<ProgressSummaryModel>((ref) async {
   final service = ref.watch(progressServiceProvider);
   return service.getProgressSummary();
 });
 
 final userProgressProvider =
-    FutureProvider.family<List<UserProgressModel>, String?>((ref, status) async {
+    FutureProvider.family<List<UserProgressModel>, String?>(
+        (ref, status) async {
   final service = ref.watch(progressServiceProvider);
   return service.getUserProgress(status: status);
 });
@@ -37,7 +39,8 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
 }
 
 final progressNotifierProvider =
-    StateNotifierProvider<ProgressNotifier, AsyncValue<UserProgressModel?>>((ref) {
+    StateNotifierProvider<ProgressNotifier, AsyncValue<UserProgressModel?>>(
+        (ref) {
   return ProgressNotifier(ref.watch(progressServiceProvider));
 });
 
@@ -46,12 +49,14 @@ final userStatsProvider = FutureProvider<UserStatsModel>((ref) async {
   return service.getUserStats();
 });
 
-final achievementsProvider = FutureProvider<List<AchievementModel>>((ref) async {
+final achievementsProvider =
+    FutureProvider<List<AchievementModel>>((ref) async {
   final service = ref.watch(progressServiceProvider);
   return service.getAchievements();
 });
 
-final myAchievementsProvider = FutureProvider<List<UserAchievementModel>>((ref) async {
+final myAchievementsProvider =
+    FutureProvider<List<UserAchievementModel>>((ref) async {
   final service = ref.watch(progressServiceProvider);
   return service.getMyAchievements();
 });

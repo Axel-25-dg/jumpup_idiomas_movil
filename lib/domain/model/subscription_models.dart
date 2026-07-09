@@ -41,7 +41,8 @@ class SubscriptionModel {
       description: json['description']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       durationDays: json['duration_days'] as int? ?? 30,
-      features: (json['features'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      features:
+          (json['features'] as List?)?.map((e) => e.toString()).toList() ?? [],
       isActive: json['is_active'] as bool? ?? true,
     );
   }
@@ -80,9 +81,12 @@ class UserSubscriptionModel {
   factory UserSubscriptionModel.fromJson(Map<String, dynamic> json) {
     return UserSubscriptionModel(
       id: json['id'] as int,
-      subscription: SubscriptionModel.fromJson(json['subscription'] as Map<String, dynamic>),
-      startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ?? DateTime.now(),
-      endDate: DateTime.tryParse(json['end_date']?.toString() ?? '') ?? DateTime.now(),
+      subscription: SubscriptionModel.fromJson(
+          json['subscription'] as Map<String, dynamic>),
+      startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ??
+          DateTime.now(),
+      endDate: DateTime.tryParse(json['end_date']?.toString() ?? '') ??
+          DateTime.now(),
       isActive: json['is_active'] as bool? ?? false,
     );
   }
@@ -125,7 +129,8 @@ class PaymentModel {
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status']?.toString() ?? 'pending',
       method: json['method']?.toString() ?? '',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       transactionId: json['transaction_id']?.toString(),
     );
   }
@@ -160,10 +165,12 @@ class OrderModel {
   factory OrderModel.fromJson(Map<String, dynamic> json) {
     return OrderModel(
       id: json['id'] as int,
-      subscription: SubscriptionModel.fromJson(json['subscription'] as Map<String, dynamic>),
+      subscription: SubscriptionModel.fromJson(
+          json['subscription'] as Map<String, dynamic>),
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status']?.toString() ?? 'pending',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
     );
   }
 }

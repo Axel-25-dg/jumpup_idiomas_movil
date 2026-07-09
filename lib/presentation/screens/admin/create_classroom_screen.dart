@@ -7,7 +7,8 @@ class CreateClassroomScreen extends ConsumerStatefulWidget {
   const CreateClassroomScreen({super.key});
 
   @override
-  ConsumerState<CreateClassroomScreen> createState() => _CreateClassroomScreenState();
+  ConsumerState<CreateClassroomScreen> createState() =>
+      _CreateClassroomScreenState();
 }
 
 class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
@@ -33,10 +34,10 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
 
   Future<void> _handleCreate() async {
     await ref.read(classroomNotifierProvider.notifier).create(
-      _nameController.text,
-      _descController.text,
-      int.parse(_courseController.text),
-    );
+          _nameController.text,
+          _descController.text,
+          int.parse(_courseController.text),
+        );
   }
 
   @override
@@ -45,14 +46,17 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
 
     ref.listen(classroomNotifierProvider, (previous, next) {
       if (next.hasError) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
         return;
       }
 
       final classroom = next.valueOrNull;
       if (classroom != null && previous?.isLoading == true) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Aula creada con éxito. Código: ${classroom.accessCode}')),
+          SnackBar(
+              content: Text(
+                  'Aula creada con éxito. Código: ${classroom.accessCode}')),
         );
         Navigator.pop(context);
       }

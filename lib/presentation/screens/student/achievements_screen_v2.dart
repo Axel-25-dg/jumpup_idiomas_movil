@@ -15,20 +15,29 @@ class AchievementsScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Logros 🏆', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Logros 🏆',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: allAchievementsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
         error: (_, __) => const Center(
-          child: Text('Error al cargar logros', style: TextStyle(color: Colors.redAccent)),
+          child: Text('Error al cargar logros',
+              style: TextStyle(color: Colors.redAccent)),
         ),
         data: (allAchievements) => myAchievementsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+          loading: () => const Center(
+              child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
           error: (_, __) => const SizedBox.shrink(),
           data: (myAchievements) {
-            final unlockedIds = myAchievements.map((a) => a.achievement.id).toSet();
-            final unlocked = allAchievements.where((a) => unlockedIds.contains(a.id)).toList();
-            final locked = allAchievements.where((a) => !unlockedIds.contains(a.id)).toList();
+            final unlockedIds =
+                myAchievements.map((a) => a.achievement.id).toSet();
+            final unlocked = allAchievements
+                .where((a) => unlockedIds.contains(a.id))
+                .toList();
+            final locked = allAchievements
+                .where((a) => !unlockedIds.contains(a.id))
+                .toList();
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -41,12 +50,14 @@ class AchievementsScreen extends ConsumerWidget {
                     decoration: BoxDecoration(
                       gradient: LinearGradient(
                         colors: [
-                          const Color(0xFFFFD700).withOpacity(0.2),
-                          const Color(0xFFFFD700).withOpacity(0.05),
+                          const Color(0xFFFFD700).withValues(alpha: 0.2),
+                          const Color(0xFFFFD700).withValues(alpha: 0.05),
                         ],
                       ),
                       borderRadius: BorderRadius.circular(14),
-                      border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.3)),
+                      border: Border.all(
+                          color:
+                              const Color(0xFFFFD700).withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
@@ -57,11 +68,15 @@ class AchievementsScreen extends ConsumerWidget {
                           children: [
                             Text(
                               '${unlocked.length} de ${allAchievements.length} logros',
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+                              style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18),
                             ),
                             Text(
                               '${locked.length} logros por desbloquear',
-                              style: const TextStyle(color: Colors.white54, fontSize: 13),
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 13),
                             ),
                           ],
                         ),
@@ -72,7 +87,11 @@ class AchievementsScreen extends ConsumerWidget {
 
                   // ── Desbloqueados ─────────────────────────────────────
                   if (unlocked.isNotEmpty) ...[
-                    const Text('Desbloqueados', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('Desbloqueados',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
                     const SizedBox(height: 12),
                     ...unlocked.map((a) => _AchievementCard(
                           achievement: a,
@@ -86,7 +105,11 @@ class AchievementsScreen extends ConsumerWidget {
 
                   // ── Bloqueados ────────────────────────────────────────
                   if (locked.isNotEmpty) ...[
-                    const Text('Por desbloquear', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                    const Text('Por desbloquear',
+                        style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16)),
                     const SizedBox(height: 12),
                     ...locked.map((a) => _AchievementCard(
                           achievement: a,
@@ -121,12 +144,12 @@ class _AchievementCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isUnlocked
-            ? const Color(0xFFFFD700).withOpacity(0.05)
+            ? const Color(0xFFFFD700).withValues(alpha: 0.05)
             : const Color(0xFF1A1828),
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isUnlocked
-              ? const Color(0xFFFFD700).withOpacity(0.4)
+              ? const Color(0xFFFFD700).withValues(alpha: 0.4)
               : Colors.white12,
         ),
       ),
@@ -138,7 +161,7 @@ class _AchievementCard extends StatelessWidget {
             height: 52,
             decoration: BoxDecoration(
               color: isUnlocked
-                  ? const Color(0xFFFFD700).withOpacity(0.15)
+                  ? const Color(0xFFFFD700).withValues(alpha: 0.15)
                   : Colors.white12,
               borderRadius: BorderRadius.circular(12),
             ),
@@ -173,7 +196,8 @@ class _AchievementCard extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     'Desbloqueado el ${_formatDate(unlockedAt!)}',
-                    style: const TextStyle(color: Color(0xFFFFD700), fontSize: 11),
+                    style:
+                        const TextStyle(color: Color(0xFFFFD700), fontSize: 11),
                   ),
                 ],
               ],
@@ -185,7 +209,7 @@ class _AchievementCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
             decoration: BoxDecoration(
               color: isUnlocked
-                  ? const Color(0xFFFFD700).withOpacity(0.2)
+                  ? const Color(0xFFFFD700).withValues(alpha: 0.2)
                   : Colors.white12,
               borderRadius: BorderRadius.circular(8),
             ),

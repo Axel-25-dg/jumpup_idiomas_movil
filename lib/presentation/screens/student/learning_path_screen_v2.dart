@@ -7,12 +7,33 @@ class LearningPathScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Nodos de ejemplo
     final nodes = [
-      _PathNode(id: 1, title: 'Conceptos Básicos', status: NodeStatus.completed, icon: Icons.star),
-      _PathNode(id: 2, title: 'Saludos', status: NodeStatus.completed, icon: Icons.waving_hand),
-      _PathNode(id: 3, title: 'Presentaciones', status: NodeStatus.unlocked, icon: Icons.person),
-      _PathNode(id: 4, title: 'Comida', status: NodeStatus.locked, icon: Icons.restaurant),
-      _PathNode(id: 5, title: 'Viajes', status: NodeStatus.locked, icon: Icons.flight),
-      _PathNode(id: 6, title: 'Trabajo', status: NodeStatus.locked, icon: Icons.work),
+      _PathNode(
+          id: 1,
+          title: 'Conceptos Básicos',
+          status: NodeStatus.completed,
+          icon: Icons.star),
+      _PathNode(
+          id: 2,
+          title: 'Saludos',
+          status: NodeStatus.completed,
+          icon: Icons.waving_hand),
+      _PathNode(
+          id: 3,
+          title: 'Presentaciones',
+          status: NodeStatus.unlocked,
+          icon: Icons.person),
+      _PathNode(
+          id: 4,
+          title: 'Comida',
+          status: NodeStatus.locked,
+          icon: Icons.restaurant),
+      _PathNode(
+          id: 5,
+          title: 'Viajes',
+          status: NodeStatus.locked,
+          icon: Icons.flight),
+      _PathNode(
+          id: 6, title: 'Trabajo', status: NodeStatus.locked, icon: Icons.work),
     ];
 
     return Scaffold(
@@ -23,9 +44,12 @@ class LearningPathScreen extends StatelessWidget {
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image.network('https://flagcdn.com/w40/gb.png', width: 28, height: 20),
+            Image.network('https://flagcdn.com/w40/gb.png',
+                width: 28, height: 20),
             const SizedBox(width: 12),
-            const Text('Inglés', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            const Text('Inglés',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -61,7 +85,11 @@ class LearningPathScreen extends StatelessWidget {
 enum NodeStatus { locked, unlocked, completed }
 
 class _PathNode {
-  _PathNode({required this.id, required this.title, required this.status, required this.icon});
+  _PathNode(
+      {required this.id,
+      required this.title,
+      required this.status,
+      required this.icon});
   final int id;
   final String title;
   final NodeStatus status;
@@ -112,7 +140,8 @@ class _NodeWidget extends StatelessWidget {
               shape: BoxShape.circle,
               border: node.status == NodeStatus.locked
                   ? Border.all(color: Colors.white24, width: 3)
-                  : Border.all(color: Colors.white.withOpacity(0.5), width: 3),
+                  : Border.all(
+                      color: Colors.white.withValues(alpha: 0.5), width: 3),
               boxShadow: [
                 BoxShadow(color: getShadowColor(), offset: const Offset(0, 6)),
               ],
@@ -120,7 +149,9 @@ class _NodeWidget extends StatelessWidget {
             child: Center(
               child: Icon(
                 node.status == NodeStatus.locked ? Icons.lock : node.icon,
-                color: node.status == NodeStatus.locked ? Colors.white38 : Colors.white,
+                color: node.status == NodeStatus.locked
+                    ? Colors.white38
+                    : Colors.white,
                 size: 36,
               ),
             ),
@@ -130,7 +161,9 @@ class _NodeWidget extends StatelessWidget {
         Text(
           node.title,
           style: TextStyle(
-            color: node.status == NodeStatus.locked ? Colors.white38 : Colors.white,
+            color: node.status == NodeStatus.locked
+                ? Colors.white38
+                : Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,
           ),
@@ -180,10 +213,12 @@ class _LinePainter extends CustomPainter {
     final path = Path();
     if (isEven) {
       path.moveTo(size.width * 0.2, 0);
-      path.quadraticBezierTo(size.width * 0.8, size.height * 0.5, size.width * 0.2, size.height);
+      path.quadraticBezierTo(
+          size.width * 0.8, size.height * 0.5, size.width * 0.2, size.height);
     } else {
       path.moveTo(size.width * 0.8, 0);
-      path.quadraticBezierTo(size.width * 0.2, size.height * 0.5, size.width * 0.8, size.height);
+      path.quadraticBezierTo(
+          size.width * 0.2, size.height * 0.5, size.width * 0.8, size.height);
     }
 
     canvas.drawPath(path, paint);

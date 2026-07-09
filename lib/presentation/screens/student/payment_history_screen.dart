@@ -17,7 +17,9 @@ class PaymentHistoryScreen extends ConsumerWidget {
         backgroundColor: const Color(0xFF0F0E1A),
         appBar: AppBar(
           backgroundColor: const Color(0xFF1A1828),
-          title: const Text('Historial de Pagos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          title: const Text('Historial de Pagos',
+              style:
+                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           bottom: const TabBar(
             labelColor: Color(0xFF7C4DFF),
             unselectedLabelColor: Colors.white54,
@@ -32,8 +34,11 @@ class PaymentHistoryScreen extends ConsumerWidget {
           children: [
             // ── Tab Pagos ────────────────────────────────────────────
             paymentsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              error: (_, __) => const Center(child: Text('Error al cargar pagos', style: TextStyle(color: Colors.redAccent))),
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              error: (_, __) => const Center(
+                  child: Text('Error al cargar pagos',
+                      style: TextStyle(color: Colors.redAccent))),
               data: (payments) => payments.isEmpty
                   ? const _EmptyState(message: 'No tienes pagos registrados')
                   : ListView.builder(
@@ -48,10 +53,15 @@ class PaymentHistoryScreen extends ConsumerWidget {
               builder: (context, ref, _) {
                 final ordersAsync = ref.watch(ordersProvider);
                 return ordersAsync.when(
-                  loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-                  error: (_, __) => const Center(child: Text('Error al cargar órdenes', style: TextStyle(color: Colors.redAccent))),
+                  loading: () => const Center(
+                      child:
+                          CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  error: (_, __) => const Center(
+                      child: Text('Error al cargar órdenes',
+                          style: TextStyle(color: Colors.redAccent))),
                   data: (orders) => orders.isEmpty
-                      ? const _EmptyState(message: 'No tienes órdenes registradas')
+                      ? const _EmptyState(
+                          message: 'No tienes órdenes registradas')
                       : ListView.builder(
                           padding: const EdgeInsets.all(16),
                           itemCount: orders.length,
@@ -73,7 +83,8 @@ class _PaymentTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final statusColor = payment.isCompleted ? const Color(0xFF4CAF50) : const Color(0xFFFF9800);
+    final statusColor =
+        payment.isCompleted ? const Color(0xFF4CAF50) : const Color(0xFFFF9800);
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
@@ -86,7 +97,9 @@ class _PaymentTile extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(10)),
+            decoration: BoxDecoration(
+                color: statusColor.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(10)),
             child: Icon(Icons.receipt_long, color: statusColor, size: 22),
           ),
           const SizedBox(width: 14),
@@ -94,10 +107,18 @@ class _PaymentTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('\$${payment.amount.toStringAsFixed(2)}', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                Text(payment.method.replaceAll('_', ' ').toUpperCase(), style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                Text('\$${payment.amount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                Text(payment.method.replaceAll('_', ' ').toUpperCase(),
+                    style:
+                        const TextStyle(color: Colors.white54, fontSize: 12)),
                 if (payment.transactionId != null)
-                  Text(payment.transactionId!, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                  Text(payment.transactionId!,
+                      style:
+                          const TextStyle(color: Colors.white38, fontSize: 11)),
               ],
             ),
           ),
@@ -106,11 +127,18 @@ class _PaymentTile extends StatelessWidget {
             children: [
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(color: statusColor.withOpacity(0.15), borderRadius: BorderRadius.circular(6)),
-                child: Text(payment.statusLabel, style: TextStyle(color: statusColor, fontSize: 11, fontWeight: FontWeight.bold)),
+                decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(6)),
+                child: Text(payment.statusLabel,
+                    style: TextStyle(
+                        color: statusColor,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold)),
               ),
               const SizedBox(height: 4),
-              Text(_formatDate(payment.createdAt), style: const TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(_formatDate(payment.createdAt),
+                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
             ],
           ),
         ],
@@ -141,12 +169,17 @@ class _OrderTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order.subscription.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                Text('\$${order.totalAmount.toStringAsFixed(2)}', style: const TextStyle(color: Color(0xFF7C4DFF), fontSize: 14)),
+                Text(order.subscription.name,
+                    style: const TextStyle(
+                        color: Colors.white, fontWeight: FontWeight.bold)),
+                Text('\$${order.totalAmount.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                        color: Color(0xFF7C4DFF), fontSize: 14)),
               ],
             ),
           ),
-          Text(_formatDate(order.createdAt), style: const TextStyle(color: Colors.white38, fontSize: 12)),
+          Text(_formatDate(order.createdAt),
+              style: const TextStyle(color: Colors.white38, fontSize: 12)),
         ],
       ),
     );
@@ -165,7 +198,8 @@ class _EmptyState extends StatelessWidget {
         children: [
           const Icon(Icons.receipt_outlined, color: Colors.white24, size: 60),
           const SizedBox(height: 12),
-          Text(message, style: const TextStyle(color: Colors.white54, fontSize: 15)),
+          Text(message,
+              style: const TextStyle(color: Colors.white54, fontSize: 15)),
         ],
       ),
     );

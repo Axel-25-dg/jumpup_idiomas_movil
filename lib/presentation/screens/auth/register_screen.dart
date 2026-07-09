@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
       if (!mounted) return;
-      context.go(AppRoutes.loading);
+      context.go(AppRoutes.login);
     } on ApiException catch (e) {
       if (mounted)
         setState(() {
@@ -111,9 +111,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   title: 'Crear cuenta',
                   subtitle: 'Únete a la comunidad JumpUp',
                 ),
-
                 const SizedBox(height: 32),
-
                 Row(
                   children: [
                     Expanded(
@@ -142,9 +140,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 16),
-
                 BrandedTextField(
                   controller: _usernameCtrl,
                   label: 'Nombre de usuario',
@@ -154,9 +150,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: Validators.username,
                   autofillHints: const [AutofillHints.username],
                 ),
-
                 const SizedBox(height: 16),
-
                 BrandedTextField(
                   controller: _emailCtrl,
                   label: 'Correo electrónico',
@@ -167,9 +161,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   validator: Validators.email,
                   autofillHints: const [AutofillHints.email],
                 ),
-
                 const SizedBox(height: 16),
-
                 BrandedTextField(
                   controller: _passwordCtrl,
                   label: 'Contraseña',
@@ -189,9 +181,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         setState(() => _obscurePassword = !_obscurePassword),
                   ),
                 ),
-
                 const SizedBox(height: 16),
-
                 BrandedTextField(
                   controller: _confirmPasswordCtrl,
                   label: 'Confirmar contraseña',
@@ -218,9 +208,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         setState(() => _obscureConfirm = !_obscureConfirm),
                   ),
                 ),
-
                 const SizedBox(height: 20),
-
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -263,9 +251,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
-
                 const SizedBox(height: 24),
-
                 if (_errorMessage != null) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(
@@ -293,16 +279,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   const SizedBox(height: 16),
                 ],
-
                 PrimaryButton(
                   label: 'Crear cuenta',
                   loading: _loading,
                   onPressed: _register,
                   icon: Icons.person_add_outlined,
                 ),
-
                 const SizedBox(height: 24),
-
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

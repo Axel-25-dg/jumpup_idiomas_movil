@@ -16,11 +16,11 @@ class Report {
   });
 
   factory Report.fromJson(Map<String, dynamic> json) => Report(
-    id: json['id'],
-    user: json['user'],
-    reportType: json['report_type'],
-    description: json['description'],
-    status: json['status'], // 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'
-    createdAt: DateTime.parse(json['created_at']),
-  );
+        id: json['id'],
+        user: json['user'],
+        reportType: json['report_type'],
+        description: json['description'],
+        status: json['status'], // 'OPEN', 'IN_PROGRESS', 'RESOLVED', 'REJECTED'
+        createdAt: DateTime.parse(json['created_at']),
+      );
 }

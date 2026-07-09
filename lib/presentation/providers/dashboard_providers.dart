@@ -10,12 +10,15 @@ final userProfileProvider = FutureProvider<UserProfileModel>((ref) async {
   return ref.watch(dashboardServiceProvider).getProfile();
 });
 
-final dashboardSummaryProvider = FutureProvider<DashboardSummaryModel>((ref) async {
+final dashboardSummaryProvider =
+    FutureProvider<DashboardSummaryModel>((ref) async {
   return ref.watch(dashboardServiceProvider).getDashboardSummary();
 });
 
-class ProfileUpdateNotifier extends StateNotifier<AsyncValue<UserProfileModel?>> {
-  ProfileUpdateNotifier(this._service, this._ref) : super(const AsyncValue.data(null));
+class ProfileUpdateNotifier
+    extends StateNotifier<AsyncValue<UserProfileModel?>> {
+  ProfileUpdateNotifier(this._service, this._ref)
+      : super(const AsyncValue.data(null));
 
   final DashboardService _service;
   final Ref _ref;
@@ -31,6 +34,7 @@ class ProfileUpdateNotifier extends StateNotifier<AsyncValue<UserProfileModel?>>
 }
 
 final profileUpdateNotifierProvider =
-    StateNotifierProvider<ProfileUpdateNotifier, AsyncValue<UserProfileModel?>>((ref) {
+    StateNotifierProvider<ProfileUpdateNotifier, AsyncValue<UserProfileModel?>>(
+        (ref) {
   return ProfileUpdateNotifier(ref.watch(dashboardServiceProvider), ref);
 });

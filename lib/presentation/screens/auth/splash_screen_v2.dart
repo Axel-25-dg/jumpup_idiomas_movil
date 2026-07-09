@@ -62,17 +62,9 @@ class _SplashScreenState extends State<SplashScreen>
     super.dispose();
   }
 
-  Future<void> _navigate() async {
+  void _navigate() {
     if (!mounted) return;
-    final tokenExists = await hasValidToken();
-    if (!mounted) return;
-
-    if (tokenExists) {
-      // Tiene token → va a Loading para verificar rol
-      context.go(AppRoutes.loading);
-    } else {
-      context.go(AppRoutes.login);
-    }
+    context.go(AppRoutes.login);
   }
 
   @override

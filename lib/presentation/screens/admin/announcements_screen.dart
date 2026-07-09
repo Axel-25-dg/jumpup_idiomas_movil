@@ -37,11 +37,13 @@ class AnnouncementsScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.campaign_outlined, size: 64, color: colors.outline),
+                  Icon(Icons.campaign_outlined,
+                      size: 64, color: colors.outline),
                   const SizedBox(height: 12),
                   Text(
                     'No hay anuncios disponibles.',
-                    style: theme.textTheme.bodyLarge?.copyWith(color: colors.outline),
+                    style: theme.textTheme.bodyLarge
+                        ?.copyWith(color: colors.outline),
                   ),
                   const SizedBox(height: 8),
                   FilledButton.tonalIcon(
@@ -62,7 +64,8 @@ class AnnouncementsScreen extends ConsumerWidget {
                 final item = announcements[index];
                 final isExpired = item.endDate.isBefore(DateTime.now());
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                     side: isExpired
@@ -86,7 +89,8 @@ class AnnouncementsScreen extends ConsumerWidget {
                               ),
                               child: Icon(
                                 Icons.campaign,
-                                color: isExpired ? colors.outline : colors.primary,
+                                color:
+                                    isExpired ? colors.outline : colors.primary,
                                 size: 20,
                               ),
                             ),
@@ -121,7 +125,7 @@ class AnnouncementsScreen extends ConsumerWidget {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.1),
+                                  color: Colors.green.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: Text(
@@ -200,7 +204,8 @@ class AnnouncementsScreen extends ConsumerWidget {
                   onPressed: () async {
                     final picked = await showDateRangePicker(
                       context: ctx,
-                      firstDate: DateTime.now().subtract(const Duration(days: 7)),
+                      firstDate:
+                          DateTime.now().subtract(const Duration(days: 7)),
                       lastDate: DateTime.now().add(const Duration(days: 365)),
                     );
                     if (picked != null) {
@@ -217,14 +222,18 @@ class AnnouncementsScreen extends ConsumerWidget {
               child: const Text('Cancelar'),
             ),
             FilledButton(
-              onPressed: titleCtrl.text.isEmpty || contentCtrl.text.isEmpty || dateRange == null
+              onPressed: titleCtrl.text.isEmpty ||
+                      contentCtrl.text.isEmpty ||
+                      dateRange == null
                   ? null
                   : () async {
                       try {
                         // Add POST call here once backend endpoint exists
                         if (ctx.mounted) Navigator.of(ctx).pop();
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Funcionalidad de creación próximamente')),
+                          const SnackBar(
+                              content: Text(
+                                  'Funcionalidad de creación próximamente')),
                         );
                       } catch (e) {
                         if (ctx.mounted) Navigator.of(ctx).pop();

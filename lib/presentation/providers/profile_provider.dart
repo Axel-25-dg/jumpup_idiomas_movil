@@ -13,14 +13,15 @@ class ProfileNotifier extends StateNotifier<AsyncValue<void>> {
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _repo.updateProfile(
-      firstName: firstName,
-      lastName: lastName,
-      languagesLearning: languagesLearning,
-      languagesTeaching: languagesTeaching,
-    ));
+          firstName: firstName,
+          lastName: lastName,
+          languagesLearning: languagesLearning,
+          languagesTeaching: languagesTeaching,
+        ));
   }
 }
 
-final profileNotifierProvider = StateNotifierProvider<ProfileNotifier, AsyncValue<void>>((ref) {
+final profileNotifierProvider =
+    StateNotifierProvider<ProfileNotifier, AsyncValue<void>>((ref) {
   return ProfileNotifier(TeacherRepository());
 });

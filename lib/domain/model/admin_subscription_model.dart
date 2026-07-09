@@ -14,10 +14,10 @@ class Subscription {
   });
 
   factory Subscription.fromJson(Map<String, dynamic> json) => Subscription(
-    id: json['id'],
-    name: json['name'],
-    price: double.parse(json['price'].toString()),
-    durationDays: json['duration_days'],
-    features: json['features'],
-  );
+        id: json['id'],
+        name: json['name'],
+        price: double.parse(json['price'].toString()),
+        durationDays: json['duration_days'],
+        features: json['features'],
+      );
 }

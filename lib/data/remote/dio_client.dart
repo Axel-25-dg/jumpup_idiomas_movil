@@ -3,11 +3,6 @@ import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 
-/// Cliente Dio singleton con interceptor JWT automático.
-///
-/// Uso:
-///   final dio = DioClient.instance;
-///   final response = await dio.get('/notifications/');
 class DioClient {
   DioClient._();
 
@@ -23,7 +18,6 @@ class DioClient {
   Dio _buildDio() {
     final dio = Dio(
       BaseOptions(
-        // Lee la URL desde el .env  → https://guaman-idiomas-ute.online/api/
         baseUrl: AppConfig.baseUrl,
         connectTimeout: const Duration(seconds: 15),
         receiveTimeout: const Duration(seconds: 15),
@@ -34,7 +28,6 @@ class DioClient {
       ),
     );
 
-    // ── Interceptor JWT ──────────────────────────────────────────────────────
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
@@ -47,8 +40,36 @@ class DioClient {
           }
           return handler.next(options);
         },
-        onError: (DioException error, handler) {
-          // Convierte DioException en ApiException para uniformidad en la app.
+        onError: (DioException error, handler) async {
+          if (error.response?.statusCode == 401) {
+            final refreshToken = await _tokenStorage.getRefreshToken();
+            if (refreshToken != null && refreshToken.isNotEmpty) {
+              try {
+                final response = await Dio(
+                  BaseOptions(baseUrl: AppConfig.baseUrl),
+                ).post<Map<String, dynamic>>(
+                  'auth/token/refresh/',
+                  data: {'refresh': refreshToken},
+                );
+                final data = response.data!;
+                final newAccess = data['access'] as String?;
+                final newRefresh = data['refresh'] as String?;
+                if (newAccess != null) {
+                  await _tokenStorage.saveTokens(
+                    accessToken: newAccess,
+                    refreshToken: newRefresh ?? refreshToken,
+                  );
+                  error.requestOptions.headers['Authorization'] =
+                      'Bearer $newAccess';
+                  final retryResponse = await Dio(
+                    BaseOptions(baseUrl: AppConfig.baseUrl),
+                  ).fetch<dynamic>(error.requestOptions);
+                  return handler.resolve(retryResponse);
+                }
+              } catch (_) {}
+            }
+          }
+
           final statusCode = error.response?.statusCode;
           final message = _messageFromStatus(statusCode, error);
           return handler.reject(
@@ -63,11 +84,10 @@ class DioClient {
       ),
     );
 
-    // Log en modo debug (se puede quitar en producción)
     dio.interceptors.add(
       LogInterceptor(
         request: true,
-        requestBody: false, // no loguear cuerpos con contraseñas
+        requestBody: false,
         responseBody: false,
         error: true,
       ),
@@ -97,7 +117,6 @@ class DioClient {
     }
   }
 
-  /// Guarda los tokens tras un login exitoso.
   Future<void> saveTokens({
     required String accessToken,
     required String refreshToken,
@@ -108,6 +127,5 @@ class DioClient {
     );
   }
 
-  /// Elimina los tokens al cerrar sesión.
   Future<void> clearTokens() => _tokenStorage.clearTokens();
 }

@@ -11,6 +11,7 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<void>> {
   }
 }
 
-final exerciseNotifierProvider = StateNotifierProvider<ExerciseNotifier, AsyncValue<void>>((ref) {
+final exerciseNotifierProvider =
+    StateNotifierProvider<ExerciseNotifier, AsyncValue<void>>((ref) {
   return ExerciseNotifier(TeacherRepository());
 });

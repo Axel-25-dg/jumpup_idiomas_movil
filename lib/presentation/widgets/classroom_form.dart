@@ -20,13 +20,22 @@ class ClassroomForm extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Nombre')),
-        TextField(controller: descController, decoration: const InputDecoration(labelText: 'Descripción')),
-        TextField(controller: courseController, decoration: const InputDecoration(labelText: 'ID Curso'), keyboardType: TextInputType.number),
+        TextField(
+            controller: nameController,
+            decoration: const InputDecoration(labelText: 'Nombre')),
+        TextField(
+            controller: descController,
+            decoration: const InputDecoration(labelText: 'Descripción')),
+        TextField(
+            controller: courseController,
+            decoration: const InputDecoration(labelText: 'ID Curso'),
+            keyboardType: TextInputType.number),
         const SizedBox(height: 20),
         FilledButton(
           onPressed: loading ? null : onSubmit,
-          child: loading ? const CircularProgressIndicator() : const Text('Crear Aula'),
+          child: loading
+              ? const CircularProgressIndicator()
+              : const Text('Crear Aula'),
         ),
       ],
     );

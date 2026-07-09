@@ -20,15 +20,16 @@ class AdminStats {
   });
 
   factory AdminStats.fromJson(Map<String, dynamic> json) {
+    // El endpoint /dashboard/admin/ devuelve los campos con estos nombres exactos
     return AdminStats(
-      totalUsers: json['users'] ?? 0,
-      teachers: json['teachers'] ?? 0,
-      students: json['students'] ?? 0,
-      courses: json['courses'] ?? 0,
-      classrooms: json['classrooms'] ?? 0,
-      subscriptions: json['subscriptions'] ?? 0,
-      payments: json['payments'] ?? 0,
-      certificates: json['certificates'] ?? 0,
+      totalUsers: json['total_users'] ?? json['users'] ?? 0,
+      teachers: json['total_teachers'] ?? json['teachers'] ?? 0,
+      students: json['total_students'] ?? json['students'] ?? 0,
+      courses: json['total_courses'] ?? json['courses'] ?? 0,
+      classrooms: json['total_classrooms'] ?? json['classrooms'] ?? 0,
+      subscriptions: json['total_subscriptions'] ?? json['subscriptions'] ?? 0,
+      payments: json['total_payments'] ?? json['payments'] ?? 0,
+      certificates: json['total_certificates'] ?? json['certificates'] ?? 0,
     );
   }
 }

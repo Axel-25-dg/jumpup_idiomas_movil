@@ -29,17 +29,38 @@ class UserProfileModel {
   final String? timezone;
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
+    // /auth/me/ puede devolver el perfil directamente o anidado en 'profile'
+    final profile = json['profile'] is Map<String, dynamic>
+        ? json['profile'] as Map<String, dynamic>
+        : json;
+
     return UserProfileModel(
-      id: json['id'] as int,
-      userId: json['user_id'] as int,
-      username: json['username']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      avatarUrl: json['avatar_url']?.toString(),
-      nativeLanguage: json['native_language']?.toString() ?? 'ES',
-      learningLanguages: (json['learning_languages'] as List?)?.map((e) => e.toString()).toList() ?? [],
-      bio: json['bio']?.toString(),
-      joinedAt: DateTime.tryParse(json['joined_at']?.toString() ?? '') ?? DateTime.now(),
-      timezone: json['timezone']?.toString(),
+      id: (profile['id'] ?? json['id'] ?? 0) as int,
+      userId: (json['id'] ?? profile['user_id'] ?? profile['user'] ?? 0) as int,
+      username:
+          json['username']?.toString() ?? profile['username']?.toString() ?? '',
+      email: json['email']?.toString() ?? profile['email']?.toString() ?? '',
+      avatarUrl: profile['avatar_url']?.toString() ??
+          profile['avatar']?.toString() ??
+          json['avatar_url']?.toString(),
+      nativeLanguage: profile['native_language']?.toString() ??
+          json['native_language']?.toString() ??
+          'ES',
+      learningLanguages: (profile['languages_learning'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          (json['languages_learning'] as List?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          [],
+      bio: profile['bio']?.toString() ?? json['bio']?.toString(),
+      joinedAt: DateTime.tryParse(profile['date_joined']?.toString() ??
+              json['date_joined']?.toString() ??
+              profile['joined_at']?.toString() ??
+              json['joined_at']?.toString() ??
+              '') ??
+          DateTime.now(),
+      timezone: profile['timezone']?.toString() ?? json['timezone']?.toString(),
     );
   }
 
@@ -78,12 +99,24 @@ class DashboardSummaryModel {
 
   factory DashboardSummaryModel.fromJson(Map<String, dynamic> json) {
     return DashboardSummaryModel(
-      activeCourses: json['active_courses'] as int? ?? 0,
-      totalXp: json['total_xp'] as int? ?? 0,
-      currentStreak: json['current_streak'] as int? ?? 0,
-      todayGoalProgress: (json['today_goal_progress'] as num?)?.toDouble() ?? 0.0,
-      upcomingClasses: json['upcoming_classes'] as int? ?? 0,
+      activeCourses: json['active_courses'] as int? ??
+          json['courses_enrolled'] as int? ??
+          json['enrollments'] as int? ??
+          0,
+      totalXp: json['total_xp'] as int? ?? json['xp'] as int? ?? 0,
+      currentStreak:
+          json['current_streak'] as int? ?? json['streak'] as int? ?? 0,
+      todayGoalProgress: (json['today_goal_progress'] as num?)?.toDouble() ??
+          (json['progress_today'] as num?)?.toDouble() ??
+          0.0,
+      upcomingClasses: json['upcoming_classes'] as int? ??
+          json['upcoming_sessions'] as int? ??
+          json['next_classes'] as int? ??
+          0,
       recentActivities: (json['recent_activities'] as List?)
+              ?.map((e) => ActivityLogModel.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          (json['activities'] as List?)
               ?.map((e) => ActivityLogModel.fromJson(e as Map<String, dynamic>))
               .toList() ??
           [],
@@ -103,7 +136,8 @@ class ActivityLogModel {
   });
 
   final int id;
-  final String activityType; // 'lesson_completed', 'achievement_unlocked', 'course_started'
+  final String
+      activityType; // 'lesson_completed', 'achievement_unlocked', 'course_started'
   final String description;
   final DateTime createdAt;
   final int? relatedId;
@@ -113,7 +147,8 @@ class ActivityLogModel {
       id: json['id'] as int,
       activityType: json['activity_type']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
-      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ?? DateTime.now(),
+      createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
+          DateTime.now(),
       relatedId: json['related_id'] as int?,
     );
   }

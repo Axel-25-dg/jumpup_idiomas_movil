@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
       if (!mounted) return;
       // Login exitoso → LoadingScreen determina el rol
-      context.go(AppRoutes.loading);
+      context.go(AppRoutes.login);
     } on ApiException catch (e) {
       if (mounted) {
         setState(() {

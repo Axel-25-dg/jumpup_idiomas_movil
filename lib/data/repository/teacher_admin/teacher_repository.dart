@@ -243,15 +243,25 @@ class TeacherRepository {
 
 //Teacher Dashboard
   Future<TeacherStats> fetchTeacherStats() async {
-    final res = await _dio.get<dynamic>('classrooms/');
-    final data = _listFrom(res.data);
-    final classrooms = data.map((i) => Classroom.fromJson(i)).toList();
-
-    // Cálculo: Sumamos el total_students de cada Classroom
-    int totalAulas = classrooms.length;
-    int totalAlumnos =
-        classrooms.fold(0, (sum, item) => sum + item.totalStudents);
-
-    return TeacherStats(totalAulas: totalAulas, totalAlumnos: totalAlumnos);
+    try {
+      final res = await _dio.get<dynamic>('dashboard/teacher/');
+      return TeacherStats.fromJson(_mapFrom(res.data));
+    } on DioException catch (e) {
+      // Si el endpoint falla, calcula desde classrooms como fallback
+      try {
+        final classroomsRes = await _dio.get<dynamic>('classrooms/');
+        final classrooms = _listFrom(classroomsRes.data)
+            .map((i) => Classroom.fromJson(i))
+            .toList();
+        return TeacherStats(
+          totalAulas: classrooms.length,
+          totalAlumnos:
+              classrooms.fold(0, (sum, item) => sum + item.totalStudents),
+        );
+      } catch (_) {
+        throw ApiException('Error al cargar estadísticas del profesor',
+            e.response?.statusCode, e);
+      }
+    }
   }
 }

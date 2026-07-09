@@ -7,10 +7,14 @@ class DailyChallengesScreen extends ConsumerWidget {
 
   IconData _getIconData(String iconName) {
     switch (iconName) {
-      case 'menu_book': return Icons.menu_book;
-      case 'quiz': return Icons.quiz;
-      case 'smart_toy': return Icons.smart_toy;
-      default: return Icons.star;
+      case 'menu_book':
+        return Icons.menu_book;
+      case 'quiz':
+        return Icons.quiz;
+      case 'smart_toy':
+        return Icons.smart_toy;
+      default:
+        return Icons.star;
     }
   }
 
@@ -22,14 +26,17 @@ class DailyChallengesScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Misiones y Retos', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Misiones y Retos',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.offline_bolt, color: Color(0xFFFFD700)),
             tooltip: 'Modo Offline',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Lecciones descargadas y listas para modo offline.')),
+                const SnackBar(
+                    content: Text(
+                        'Lecciones descargadas y listas para modo offline.')),
               );
             },
           ),
@@ -46,23 +53,33 @@ class DailyChallengesScreen extends ConsumerWidget {
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1828),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: const Color(0xFF03A9F4).withOpacity(0.5)),
+                border: Border.all(
+                    color: const Color(0xFF03A9F4).withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.cloud_download, color: Color(0xFF03A9F4), size: 36),
+                  const Icon(Icons.cloud_download,
+                      color: Color(0xFF03A9F4), size: 36),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Estudia sin conexión', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                        const Text('Tienes 3 lecciones descargadas.', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                        const Text('Estudia sin conexión',
+                            style: TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 16)),
+                        const Text('Tienes 3 lecciones descargadas.',
+                            style:
+                                TextStyle(color: Colors.white70, fontSize: 13)),
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: () {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Descargando paquete de lecciones de soporte (offline-pack)...')),
+                              const SnackBar(
+                                  content: Text(
+                                      'Descargando paquete de lecciones de soporte (offline-pack)...')),
                             );
                           },
                           style: TextButton.styleFrom(
@@ -70,7 +87,8 @@ class DailyChallengesScreen extends ConsumerWidget {
                             minimumSize: const Size(0, 0),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
-                          child: const Text('Gestionar descargas', style: TextStyle(color: Color(0xFF03A9F4))),
+                          child: const Text('Gestionar descargas',
+                              style: TextStyle(color: Color(0xFF03A9F4))),
                         ),
                       ],
                     ),
@@ -81,12 +99,19 @@ class DailyChallengesScreen extends ConsumerWidget {
             const SizedBox(height: 24),
 
             // ── Retos Diarios ───────────────────────────────────────────
-            const Text('Retos de hoy', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20)),
+            const Text('Retos de hoy',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20)),
             const SizedBox(height: 16),
-            
+
             challengesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              error: (err, _) => Center(
+                  child: Text('Error: $err',
+                      style: const TextStyle(color: Colors.redAccent))),
               data: (challenges) {
                 return ListView.separated(
                   shrinkWrap: true,
@@ -120,25 +145,36 @@ class DailyChallengesScreen extends ConsumerWidget {
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
-                  BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+                  BoxShadow(
+                      color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8)),
                 ],
               ),
               child: Column(
                 children: [
                   const Text('🎁', style: TextStyle(fontSize: 60)),
                   const SizedBox(height: 16),
-                  const Text('Cofre Diario', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22)),
-                  const Text('Completa todos los retos para abrirlo', style: TextStyle(color: Colors.white70)),
+                  const Text('Cofre Diario',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 22)),
+                  const Text('Completa todos los retos para abrirlo',
+                      style: TextStyle(color: Colors.white70)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: null, // Deshabilitado porque falta completarlos
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
                       foregroundColor: const Color(0xFF7C4DFF),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 32, vertical: 12),
                     ),
-                    child: const Text('ABRIR COFRE', style: TextStyle(fontWeight: FontWeight.bold)),
+                    child: const Text('ABRIR COFRE',
+                        style: TextStyle(fontWeight: FontWeight.bold)),
                   ),
                 ],
               ),
@@ -174,10 +210,14 @@ class _ChallengeCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isCompleted ? const Color(0xFF4CAF50).withOpacity(0.1) : const Color(0xFF1A1828),
+        color: isCompleted
+            ? const Color(0xFF4CAF50).withValues(alpha: 0.1)
+            : const Color(0xFF1A1828),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isCompleted ? const Color(0xFF4CAF50).withOpacity(0.5) : Colors.white12,
+          color: isCompleted
+              ? const Color(0xFF4CAF50).withValues(alpha: 0.5)
+              : Colors.white12,
         ),
       ),
       child: Row(
@@ -186,7 +226,9 @@ class _ChallengeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: isCompleted ? const Color(0xFF4CAF50).withOpacity(0.2) : Colors.white12,
+              color: isCompleted
+                  ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
+                  : Colors.white12,
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -218,7 +260,9 @@ class _ChallengeCard extends StatelessWidget {
                         child: LinearProgressIndicator(
                           value: progress,
                           backgroundColor: Colors.white12,
-                          color: isCompleted ? const Color(0xFF4CAF50) : const Color(0xFFFFD700),
+                          color: isCompleted
+                              ? const Color(0xFF4CAF50)
+                              : const Color(0xFFFFD700),
                           minHeight: 8,
                         ),
                       ),
@@ -226,7 +270,10 @@ class _ChallengeCard extends StatelessWidget {
                     const SizedBox(width: 12),
                     Text(
                       '$current / $target',
-                      style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white54,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold),
                     ),
                   ],
                 ),
@@ -238,12 +285,15 @@ class _ChallengeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withOpacity(0.2),
+              color: const Color(0xFFFFD700).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '+$xpReward XP',
-              style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 12),
+              style: const TextStyle(
+                  color: Color(0xFFFFD700),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 12),
             ),
           ),
         ],

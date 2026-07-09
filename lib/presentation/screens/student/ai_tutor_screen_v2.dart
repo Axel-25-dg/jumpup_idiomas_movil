@@ -12,7 +12,8 @@ class _AITutorScreenState extends State<AITutorScreen> {
   final List<Map<String, dynamic>> _messages = [
     {
       'isBot': true,
-      'text': '¡Hola! Soy tu tutor de inteligencia artificial. ¿Sobre qué te gustaría hablar hoy o qué gramática quieres practicar?',
+      'text':
+          '¡Hola! Soy tu tutor de inteligencia artificial. ¿Sobre qué te gustaría hablar hoy o qué gramática quieres practicar?',
       'hasAudio': true,
     }
   ];
@@ -34,7 +35,8 @@ class _AITutorScreenState extends State<AITutorScreen> {
       setState(() {
         _messages.add({
           'isBot': true,
-          'text': '¡Excelente frase! Podrías mejorarla diciendo: "I would like to practice speaking". ¿Quieres intentarlo de nuevo usando el micrófono?',
+          'text':
+              '¡Excelente frase! Podrías mejorarla diciendo: "I would like to practice speaking". ¿Quieres intentarlo de nuevo usando el micrófono?',
           'hasAudio': true,
         });
       });
@@ -62,7 +64,8 @@ class _AITutorScreenState extends State<AITutorScreen> {
                   decoration: BoxDecoration(
                     color: Colors.green,
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF1A1828), width: 2),
+                    border:
+                        Border.all(color: const Color(0xFF1A1828), width: 2),
                   ),
                 ),
               ],
@@ -71,8 +74,13 @@ class _AITutorScreenState extends State<AITutorScreen> {
             const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Tutor JumpUp AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('En línea', style: TextStyle(color: Colors.green, fontSize: 12)),
+                Text('Tutor JumpUp AI',
+                    style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                Text('En línea',
+                    style: TextStyle(color: Colors.green, fontSize: 12)),
               ],
             ),
           ],
@@ -101,7 +109,7 @@ class _AITutorScreenState extends State<AITutorScreen> {
               },
             ),
           ),
-          
+
           // ── Área de input ─────────────────────────────────────────
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -121,7 +129,9 @@ class _AITutorScreenState extends State<AITutorScreen> {
                       icon: const Icon(Icons.mic, color: Colors.white),
                       onPressed: () {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Escuchando... Di algo en inglés.')),
+                          const SnackBar(
+                              content:
+                                  Text('Escuchando... Di algo en inglés.')),
                         );
                       },
                     ),
@@ -140,7 +150,8 @@ class _AITutorScreenState extends State<AITutorScreen> {
                         ),
                         filled: true,
                         fillColor: const Color(0xFF0F0E1A),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 20, vertical: 12),
                       ),
                       onSubmitted: (_) => _sendMessage(),
                     ),
@@ -161,7 +172,8 @@ class _AITutorScreenState extends State<AITutorScreen> {
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.text, required this.isBot, required this.hasAudio});
+  const _ChatBubble(
+      {required this.text, required this.isBot, required this.hasAudio});
   final String text;
   final bool isBot;
   final bool hasAudio;
@@ -172,10 +184,13 @@ class _ChatBubble extends StatelessWidget {
       alignment: isBot ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        constraints:
+            BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: isBot ? const Color(0xFF1A1828) : const Color(0xFF7C4DFF).withOpacity(0.2),
+          color: isBot
+              ? const Color(0xFF1A1828)
+              : const Color(0xFF7C4DFF).withValues(alpha: 0.2),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(20),
             topRight: const Radius.circular(20),
@@ -183,21 +198,28 @@ class _ChatBubble extends StatelessWidget {
             bottomRight: Radius.circular(isBot ? 20 : 0),
           ),
           border: Border.all(
-            color: isBot ? Colors.white12 : const Color(0xFF7C4DFF).withOpacity(0.5),
+            color: isBot
+                ? Colors.white12
+                : const Color(0xFF7C4DFF).withValues(alpha: 0.5),
           ),
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(text, style: const TextStyle(color: Colors.white, fontSize: 15)),
+            Text(text,
+                style: const TextStyle(color: Colors.white, fontSize: 15)),
             if (hasAudio) ...[
               const SizedBox(height: 12),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.volume_up, color: Color(0xFF7C4DFF), size: 20),
+                  const Icon(Icons.volume_up,
+                      color: Color(0xFF7C4DFF), size: 20),
                   const SizedBox(width: 8),
-                  Text('Escuchar pronunciación', style: TextStyle(color: const Color(0xFF7C4DFF).withOpacity(0.8), fontSize: 12)),
+                  Text('Escuchar pronunciación',
+                      style: TextStyle(
+                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.8),
+                          fontSize: 12)),
                 ],
               )
             ],

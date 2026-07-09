@@ -23,7 +23,8 @@ class CourseDetailScreen extends ConsumerWidget {
           child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
         ),
         error: (err, _) => Center(
-          child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent)),
+          child: Text('Error: $err',
+              style: const TextStyle(color: Colors.redAccent)),
         ),
         data: (course) => CustomScrollView(
           slivers: [
@@ -59,7 +60,8 @@ class CourseDetailScreen extends ConsumerWidget {
                       children: [
                         const SizedBox(height: 30),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: Colors.white24,
                             borderRadius: BorderRadius.circular(20),
@@ -76,7 +78,8 @@ class CourseDetailScreen extends ConsumerWidget {
                         const SizedBox(height: 8),
                         Text(
                           course.languageName,
-                          style: const TextStyle(color: Colors.white70, fontSize: 14),
+                          style: const TextStyle(
+                              color: Colors.white70, fontSize: 14),
                         ),
                       ],
                     ),
@@ -138,7 +141,8 @@ class CourseDetailScreen extends ConsumerWidget {
                     const SizedBox(height: 8),
                     Text(
                       course.description,
-                      style: const TextStyle(color: Colors.white60, fontSize: 14, height: 1.6),
+                      style: const TextStyle(
+                          color: Colors.white60, fontSize: 14, height: 1.6),
                     ),
                     const SizedBox(height: 24),
                     const Text(
@@ -162,12 +166,14 @@ class CourseDetailScreen extends ConsumerWidget {
               ),
               error: (_, __) => const SliverToBoxAdapter(
                 child: Center(
-                  child: Text('Error al cargar módulos', style: TextStyle(color: Colors.redAccent)),
+                  child: Text('Error al cargar módulos',
+                      style: TextStyle(color: Colors.redAccent)),
                 ),
               ),
               data: (modules) => SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _ModuleExpansionTile(module: modules[index]),
+                  (context, index) =>
+                      _ModuleExpansionTile(module: modules[index]),
                   childCount: modules.length,
                 ),
               ),
@@ -214,9 +220,12 @@ class CourseDetailScreen extends ConsumerWidget {
 
   Color _levelColor(String level) {
     const colors = {
-      'A1': Color(0xFF4CAF50), 'A2': Color(0xFF8BC34A),
-      'B1': Color(0xFF03A9F4), 'B2': Color(0xFF2196F3),
-      'C1': Color(0xFFFF9800), 'C2': Color(0xFFF44336),
+      'A1': Color(0xFF4CAF50),
+      'A2': Color(0xFF8BC34A),
+      'B1': Color(0xFF03A9F4),
+      'B2': Color(0xFF2196F3),
+      'C1': Color(0xFFFF9800),
+      'C2': Color(0xFFF44336),
     };
     return colors[level] ?? const Color(0xFF7C4DFF);
   }
@@ -243,9 +252,9 @@ class _StatBox extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.1),
+          color: color.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: color.withOpacity(0.3)),
+          border: Border.all(color: color.withValues(alpha: 0.3)),
         ),
         child: Column(
           children: [
@@ -259,7 +268,8 @@ class _StatBox extends StatelessWidget {
                 fontSize: 18,
               ),
             ),
-            Text(label, style: const TextStyle(color: Colors.white54, fontSize: 11)),
+            Text(label,
+                style: const TextStyle(color: Colors.white54, fontSize: 11)),
           ],
         ),
       ),
@@ -292,7 +302,7 @@ class _ModuleExpansionTile extends ConsumerWidget {
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFF7C4DFF).withOpacity(0.2),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
@@ -306,7 +316,8 @@ class _ModuleExpansionTile extends ConsumerWidget {
           ),
           title: Text(
             module.title,
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+            style: const TextStyle(
+                color: Colors.white, fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             '${module.lessonsCount} lecciones',
@@ -322,10 +333,13 @@ class _ModuleExpansionTile extends ConsumerWidget {
               ),
               error: (_, __) => const Padding(
                 padding: EdgeInsets.all(12),
-                child: Text('Error al cargar lecciones', style: TextStyle(color: Colors.redAccent, fontSize: 13)),
+                child: Text('Error al cargar lecciones',
+                    style: TextStyle(color: Colors.redAccent, fontSize: 13)),
               ),
               data: (lessons) => Column(
-                children: lessons.map((lesson) => _LessonTile(lesson: lesson)).toList(),
+                children: lessons
+                    .map((lesson) => _LessonTile(lesson: lesson))
+                    .toList(),
               ),
             ),
           ],
@@ -349,12 +363,14 @@ class _LessonTile extends StatelessWidget {
         height: 32,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: const Color(0xFF03A9F4).withOpacity(0.15),
+          color: const Color(0xFF03A9F4).withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(6),
         ),
-        child: Icon(_contentTypeIcon(lesson.contentType), color: const Color(0xFF03A9F4), size: 16),
+        child: Icon(_contentTypeIcon(lesson.contentType),
+            color: const Color(0xFF03A9F4), size: 16),
       ),
-      title: Text(lesson.title, style: const TextStyle(color: Colors.white70, fontSize: 14)),
+      title: Text(lesson.title,
+          style: const TextStyle(color: Colors.white70, fontSize: 14)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -374,11 +390,16 @@ class _LessonTile extends StatelessWidget {
 
   IconData _contentTypeIcon(String type) {
     switch (type) {
-      case 'video': return Icons.play_circle_outline;
-      case 'interactive': return Icons.touch_app_outlined;
-      case 'reading': return Icons.article_outlined;
-      case 'audio': return Icons.headphones;
-      default: return Icons.menu_book_outlined;
+      case 'video':
+        return Icons.play_circle_outline;
+      case 'interactive':
+        return Icons.touch_app_outlined;
+      case 'reading':
+        return Icons.article_outlined;
+      case 'audio':
+        return Icons.headphones;
+      default:
+        return Icons.menu_book_outlined;
     }
   }
 }

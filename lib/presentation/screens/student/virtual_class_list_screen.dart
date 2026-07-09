@@ -15,31 +15,42 @@ class VirtualClassListScreen extends ConsumerWidget {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1828),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Unirse a Aula Virtual', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Unirse a Aula Virtual',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: Form(
           key: formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Ingresa el código de 6 dígitos proporcionado por tu docente:', style: TextStyle(color: Colors.white70, fontSize: 13)),
+              const Text(
+                  'Ingresa el código de 6 dígitos proporcionado por tu docente:',
+                  style: TextStyle(color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: controller,
                 maxLength: 6,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 4),
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 4),
                 textAlign: TextAlign.center,
                 keyboardType: TextInputType.visiblePassword,
                 decoration: InputDecoration(
                   hintText: 'CÓDIGO',
-                  hintStyle: const TextStyle(color: Colors.white24, letterSpacing: 1),
+                  hintStyle:
+                      const TextStyle(color: Colors.white24, letterSpacing: 1),
                   filled: true,
                   fillColor: const Color(0xFF0F0E1A),
                   counterText: '',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
+                    borderSide:
+                        const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
                   ),
                 ),
                 validator: (val) {
@@ -58,31 +69,44 @@ class VirtualClassListScreen extends ConsumerWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.white54)),
           ),
           ElevatedButton(
             onPressed: () async {
               if (formKey.currentState!.validate()) {
                 final code = controller.text.trim();
-                final success = await ref.read(classroomEnrollNotifierProvider.notifier).enrollByCode(code);
+                final success = await ref
+                    .read(classroomEnrollNotifierProvider.notifier)
+                    .enrollByCode(code);
                 if (context.mounted) {
                   if (success) {
-                    ref.refresh(classroomEnrollmentsProvider);
+                    ref.invalidate(classroomEnrollmentsProvider);
                     Navigator.pop(context);
                     ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('¡Inscrito al aula virtual con éxito!')),
+                      const SnackBar(
+                          content:
+                              Text('¡Inscrito al aula virtual con éxito!')),
                     );
                   } else {
-                    final err = ref.read(classroomEnrollNotifierProvider.notifier).errorMessage;
+                    final err = ref
+                        .read(classroomEnrollNotifierProvider.notifier)
+                        .errorMessage;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: ${err ?? "Inscripción fallida"}'), backgroundColor: Colors.redAccent),
+                      SnackBar(
+                          content:
+                              Text('Error: ${err ?? "Inscripción fallida"}'),
+                          backgroundColor: Colors.redAccent),
                     );
                   }
                 }
               }
             },
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF)),
-            child: const Text('Unirse', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF7C4DFF)),
+            child: const Text('Unirse',
+                style: TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -97,21 +121,29 @@ class VirtualClassListScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Clases Virtuales', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Clases Virtuales',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         actions: [
           TextButton.icon(
             icon: const Icon(Icons.vpn_key, color: Color(0xFF7C4DFF)),
-            label: const Text('Unirse con Código', style: TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+            label: const Text('Unirse con Código',
+                style: TextStyle(
+                    color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
             onPressed: () => _showEnrollDialog(context, ref),
           ),
         ],
       ),
       body: classesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (_, __) => const Center(child: Text('Error al cargar clases', style: TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (_, __) => const Center(
+            child: Text('Error al cargar clases',
+                style: TextStyle(color: Colors.redAccent))),
         data: (classes) {
           if (classes.isEmpty) {
-            return const Center(child: Text('No hay clases programadas', style: TextStyle(color: Colors.white54)));
+            return const Center(
+                child: Text('No hay clases programadas',
+                    style: TextStyle(color: Colors.white54)));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -148,15 +180,20 @@ class _VirtualClassCard extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: vClass.isOngoing ? const Color(0xFF4CAF50).withOpacity(0.2) : const Color(0xFF7C4DFF).withOpacity(0.2),
+                  color: vClass.isOngoing
+                      ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
+                      : const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   vClass.isOngoing ? 'EN VIVO' : 'PROGRAMADA',
                   style: TextStyle(
-                    color: vClass.isOngoing ? const Color(0xFF4CAF50) : const Color(0xFF7C4DFF),
+                    color: vClass.isOngoing
+                        ? const Color(0xFF4CAF50)
+                        : const Color(0xFF7C4DFF),
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
                   ),
@@ -164,54 +201,78 @@ class _VirtualClassCard extends ConsumerWidget {
               ),
               Row(
                 children: [
-                  const Icon(Icons.people_outline, color: Colors.white54, size: 16),
+                  const Icon(Icons.people_outline,
+                      color: Colors.white54, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '${vClass.currentParticipants}/${vClass.maxParticipants}',
-                    style: TextStyle(color: isFull ? Colors.redAccent : Colors.white54, fontSize: 12),
+                    style: TextStyle(
+                        color: isFull ? Colors.redAccent : Colors.white54,
+                        fontSize: 12),
                   ),
                 ],
               ),
             ],
           ),
           const SizedBox(height: 12),
-          Text(vClass.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+          Text(vClass.title,
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18)),
           const SizedBox(height: 6),
-          Text(vClass.description, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+          Text(vClass.description,
+              style: const TextStyle(color: Colors.white54, fontSize: 13)),
           const SizedBox(height: 12),
           Row(
             children: [
-              const CircleAvatar(radius: 12, backgroundColor: Colors.white24, child: Icon(Icons.person, size: 16, color: Colors.white)),
+              const CircleAvatar(
+                  radius: 12,
+                  backgroundColor: Colors.white24,
+                  child: Icon(Icons.person, size: 16, color: Colors.white)),
               const SizedBox(width: 8),
-              Text(vClass.instructorName, style: const TextStyle(color: Colors.white70, fontSize: 13)),
+              Text(vClass.instructorName,
+                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: (isFull && !vClass.canJoin) || joinStatus == JoinClassStatus.loading
+              onPressed: (isFull && !vClass.canJoin) ||
+                      joinStatus == JoinClassStatus.loading
                   ? null
                   : () {
-                      ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
+                      ref
+                          .read(joinClassNotifierProvider.notifier)
+                          .joinClass(vClass.id);
                       if (vClass.canJoin) {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Redirigiendo a la sala...')),
+                          const SnackBar(
+                              content: Text('Redirigiendo a la sala...')),
                         );
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Inscripción exitosa. Te notificaremos antes de empezar.')),
+                          const SnackBar(
+                              content: Text(
+                                  'Inscripción exitosa. Te notificaremos antes de empezar.')),
                         );
                       }
                     },
               style: ElevatedButton.styleFrom(
-                backgroundColor: isFull && !vClass.canJoin ? Colors.white12 : const Color(0xFF7C4DFF),
+                backgroundColor: isFull && !vClass.canJoin
+                    ? Colors.white12
+                    : const Color(0xFF7C4DFF),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                vClass.canJoin ? 'Unirse ahora' : (isFull ? 'Clase llena' : 'Inscribirse'),
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                vClass.canJoin
+                    ? 'Unirse ahora'
+                    : (isFull ? 'Clase llena' : 'Inscribirse'),
+                style: const TextStyle(
+                    color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),

@@ -9,7 +9,8 @@ final languagesProvider = FutureProvider<List<Language>>((ref) async {
 });
 
 // 2. Provider para el CRUD de Cursos
-final coursesProvider = StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
+final coursesProvider =
+    StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
   return CourseNotifier(TeacherRepository());
 });
 

@@ -16,7 +16,8 @@ class SubscriptionsScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Suscripciones', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Suscripciones',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -35,7 +36,10 @@ class SubscriptionsScreen extends ConsumerWidget {
 
             const Text(
               'Elige tu plan',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -46,8 +50,10 @@ class SubscriptionsScreen extends ConsumerWidget {
 
             // ── Planes disponibles ─────────────────────────────────────
             plansAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              error: (_, __) => const Text('Error al cargar planes', style: TextStyle(color: Colors.redAccent)),
+              loading: () => const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              error: (_, __) => const Text('Error al cargar planes',
+                  style: TextStyle(color: Colors.redAccent)),
               data: (plans) => Column(
                 children: plans.map((plan) => _PlanCard(plan: plan)).toList(),
               ),
@@ -81,15 +87,26 @@ class _ActiveSubscriptionCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(subscription.subscription.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
-                Text('${subscription.daysRemaining} días restantes', style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                Text(subscription.subscription.name,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16)),
+                Text('${subscription.daysRemaining} días restantes',
+                    style:
+                        const TextStyle(color: Colors.white70, fontSize: 13)),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(8)),
-            child: const Text('Activo', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
+            decoration: BoxDecoration(
+                color: Colors.white24, borderRadius: BorderRadius.circular(8)),
+            child: const Text('Activo',
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -126,45 +143,65 @@ class _PlanCard extends ConsumerWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(plan.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+                    Text(plan.name,
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18)),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Text(plan.formattedPrice, style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold, fontSize: 20)),
+                        Text(plan.formattedPrice,
+                            style: const TextStyle(
+                                color: Color(0xFF7C4DFF),
+                                fontWeight: FontWeight.bold,
+                                fontSize: 20)),
                         if (!plan.isFree)
-                          Text('/ ${plan.durationLabel}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                          Text('/ ${plan.durationLabel}',
+                              style: const TextStyle(
+                                  color: Colors.white54, fontSize: 12)),
                       ],
                     ),
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(plan.description, style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                Text(plan.description,
+                    style:
+                        const TextStyle(color: Colors.white54, fontSize: 13)),
                 const SizedBox(height: 12),
                 ...plan.features.map((f) => Padding(
-                  padding: const EdgeInsets.only(bottom: 6),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 16),
-                      const SizedBox(width: 8),
-                      Text(f, style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                    ],
-                  ),
-                )),
+                      padding: const EdgeInsets.only(bottom: 6),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.check_circle,
+                              color: Color(0xFF4CAF50), size: 16),
+                          const SizedBox(width: 8),
+                          Text(f,
+                              style: const TextStyle(
+                                  color: Colors.white70, fontSize: 13)),
+                        ],
+                      ),
+                    )),
                 const SizedBox(height: 16),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: plan.isFree || paymentStatus == PaymentStatus.loading
-                        ? null
-                        : () => _showPaymentDialog(context, ref, plan),
+                    onPressed:
+                        plan.isFree || paymentStatus == PaymentStatus.loading
+                            ? null
+                            : () => _showPaymentDialog(context, ref, plan),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: plan.isFree ? Colors.white12 : const Color(0xFF7C4DFF),
+                      backgroundColor: plan.isFree
+                          ? Colors.white12
+                          : const Color(0xFF7C4DFF),
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(
                       plan.isFree ? 'Plan actual' : 'Suscribirse',
-                      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      style: const TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -182,41 +219,53 @@ class _PlanCard extends ConsumerWidget {
                 color: const Color(0xFF7C4DFF),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Text('Popular', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+              child: const Text('Popular',
+                  style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold)),
             ),
           ),
       ],
     );
   }
 
-  void _showPaymentDialog(BuildContext context, WidgetRef ref, SubscriptionModel plan) {
+  void _showPaymentDialog(
+      BuildContext context, WidgetRef ref, SubscriptionModel plan) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1A1828),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Suscribirse a ${plan.name}', style: const TextStyle(color: Colors.white)),
+        title: Text('Suscribirse a ${plan.name}',
+            style: const TextStyle(color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Total: ${plan.formattedPrice} / ${plan.durationLabel}', style: const TextStyle(color: Colors.white70)),
+            Text('Total: ${plan.formattedPrice} / ${plan.durationLabel}',
+                style: const TextStyle(color: Colors.white70)),
             const SizedBox(height: 16),
-            const Text('Método de pago:', style: TextStyle(color: Colors.white60, fontSize: 13)),
+            const Text('Método de pago:',
+                style: TextStyle(color: Colors.white60, fontSize: 13)),
             const SizedBox(height: 8),
             ...['Tarjeta de crédito', 'PayPal'].map((method) => ListTile(
-              leading: Icon(
-                method.contains('Tarjeta') ? Icons.credit_card : Icons.account_balance_wallet,
-                color: const Color(0xFF7C4DFF),
-              ),
-              title: Text(method, style: const TextStyle(color: Colors.white)),
-              onTap: () {
-                Navigator.pop(context);
-                ref.read(paymentNotifierProvider.notifier).processPayment(
-                  subscriptionId: plan.id,
-                  paymentMethod: method.toLowerCase().replaceAll(' ', '_'),
-                );
-              },
-            )),
+                  leading: Icon(
+                    method.contains('Tarjeta')
+                        ? Icons.credit_card
+                        : Icons.account_balance_wallet,
+                    color: const Color(0xFF7C4DFF),
+                  ),
+                  title:
+                      Text(method, style: const TextStyle(color: Colors.white)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    ref.read(paymentNotifierProvider.notifier).processPayment(
+                          subscriptionId: plan.id,
+                          paymentMethod:
+                              method.toLowerCase().replaceAll(' ', '_'),
+                        );
+                  },
+                )),
           ],
         ),
       ),

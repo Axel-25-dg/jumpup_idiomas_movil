@@ -13,20 +13,24 @@ class RankingScreen extends ConsumerWidget {
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Ranking Global 🏆', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Ranking Global 🏆',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: rankingAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
         error: (err, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline, color: Colors.redAccent, size: 48),
+              const Icon(Icons.error_outline,
+                  color: Colors.redAccent, size: 48),
               const SizedBox(height: 12),
-              const Text('No se pudo cargar el ranking', style: TextStyle(color: Colors.white70)),
+              const Text('No se pudo cargar el ranking',
+                  style: TextStyle(color: Colors.white70)),
               const SizedBox(height: 8),
               ElevatedButton(
-                onPressed: () => ref.refresh(rankingProvider),
+                onPressed: () => ref.invalidate(rankingProvider),
                 child: const Text('Reintentar'),
               ),
             ],
@@ -44,10 +48,10 @@ class RankingScreen extends ConsumerWidget {
                 ),
               ),
             const Divider(color: Colors.white12),
-
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 itemCount: ranking.length > 3 ? ranking.length - 3 : 0,
                 itemBuilder: (context, index) {
                   final entry = ranking[index + 3];
@@ -129,7 +133,7 @@ class _PodiumItem extends StatelessWidget {
           const SizedBox(height: 4),
           CircleAvatar(
             radius: isFirst ? 28 : 22,
-            backgroundColor: color.withOpacity(0.3),
+            backgroundColor: color.withValues(alpha: 0.3),
             child: Text(
               entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
               style: TextStyle(
@@ -142,25 +146,31 @@ class _PodiumItem extends StatelessWidget {
           const SizedBox(height: 4),
           Text(
             entry.username,
-            style: TextStyle(color: Colors.white, fontSize: isFirst ? 13 : 11, fontWeight: FontWeight.w600),
+            style: TextStyle(
+                color: Colors.white,
+                fontSize: isFirst ? 13 : 11,
+                fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
           ),
           Text(
             '⚡ ${entry.totalXp} XP',
-            style: TextStyle(color: color, fontSize: 11, fontWeight: FontWeight.bold),
+            style: TextStyle(
+                color: color, fontSize: 11, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 4),
           Container(
             height: height,
             decoration: BoxDecoration(
-              color: color.withOpacity(0.15),
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(8)),
-              border: Border.all(color: color.withOpacity(0.4)),
+              color: color.withValues(alpha: 0.15),
+              borderRadius:
+                  const BorderRadius.vertical(top: Radius.circular(8)),
+              border: Border.all(color: color.withValues(alpha: 0.4)),
             ),
             child: Center(
               child: Text(
                 '#${entry.position}',
-                style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
+                style: TextStyle(
+                    color: color, fontWeight: FontWeight.bold, fontSize: 18),
               ),
             ),
           ),
@@ -190,15 +200,19 @@ class _RankingTile extends StatelessWidget {
             width: 32,
             child: Text(
               '#${entry.position}',
-              style: const TextStyle(color: Colors.white54, fontWeight: FontWeight.bold, fontSize: 14),
+              style: const TextStyle(
+                  color: Colors.white54,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14),
             ),
           ),
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
+            backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
             child: Text(
               entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
-              style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                  color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(width: 12),
@@ -206,14 +220,23 @@ class _RankingTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(entry.username, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 14)),
-                Text('Nivel ${entry.level} · 🔥 ${entry.currentStreak} días', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                Text(entry.username,
+                    style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14)),
+                Text('Nivel ${entry.level} · 🔥 ${entry.currentStreak} días',
+                    style:
+                        const TextStyle(color: Colors.white38, fontSize: 12)),
               ],
             ),
           ),
           Text(
             '⚡ ${entry.totalXp}',
-            style: const TextStyle(color: Color(0xFFFFD700), fontWeight: FontWeight.bold, fontSize: 14),
+            style: const TextStyle(
+                color: Color(0xFFFFD700),
+                fontWeight: FontWeight.bold,
+                fontSize: 14),
           ),
         ],
       ),

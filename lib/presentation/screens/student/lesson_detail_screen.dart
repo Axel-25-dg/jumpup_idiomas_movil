@@ -38,9 +38,13 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
       appBar: AppBar(
         backgroundColor: const Color(0xFF1A1828),
         title: lessonAsync.when(
-          data: (lesson) => Text(lesson.title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          loading: () => const Text('Cargando...', style: TextStyle(color: Colors.white)),
-          error: (_, __) => const Text('Detalle de Lección', style: TextStyle(color: Colors.white)),
+          data: (lesson) => Text(lesson.title,
+              style: const TextStyle(
+                  color: Colors.white, fontWeight: FontWeight.bold)),
+          loading: () =>
+              const Text('Cargando...', style: TextStyle(color: Colors.white)),
+          error: (_, __) => const Text('Detalle de Lección',
+              style: TextStyle(color: Colors.white)),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back, color: Colors.white),
@@ -48,8 +52,11 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
         ),
       ),
       body: lessonAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (err, _) => Center(child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (err, _) => Center(
+            child: Text('Error: $err',
+                style: const TextStyle(color: Colors.redAccent))),
         data: (lesson) => Column(
           children: [
             // ── TabBar Multimedia ──────────────────────────────────
@@ -63,7 +70,9 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 tabs: const [
                   Tab(icon: Icon(Icons.article_outlined), text: 'Lectura'),
                   Tab(icon: Icon(Icons.headphones_outlined), text: 'Audio'),
-                  Tab(icon: Icon(Icons.picture_as_pdf_outlined), text: 'Soporte PDF'),
+                  Tab(
+                      icon: Icon(Icons.picture_as_pdf_outlined),
+                      text: 'Soporte PDF'),
                 ],
               ),
             ),
@@ -94,16 +103,22 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => _TemporaryExerciseScreenWrapper(lessonId: lesson.id),
+                        builder: (_) => _TemporaryExerciseScreenWrapper(
+                            lessonId: lesson.id),
                       ),
                     );
                   },
                   icon: const Icon(Icons.quiz_outlined, color: Colors.white),
-                  label: const Text('Iniciar Quiz Práctico', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16)),
+                  label: const Text('Iniciar Quiz Práctico',
+                      style: TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF7C4DFF),
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
                     elevation: 4,
                   ),
                 ),
@@ -123,14 +138,16 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
         children: [
           Text(
             lesson.title,
-            style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+            style: const TextStyle(
+                color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Row(
             children: [
               Icon(Icons.access_time, color: Colors.white38, size: 16),
               SizedBox(width: 6),
-              Text('5 min de lectura', style: TextStyle(color: Colors.white38, fontSize: 13)),
+              Text('5 min de lectura',
+                  style: TextStyle(color: Colors.white38, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 20),
@@ -165,7 +182,9 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
               decoration: BoxDecoration(
                 color: const Color(0xFF1A1828),
                 shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.3), width: 3),
+                border: Border.all(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                    width: 3),
               ),
               child: Icon(
                 _isPlayingAudio ? Icons.graphic_eq : Icons.headphones,
@@ -175,8 +194,13 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             ),
             const SizedBox(height: 24),
             Text(
-              _isPlayingAudio ? 'Reproduciendo audio de soporte...' : 'Audio de la lección disponible',
-              style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+              _isPlayingAudio
+                  ? 'Reproduciendo audio de soporte...'
+                  : 'Audio de la lección disponible',
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
@@ -189,13 +213,18 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
               onPressed: () {
                 setState(() => _isPlayingAudio = !_isPlayingAudio);
               },
-              icon: Icon(_isPlayingAudio ? Icons.pause : Icons.play_arrow, color: Colors.white),
-              label: Text(_isPlayingAudio ? 'Pausar Reproducción' : 'Escuchar Lección', style: const TextStyle(color: Colors.white)),
+              icon: Icon(_isPlayingAudio ? Icons.pause : Icons.play_arrow,
+                  color: Colors.white),
+              label: Text(
+                  _isPlayingAudio ? 'Pausar Reproducción' : 'Escuchar Lección',
+                  style: const TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF1A1828),
                 side: const BorderSide(color: Color(0xFF7C4DFF)),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20)),
               ),
             ),
           ],
@@ -225,11 +254,19 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
           child: ListTile(
             leading: Container(
               padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(color: const Color(0xFFE53935).withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
-              child: const Icon(Icons.picture_as_pdf, color: Color(0xFFE53935), size: 24),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFE53935).withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8)),
+              child: const Icon(Icons.picture_as_pdf,
+                  color: Color(0xFFE53935), size: 24),
             ),
-            title: Text(pdf['name']!, style: const TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold)),
-            subtitle: Text(pdf['size']!, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+            title: Text(pdf['name']!,
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold)),
+            subtitle: Text(pdf['size']!,
+                style: const TextStyle(color: Colors.white38, fontSize: 12)),
             trailing: IconButton(
               icon: const Icon(Icons.download, color: Colors.white54),
               onPressed: () {

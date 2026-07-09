@@ -8,11 +8,11 @@ class ManageClassroomScreen extends ConsumerStatefulWidget {
   const ManageClassroomScreen({super.key, required this.classroomId});
 
   @override
-  ConsumerState<ManageClassroomScreen> createState() => _ManageClassroomScreenState();
+  ConsumerState<ManageClassroomScreen> createState() =>
+      _ManageClassroomScreenState();
 }
 
 class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
-
   Future<void> _removeStudent(int id) async {
     try {
       await ref.read(enrollmentNotifierProvider.notifier).removeStudent(id);
@@ -20,7 +20,8 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
       ref.invalidate(enrollmentsProvider(widget.classroomId));
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Error al eliminar')));
+      ScaffoldMessenger.of(context)
+          .showSnackBar(const SnackBar(content: Text('Error al eliminar')));
     }
   }
 

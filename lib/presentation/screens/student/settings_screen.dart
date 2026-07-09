@@ -1,156 +1,145 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
 
-class SettingsScreen extends StatefulWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  State<SettingsScreen> createState() => _SettingsScreenState();
-}
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
-class _SettingsScreenState extends State<SettingsScreen> {
-  bool _isDarkMode = true;
-  bool _notificationsEnabled = true;
-  bool _offlineModeEnabled = false;
-
-  void _logout(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1828),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
-        content: const Text('¿Estás seguro que deseas cerrar sesión? Tus datos locales se mantendrán, pero deberás iniciar sesión nuevamente.', style: TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar', style: TextStyle(color: Colors.white54)),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(context);
-              
-              // Cierre de sesión seguro: borrar token local
-              const storage = FlutterSecureStorage();
-              await storage.delete(key: 'access_token');
-              await storage.delete(key: 'refresh_token');
-              
-              if (context.mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Sesión cerrada correctamente')),
-                );
-              }
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
-            child: const Text('Cerrar Sesión', style: TextStyle(color: Colors.white)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Configuración', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('Configuración'),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
-          // ── Preferencias ───────────────────────────────────────────────────
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Text('PREFERENCIAS DE APLICACIÓN', style: TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+          _SectionHeader(label: 'PREFERENCIAS'),
+          SwitchListTile(
+            title: const Text('Tema Oscuro'),
+            subtitle: const Text('Mejora la lectura en la noche'),
+            secondary: const Icon(Icons.dark_mode),
+            value: Theme.of(context).brightness == Brightness.dark,
+            onChanged: (_) {},
           ),
-          _buildSwitchTile(
-            title: 'Tema Oscuro',
-            subtitle: 'Mejora la lectura en la noche',
-            icon: Icons.dark_mode,
-            value: _isDarkMode,
-            onChanged: (val) => setState(() => _isDarkMode = val),
+          SwitchListTile(
+            title: const Text('Notificaciones'),
+            subtitle: const Text('Recordatorios de clases y retos'),
+            secondary: const Icon(Icons.notifications),
+            value: true,
+            onChanged: (_) {},
           ),
-          _buildSwitchTile(
-            title: 'Notificaciones',
-            subtitle: 'Recordatorios de clases y retos',
-            icon: Icons.notifications,
-            value: _notificationsEnabled,
-            onChanged: (val) => setState(() => _notificationsEnabled = val),
+          SwitchListTile(
+            title: const Text('Descarga Automática'),
+            subtitle: const Text('Descarga lecciones para modo offline'),
+            secondary: const Icon(Icons.offline_pin),
+            value: false,
+            onChanged: (_) {},
           ),
-          _buildSwitchTile(
-            title: 'Descarga Automática',
-            subtitle: 'Descarga lecciones para modo offline',
-            icon: Icons.offline_pin,
-            value: _offlineModeEnabled,
-            onChanged: (val) => setState(() => _offlineModeEnabled = val),
+          const Divider(height: 32),
+          _SectionHeader(label: 'SOPORTE'),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Centro de Ayuda'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
           ),
-          
-          const Divider(color: Colors.white12, height: 32),
-
-          // ── Soporte ────────────────────────────────────────────────────────
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-            child: Text('SOPORTE Y ACERCA DE', style: TextStyle(color: Colors.white38, fontSize: 12, fontWeight: FontWeight.bold, letterSpacing: 1)),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Política de Privacidad'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
           ),
-          _buildActionTile(title: 'Centro de Ayuda', icon: Icons.help_outline, onTap: () {}),
-          _buildActionTile(title: 'Política de Privacidad', icon: Icons.privacy_tip_outlined, onTap: () {}),
-          _buildActionTile(title: 'Términos de Servicio', icon: Icons.description_outlined, onTap: () {}),
-          
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Términos de Servicio'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
           const SizedBox(height: 32),
-
-          // ── Cerrar sesión ────────────────────────────────────────────────
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 24),
             child: OutlinedButton.icon(
-              onPressed: () => _logout(context),
-              icon: const Icon(Icons.logout, color: Colors.redAccent),
-              label: const Text('Cerrar Sesión', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+              onPressed: () => _confirmLogout(context, ref),
+              icon: const Icon(Icons.logout),
+              label: const Text('Cerrar Sesión'),
               style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.redAccent),
+                foregroundColor: colors.error,
+                side: BorderSide(color: colors.error),
                 padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
             ),
           ),
-          
           const SizedBox(height: 24),
-          const Center(
-            child: Text('JumpUp Idiomas v1.0.0', style: TextStyle(color: Colors.white24, fontSize: 12)),
+          Center(
+            child: Text(
+              'JumpUp Idiomas v1.0.0',
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: colors.outline,
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildSwitchTile({
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required bool value,
-    required ValueChanged<bool> onChanged,
-  }) {
-    return SwitchListTile(
-      value: value,
-      onChanged: onChanged,
-      activeColor: const Color(0xFF7C4DFF),
-      secondary: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      subtitle: Text(subtitle, style: const TextStyle(color: Colors.white38, fontSize: 12)),
+  void _confirmLogout(BuildContext context, WidgetRef ref) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar Sesión'),
+        content: const Text(
+          '¿Estás seguro que deseas cerrar sesión?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) {
+                context.go(AppRoutes.login);
+              }
+            },
+            style: FilledButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Cerrar Sesión'),
+          ),
+        ],
+      ),
     );
   }
+}
 
-  Widget _buildActionTile({
-    required String title,
-    required IconData icon,
-    required VoidCallback onTap,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.white70),
-      title: Text(title, style: const TextStyle(color: Colors.white)),
-      trailing: const Icon(Icons.arrow_forward_ios, color: Colors.white24, size: 16),
-      onTap: onTap,
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label});
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+      child: Text(
+        label,
+        style: theme.textTheme.labelSmall?.copyWith(
+          color: theme.colorScheme.outline,
+          letterSpacing: 1,
+        ),
+      ),
     );
   }
 }

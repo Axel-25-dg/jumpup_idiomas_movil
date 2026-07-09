@@ -100,8 +100,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           }).toList();
         });
       }
-    } catch (_) {
-    }
+    } catch (_) {}
   }
 
   void _showSnackBar(String text) {

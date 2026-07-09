@@ -31,7 +31,9 @@ class VirtualClassModel {
   bool get isFull => currentParticipants >= maxParticipants;
   bool get isScheduled => status == 'scheduled';
   bool get isOngoing => status == 'ongoing';
-  bool get canJoin => isOngoing || (isScheduled && scheduledAt.difference(DateTime.now()).inMinutes <= 15);
+  bool get canJoin =>
+      isOngoing ||
+      (isScheduled && scheduledAt.difference(DateTime.now()).inMinutes <= 15);
 
   factory VirtualClassModel.fromJson(Map<String, dynamic> json) {
     return VirtualClassModel(
@@ -39,7 +41,8 @@ class VirtualClassModel {
       title: json['title']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       instructorName: json['instructor_name']?.toString() ?? '',
-      scheduledAt: DateTime.tryParse(json['scheduled_at']?.toString() ?? '') ?? DateTime.now(),
+      scheduledAt: DateTime.tryParse(json['scheduled_at']?.toString() ?? '') ??
+          DateTime.now(),
       durationMinutes: json['duration_minutes'] as int? ?? 60,
       meetingUrl: json['meeting_url']?.toString(),
       maxParticipants: json['max_participants'] as int? ?? 50,
@@ -80,8 +83,11 @@ class VirtualClassRegistrationModel {
   factory VirtualClassRegistrationModel.fromJson(Map<String, dynamic> json) {
     return VirtualClassRegistrationModel(
       id: json['id'] as int,
-      virtualClass: VirtualClassModel.fromJson(json['virtual_class'] as Map<String, dynamic>),
-      registeredAt: DateTime.tryParse(json['registered_at']?.toString() ?? '') ?? DateTime.now(),
+      virtualClass: VirtualClassModel.fromJson(
+          json['virtual_class'] as Map<String, dynamic>),
+      registeredAt:
+          DateTime.tryParse(json['registered_at']?.toString() ?? '') ??
+              DateTime.now(),
       status: json['status']?.toString() ?? 'registered',
     );
   }
@@ -110,7 +116,8 @@ class CertificateModel {
     return CertificateModel(
       id: json['id'] as int,
       courseName: json['course_name']?.toString() ?? '',
-      issueDate: DateTime.tryParse(json['issue_date']?.toString() ?? '') ?? DateTime.now(),
+      issueDate: DateTime.tryParse(json['issue_date']?.toString() ?? '') ??
+          DateTime.now(),
       certificateUrl: json['certificate_url']?.toString() ?? '',
       code: json['code']?.toString() ?? '',
       score: (json['score'] as num?)?.toDouble(),

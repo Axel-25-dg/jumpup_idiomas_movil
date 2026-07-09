@@ -6,11 +6,13 @@ final subscriptionServiceProvider = Provider<SubscriptionService>((ref) {
   return const SubscriptionService();
 });
 
-final subscriptionsProvider = FutureProvider<List<SubscriptionModel>>((ref) async {
+final subscriptionsProvider =
+    FutureProvider<List<SubscriptionModel>>((ref) async {
   return ref.watch(subscriptionServiceProvider).getSubscriptions();
 });
 
-final mySubscriptionProvider = FutureProvider<UserSubscriptionModel?>((ref) async {
+final mySubscriptionProvider =
+    FutureProvider<UserSubscriptionModel?>((ref) async {
   return ref.watch(subscriptionServiceProvider).getMySubscription();
 });
 
@@ -35,7 +37,8 @@ class PaymentNotifier extends StateNotifier<PaymentStatus> {
     state = PaymentStatus.loading;
     try {
       final order = await _service.createOrder(subscriptionId);
-      await _service.registerPayment(amount: order.totalAmount, method: paymentMethod);
+      await _service.registerPayment(
+          amount: order.totalAmount, method: paymentMethod);
       state = PaymentStatus.success;
     } catch (_) {
       state = PaymentStatus.failure;

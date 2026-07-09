@@ -119,7 +119,8 @@ final lessonDetailsProvider =
 });
 
 final teacherResourcesProvider =
-    FutureProvider.family<List<Map<String, dynamic>>, int>((ref, classroomId) async {
+    FutureProvider.family<List<Map<String, dynamic>>, int>(
+        (ref, classroomId) async {
   final service = ref.watch(courseServiceProvider);
   return service.getTeacherResources(classroomId);
 });

@@ -59,7 +59,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   void _submitAnswer(ExerciseModel exercise) {
     if (_hasAnswered) return;
-    
+
     // Para el tipo match, la respuesta correcta se compara con 'completed' si el usuario emparejó todas
     bool correct;
     if (exercise.exerciseType == 'match') {
@@ -86,7 +86,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         _selectedAnswer = null;
         _hasAnswered = false;
         _isCorrect = false;
-        
+
         // Resetear estados adicionales
         _selectedLeftMatch = null;
         _selectedRightMatch = null;
@@ -108,10 +108,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
     // Registrar progreso en la API (POST /api/progress/)
     ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-      lessonId: widget.lessonId,
-      status: 'completed',
-      score: (_correctCount / total) * 100,
-    );
+          lessonId: widget.lessonId,
+          status: 'completed',
+          score: (_correctCount / total) * 100,
+        );
 
     showDialog(
       context: context,
@@ -126,7 +126,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             const SizedBox(height: 12),
             const Text(
               '¡Lección completada!',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 20),
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20),
             ),
             const SizedBox(height: 8),
             Text(
@@ -137,9 +140,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFD700).withOpacity(0.15),
+                color: const Color(0xFFFFD700).withValues(alpha: 0.15),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4)),
+                border: Border.all(
+                    color: const Color(0xFFFFD700).withValues(alpha: 0.4)),
               ),
               child: Text(
                 '⚡ +$xp XP ganados',
@@ -158,13 +162,15 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF7C4DFF),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12)),
               ),
               onPressed: () {
                 Navigator.pop(context);
                 Navigator.pop(context);
               },
-              child: const Text('Volver al curso', style: TextStyle(color: Colors.white)),
+              child: const Text('Volver al curso',
+                  style: TextStyle(color: Colors.white)),
             ),
           ),
         ],
@@ -174,7 +180,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   @override
   Widget build(BuildContext context) {
-    final exercisesAsync = ref.watch(exercisesByLessonProvider(widget.lessonId));
+    final exercisesAsync =
+        ref.watch(exercisesByLessonProvider(widget.lessonId));
     final currentIndex = ref.watch(currentExerciseIndexProvider);
 
     return Scaffold(
@@ -188,14 +195,17 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         ),
       ),
       body: exercisesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
         error: (err, _) => Center(
-          child: Text('Error: $err', style: const TextStyle(color: Colors.redAccent)),
+          child: Text('Error: $err',
+              style: const TextStyle(color: Colors.redAccent)),
         ),
         data: (exercises) {
           if (exercises.isEmpty) {
             return const Center(
-              child: Text('Sin ejercicios disponibles', style: TextStyle(color: Colors.white54)),
+              child: Text('Sin ejercicios disponibles',
+                  style: TextStyle(color: Colors.white54)),
             );
           }
 
@@ -219,15 +229,18 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                   children: [
                     Text(
                       'Ejercicio ${safeIndex + 1} de ${exercises.length}',
-                      style: const TextStyle(color: Colors.white54, fontSize: 13),
+                      style:
+                          const TextStyle(color: Colors.white54, fontSize: 13),
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 16),
+                        const Icon(Icons.check_circle,
+                            color: Color(0xFF4CAF50), size: 16),
                         const SizedBox(width: 4),
                         Text(
                           '$_correctCount correctas',
-                          style: const TextStyle(color: Color(0xFF4CAF50), fontSize: 13),
+                          style: const TextStyle(
+                              color: Color(0xFF4CAF50), fontSize: 13),
                         ),
                       ],
                     ),
@@ -287,13 +300,17 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: _isCorrect
-                                  ? const Color(0xFF4CAF50).withOpacity(0.15)
-                                  : const Color(0xFFF44336).withOpacity(0.15),
+                                  ? const Color(0xFF4CAF50)
+                                      .withValues(alpha: 0.15)
+                                  : const Color(0xFFF44336)
+                                      .withValues(alpha: 0.15),
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(
                                 color: _isCorrect
-                                    ? const Color(0xFF4CAF50).withOpacity(0.5)
-                                    : const Color(0xFFF44336).withOpacity(0.5),
+                                    ? const Color(0xFF4CAF50)
+                                        .withValues(alpha: 0.5)
+                                    : const Color(0xFFF44336)
+                                        .withValues(alpha: 0.5),
                               ),
                             ),
                             child: Column(
@@ -301,7 +318,9 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                                 Text(
                                   _isCorrect ? '✅ ¡Correcto!' : '❌ Incorrecto',
                                   style: TextStyle(
-                                    color: _isCorrect ? const Color(0xFF4CAF50) : const Color(0xFFF44336),
+                                    color: _isCorrect
+                                        ? const Color(0xFF4CAF50)
+                                        : const Color(0xFFF44336),
                                     fontWeight: FontWeight.bold,
                                     fontSize: 16,
                                   ),
@@ -310,7 +329,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                                   const SizedBox(height: 6),
                                   Text(
                                     'Respuesta correcta: ${exercise.correctAnswer}',
-                                    style: const TextStyle(color: Colors.white60, fontSize: 13),
+                                    style: const TextStyle(
+                                        color: Colors.white60, fontSize: 13),
                                   ),
                                 ],
                               ],
@@ -336,7 +356,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                               ? const Color(0xFF7C4DFF)
                               : Colors.white12),
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14)),
                     ),
                     onPressed: _selectedAnswer == null
                         ? null
@@ -380,18 +401,20 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         if (_hasAnswered) {
           if (isCorrectOption) {
             borderColor = const Color(0xFF4CAF50);
-            bgColor = const Color(0xFF4CAF50).withOpacity(0.1);
+            bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.1);
           } else if (isSelected && !isCorrectOption) {
             borderColor = const Color(0xFFF44336);
-            bgColor = const Color(0xFFF44336).withOpacity(0.1);
+            bgColor = const Color(0xFFF44336).withValues(alpha: 0.1);
           }
         } else if (isSelected) {
           borderColor = const Color(0xFF7C4DFF);
-          bgColor = const Color(0xFF7C4DFF).withOpacity(0.1);
+          bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.1);
         }
 
         return GestureDetector(
-          onTap: _hasAnswered ? null : () => setState(() => _selectedAnswer = option),
+          onTap: _hasAnswered
+              ? null
+              : () => setState(() => _selectedAnswer = option),
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 200),
             margin: const EdgeInsets.only(bottom: 10),
@@ -404,10 +427,13 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             child: Row(
               children: [
                 Expanded(
-                  child: Text(option, style: const TextStyle(color: Colors.white, fontSize: 15)),
+                  child: Text(option,
+                      style:
+                          const TextStyle(color: Colors.white, fontSize: 15)),
                 ),
                 if (_hasAnswered && isCorrectOption)
-                  const Icon(Icons.check_circle, color: Color(0xFF4CAF50), size: 20),
+                  const Icon(Icons.check_circle,
+                      color: Color(0xFF4CAF50), size: 20),
                 if (_hasAnswered && isSelected && !isCorrectOption)
                   const Icon(Icons.cancel, color: Color(0xFFF44336), size: 20),
               ],
@@ -424,14 +450,16 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         final isSelected = _selectedAnswer == option;
         return Expanded(
           child: GestureDetector(
-            onTap: _hasAnswered ? null : () => setState(() => _selectedAnswer = option),
+            onTap: _hasAnswered
+                ? null
+                : () => setState(() => _selectedAnswer = option),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
               margin: EdgeInsets.only(right: option == 'Verdadero' ? 8 : 0),
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF7C4DFF).withOpacity(0.2)
+                    ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
                     : const Color(0xFF1A1828),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
@@ -441,9 +469,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               ),
               child: Column(
                 children: [
-                  Text(option == 'Verdadero' ? '✅' : '❌', style: const TextStyle(fontSize: 30)),
+                  Text(option == 'Verdadero' ? '✅' : '❌',
+                      style: const TextStyle(fontSize: 30)),
                   const SizedBox(height: 8),
-                  Text(option, style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600)),
+                  Text(option,
+                      style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600)),
                 ],
               ),
             ),
@@ -484,7 +517,17 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
       final parts = exercise.correctAnswer.split(' ');
       _selectedTranslateWords = [];
       _availableTranslateWords = List<String>.from(parts)
-        ..addAll(['té', 'café', 'vaso', 'leche', 'por', 'favor', 'mesa', 'caliente', 'frío'])
+        ..addAll([
+          'té',
+          'café',
+          'vaso',
+          'leche',
+          'por',
+          'favor',
+          'mesa',
+          'caliente',
+          'frío'
+        ])
         ..shuffle();
       _availableTranslateWords = _availableTranslateWords!.toSet().toList();
     }
@@ -499,25 +542,33 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           decoration: BoxDecoration(
             color: const Color(0xFF1A1828),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.3)),
+            border: Border.all(
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.3)),
           ),
           child: _selectedTranslateWords!.isEmpty
-              ? const Center(child: Text('Toca las palabras para traducir', style: TextStyle(color: Colors.white38, fontSize: 14)))
+              ? const Center(
+                  child: Text('Toca las palabras para traducir',
+                      style: TextStyle(color: Colors.white38, fontSize: 14)))
               : Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: _selectedTranslateWords!.map((word) {
                     return ActionChip(
-                      backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
+                      backgroundColor:
+                          const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                       side: const BorderSide(color: Color(0xFF7C4DFF)),
-                      label: Text(word, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                      label: Text(word,
+                          style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold)),
                       onPressed: _hasAnswered
                           ? null
                           : () {
                               setState(() {
                                 _selectedTranslateWords!.remove(word);
                                 _availableTranslateWords!.add(word);
-                                _selectedAnswer = _selectedTranslateWords!.join(' ');
+                                _selectedAnswer =
+                                    _selectedTranslateWords!.join(' ');
                               });
                             },
                     );
@@ -584,11 +635,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               Color bgColor = const Color(0xFF1A1828);
 
               if (isCompleted) {
-                borderColor = const Color(0xFF4CAF50).withOpacity(0.5);
-                bgColor = const Color(0xFF4CAF50).withOpacity(0.1);
+                borderColor = const Color(0xFF4CAF50).withValues(alpha: 0.5);
+                bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.1);
               } else if (isSelected) {
                 borderColor = const Color(0xFF7C4DFF);
-                bgColor = const Color(0xFF7C4DFF).withOpacity(0.15);
+                bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.15);
               }
 
               return GestureDetector(
@@ -602,7 +653,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                       },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: bgColor,
@@ -614,7 +666,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                     style: TextStyle(
                       color: isCompleted ? Colors.white38 : Colors.white,
                       fontWeight: FontWeight.bold,
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                      decoration:
+                          isCompleted ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
@@ -632,11 +685,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               Color bgColor = const Color(0xFF1A1828);
 
               if (isCompleted) {
-                borderColor = const Color(0xFF4CAF50).withOpacity(0.5);
-                bgColor = const Color(0xFF4CAF50).withOpacity(0.1);
+                borderColor = const Color(0xFF4CAF50).withValues(alpha: 0.5);
+                bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.1);
               } else if (isSelected) {
                 borderColor = const Color(0xFF7C4DFF);
-                bgColor = const Color(0xFF7C4DFF).withOpacity(0.15);
+                bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.15);
               }
 
               return GestureDetector(
@@ -650,7 +703,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                       },
                 child: Container(
                   margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
                   alignment: Alignment.center,
                   decoration: BoxDecoration(
                     color: bgColor,
@@ -662,7 +716,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                     style: TextStyle(
                       color: isCompleted ? Colors.white38 : Colors.white,
                       fontWeight: FontWeight.bold,
-                      decoration: isCompleted ? TextDecoration.lineThrough : null,
+                      decoration:
+                          isCompleted ? TextDecoration.lineThrough : null,
                     ),
                   ),
                 ),
@@ -688,7 +743,9 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         _selectedLeftMatch = null;
         _selectedRightMatch = null;
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('No coinciden. ¡Inténtalo de nuevo!'), duration: Duration(milliseconds: 600)),
+          const SnackBar(
+              content: Text('No coinciden. ¡Inténtalo de nuevo!'),
+              duration: Duration(milliseconds: 600)),
         );
       }
     }
@@ -712,12 +769,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                     shape: BoxShape.circle,
                     border: Border.all(color: const Color(0xFF7C4DFF)),
                   ),
                   child: Icon(
-                    _isPlayingAudioExercise ? Icons.volume_up : Icons.play_arrow,
+                    _isPlayingAudioExercise
+                        ? Icons.volume_up
+                        : Icons.play_arrow,
                     color: const Color(0xFF7C4DFF),
                     size: 48,
                   ),
@@ -725,7 +784,9 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                _isPlayingAudioExercise ? 'Escuchando...' : 'Toca para reproducir el audio',
+                _isPlayingAudioExercise
+                    ? 'Escuchando...'
+                    : 'Toca para reproducir el audio',
                 style: const TextStyle(color: Colors.white54, fontSize: 13),
               ),
             ],

@@ -70,7 +70,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         ),
       );
       if (!mounted) return;
-      context.go(AppRoutes.loading);
+      context.go(AppRoutes.login);
     } on ApiException catch (e) {
       if (mounted)
         setState(() {

@@ -6,11 +6,8 @@ class StudentStatsScreen extends ConsumerWidget {
   final String studentId;
   final String studentName;
 
-  const StudentStatsScreen({
-    super.key, 
-    required this.studentId, 
-    required this.studentName
-  });
+  const StudentStatsScreen(
+      {super.key, required this.studentId, required this.studentName});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -25,8 +22,10 @@ class StudentStatsScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(16),
           children: [
             _buildStatCard(Icons.emoji_events, 'XP Total', '${stats.totalXp}'),
-            _buildStatCard(Icons.local_fire_department, 'Racha Actual', '${stats.currentStreak} días'),
-            _buildStatCard(Icons.military_tech, 'Mejor Racha', '${stats.longestStreak} días'),
+            _buildStatCard(Icons.local_fire_department, 'Racha Actual',
+                '${stats.currentStreak} días'),
+            _buildStatCard(Icons.military_tech, 'Mejor Racha',
+                '${stats.longestStreak} días'),
           ],
         ),
       ),
@@ -39,7 +38,8 @@ class StudentStatsScreen extends ConsumerWidget {
       child: ListTile(
         leading: Icon(icon, color: Colors.blueAccent),
         title: Text(title),
-        trailing: Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
+        trailing:
+            Text(value, style: const TextStyle(fontWeight: FontWeight.bold)),
       ),
     );
   }

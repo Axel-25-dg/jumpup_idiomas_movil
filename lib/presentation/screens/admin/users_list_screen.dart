@@ -70,7 +70,8 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
                   _FilterChip(
                     label: 'Estudiantes',
                     selected: _roleFilter == 'Estudiante',
-                    onSelected: () => setState(() => _roleFilter = 'Estudiante'),
+                    onSelected: () =>
+                        setState(() => _roleFilter = 'Estudiante'),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
@@ -99,7 +100,8 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.search_off, size: 64, color: theme.colorScheme.outline),
+                        Icon(Icons.search_off,
+                            size: 64, color: theme.colorScheme.outline),
                         const SizedBox(height: 12),
                         Text(
                           _searchQuery.isNotEmpty || _roleFilter != 'TODOS'
@@ -112,7 +114,8 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
                   );
                 }
                 return RefreshIndicator(
-                  onRefresh: () => ref.read(userListProvider.notifier).fetchUsers(),
+                  onRefresh: () =>
+                      ref.read(userListProvider.notifier).fetchUsers(),
                   child: ListView.separated(
                     itemCount: filtered.length,
                     separatorBuilder: (_, __) => const Divider(height: 1),
@@ -121,7 +124,9 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
                       return _UserTile(
                         user: user,
                         onToggle: (val) {
-                          ref.read(userListProvider.notifier).updateUserStatus(user.id, val);
+                          ref
+                              .read(userListProvider.notifier)
+                              .updateUserStatus(user.id, val);
                         },
                       );
                     },
@@ -138,8 +143,9 @@ class _UsersListScreenState extends ConsumerState<UsersListScreen> {
   List<User> _filterUsers(List<User> users) {
     var filtered = users;
     if (_roleFilter != 'TODOS') {
-      filtered = filtered.where((u) =>
-          u.roleName.toLowerCase() == _roleFilter.toLowerCase()).toList();
+      filtered = filtered
+          .where((u) => u.roleName.toLowerCase() == _roleFilter.toLowerCase())
+          .toList();
     }
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((u) {
@@ -195,7 +201,7 @@ class _UserTile extends StatelessWidget {
 
     return ListTile(
       leading: CircleAvatar(
-        backgroundColor: roleColor.withOpacity(0.12),
+        backgroundColor: roleColor.withValues(alpha: 0.12),
         child: Text(
           '${user.firstName.isNotEmpty ? user.firstName[0] : ''}${user.lastName.isNotEmpty ? user.lastName[0] : ''}',
           style: TextStyle(color: roleColor, fontWeight: FontWeight.bold),
@@ -210,7 +216,7 @@ class _UserTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
             decoration: BoxDecoration(
-              color: roleColor.withOpacity(0.1),
+              color: roleColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(

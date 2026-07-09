@@ -18,13 +18,14 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<Classroom?>> {
   Future<void> create(String name, String desc, int courseId) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _repo.createClassroom(
-      name: name,
-      description: desc,
-      courseId: courseId,
-    ));
+          name: name,
+          description: desc,
+          courseId: courseId,
+        ));
   }
 }
 
-final classroomNotifierProvider = StateNotifierProvider<ClassroomNotifier, AsyncValue<Classroom?>>((ref) {
+final classroomNotifierProvider =
+    StateNotifierProvider<ClassroomNotifier, AsyncValue<Classroom?>>((ref) {
   return ClassroomNotifier(ref.read(teacherRepositoryProvider));
 });

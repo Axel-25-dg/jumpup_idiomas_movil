@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/dashboard_models.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/theme/app_theme.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -32,34 +36,62 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   Future<void> _saveProfile() async {
-    final updateNotifier = ref.read(profileUpdateNotifierProvider.notifier);
-    await updateNotifier.updateProfile({
-      'username': _usernameController.text,
-      'bio': _bioController.text,
-      'native_language': _nativeLangController.text,
+    final notifier = ref.read(profileUpdateNotifierProvider.notifier);
+    await notifier.updateProfile({
+      'username': _usernameController.text.trim(),
+      'bio': _bioController.text.trim(),
+      'native_language': _nativeLangController.text.trim(),
     });
-    setState(() => _isEditing = false);
     if (mounted) {
+      setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Perfil actualizado correctamente')),
+        const SnackBar(content: Text('Perfil actualizado')),
       );
     }
+  }
+
+  void _confirmLogout() {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Seguro que quieres salir?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authProvider.notifier).logout();
+              if (mounted) context.go(AppRoutes.login);
+            },
+            child: const Text('Cerrar sesión'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider);
     final updateState = ref.watch(profileUpdateNotifierProvider);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Mi Perfil', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text('Mi Perfil',
+            style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
         actions: [
           if (profileAsync.hasValue && !profileAsync.isLoading)
             IconButton(
-              icon: Icon(_isEditing ? Icons.check : Icons.edit, color: Colors.white),
+              icon: Icon(_isEditing ? Icons.check_rounded : Icons.edit_outlined,
+                  color: Colors.white),
               onPressed: updateState.isLoading
                   ? null
                   : () {
@@ -70,85 +102,184 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       }
                     },
             ),
+          IconButton(
+            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+            tooltip: 'Cerrar sesión',
+            onPressed: _confirmLogout,
+          ),
         ],
       ),
       body: profileAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (_, __) => const Center(child: Text('Error al cargar perfil', style: TextStyle(color: Colors.redAccent))),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (e, _) => Center(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+              const SizedBox(height: 12),
+              Text('No se pudo cargar el perfil',
+                  style: AppTextStyles.bodyMedium),
+              const SizedBox(height: 12),
+              FilledButton.icon(
+                onPressed: () => ref.invalidate(userProfileProvider),
+                icon: const Icon(Icons.refresh),
+                label: const Text('Reintentar'),
+              ),
+            ],
+          ),
+        ),
         data: (profile) => SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              // ── Avatar ─────────────────────────────────────────────────
               Stack(
                 alignment: Alignment.bottomRight,
                 children: [
-                  CircleAvatar(
-                    radius: 60,
-                    backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
-                    backgroundImage: profile.avatarUrl != null ? NetworkImage(profile.avatarUrl!) : null,
-                    child: profile.avatarUrl == null
-                        ? Text(
-                            profile.username.isNotEmpty ? profile.username[0].toUpperCase() : '?',
-                            style: const TextStyle(fontSize: 48, color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
-                          )
-                        : null,
+                  Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          blurRadius: 20,
+                          offset: const Offset(0, 6),
+                        ),
+                      ],
+                    ),
+                    child: CircleAvatar(
+                      radius: 56,
+                      backgroundColor:
+                          AppColors.primaryLight.withValues(alpha: 0.15),
+                      backgroundImage: profile.avatarUrl != null
+                          ? NetworkImage(profile.avatarUrl!)
+                          : null,
+                      child: profile.avatarUrl == null
+                          ? Text(
+                              profile.username.isNotEmpty
+                                  ? profile.username[0].toUpperCase()
+                                  : '?',
+                              style: AppTextStyles.displayMedium.copyWith(
+                                  color: AppColors.primary, fontSize: 40),
+                            )
+                          : null,
+                    ),
                   ),
                   if (_isEditing)
                     Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: const BoxDecoration(color: Color(0xFF7C4DFF), shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt, color: Colors.white, size: 20),
+                      padding: const EdgeInsets.all(7),
+                      decoration: const BoxDecoration(
+                          color: AppColors.primary, shape: BoxShape.circle),
+                      child: const Icon(Icons.camera_alt,
+                          color: Colors.white, size: 18),
                     ),
                 ],
               ),
+              const SizedBox(height: 16),
+              Text(profile.username,
+                  style: AppTextStyles.headlineSmall
+                      .copyWith(color: AppColors.primaryDark)),
+              Text(profile.email,
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary)),
               const SizedBox(height: 24),
 
-              _buildField('Nombre de usuario', _usernameController, profile.username, Icons.person),
-              const SizedBox(height: 16),
-              _buildField('Correo electrónico', TextEditingController(), profile.email, Icons.email, isReadOnly: true),
-              const SizedBox(height: 16),
-              _buildField('Idioma nativo', _nativeLangController, profile.nativeLanguage, Icons.language),
-              const SizedBox(height: 16),
-              _buildField('Biografía', _bioController, profile.bio ?? 'Sin biografía', Icons.info_outline, maxLines: 3),
-              const SizedBox(height: 24),
-
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF1A1828),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Text('Idiomas que aprendes', style: TextStyle(color: Colors.white54, fontSize: 13)),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: profile.learningLanguages.map((lang) {
-                        return Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF7C4DFF).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.5)),
-                          ),
-                          child: Text(lang, style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
-                        );
-                      }).toList(),
-                    ),
-                  ],
-                ),
+              // ── Campos ─────────────────────────────────────────────────
+              _buildInfoCard(
+                icon: Icons.person_outline,
+                label: 'Nombre de usuario',
+                value: profile.username,
+                controller: _usernameController,
+                isEditing: _isEditing,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 12),
+              _buildInfoCard(
+                icon: Icons.email_outlined,
+                label: 'Correo electrónico',
+                value: profile.email,
+                controller: TextEditingController(text: profile.email),
+                isEditing: false, // email siempre read-only
+              ),
+              const SizedBox(height: 12),
+              _buildInfoCard(
+                icon: Icons.language_outlined,
+                label: 'Idioma nativo',
+                value: profile.nativeLanguage,
+                controller: _nativeLangController,
+                isEditing: _isEditing,
+              ),
+              const SizedBox(height: 12),
+              _buildInfoCard(
+                icon: Icons.info_outline,
+                label: 'Biografía',
+                value: profile.bio?.isNotEmpty == true
+                    ? profile.bio!
+                    : 'Sin biografía',
+                controller: _bioController,
+                isEditing: _isEditing,
+                maxLines: 3,
+              ),
+
+              // ── Idiomas que aprende ────────────────────────────────────
+              if (profile.learningLanguages.isNotEmpty) ...[
+                const SizedBox(height: 16),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(color: AppColors.divider),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Idiomas que aprendo',
+                          style: AppTextStyles.labelMedium),
+                      const SizedBox(height: 10),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: profile.learningLanguages.map((lang) {
+                          return Chip(
+                            label: Text(lang),
+                            backgroundColor:
+                                AppColors.primary.withValues(alpha: 0.1),
+                            labelStyle: AppTextStyles.labelMedium
+                                .copyWith(color: AppColors.primary),
+                          );
+                        }).toList(),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+
+              const SizedBox(height: 24),
               Text(
                 'Miembro desde ${_formatDate(profile.joinedAt)}',
-                style: const TextStyle(color: Colors.white38, fontSize: 12),
+                style: AppTextStyles.labelSmall,
               ),
+              const SizedBox(height: 32),
+
+              // ── Cerrar sesión ──────────────────────────────────────────
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: _confirmLogout,
+                  icon: const Icon(Icons.logout_rounded),
+                  label: const Text('Cerrar sesión'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.error,
+                    side: const BorderSide(color: AppColors.error),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(14)),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
             ],
           ),
         ),
@@ -156,55 +287,53 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Widget _buildField(String label, TextEditingController controller, String displayValue, IconData icon, {bool isReadOnly = false, int maxLines = 1}) {
-    if (!_isEditing) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: const Color(0xFF1A1828),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white12),
-        ),
-        child: Row(
-          crossAxisAlignment: maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-          children: [
-            Icon(icon, color: Colors.white54, size: 20),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                  const SizedBox(height: 4),
-                  Text(displayValue, style: const TextStyle(color: Colors.white, fontSize: 15)),
-                ],
-              ),
-            ),
-          ],
+  Widget _buildInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required TextEditingController controller,
+    required bool isEditing,
+    int maxLines = 1,
+  }) {
+    if (isEditing) {
+      return TextField(
+        controller: controller,
+        maxLines: maxLines,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: Icon(icon, size: 20),
         ),
       );
     }
-
-    return TextField(
-      controller: controller,
-      readOnly: isReadOnly,
-      maxLines: maxLines,
-      style: TextStyle(color: isReadOnly ? Colors.white54 : Colors.white),
-      decoration: InputDecoration(
-        labelText: label,
-        labelStyle: const TextStyle(color: Colors.white54),
-        prefixIcon: Icon(icon, color: Colors.white54),
-        filled: true,
-        fillColor: isReadOnly ? Colors.white12 : const Color(0xFF1A1828),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
-        ),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.divider),
+      ),
+      child: Row(
+        crossAxisAlignment:
+            maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
+        children: [
+          Icon(icon, size: 20, color: AppColors.textSecondary),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: AppTextStyles.labelSmall),
+                const SizedBox(height: 2),
+                Text(value, style: AppTextStyles.bodyMedium),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) => '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
+  String _formatDate(DateTime d) =>
+      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 }
