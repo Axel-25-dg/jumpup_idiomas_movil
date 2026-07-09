@@ -2,13 +2,17 @@ import 'package:dio/dio.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/core/network/dio_client.dart';
 import 'package:jumpup_app/features/teacher-admin/models/admin_stats_model.dart';
+import 'package:jumpup_app/features/teacher-admin/models/announcement_model.dart';
 
 //Nuevas implementaciones
 import 'package:jumpup_app/features/teacher-admin/models/classroom_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/course_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/enrollment_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/language_model.dart';
+import 'package:jumpup_app/features/teacher-admin/models/report_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/resource_model.dart';
+import 'package:jumpup_app/features/teacher-admin/models/stats_teacher_model.dart';
+import 'package:jumpup_app/features/teacher-admin/models/subscription_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/user_model.dart';
 import 'package:jumpup_app/features/teacher-admin/models/user_stats.dart';
 
@@ -172,12 +176,63 @@ Future<List<Course>> fetchCourses() async {
 Future<void> createCourse(Map<String, dynamic> data) async => await _dio.post('/api/courses/', data: data);
 Future<void> deleteCourse(int id) async => await _dio.delete('/api/courses/$id/');
 
+//informes globales
+// obtener la lista de reportes
+Future<List<Report>> fetchReports() async {
+  final res = await _dio.get('/api/reports/');
+  // Dependiendo de tu respuesta, si viene en un objeto con "results", usa:
+  final List<dynamic> data = res.data['results'] ?? res.data; 
+  return data.map((i) => Report.fromJson(i)).toList();
+}
 
+// actualizar el estado de un reporte
+Future<void> updateReport(int id, Map<String, dynamic> data) async {
+  await _dio.patch('/api/reports/$id/', data: data);
+}
 
+//anuncios 
+Future<List<Announcement>> fetchAnnouncements() async {
+  // Realiza el GET al endpoint que ya tienes configurado en Django
+  final res = await _dio.get('/api/announcements/');
+  
+  // Si tu API usa paginación (StandardPagination), accedemos a 'results'
+  final List<dynamic> data = res.data is Map ? (res.data['results'] ?? []) : res.data;
+  
+  return data.map((i) => Announcement.fromJson(i)).toList();
+}
 
+//Suscripciones
 
+// Obtener lista de planes para mostrar al usuario
+Future<List<Subscription>> fetchSubscriptions() async {
+  final res = await _dio.get('/api/subscriptions/');
+  final List<dynamic> data = res.data['results'] ?? res.data;
+  return data.map((i) => Subscription.fromJson(i)).toList();
+}
 
+// Iniciar el proceso de pago (Checkout)
+Future<String> initiateCheckout(int subscriptionId) async {
+  final res = await _dio.post('/api/subscriptions/checkout/', data: {
+    'subscription_id': subscriptionId,
+  });
+  return res.data['url']; // URL de Stripe
+}
 
+//Teacher Dashboard
+Future<TeacherStats> fetchTeacherStats() async {
+  final res = await _dio.get('/api/classrooms/');
+  final List<dynamic> data = res.data['results'] ?? res.data;
+  final classrooms = data.map((i) => Classroom.fromJson(i)).toList();
+
+  // Cálculo: Sumamos el total_students de cada Classroom
+  int totalAulas = classrooms.length;
+  int totalAlumnos = classrooms.fold(0, (sum, item) => sum + item.totalStudents);
+
+  return TeacherStats(
+    totalAulas: totalAulas, 
+    totalAlumnos: totalAlumnos
+  );
+}
 
 }
 

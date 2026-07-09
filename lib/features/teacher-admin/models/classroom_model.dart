@@ -1,6 +1,7 @@
 class Classroom {
   final int id;
   final String name;
+  final int totalStudents;
   final String description;
   final int course;
   final String? courseTitle;
@@ -10,6 +11,7 @@ class Classroom {
   Classroom({
     required this.id,
     required this.name,
+    required this.totalStudents,
     required this.description,
     required this.course,
     this.courseTitle,
@@ -21,6 +23,7 @@ class Classroom {
     return Classroom(
       id: json['id'] as int,
       name: json['name'] as String,
+      totalStudents: json['total_students'] ?? 0,
       description: json['description'] as String,
       course: json['course'] as int,
       courseTitle: json['course_title'] as String?,
