@@ -65,7 +65,7 @@ void main() {
   group('SocialMediaRepository — fetchMessages', () {
     test('retorna lista vacía cuando el servidor devuelve []', () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/messaging/threads/': '[]'});
+      dio.httpClientAdapter = _JsonAdapter({'/threads/': '[]'});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchMessages();
@@ -85,7 +85,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/messaging/threads/': json});
+      dio.httpClientAdapter = _JsonAdapter({'/threads/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchMessages();
@@ -160,7 +160,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/social/feed/': json});
+      dio.httpClientAdapter = _JsonAdapter({'/social-posts/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchSocialFeed();

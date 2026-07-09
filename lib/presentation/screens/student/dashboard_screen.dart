@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
@@ -172,7 +173,7 @@ class _HomeTab extends ConsumerWidget {
                                     : '?',
                                 style: const TextStyle(
                                   fontSize: 22,
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                 ),
                               )
@@ -186,12 +187,12 @@ class _HomeTab extends ConsumerWidget {
                             Text(
                               '¡Hola, ${user.username.isNotEmpty ? user.username : 'Usuario'}! 👋',
                               style: AppTextStyles.titleLarge
-                                  .copyWith(color: Colors.white),
+                                  .copyWith(color: AppColors.textPrimary),
                             ),
                             Text(
                               user.email,
                               style: AppTextStyles.bodySmall
-                                  .copyWith(color: Colors.white70),
+                                  .copyWith(color: AppColors.textPrimary),
                             ),
                           ],
                         ),

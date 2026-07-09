@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
@@ -23,11 +24,11 @@ class DailyChallengesScreen extends ConsumerWidget {
     final challengesAsync = ref.watch(dailyChallengesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Misiones y Retos',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
             icon: const Icon(Icons.offline_bolt, color: Color(0xFFFFD700)),
@@ -50,7 +51,7 @@ class DailyChallengesScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1828),
+                color: AppColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
                     color: const Color(0xFF03A9F4).withValues(alpha: 0.5)),
@@ -66,12 +67,12 @@ class DailyChallengesScreen extends ConsumerWidget {
                       children: [
                         const Text('Estudia sin conexión',
                             style: TextStyle(
-                                color: Colors.white,
+                                color: AppColors.textPrimary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 16)),
                         const Text('Tienes 3 lecciones descargadas.',
                             style:
-                                TextStyle(color: Colors.white70, fontSize: 13)),
+                                TextStyle(color: AppColors.textPrimary, fontSize: 13)),
                         const SizedBox(height: 8),
                         TextButton(
                           onPressed: () {
@@ -98,13 +99,13 @@ class DailyChallengesScreen extends ConsumerWidget {
             const SizedBox(height: 24),
             const Text('Retos de hoy',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 20)),
             const SizedBox(height: 16),
             challengesAsync.when(
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
               error: (err, _) => Center(
                   child: Text('Error: $err',
                       style: const TextStyle(color: Colors.redAccent))),
@@ -135,12 +136,12 @@ class DailyChallengesScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [Color(0xFF7C4DFF), Color(0xFF448AFF)],
+                  colors: [AppColors.primary, Color(0xFF448AFF)],
                 ),
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                      color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                      color: AppColors.primary.withValues(alpha: 0.3),
                       blurRadius: 15,
                       offset: const Offset(0, 8)),
                 ],
@@ -151,17 +152,17 @@ class DailyChallengesScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   const Text('Cofre Diario',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 22)),
                   const Text('Completa todos los retos para abrirlo',
-                      style: TextStyle(color: Colors.white70)),
+                      style: TextStyle(color: AppColors.textPrimary)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: null,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.white,
-                      foregroundColor: const Color(0xFF7C4DFF),
+                      foregroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                       padding: const EdgeInsets.symmetric(
@@ -206,7 +207,7 @@ class _ChallengeCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isCompleted
             ? const Color(0xFF4CAF50).withValues(alpha: 0.1)
-            : const Color(0xFF1A1828),
+            : AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
@@ -263,7 +264,7 @@ class _ChallengeCard extends StatelessWidget {
                     Text(
                       '$current / $target',
                       style: const TextStyle(
-                          color: Colors.white54,
+                          color: AppColors.textSecondary,
                           fontSize: 12,
                           fontWeight: FontWeight.bold),
                     ),

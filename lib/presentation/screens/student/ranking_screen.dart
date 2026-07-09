@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
@@ -10,15 +11,15 @@ class RankingScreen extends ConsumerWidget {
     final rankingAsync = ref.watch(rankingProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Ranking Global 🏆',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
       body: rankingAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
@@ -27,7 +28,7 @@ class RankingScreen extends ConsumerWidget {
                   color: Colors.redAccent, size: 48),
               const SizedBox(height: 12),
               const Text('No se pudo cargar el ranking',
-                  style: TextStyle(color: Colors.white70)),
+                  style: TextStyle(color: AppColors.textPrimary)),
               const SizedBox(height: 8),
               ElevatedButton(
                 onPressed: () => ref.invalidate(rankingProvider),
@@ -147,7 +148,7 @@ class _PodiumItem extends StatelessWidget {
           Text(
             entry.username,
             style: TextStyle(
-                color: Colors.white,
+                color: AppColors.textPrimary,
                 fontSize: isFirst ? 13 : 11,
                 fontWeight: FontWeight.w600),
             overflow: TextOverflow.ellipsis,
@@ -190,7 +191,7 @@ class _RankingTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
@@ -201,18 +202,18 @@ class _RankingTile extends StatelessWidget {
             child: Text(
               '#${entry.position}',
               style: const TextStyle(
-                  color: Colors.white54,
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.bold,
                   fontSize: 14),
             ),
           ),
           CircleAvatar(
             radius: 18,
-            backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+            backgroundColor: AppColors.primary.withValues(alpha: 0.2),
             child: Text(
               entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
               style: const TextStyle(
-                  color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
+                  color: AppColors.primary, fontWeight: FontWeight.bold),
             ),
           ),
           const SizedBox(width: 12),
@@ -222,7 +223,7 @@ class _RankingTile extends StatelessWidget {
               children: [
                 Text(entry.username,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.w600,
                         fontSize: 14)),
                 Text('Nivel ${entry.level} · 🔥 ${entry.currentStreak} días',

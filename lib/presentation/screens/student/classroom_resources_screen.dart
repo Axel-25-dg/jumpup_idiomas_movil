@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -25,15 +26,15 @@ class ClassroomResourcesScreen extends ConsumerWidget {
         ref.watch(teacherResourcesProvider(1)); // Demo classroomId = 1
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Recursos del Aula',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
       body: resourcesAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(
             child: Text('Error: $err',
                 style: const TextStyle(color: Colors.redAccent))),
@@ -41,7 +42,7 @@ class ClassroomResourcesScreen extends ConsumerWidget {
           if (folders.isEmpty) {
             return const Center(
                 child: Text('No hay recursos disponibles',
-                    style: TextStyle(color: Colors.white54)));
+                    style: TextStyle(color: AppColors.textSecondary)));
           }
           return ListView.separated(
             padding: const EdgeInsets.all(16),
@@ -93,7 +94,7 @@ class _FolderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
       ),
@@ -101,17 +102,17 @@ class _FolderWidget extends StatelessWidget {
         children: [
           ListTile(
             leading:
-                const Icon(Icons.folder, color: Color(0xFF7C4DFF), size: 32),
+                const Icon(Icons.folder, color: AppColors.primary, size: 32),
             title: Text(title,
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
             subtitle: Text('$fileCount archivos',
-                style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
             trailing: Icon(
                 isExpanded
                     ? Icons.keyboard_arrow_up
                     : Icons.keyboard_arrow_down,
-                color: Colors.white54),
+                color: AppColors.textSecondary),
           ),
           if (isExpanded && files.isNotEmpty) ...[
             const Divider(color: Colors.white12, height: 1),
@@ -174,11 +175,11 @@ class _FileWidget extends StatelessWidget {
         child: Icon(_icon, color: _color, size: 20),
       ),
       title:
-          Text(name, style: const TextStyle(color: Colors.white, fontSize: 14)),
+          Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
       subtitle: Text(size,
           style: const TextStyle(color: Colors.white38, fontSize: 11)),
       trailing: IconButton(
-        icon: const Icon(Icons.download, color: Colors.white54),
+        icon: const Icon(Icons.download, color: AppColors.textSecondary),
         onPressed: () {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(content: Text('Descargando $name...')),

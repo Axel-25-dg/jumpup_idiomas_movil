@@ -4,6 +4,8 @@ import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
 import 'package:jumpup_app/domain/model/auth_models.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
+import 'package:jumpup_app/core/services/google_auth_service.dart';
+import 'package:jumpup_app/core/services/biometric_service.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -56,6 +58,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  // ── Login con email/password ───────────────────────────────────────────────
+
   Future<void> login(String email, String password) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
@@ -76,6 +80,73 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
     }
   }
+
+  // ── Login con Google ───────────────────────────────────────────────────────
+
+  Future<void> loginWithGoogle() async {
+    state = const AuthState(status: AuthStatus.loading);
+    try {
+      final idToken = await GoogleAuthService.instance.signIn();
+      if (idToken == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+      await _authService.loginWithGoogle(idToken);
+      final user = await _authService.getProfile();
+      state = AuthState(status: AuthStatus.authenticated, user: user);
+    } on ApiException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.message,
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'No se pudo iniciar sesión con Google.',
+      );
+    }
+  }
+
+  // ── Login biométrico ───────────────────────────────────────────────────────
+
+  /// Autentica al usuario con huella dactilar.
+  /// Requiere que el dispositivo haya sido registrado previamente.
+  Future<void> loginWithBiometric({
+    required String deviceId,
+    required String biometricToken,
+  }) async {
+    state = const AuthState(status: AuthStatus.loading);
+    try {
+      // 1. Solicita verificación biométrica al sistema operativo
+      final authenticated = await BiometricService.instance.authenticate();
+      if (!authenticated) {
+        state = const AuthState(
+          status: AuthStatus.error,
+          errorMessage: 'Autenticación biométrica cancelada.',
+        );
+        return;
+      }
+      // 2. Envía el token al backend para obtener JWT
+      await _authService.biometricLogin(
+        deviceId: deviceId,
+        biometricToken: biometricToken,
+      );
+      final user = await _authService.getProfile();
+      state = AuthState(status: AuthStatus.authenticated, user: user);
+    } on ApiException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.message,
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'Error al autenticar con huella dactilar.',
+      );
+    }
+  }
+
+  // ── Registro ───────────────────────────────────────────────────────────────
 
   Future<void> register({
     required String email,
@@ -111,10 +182,15 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
   }
 
+  // ── Logout ─────────────────────────────────────────────────────────────────
+
   Future<void> logout() async {
     await _authService.logout();
+    await GoogleAuthService.instance.signOut();
     state = const AuthState(status: AuthStatus.unauthenticated);
   }
+
+  // ── Limpiar error ──────────────────────────────────────────────────────────
 
   void clearError() {
     if (state.errorMessage != null) {

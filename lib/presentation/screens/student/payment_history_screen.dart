@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
@@ -14,16 +15,16 @@ class PaymentHistoryScreen extends ConsumerWidget {
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F0E1A),
+        backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: const Color(0xFF1A1828),
+          backgroundColor: AppColors.surface,
           title: const Text('Historial de Pagos',
               style:
-                  TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                  TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
           bottom: const TabBar(
-            labelColor: Color(0xFF7C4DFF),
-            unselectedLabelColor: Colors.white54,
-            indicatorColor: Color(0xFF7C4DFF),
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textSecondary,
+            indicatorColor: AppColors.primary,
             tabs: [
               Tab(text: 'Pagos'),
               Tab(text: 'Órdenes'),
@@ -35,7 +36,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
             // ── Tab Pagos ────────────────────────────────────────────
             paymentsAsync.when(
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
               error: (_, __) => const Center(
                   child: Text('Error al cargar pagos',
                       style: TextStyle(color: Colors.redAccent))),
@@ -55,7 +56,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
                 return ordersAsync.when(
                   loading: () => const Center(
                       child:
-                          CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                          CircularProgressIndicator(color: AppColors.primary)),
                   error: (_, __) => const Center(
                       child: Text('Error al cargar órdenes',
                           style: TextStyle(color: Colors.redAccent))),
@@ -89,7 +90,7 @@ class _PaymentTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
@@ -109,12 +110,12 @@ class _PaymentTile extends StatelessWidget {
               children: [
                 Text('\$${payment.amount.toStringAsFixed(2)}',
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
                 Text(payment.method.replaceAll('_', ' ').toUpperCase(),
                     style:
-                        const TextStyle(color: Colors.white54, fontSize: 12)),
+                        const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
                 if (payment.transactionId != null)
                   Text(payment.transactionId!,
                       style:
@@ -157,7 +158,7 @@ class _OrderTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
@@ -171,10 +172,10 @@ class _OrderTile extends StatelessWidget {
               children: [
                 Text(order.subscription.name,
                     style: const TextStyle(
-                        color: Colors.white, fontWeight: FontWeight.bold)),
+                        color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                 Text('\$${order.totalAmount.toStringAsFixed(2)}',
                     style: const TextStyle(
-                        color: Color(0xFF7C4DFF), fontSize: 14)),
+                        color: AppColors.primary, fontSize: 14)),
               ],
             ),
           ),
@@ -199,7 +200,7 @@ class _EmptyState extends StatelessWidget {
           const Icon(Icons.receipt_outlined, color: Colors.white24, size: 60),
           const SizedBox(height: 12),
           Text(message,
-              style: const TextStyle(color: Colors.white54, fontSize: 15)),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),
         ],
       ),
     );

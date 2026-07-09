@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'exercise_screen.dart';
@@ -34,26 +35,26 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
     final lessonAsync = ref.watch(lessonDetailsProvider(widget.lessonId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: lessonAsync.when(
           data: (lesson) => Text(lesson.title,
               style: const TextStyle(
-                  color: Colors.white, fontWeight: FontWeight.bold)),
+                  color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
           loading: () =>
-              const Text('Cargando...', style: TextStyle(color: Colors.white)),
+              const Text('Cargando...', style: TextStyle(color: AppColors.textPrimary)),
           error: (_, __) => const Text('Detalle de Lección',
-              style: TextStyle(color: Colors.white)),
+              style: TextStyle(color: AppColors.textPrimary)),
         ),
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: lessonAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(
             child: Text('Error: $err',
                 style: const TextStyle(color: Colors.redAccent))),
@@ -61,12 +62,12 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
           children: [
             // ── TabBar Multimedia ──────────────────────────────────
             Container(
-              color: const Color(0xFF1A1828),
+              color: AppColors.surface,
               child: TabBar(
                 controller: _tabController,
-                indicatorColor: const Color(0xFF7C4DFF),
-                labelColor: const Color(0xFF7C4DFF),
-                unselectedLabelColor: Colors.white54,
+                indicatorColor: AppColors.primary,
+                labelColor: AppColors.primary,
+                unselectedLabelColor: AppColors.textSecondary,
                 tabs: const [
                   Tab(icon: Icon(Icons.article_outlined), text: 'Lectura'),
                   Tab(icon: Icon(Icons.headphones_outlined), text: 'Audio'),
@@ -108,14 +109,14 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                       ),
                     );
                   },
-                  icon: const Icon(Icons.quiz_outlined, color: Colors.white),
+                  icon: const Icon(Icons.quiz_outlined, color: AppColors.textPrimary),
                   label: const Text('Iniciar Quiz Práctico',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14)),
@@ -139,7 +140,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
           Text(
             lesson.title,
             style: const TextStyle(
-                color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold),
+                color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 8),
           const Row(
@@ -163,7 +164,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             '   - "Goodbye! Have a nice day." (¡Adiós! Que tengas un buen día.)\n'
             '   - "See you later." (Te veo luego.)\n\n'
             'Consejo: Recuerda practicar la entonación y repasar el vocabulario en voz alta para afianzar tu racha de aprendizaje diaria.',
-            style: TextStyle(color: Colors.white70, fontSize: 15, height: 1.6),
+            style: TextStyle(color: AppColors.textPrimary, fontSize: 15, height: 1.6),
           ),
         ],
       ),
@@ -180,15 +181,15 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1828),
+                color: AppColors.surface,
                 shape: BoxShape.circle,
                 border: Border.all(
-                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
+                    color: AppColors.primary.withValues(alpha: 0.3),
                     width: 3),
               ),
               child: Icon(
                 _isPlayingAudio ? Icons.graphic_eq : Icons.headphones,
-                color: const Color(0xFF7C4DFF),
+                color: AppColors.primary,
                 size: 64,
               ),
             ),
@@ -198,14 +199,14 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                   ? 'Reproduciendo audio de soporte...'
                   : 'Audio de la lección disponible',
               style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontSize: 18,
                   fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             const Text(
               'Escucha la pronunciación correcta por hablantes nativos.',
-              style: TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 32),
@@ -214,13 +215,13 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 setState(() => _isPlayingAudio = !_isPlayingAudio);
               },
               icon: Icon(_isPlayingAudio ? Icons.pause : Icons.play_arrow,
-                  color: Colors.white),
+                  color: AppColors.textPrimary),
               label: Text(
                   _isPlayingAudio ? 'Pausar Reproducción' : 'Escuchar Lección',
-                  style: const TextStyle(color: Colors.white)),
+                  style: const TextStyle(color: AppColors.textPrimary)),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1A1828),
-                side: const BorderSide(color: Color(0xFF7C4DFF)),
+                backgroundColor: AppColors.surface,
+                side: const BorderSide(color: AppColors.primary),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                 shape: RoundedRectangleBorder(
@@ -247,7 +248,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
         return Container(
           margin: const EdgeInsets.only(bottom: 12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1828),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(14),
             border: Border.all(color: Colors.white12),
           ),
@@ -262,13 +263,13 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             ),
             title: Text(pdf['name']!,
                 style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 14,
                     fontWeight: FontWeight.bold)),
             subtitle: Text(pdf['size']!,
                 style: const TextStyle(color: Colors.white38, fontSize: 12)),
             trailing: IconButton(
-              icon: const Icon(Icons.download, color: Colors.white54),
+              icon: const Icon(Icons.download, color: AppColors.textSecondary),
               onPressed: () {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text('Descargando ${pdf['name']}...')),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -17,10 +18,10 @@ class CourseDetailScreen extends ConsumerWidget {
     final modulesAsync = ref.watch(modulesByCourseProvider(courseId));
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       body: courseAsync.when(
         loading: () => const Center(
-          child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+          child: CircularProgressIndicator(color: AppColors.primary),
         ),
         error: (err, _) => Center(
           child: Text('Error: $err',
@@ -33,12 +34,12 @@ class CourseDetailScreen extends ConsumerWidget {
               expandedHeight: 200,
               floating: false,
               pinned: true,
-              backgroundColor: const Color(0xFF1A1828),
+              backgroundColor: AppColors.surface,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   course.title,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 16,
                   ),
@@ -49,7 +50,7 @@ class CourseDetailScreen extends ConsumerWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        const Color(0xFF7C4DFF),
+                        AppColors.primary,
                         _levelColor(course.difficultyLevel),
                       ],
                     ),
@@ -69,7 +70,7 @@ class CourseDetailScreen extends ConsumerWidget {
                           child: Text(
                             course.difficultyLevel,
                             style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold,
                               fontSize: 18,
                             ),
@@ -79,7 +80,7 @@ class CourseDetailScreen extends ConsumerWidget {
                         Text(
                           course.languageName,
                           style: const TextStyle(
-                              color: Colors.white70, fontSize: 14),
+                              color: AppColors.textPrimary, fontSize: 14),
                         ),
                       ],
                     ),
@@ -101,7 +102,7 @@ class CourseDetailScreen extends ConsumerWidget {
                         icon: Icons.layers_outlined,
                         value: '${summary['total_modules']}',
                         label: 'Módulos',
-                        color: const Color(0xFF7C4DFF),
+                        color: AppColors.primary,
                       ),
                       const SizedBox(width: 12),
                       _StatBox(
@@ -133,7 +134,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     const Text(
                       'Descripción',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -148,7 +149,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     const Text(
                       'Módulos del curso',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 18,
                       ),
@@ -188,7 +189,7 @@ class CourseDetailScreen extends ConsumerWidget {
                     // TODO: Navegar a la primera lección con GoRouter
                   },
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
+                    backgroundColor: AppColors.primary,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14),
@@ -197,12 +198,12 @@ class CourseDetailScreen extends ConsumerWidget {
                   child: const Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.play_circle_outline, color: Colors.white),
+                      Icon(Icons.play_circle_outline, color: AppColors.textPrimary),
                       SizedBox(width: 8),
                       Text(
                         'Comenzar curso',
                         style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
                         ),
@@ -227,7 +228,7 @@ class CourseDetailScreen extends ConsumerWidget {
       'C1': Color(0xFFFF9800),
       'C2': Color(0xFFF44336),
     };
-    return colors[level] ?? const Color(0xFF7C4DFF);
+    return colors[level] ?? AppColors.primary;
   }
 }
 
@@ -269,7 +270,7 @@ class _StatBox extends StatelessWidget {
               ),
             ),
             Text(label,
-                style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
           ],
         ),
       ),
@@ -289,7 +290,7 @@ class _ModuleExpansionTile extends ConsumerWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: Colors.white12),
       ),
@@ -302,13 +303,13 @@ class _ModuleExpansionTile extends ConsumerWidget {
             height: 36,
             alignment: Alignment.center,
             decoration: BoxDecoration(
-              color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '${module.order}',
               style: const TextStyle(
-                color: Color(0xFF7C4DFF),
+                color: AppColors.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 16,
               ),
@@ -317,19 +318,19 @@ class _ModuleExpansionTile extends ConsumerWidget {
           title: Text(
             module.title,
             style: const TextStyle(
-                color: Colors.white, fontWeight: FontWeight.w600),
+                color: AppColors.textPrimary, fontWeight: FontWeight.w600),
           ),
           subtitle: Text(
             '${module.lessonsCount} lecciones',
             style: const TextStyle(color: Colors.white38, fontSize: 12),
           ),
-          iconColor: Colors.white54,
-          collapsedIconColor: Colors.white54,
+          iconColor: AppColors.textSecondary,
+          collapsedIconColor: AppColors.textSecondary,
           children: [
             lessonsAsync.when(
               loading: () => const Padding(
                 padding: EdgeInsets.all(16),
-                child: LinearProgressIndicator(color: Color(0xFF7C4DFF)),
+                child: LinearProgressIndicator(color: AppColors.primary),
               ),
               error: (_, __) => const Padding(
                 padding: EdgeInsets.all(12),
@@ -370,7 +371,7 @@ class _LessonTile extends StatelessWidget {
             color: const Color(0xFF03A9F4), size: 16),
       ),
       title: Text(lesson.title,
-          style: const TextStyle(color: Colors.white70, fontSize: 14)),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [

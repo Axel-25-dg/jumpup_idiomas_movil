@@ -7,11 +7,13 @@ import 'package:jumpup_app/data/remote/dio_client.dart';
 /// Servicio de autenticación conectado a la API Django en Hetzner.
 ///
 /// Endpoints:
-///   POST /auth/login/      → obtiene access + refresh tokens
-///   POST /auth/register/   → crea cuenta nueva
-///   POST /auth/password/reset/  → envía email de recuperación
-///   GET  /auth/me/         → perfil del usuario autenticado
-///   POST /auth/token/refresh/   → renueva el access token
+///   POST /api/auth/login/                  → obtiene access + refresh tokens
+///   POST /api/auth/register/               → crea cuenta nueva
+///   POST /api/auth/password-reset/         → envía email de recuperación con PIN
+///   POST /api/auth/password-reset-confirm/ → confirma el PIN y cambia password
+///   GET  /api/auth/me/                     → perfil del usuario autenticado
+///   POST /api/auth/token/refresh/          → renueva el access token
+///   POST /api/auth/biometric/login/        → login por huella dactilar
 class AuthService {
   AuthService() : _dio = DioClient.instance.dio;
 
@@ -28,7 +30,6 @@ class AuthService {
       );
       final data = response.data!;
       final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
-
       await _client.saveTokens(
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -36,6 +37,68 @@ class AuthService {
       return tokens;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo iniciar sesión');
+    }
+  }
+
+  // ── Login con Google ───────────────────────────────────────────────────────
+
+  /// Envía el ID token de Google al backend para autenticación.
+  /// El backend valida con Google y devuelve los JWT propios.
+  Future<AuthTokenModel> loginWithGoogle(String googleIdToken) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        'auth/google/',
+        data: {'id_token': googleIdToken},
+      );
+      final data = response.data!;
+      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
+      await _client.saveTokens(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      );
+      return tokens;
+    } on DioException catch (e) {
+      throw _handle(e, 'No se pudo iniciar sesión con Google');
+    }
+  }
+
+  // ── Login biométrico ───────────────────────────────────────────────────────
+
+  /// Login por huella dactilar usando el biometric_token guardado en el dispositivo.
+  Future<AuthTokenModel> biometricLogin({
+    required String deviceId,
+    required String biometricToken,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        'auth/biometric/login/',
+        data: {
+          'device_id': deviceId,
+          'biometric_token': biometricToken,
+        },
+      );
+      final data = response.data!;
+      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
+      await _client.saveTokens(
+        accessToken: tokens.accessToken,
+        refreshToken: tokens.refreshToken,
+      );
+      return tokens;
+    } on DioException catch (e) {
+      throw _handle(e, 'No se pudo autenticar con huella dactilar');
+    }
+  }
+
+  /// Registra el dispositivo para autenticación biométrica.
+  Future<String> registerBiometric(String deviceId) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        'auth/biometric/register/',
+        data: {'device_id': deviceId},
+      );
+      return response.data!['biometric_token'] as String? ?? '';
+    } on DioException catch (e) {
+      throw _handle(e, 'No se pudo registrar la huella dactilar');
     }
   }
 
@@ -49,7 +112,6 @@ class AuthService {
       );
       final data = response.data!;
       final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
-
       await _client.saveTokens(
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -60,16 +122,37 @@ class AuthService {
     }
   }
 
-  // ── Recuperar contraseña ───────────────────────────────────────────────────
+  // ── Recuperar contraseña — Paso 1: Enviar PIN al correo ───────────────────
 
   Future<void> forgotPassword(ForgotPasswordRequest request) async {
     try {
       await _dio.post<dynamic>(
-        'auth/password/reset/',
+        'auth/password-reset/',
         data: request.toJson(),
       );
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo enviar el correo de recuperación');
+    }
+  }
+
+  // ── Recuperar contraseña — Paso 2: Confirmar PIN + nueva contraseña ────────
+
+  Future<void> resetPasswordConfirm({
+    required String email,
+    required String pin,
+    required String newPassword,
+  }) async {
+    try {
+      await _dio.post<dynamic>(
+        'auth/password-reset-confirm/',
+        data: {
+          'email': email,
+          'pin': pin,
+          'new_password': newPassword,
+        },
+      );
+    } on DioException catch (e) {
+      throw _handle(e, 'No se pudo restablecer la contraseña');
     }
   }
 
@@ -94,7 +177,6 @@ class AuthService {
       );
       final data = response.data!;
       final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
-
       await _client.saveTokens(
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
@@ -114,7 +196,6 @@ class AuthService {
   // ── Helpers ────────────────────────────────────────────────────────────────
 
   /// Normaliza la respuesta del backend al formato esperado por AuthTokenModel.
-  /// El backend Django puede devolver: { access, refresh } o { accessToken, refreshToken }
   Map<String, dynamic> _normalizeTokenResponse(Map<String, dynamic> data) {
     return {
       'accessToken':
@@ -127,8 +208,6 @@ class AuthService {
   ApiException _handle(DioException e, String fallback) {
     final inner = e.error;
     if (inner is ApiException) return inner;
-
-    // Extrae el mensaje de error del body de Django (e.g. {"detail": "..."})
     final body = e.response?.data;
     String msg = fallback;
     if (body is Map) {

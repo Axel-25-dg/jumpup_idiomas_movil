@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 
 class LearningPathScreen extends StatelessWidget {
   const LearningPathScreen({super.key});
@@ -36,9 +37,9 @@ class LearningPathScreen extends StatelessWidget {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -48,7 +49,7 @@ class LearningPathScreen extends StatelessWidget {
             const SizedBox(width: 12),
             const Text('Inglés',
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
@@ -105,9 +106,9 @@ class _NodeWidget extends StatelessWidget {
         case NodeStatus.completed:
           return const Color(0xFFFFD700);
         case NodeStatus.unlocked:
-          return const Color(0xFF7C4DFF);
+          return AppColors.primary;
         case NodeStatus.locked:
-          return const Color(0xFF1A1828);
+          return AppColors.surface;
       }
     }
 

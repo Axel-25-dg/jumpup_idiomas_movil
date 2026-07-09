@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
@@ -13,11 +14,11 @@ class SubscriptionsScreen extends ConsumerWidget {
     final mySubAsync = ref.watch(mySubscriptionProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Suscripciones',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
@@ -37,21 +38,21 @@ class SubscriptionsScreen extends ConsumerWidget {
             const Text(
               'Elige tu plan',
               style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 22),
             ),
             const SizedBox(height: 8),
             const Text(
               'Desbloquea todo el contenido sin límites',
-              style: TextStyle(color: Colors.white54, fontSize: 14),
+              style: TextStyle(color: AppColors.textSecondary, fontSize: 14),
             ),
             const SizedBox(height: 20),
 
             // ── Planes disponibles ─────────────────────────────────────
             plansAsync.when(
               loading: () => const Center(
-                  child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  child: CircularProgressIndicator(color: AppColors.primary)),
               error: (_, __) => const Text('Error al cargar planes',
                   style: TextStyle(color: Colors.redAccent)),
               data: (plans) => Column(
@@ -75,7 +76,7 @@ class _ActiveSubscriptionCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: const LinearGradient(
-          colors: [Color(0xFF7C4DFF), Color(0xFF448AFF)],
+          colors: [AppColors.primary, Color(0xFF448AFF)],
         ),
         borderRadius: BorderRadius.circular(16),
       ),
@@ -89,12 +90,12 @@ class _ActiveSubscriptionCard extends StatelessWidget {
               children: [
                 Text(subscription.subscription.name,
                     style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
                 Text('${subscription.daysRemaining} días restantes',
                     style:
-                        const TextStyle(color: Colors.white70, fontSize: 13)),
+                        const TextStyle(color: AppColors.textPrimary, fontSize: 13)),
               ],
             ),
           ),
@@ -104,7 +105,7 @@ class _ActiveSubscriptionCard extends StatelessWidget {
                 color: Colors.white24, borderRadius: BorderRadius.circular(8)),
             child: const Text('Activo',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 12,
                     fontWeight: FontWeight.bold)),
           ),
@@ -128,10 +129,10 @@ class _PlanCard extends ConsumerWidget {
         Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1828),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isPopular ? const Color(0xFF7C4DFF) : Colors.white12,
+              color: isPopular ? AppColors.primary : Colors.white12,
               width: isPopular ? 2 : 1,
             ),
           ),
@@ -145,7 +146,7 @@ class _PlanCard extends ConsumerWidget {
                   children: [
                     Text(plan.name,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 18)),
                     Column(
@@ -153,13 +154,13 @@ class _PlanCard extends ConsumerWidget {
                       children: [
                         Text(plan.formattedPrice,
                             style: const TextStyle(
-                                color: Color(0xFF7C4DFF),
+                                color: AppColors.primary,
                                 fontWeight: FontWeight.bold,
                                 fontSize: 20)),
                         if (!plan.isFree)
                           Text('/ ${plan.durationLabel}',
                               style: const TextStyle(
-                                  color: Colors.white54, fontSize: 12)),
+                                  color: AppColors.textSecondary, fontSize: 12)),
                       ],
                     ),
                   ],
@@ -167,7 +168,7 @@ class _PlanCard extends ConsumerWidget {
                 const SizedBox(height: 8),
                 Text(plan.description,
                     style:
-                        const TextStyle(color: Colors.white54, fontSize: 13)),
+                        const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                 const SizedBox(height: 12),
                 ...plan.features.map((f) => Padding(
                       padding: const EdgeInsets.only(bottom: 6),
@@ -178,7 +179,7 @@ class _PlanCard extends ConsumerWidget {
                           const SizedBox(width: 8),
                           Text(f,
                               style: const TextStyle(
-                                  color: Colors.white70, fontSize: 13)),
+                                  color: AppColors.textPrimary, fontSize: 13)),
                         ],
                       ),
                     )),
@@ -193,7 +194,7 @@ class _PlanCard extends ConsumerWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: plan.isFree
                           ? Colors.white12
-                          : const Color(0xFF7C4DFF),
+                          : AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
@@ -201,7 +202,7 @@ class _PlanCard extends ConsumerWidget {
                     child: Text(
                       plan.isFree ? 'Plan actual' : 'Suscribirse',
                       style: const TextStyle(
-                          color: Colors.white, fontWeight: FontWeight.bold),
+                          color: AppColors.textPrimary, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -216,12 +217,12 @@ class _PlanCard extends ConsumerWidget {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C4DFF),
+                color: AppColors.primary,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: const Text('Popular',
                   style: TextStyle(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       fontSize: 11,
                       fontWeight: FontWeight.bold)),
             ),
@@ -235,15 +236,15 @@ class _PlanCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Suscribirse a ${plan.name}',
-            style: const TextStyle(color: Colors.white)),
+            style: const TextStyle(color: AppColors.textPrimary)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('Total: ${plan.formattedPrice} / ${plan.durationLabel}',
-                style: const TextStyle(color: Colors.white70)),
+                style: const TextStyle(color: AppColors.textPrimary)),
             const SizedBox(height: 16),
             const Text('Método de pago:',
                 style: TextStyle(color: Colors.white60, fontSize: 13)),
@@ -253,10 +254,10 @@ class _PlanCard extends ConsumerWidget {
                     method.contains('Tarjeta')
                         ? Icons.credit_card
                         : Icons.account_balance_wallet,
-                    color: const Color(0xFF7C4DFF),
+                    color: AppColors.primary,
                   ),
                   title:
-                      Text(method, style: const TextStyle(color: Colors.white)),
+                      Text(method, style: const TextStyle(color: AppColors.textPrimary)),
                   onTap: () {
                     Navigator.pop(context);
                     ref.read(paymentNotifierProvider.notifier).processPayment(

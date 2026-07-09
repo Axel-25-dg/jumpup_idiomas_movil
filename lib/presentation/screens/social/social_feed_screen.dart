@@ -4,10 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/app_theme.dart';
 
 class SocialFeedScreen extends ConsumerStatefulWidget {
   const SocialFeedScreen({super.key});
-
   @override
   ConsumerState<SocialFeedScreen> createState() => _SocialFeedScreenState();
 }
@@ -16,6 +16,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
   final _repo = SocialMediaRepository();
   final _contentController = TextEditingController();
   bool _posting = false;
+  bool _showCompose = false;
 
   @override
   void dispose() {
@@ -30,12 +31,12 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
     try {
       await _repo.createSocialPost(content: content);
       _contentController.clear();
+      setState(() => _showCompose = false);
       if (mounted) ref.invalidate(socialFeedProvider);
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Error: $e'), backgroundColor: Colors.red));
       }
     } finally {
       if (mounted) setState(() => _posting = false);
@@ -50,134 +51,146 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
         await _repo.likePost(post.id);
       }
       if (mounted) ref.invalidate(socialFeedProvider);
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final feedAsync = ref.watch(socialFeedProvider);
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF2F9FF),
       appBar: AppBar(
-        title: const Text('Feed Social'),
+        backgroundColor: AppTheme.celeste,
+        elevation: 0,
+        centerTitle: true,
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: const [
+            Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
+            SizedBox(width: 8),
+            Text('Feed JumpUp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+          ],
+        ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: () => ref.invalidate(socialFeedProvider),
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppTheme.celeste,
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: const Text('Publicar', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        onPressed: () => setState(() => _showCompose = !_showCompose),
+      ),
       body: Column(
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _contentController,
-                    maxLines: 2,
-                    decoration: InputDecoration(
-                      hintText: '¿Qué estás pensando?',
-                      filled: true,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(16),
-                        borderSide: BorderSide.none,
+          // Compose box
+          AnimatedContainer(
+            duration: const Duration(milliseconds: 300),
+            height: _showCompose ? 160 : 0,
+            curve: Curves.easeInOut,
+            child: SingleChildScrollView(
+              physics: const NeverScrollableScrollPhysics(),
+              child: Container(
+                margin: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [BoxShadow(color: AppTheme.celeste.withOpacity(0.15), blurRadius: 10, offset: const Offset(0, 4))],
+                ),
+                child: Column(
+                  children: [
+                    TextField(
+                      controller: _contentController,
+                      maxLines: 3,
+                      decoration: const InputDecoration(
+                        hintText: '¿Qué quieres compartir con la comunidad JumpUp?',
+                        border: InputBorder.none,
+                        hintStyle: TextStyle(color: AppTheme.textoClaro),
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 16, vertical: 12),
                     ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                FilledButton(
-                  onPressed: _posting ? null : _createPost,
-                  style: FilledButton.styleFrom(
-                    minimumSize: const Size(48, 48),
-                    padding: const EdgeInsets.all(12),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14),
-                    ),
-                  ),
-                  child: _posting
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
-                          ),
-                        )
-                      : const Icon(Icons.send),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: feedAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator()),
-              error: (e, _) => Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.wifi_off, size: 48,
-                          color: theme.colorScheme.error),
-                      const SizedBox(height: 12),
-                      Text('Error al cargar el feed',
-                          style: theme.textTheme.titleMedium),
-                      const SizedBox(height: 16),
-                      FilledButton(
-                        onPressed: () => ref.invalidate(socialFeedProvider),
-                        child: const Text('Reintentar'),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              data: (posts) {
-                if (posts.isEmpty) {
-                  return Center(
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
+                    const Divider(height: 1),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        Icon(Icons.rocket_launch_outlined,
-                            size: 64, color: theme.colorScheme.primary
-                                .withValues(alpha: 0.4)),
-                        const SizedBox(height: 12),
-                        Text('No hay publicaciones aún',
-                            style: theme.textTheme.titleMedium),
-                        const SizedBox(height: 4),
-                        Text('¡Sé el primero en publicar!',
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(color: theme.colorScheme
-                                    .onSurfaceVariant)),
+                        TextButton(
+                          onPressed: () => setState(() { _showCompose = false; _contentController.clear(); }),
+                          child: const Text('Cancelar', style: TextStyle(color: AppTheme.textoClaro)),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(backgroundColor: AppTheme.celeste),
+                          onPressed: _posting ? null : _createPost,
+                          child: _posting
+                              ? const SizedBox(width: 16, height: 16, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                              : const Text('Publicar', style: TextStyle(color: Colors.white)),
+                        ),
                       ],
                     ),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    final post = posts[index];
-                    return _PostCard(
-                      post: post,
-                      onLike: () => _toggleLike(post),
-                    );
-                  },
-                );
-              },
+                  ],
+                ),
+              ),
             ),
           ),
+          // Feed
+          Expanded(
+            child: feedAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator(color: AppTheme.celeste)),
+              error: (e, _) => Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off_rounded, size: 60, color: AppTheme.textoClaro),
+                    const SizedBox(height: 12),
+                    const Text('No se pudo cargar el feed', style: TextStyle(color: AppTheme.textoClaro)),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(backgroundColor: AppTheme.celeste),
+                      icon: const Icon(Icons.refresh, color: Colors.white),
+                      label: const Text('Reintentar', style: TextStyle(color: Colors.white)),
+                      onPressed: () => ref.invalidate(socialFeedProvider),
+                    ),
+                  ],
+                ),
+              ),
+              data: (posts) => posts.isEmpty
+                  ? _buildEmptyState()
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(12, 4, 12, 100),
+                      itemCount: posts.length,
+                      itemBuilder: (ctx, i) => _PostCard(
+                        post: posts[i],
+                        onLike: () => _toggleLike(posts[i]),
+                      ),
+                    ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppTheme.celeste.withOpacity(0.1),
+            ),
+            child: const Icon(Icons.rocket_launch_outlined, size: 56, color: AppTheme.celeste),
+          ),
+          const SizedBox(height: 20),
+          const Text('¡Sé el primero en publicar!', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
+          const SizedBox(height: 8),
+          const Text('Comparte tu progreso con la comunidad', style: TextStyle(color: AppTheme.textoClaro)),
         ],
       ),
     );
@@ -185,289 +198,120 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
 }
 
 class _PostCard extends StatelessWidget {
-  const _PostCard({required this.post, required this.onLike});
   final SocialPost post;
   final VoidCallback onLike;
+  const _PostCard({required this.post, required this.onLike});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    final time = DateFormat('dd MMM, HH:mm').format(post.createdAt);
+    final initial = post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(18),
+        boxShadow: [
+          BoxShadow(color: AppTheme.celeste.withOpacity(0.08), blurRadius: 12, offset: const Offset(0, 4)),
+        ],
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ListTile(
-            leading: CircleAvatar(
-              backgroundColor: theme.colorScheme.primaryContainer,
-              child: Text(
-                post.authorName.isNotEmpty
-                    ? post.authorName[0].toUpperCase()
-                    : '?',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: theme.colorScheme.onPrimaryContainer,
-                ),
-              ),
-            ),
-            title: Text(post.authorName,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            subtitle: Text(
-              DateFormat('dd MMM yyyy · HH:mm').format(post.createdAt.toLocal()),
-              style: theme.textTheme.bodySmall
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-            ),
-          ),
-          if (post.content.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-              child: Text(post.content,
-                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.4)),
-            ),
-          if (post.imageUrl != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(0),
-              child: Image.network(
-                post.imageUrl!,
-                width: double.infinity,
-                height: 200,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => const SizedBox.shrink(),
-              ),
-            ),
+          // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 8, 8, 8),
+            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
             child: Row(
               children: [
-                IconButton(
-                  icon: Icon(
-                    post.isLiked ? Icons.favorite : Icons.favorite_border,
-                    color: post.isLiked ? Colors.red : null,
+                CircleAvatar(
+                  radius: 22,
+                  backgroundColor: AppTheme.celeste.withOpacity(0.15),
+                  backgroundImage: post.authorAvatar != null ? NetworkImage(post.authorAvatar!) : null,
+                  child: post.authorAvatar == null
+                      ? Text(initial, style: const TextStyle(color: AppTheme.celeste, fontWeight: FontWeight.bold, fontSize: 16))
+                      : null,
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textoOscuro, fontSize: 14)),
+                      Text(time, style: const TextStyle(color: AppTheme.textoClaro, fontSize: 11)),
+                    ],
                   ),
-                  onPressed: onLike,
                 ),
-                Text('${post.likes}',
-                    style: theme.textTheme.bodySmall),
-                const SizedBox(width: 16),
-                IconButton(
-                  icon: const Icon(Icons.chat_bubble_outline),
-                  onPressed: () => _showComments(context),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: AppTheme.celeste.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text('Estudiante', style: TextStyle(color: AppTheme.celeste, fontSize: 11, fontWeight: FontWeight.w600)),
                 ),
-                Text('${post.comments}',
-                    style: theme.textTheme.bodySmall),
+              ],
+            ),
+          ),
+          // Contenido
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            child: Text(post.content, style: const TextStyle(color: AppTheme.textoOscuro, fontSize: 15, height: 1.4)),
+          ),
+          // Imagen si hay
+          if (post.imageUrl != null)
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: ClipRRect(
+                borderRadius: const BorderRadius.only(bottomLeft: Radius.circular(18), bottomRight: Radius.circular(18)),
+                child: Image.network(post.imageUrl!, fit: BoxFit.cover, height: 200, width: double.infinity),
+              ),
+            ),
+          // Acciones
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Row(
+              children: [
+                // Like
+                Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(20),
+                    onTap: onLike,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      child: Row(
+                        children: [
+                          Icon(post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
+                              color: post.isLiked ? Colors.red : AppTheme.textoClaro, size: 20),
+                          const SizedBox(width: 4),
+                          Text('${post.likes}', style: TextStyle(color: post.isLiked ? Colors.red : AppTheme.textoClaro, fontWeight: FontWeight.w600)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                // Comentarios
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.chat_bubble_outline_rounded, color: AppTheme.textoClaro, size: 19),
+                      const SizedBox(width: 4),
+                      Text('${post.comments}', style: const TextStyle(color: AppTheme.textoClaro, fontWeight: FontWeight.w600)),
+                    ],
+                  ),
+                ),
                 const Spacer(),
+                // Compartir
                 IconButton(
-                  icon: const Icon(Icons.share_outlined),
+                  icon: const Icon(Icons.share_outlined, color: AppTheme.textoClaro, size: 20),
                   onPressed: () {},
                 ),
               ],
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showComments(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => _CommentsSheet(postId: post.id),
-    );
-  }
-}
-
-class _CommentsSheet extends ConsumerStatefulWidget {
-  const _CommentsSheet({required this.postId});
-  final String postId;
-
-  @override
-  ConsumerState<_CommentsSheet> createState() => _CommentsSheetState();
-}
-
-class _CommentsSheetState extends ConsumerState<_CommentsSheet> {
-  final _commentController = TextEditingController();
-  final _repo = SocialMediaRepository();
-  List<SocialComment> _comments = [];
-  bool _loading = true;
-  bool _sending = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadComments();
-  }
-
-  @override
-  void dispose() {
-    _commentController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _loadComments() async {
-    setState(() => _loading = true);
-    try {
-      final comments = await _repo.fetchComments(widget.postId);
-      if (mounted) setState(() => _comments = comments);
-    } catch (_) {}
-    if (mounted) setState(() => _loading = false);
-  }
-
-  Future<void> _sendComment() async {
-    final text = _commentController.text.trim();
-    if (text.isEmpty) return;
-    setState(() => _sending = true);
-    try {
-      final comment = await _repo.createComment(
-        postId: widget.postId,
-        content: text,
-      );
-      if (mounted) {
-        setState(() => _comments = [..._comments, comment]);
-        _commentController.clear();
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error: $e')),
-        );
-      }
-    }
-    if (mounted) setState(() => _sending = false);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-      ),
-      child: SizedBox(
-        height: MediaQuery.of(context).size.height * 0.6,
-        child: Column(
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12),
-              child: Column(
-                children: [
-                  Container(
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: theme.colorScheme.onSurfaceVariant
-                          .withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Text('Comentarios',
-                      style: theme.textTheme.titleMedium
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                ],
-              ),
-            ),
-            const Divider(height: 1),
-            Expanded(
-              child: _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : _comments.isEmpty
-                      ? Center(
-                          child: Text('Sin comentarios',
-                              style: theme.textTheme.bodyMedium
-                                  ?.copyWith(color: theme.colorScheme
-                                      .onSurfaceVariant)),
-                        )
-                      : ListView.builder(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: _comments.length,
-                          itemBuilder: (_, i) {
-                            final c = _comments[i];
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  CircleAvatar(
-                                    radius: 16,
-                                    backgroundColor:
-                                        theme.colorScheme.primaryContainer,
-                                    child: Text(
-                                      c.authorName.isNotEmpty
-                                          ? c.authorName[0].toUpperCase()
-                                          : '?',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: theme.colorScheme
-                                            .onPrimaryContainer,
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 10),
-                                  Expanded(
-                                    child: Column(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.start,
-                                      children: [
-                                        Text(c.authorName,
-                                            style: theme.textTheme.labelMedium
-                                                ?.copyWith(
-                                                    fontWeight:
-                                                        FontWeight.w600)),
-                                        const SizedBox(height: 2),
-                                        Text(c.content,
-                                            style: theme.textTheme.bodyMedium),
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
-                        ),
-            ),
-            const Divider(height: 1),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _commentController,
-                      decoration: InputDecoration(
-                        hintText: 'Escribe un comentario...',
-                        filled: true,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 10),
-                      ),
-                      onSubmitted: (_) => _sendComment(),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: _sending ? null : _sendComment,
-                    icon: _sending
-                        ? const SizedBox(
-                            width: 18,
-                            height: 18,
-                            child:
-                                CircularProgressIndicator(strokeWidth: 2),
-                          )
-                        : const Icon(Icons.send),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

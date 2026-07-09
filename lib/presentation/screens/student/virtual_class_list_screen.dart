@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
@@ -13,10 +14,10 @@ class VirtualClassListScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Unirse a Aula Virtual',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         content: Form(
           key: formKey,
           child: Column(
@@ -25,13 +26,13 @@ class VirtualClassListScreen extends ConsumerWidget {
             children: [
               const Text(
                   'Ingresa el código de 6 dígitos proporcionado por tu docente:',
-                  style: TextStyle(color: Colors.white70, fontSize: 13)),
+                  style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
               const SizedBox(height: 16),
               TextFormField(
                 controller: controller,
                 maxLength: 6,
                 style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 4),
@@ -42,7 +43,7 @@ class VirtualClassListScreen extends ConsumerWidget {
                   hintStyle:
                       const TextStyle(color: Colors.white24, letterSpacing: 1),
                   filled: true,
-                  fillColor: const Color(0xFF0F0E1A),
+                  fillColor: AppColors.background,
                   counterText: '',
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -50,7 +51,7 @@ class VirtualClassListScreen extends ConsumerWidget {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12),
                     borderSide:
-                        const BorderSide(color: Color(0xFF7C4DFF), width: 1.5),
+                        const BorderSide(color: AppColors.primary, width: 1.5),
                   ),
                 ),
                 validator: (val) {
@@ -70,7 +71,7 @@ class VirtualClassListScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child:
-                const Text('Cancelar', style: TextStyle(color: Colors.white54)),
+                const Text('Cancelar', style: TextStyle(color: AppColors.textSecondary)),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -103,10 +104,10 @@ class VirtualClassListScreen extends ConsumerWidget {
               }
             },
             style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C4DFF)),
+                backgroundColor: AppColors.primary),
             child: const Text('Unirse',
                 style: TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold)),
+                    color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -118,24 +119,24 @@ class VirtualClassListScreen extends ConsumerWidget {
     final classesAsync = ref.watch(virtualClassesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Clases Virtuales',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         actions: [
           TextButton.icon(
-            icon: const Icon(Icons.vpn_key, color: Color(0xFF7C4DFF)),
+            icon: const Icon(Icons.vpn_key, color: AppColors.primary),
             label: const Text('Unirse con Código',
                 style: TextStyle(
-                    color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                    color: AppColors.primary, fontWeight: FontWeight.bold)),
             onPressed: () => _showEnrollDialog(context, ref),
           ),
         ],
       ),
       body: classesAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, __) => const Center(
             child: Text('Error al cargar clases',
                 style: TextStyle(color: Colors.redAccent))),
@@ -143,7 +144,7 @@ class VirtualClassListScreen extends ConsumerWidget {
           if (classes.isEmpty) {
             return const Center(
                 child: Text('No hay clases programadas',
-                    style: TextStyle(color: Colors.white54)));
+                    style: TextStyle(color: AppColors.textSecondary)));
           }
           return ListView.builder(
             padding: const EdgeInsets.all(16),
@@ -169,7 +170,7 @@ class _VirtualClassCard extends ConsumerWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.white12),
       ),
@@ -185,7 +186,7 @@ class _VirtualClassCard extends ConsumerWidget {
                 decoration: BoxDecoration(
                   color: vClass.isOngoing
                       ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
-                      : const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+                      : AppColors.primary.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -193,7 +194,7 @@ class _VirtualClassCard extends ConsumerWidget {
                   style: TextStyle(
                     color: vClass.isOngoing
                         ? const Color(0xFF4CAF50)
-                        : const Color(0xFF7C4DFF),
+                        : AppColors.primary,
                     fontWeight: FontWeight.bold,
                     fontSize: 11,
                   ),
@@ -202,12 +203,12 @@ class _VirtualClassCard extends ConsumerWidget {
               Row(
                 children: [
                   const Icon(Icons.people_outline,
-                      color: Colors.white54, size: 16),
+                      color: AppColors.textSecondary, size: 16),
                   const SizedBox(width: 4),
                   Text(
                     '${vClass.currentParticipants}/${vClass.maxParticipants}',
                     style: TextStyle(
-                        color: isFull ? Colors.redAccent : Colors.white54,
+                        color: isFull ? Colors.redAccent : AppColors.textSecondary,
                         fontSize: 12),
                   ),
                 ],
@@ -217,22 +218,22 @@ class _VirtualClassCard extends ConsumerWidget {
           const SizedBox(height: 12),
           Text(vClass.title,
               style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 18)),
           const SizedBox(height: 6),
           Text(vClass.description,
-              style: const TextStyle(color: Colors.white54, fontSize: 13)),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 13)),
           const SizedBox(height: 12),
           Row(
             children: [
               const CircleAvatar(
                   radius: 12,
                   backgroundColor: Colors.white24,
-                  child: Icon(Icons.person, size: 16, color: Colors.white)),
+                  child: Icon(Icons.person, size: 16, color: AppColors.textPrimary)),
               const SizedBox(width: 8),
               Text(vClass.instructorName,
-                  style: const TextStyle(color: Colors.white70, fontSize: 13)),
+                  style: const TextStyle(color: AppColors.textPrimary, fontSize: 13)),
             ],
           ),
           const SizedBox(height: 16),
@@ -262,7 +263,7 @@ class _VirtualClassCard extends ConsumerWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: isFull && !vClass.canJoin
                     ? Colors.white12
-                    : const Color(0xFF7C4DFF),
+                    : AppColors.primary,
                 padding: const EdgeInsets.symmetric(vertical: 14),
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
@@ -272,7 +273,7 @@ class _VirtualClassCard extends ConsumerWidget {
                     ? 'Unirse ahora'
                     : (isFull ? 'Clase llena' : 'Inscribirse'),
                 style: const TextStyle(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                    color: AppColors.textPrimary, fontWeight: FontWeight.bold),
               ),
             ),
           ),

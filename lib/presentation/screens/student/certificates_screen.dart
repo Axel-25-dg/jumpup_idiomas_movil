@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
@@ -11,15 +12,15 @@ class CertificatesScreen extends ConsumerWidget {
     final certsAsync = ref.watch(certificatesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Mis Certificados 🎓',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
       body: certsAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, __) => const Center(
             child: Text('Error al cargar certificados',
                 style: TextStyle(color: Colors.redAccent))),
@@ -34,23 +35,23 @@ class CertificatesScreen extends ConsumerWidget {
                   const SizedBox(height: 16),
                   const Text('Aún no tienes certificados',
                       style: TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 18,
                           fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
                   const Text(
                       'Completa un curso para obtener tu primer certificado.',
-                      style: TextStyle(color: Colors.white54, fontSize: 14)),
+                      style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () {},
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C4DFF),
+                      backgroundColor: AppColors.primary,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: const Text('Ir a Cursos',
-                        style: TextStyle(color: Colors.white)),
+                        style: TextStyle(color: AppColors.textPrimary)),
                   )
                 ],
               ),
@@ -76,7 +77,7 @@ class _CertificateCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1A1828),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border:
             Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.5)),
@@ -124,7 +125,7 @@ class _CertificateCard extends StatelessWidget {
                       Text(
                         certificate.courseName,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16),
                       ),
@@ -143,10 +144,10 @@ class _CertificateCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Fecha de emisión:',
-                        style: TextStyle(color: Colors.white54, fontSize: 13)),
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     Text(_formatDate(certificate.issueDate),
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 13,
                             fontWeight: FontWeight.w600)),
                   ],
@@ -156,10 +157,10 @@ class _CertificateCard extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     const Text('Código de validación:',
-                        style: TextStyle(color: Colors.white54, fontSize: 13)),
+                        style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                     Text(certificate.code,
                         style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 13,
                             fontFamily: 'monospace')),
                   ],
@@ -171,7 +172,7 @@ class _CertificateCard extends StatelessWidget {
                     children: [
                       const Text('Calificación final:',
                           style:
-                              TextStyle(color: Colors.white54, fontSize: 13)),
+                              TextStyle(color: AppColors.textSecondary, fontSize: 13)),
                       Text('${certificate.score}%',
                           style: const TextStyle(
                               color: Color(0xFF4CAF50),
@@ -185,7 +186,7 @@ class _CertificateCard extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AppColors.textPrimary,
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: CustomPaint(
@@ -212,9 +213,9 @@ class _CertificateCard extends StatelessWidget {
                                   content:
                                       Text('Enlace copiado al portapapeles')));
                         },
-                        icon: const Icon(Icons.link, color: Colors.white),
+                        icon: const Icon(Icons.link, color: AppColors.textPrimary),
                         label: const Text('Compartir',
-                            style: TextStyle(color: Colors.white)),
+                            style: TextStyle(color: AppColors.textPrimary)),
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Colors.white24),
                           shape: RoundedRectangleBorder(

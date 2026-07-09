@@ -1,4 +1,8 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:dio/dio.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/dashboard_models.dart';
@@ -6,6 +10,7 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/services/api_service.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -16,9 +21,43 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isEditing = false;
+  bool _uploadingAvatar = false;
   final _usernameController = TextEditingController();
   final _bioController = TextEditingController();
   final _nativeLangController = TextEditingController();
+  final _imagePicker = ImagePicker();
+
+  Future<void> _pickAndUploadAvatar() async {
+    final picked = await _imagePicker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 80,
+      maxWidth: 512,
+    );
+    if (picked == null) return;
+
+    setState(() => _uploadingAvatar = true);
+    try {
+      final file = File(picked.path);
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(file.path, filename: 'avatar.jpg'),
+      });
+      await ApiService().dio.patch('user/avatar/', data: formData);
+      if (mounted) {
+        ref.invalidate(userProfileProvider);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('¡Foto actualizada!'), backgroundColor: Colors.green),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al subir foto: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -86,12 +125,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: Text('Mi Perfil',
-            style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
+            style: AppTextStyles.titleLarge.copyWith(color: AppColors.textPrimary)),
         actions: [
           if (profileAsync.hasValue && !profileAsync.isLoading)
             IconButton(
               icon: Icon(_isEditing ? Icons.check_rounded : Icons.edit_outlined,
-                  color: Colors.white),
+                  color: AppColors.textPrimary),
               onPressed: updateState.isLoading
                   ? null
                   : () {
@@ -103,7 +142,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     },
             ),
           IconButton(
-            icon: const Icon(Icons.logout_rounded, color: Colors.white),
+            icon: const Icon(Icons.logout_rounded, color: AppColors.textPrimary),
             tooltip: 'Cerrar sesión',
             onPressed: _confirmLogout,
           ),
@@ -166,14 +205,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           : null,
                     ),
                   ),
-                  if (_isEditing)
-                    Container(
-                      padding: const EdgeInsets.all(7),
+                  GestureDetector(
+                    onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
+                    child: Container(
+                      padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
                           color: AppColors.primary, shape: BoxShape.circle),
-                      child: const Icon(Icons.camera_alt,
-                          color: Colors.white, size: 18),
+                      child: _uploadingAvatar
+                          ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                          : const Icon(Icons.camera_alt, color: Colors.white, size: 18),
                     ),
+                  ),
                 ],
               ),
               const SizedBox(height: 16),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -117,7 +118,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
       context: context,
       barrierDismissible: false,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -127,7 +128,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             const Text(
               '¡Lección completada!',
               style: TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 20),
             ),
@@ -161,7 +162,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             width: double.infinity,
             child: ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C4DFF),
+                backgroundColor: AppColors.primary,
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12)),
               ),
@@ -170,7 +171,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                 Navigator.pop(context);
               },
               child: const Text('Volver al curso',
-                  style: TextStyle(color: Colors.white)),
+                  style: TextStyle(color: AppColors.textPrimary)),
             ),
           ),
         ],
@@ -185,18 +186,18 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
     final currentIndex = ref.watch(currentExerciseIndexProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
-        title: const Text('Ejercicio', style: TextStyle(color: Colors.white)),
+        backgroundColor: AppColors.surface,
+        title: const Text('Ejercicio', style: TextStyle(color: AppColors.textPrimary)),
         leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
+          icon: const Icon(Icons.close, color: AppColors.textPrimary),
           onPressed: () => Navigator.pop(context),
         ),
       ),
       body: exercisesAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (err, _) => Center(
           child: Text('Error: $err',
               style: const TextStyle(color: Colors.redAccent)),
@@ -205,7 +206,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           if (exercises.isEmpty) {
             return const Center(
               child: Text('Sin ejercicios disponibles',
-                  style: TextStyle(color: Colors.white54)),
+                  style: TextStyle(color: AppColors.textSecondary)),
             );
           }
 
@@ -218,7 +219,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               LinearProgressIndicator(
                 value: (safeIndex + 1) / exercises.length,
                 backgroundColor: Colors.white12,
-                color: const Color(0xFF7C4DFF),
+                color: AppColors.primary,
                 minHeight: 4,
               ),
 
@@ -230,7 +231,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                     Text(
                       'Ejercicio ${safeIndex + 1} de ${exercises.length}',
                       style:
-                          const TextStyle(color: Colors.white54, fontSize: 13),
+                          const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                     ),
                     Row(
                       children: [
@@ -259,14 +260,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF1A1828),
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(16),
                           border: Border.all(color: Colors.white12),
                         ),
                         child: Text(
                           exercise.questionText,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
                             height: 1.5,
@@ -353,7 +354,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                       backgroundColor: _hasAnswered
                           ? const Color(0xFF4CAF50)
                           : (_selectedAnswer != null
-                              ? const Color(0xFF7C4DFF)
+                              ? AppColors.primary
                               : Colors.white12),
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
@@ -367,7 +368,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                     child: Text(
                       _hasAnswered ? 'Siguiente →' : 'Verificar respuesta',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),
@@ -396,7 +397,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         final isSelected = _selectedAnswer == option;
         final isCorrectOption = option == exercise.correctAnswer;
         Color borderColor = Colors.white12;
-        Color bgColor = const Color(0xFF1A1828);
+        Color bgColor = AppColors.surface;
 
         if (_hasAnswered) {
           if (isCorrectOption) {
@@ -407,8 +408,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
             bgColor = const Color(0xFFF44336).withValues(alpha: 0.1);
           }
         } else if (isSelected) {
-          borderColor = const Color(0xFF7C4DFF);
-          bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.1);
+          borderColor = AppColors.primary;
+          bgColor = AppColors.primary.withValues(alpha: 0.1);
         }
 
         return GestureDetector(
@@ -429,7 +430,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                 Expanded(
                   child: Text(option,
                       style:
-                          const TextStyle(color: Colors.white, fontSize: 15)),
+                          const TextStyle(color: AppColors.textPrimary, fontSize: 15)),
                 ),
                 if (_hasAnswered && isCorrectOption)
                   const Icon(Icons.check_circle,
@@ -459,11 +460,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               padding: const EdgeInsets.symmetric(vertical: 20),
               decoration: BoxDecoration(
                 color: isSelected
-                    ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
-                    : const Color(0xFF1A1828),
+                    ? AppColors.primary.withValues(alpha: 0.2)
+                    : AppColors.surface,
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
-                  color: isSelected ? const Color(0xFF7C4DFF) : Colors.white12,
+                  color: isSelected ? AppColors.primary : Colors.white12,
                   width: isSelected ? 2 : 1,
                 ),
               ),
@@ -474,7 +475,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                   const SizedBox(height: 8),
                   Text(option,
                       style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontSize: 15,
                           fontWeight: FontWeight.w600)),
                 ],
@@ -488,14 +489,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
 
   Widget _buildFillBlank(ExerciseModel exercise) {
     return TextField(
-      style: const TextStyle(color: Colors.white),
+      style: const TextStyle(color: AppColors.textPrimary),
       onChanged: (value) => setState(() => _selectedAnswer = value),
       enabled: !_hasAnswered,
       decoration: InputDecoration(
         hintText: 'Escribe tu respuesta aquí...',
         hintStyle: const TextStyle(color: Colors.white38),
         filled: true,
-        fillColor: const Color(0xFF1A1828),
+        fillColor: AppColors.surface,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: const BorderSide(color: Colors.white12),
@@ -506,7 +507,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 2),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
         ),
       ),
     );
@@ -540,10 +541,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           constraints: const BoxConstraints(minHeight: 100),
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF1A1828),
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.3)),
+                color: AppColors.primary.withValues(alpha: 0.3)),
           ),
           child: _selectedTranslateWords!.isEmpty
               ? const Center(
@@ -555,11 +556,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                   children: _selectedTranslateWords!.map((word) {
                     return ActionChip(
                       backgroundColor:
-                          const Color(0xFF7C4DFF).withValues(alpha: 0.2),
-                      side: const BorderSide(color: Color(0xFF7C4DFF)),
+                          AppColors.primary.withValues(alpha: 0.2),
+                      side: const BorderSide(color: AppColors.primary),
                       label: Text(word,
                           style: const TextStyle(
-                              color: Colors.white,
+                              color: AppColors.textPrimary,
                               fontWeight: FontWeight.bold)),
                       onPressed: _hasAnswered
                           ? null
@@ -581,9 +582,9 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
           runSpacing: 8,
           children: _availableTranslateWords!.map((word) {
             return ActionChip(
-              backgroundColor: const Color(0xFF1A1828),
+              backgroundColor: AppColors.surface,
               side: const BorderSide(color: Colors.white12),
-              label: Text(word, style: const TextStyle(color: Colors.white)),
+              label: Text(word, style: const TextStyle(color: AppColors.textPrimary)),
               onPressed: _hasAnswered
                   ? null
                   : () {
@@ -632,14 +633,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               final isCompleted = _completedMatches.containsKey(left);
               final isSelected = _selectedLeftMatch == left;
               Color borderColor = Colors.white12;
-              Color bgColor = const Color(0xFF1A1828);
+              Color bgColor = AppColors.surface;
 
               if (isCompleted) {
                 borderColor = const Color(0xFF4CAF50).withValues(alpha: 0.5);
                 bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.1);
               } else if (isSelected) {
-                borderColor = const Color(0xFF7C4DFF);
-                bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.15);
+                borderColor = AppColors.primary;
+                bgColor = AppColors.primary.withValues(alpha: 0.15);
               }
 
               return GestureDetector(
@@ -682,14 +683,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
               final isCompleted = _completedMatches.containsValue(right);
               final isSelected = _selectedRightMatch == right;
               Color borderColor = Colors.white12;
-              Color bgColor = const Color(0xFF1A1828);
+              Color bgColor = AppColors.surface;
 
               if (isCompleted) {
                 borderColor = const Color(0xFF4CAF50).withValues(alpha: 0.5);
                 bgColor = const Color(0xFF4CAF50).withValues(alpha: 0.1);
               } else if (isSelected) {
-                borderColor = const Color(0xFF7C4DFF);
-                bgColor = const Color(0xFF7C4DFF).withValues(alpha: 0.15);
+                borderColor = AppColors.primary;
+                bgColor = AppColors.primary.withValues(alpha: 0.15);
               }
 
               return GestureDetector(
@@ -769,15 +770,15 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                 child: Container(
                   padding: const EdgeInsets.all(24),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+                    color: AppColors.primary.withValues(alpha: 0.2),
                     shape: BoxShape.circle,
-                    border: Border.all(color: const Color(0xFF7C4DFF)),
+                    border: Border.all(color: AppColors.primary),
                   ),
                   child: Icon(
                     _isPlayingAudioExercise
                         ? Icons.volume_up
                         : Icons.play_arrow,
-                    color: const Color(0xFF7C4DFF),
+                    color: AppColors.primary,
                     size: 48,
                   ),
                 ),
@@ -787,7 +788,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen>
                 _isPlayingAudioExercise
                     ? 'Escuchando...'
                     : 'Toca para reproducir el audio',
-                style: const TextStyle(color: Colors.white54, fontSize: 13),
+                style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
               ),
             ],
           ),

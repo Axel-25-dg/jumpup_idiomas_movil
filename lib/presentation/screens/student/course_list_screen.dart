@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -36,20 +37,20 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
     final coursesAsync = ref.watch(coursesProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text(
           'Cursos',
           style: TextStyle(
-            color: Colors.white,
+            color: AppColors.textPrimary,
             fontWeight: FontWeight.bold,
             fontSize: 22,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.filter_list, color: Colors.white),
+            icon: const Icon(Icons.filter_list, color: AppColors.textPrimary),
             onPressed: _showFilterBottomSheet,
           ),
         ],
@@ -61,20 +62,20 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
             padding: const EdgeInsets.all(16),
             child: TextField(
               controller: _searchController,
-              style: const TextStyle(color: Colors.white),
+              style: const TextStyle(color: AppColors.textPrimary),
               decoration: InputDecoration(
                 hintText: 'Buscar cursos...',
-                hintStyle: const TextStyle(color: Colors.white54),
-                prefixIcon: const Icon(Icons.search, color: Colors.white54),
+                hintStyle: const TextStyle(color: AppColors.textSecondary),
+                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
                 filled: true,
-                fillColor: const Color(0xFF1A1828),
+                fillColor: AppColors.surface,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear, color: Colors.white54),
+                        icon: const Icon(Icons.clear, color: AppColors.textSecondary),
                         onPressed: () {
                           _searchController.clear();
                           _applyFilters();
@@ -125,7 +126,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
           Expanded(
             child: coursesAsync.when(
               loading: () => const Center(
-                child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+                child: CircularProgressIndicator(color: AppColors.primary),
               ),
               error: (err, _) => Center(
                 child: Column(
@@ -136,7 +137,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                     const SizedBox(height: 12),
                     Text(
                       'Error al cargar cursos',
-                      style: TextStyle(color: Colors.white70, fontSize: 16),
+                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
                     ),
                     const SizedBox(height: 8),
                     ElevatedButton(
@@ -151,7 +152,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                   return const Center(
                     child: Text(
                       'No se encontraron cursos',
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(color: AppColors.textSecondary),
                     ),
                   );
                 }
@@ -173,7 +174,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1A1828),
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -187,7 +188,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
               const Text(
                 'Filtrar por idioma',
                 style: TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 18,
                     fontWeight: FontWeight.bold),
               ),
@@ -204,8 +205,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                       children: languages.map((lang) {
                         return ActionChip(
                           label: Text(lang.name),
-                          backgroundColor: const Color(0xFF7C4DFF),
-                          labelStyle: const TextStyle(color: Colors.white),
+                          backgroundColor: AppColors.primary,
+                          labelStyle: const TextStyle(color: AppColors.textPrimary),
                           onPressed: () {
                             ref.read(courseFiltersProvider.notifier).state =
                                 CourseFilters(languageId: lang.id);
@@ -227,7 +228,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                     Navigator.pop(context);
                   },
                   child: const Text('Limpiar filtros',
-                      style: TextStyle(color: Colors.white54)),
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ),
               ),
             ],
@@ -281,7 +282,7 @@ class _DifficultyChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            color: isSelected ? Colors.white : Colors.white54,
+            color: isSelected ? Colors.white : AppColors.textSecondary,
             fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
             fontSize: 13,
           ),
@@ -305,8 +306,8 @@ class _CourseCard extends StatelessWidget {
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            const Color(0xFF1A1828),
-            const Color(0xFF1A1828).withValues(alpha: 0.8),
+            AppColors.surface,
+            AppColors.surface.withValues(alpha: 0.8),
           ],
         ),
         borderRadius: BorderRadius.circular(16),
@@ -338,7 +339,7 @@ class _CourseCard extends StatelessWidget {
                       child: Text(
                         course.difficultyLevel,
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.bold,
                           fontSize: 12,
                         ),
@@ -348,7 +349,7 @@ class _CourseCard extends StatelessWidget {
                     Text(
                       course.languageName,
                       style:
-                          const TextStyle(color: Colors.white54, fontSize: 13),
+                          const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                     ),
                     const Spacer(),
                     Text(
@@ -367,7 +368,7 @@ class _CourseCard extends StatelessWidget {
                 Text(
                   course.title,
                   style: const TextStyle(
-                    color: Colors.white,
+                    color: AppColors.textPrimary,
                     fontSize: 17,
                     fontWeight: FontWeight.bold,
                   ),
@@ -426,10 +427,10 @@ class _StatChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: const Color(0xFF7C4DFF), size: 16),
+        Icon(icon, color: AppColors.primary, size: 16),
         const SizedBox(width: 4),
         Text(label,
-            style: const TextStyle(color: Colors.white54, fontSize: 12)),
+            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
       ],
     );
   }

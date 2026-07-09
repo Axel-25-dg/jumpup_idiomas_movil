@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
@@ -11,22 +12,22 @@ class AchievementsScreen extends ConsumerWidget {
     final myAchievementsAsync = ref.watch(myAchievementsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: AppColors.surface,
         title: const Text('Logros 🏆',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
       body: allAchievementsAsync.when(
         loading: () => const Center(
-            child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (_, __) => const Center(
           child: Text('Error al cargar logros',
               style: TextStyle(color: Colors.redAccent)),
         ),
         data: (allAchievements) => myAchievementsAsync.when(
           loading: () => const Center(
-              child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              child: CircularProgressIndicator(color: AppColors.primary)),
           error: (_, __) => const SizedBox.shrink(),
           data: (myAchievements) {
             final unlockedIds =
@@ -67,14 +68,14 @@ class AchievementsScreen extends ConsumerWidget {
                             Text(
                               '${unlocked.length} de ${allAchievements.length} logros',
                               style: const TextStyle(
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.bold,
                                   fontSize: 18),
                             ),
                             Text(
                               '${locked.length} logros por desbloquear',
                               style: const TextStyle(
-                                  color: Colors.white54, fontSize: 13),
+                                  color: AppColors.textSecondary, fontSize: 13),
                             ),
                           ],
                         ),
@@ -85,7 +86,7 @@ class AchievementsScreen extends ConsumerWidget {
                   if (unlocked.isNotEmpty) ...[
                     const Text('Desbloqueados',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16)),
                     const SizedBox(height: 12),
@@ -101,7 +102,7 @@ class AchievementsScreen extends ConsumerWidget {
                   if (locked.isNotEmpty) ...[
                     const Text('Por desbloquear',
                         style: TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16)),
                     const SizedBox(height: 12),
@@ -139,7 +140,7 @@ class _AchievementCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: isUnlocked
             ? const Color(0xFFFFD700).withValues(alpha: 0.05)
-            : const Color(0xFF1A1828),
+            : AppColors.surface,
         borderRadius: BorderRadius.circular(14),
         border: Border.all(
           color: isUnlocked
@@ -173,7 +174,7 @@ class _AchievementCard extends StatelessWidget {
                 Text(
                   achievement.name,
                   style: TextStyle(
-                    color: isUnlocked ? Colors.white : Colors.white54,
+                    color: isUnlocked ? Colors.white : AppColors.textSecondary,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
