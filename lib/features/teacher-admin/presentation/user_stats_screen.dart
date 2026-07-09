@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/features/teacher-admin/presentation/providers/student_stats_provider.dart';
+import 'package:jumpup_app/features/teacher-admin/presentation/providers/user_stats_provider.dart';
 
 class StudentStatsScreen extends ConsumerWidget {
   final String studentId;
