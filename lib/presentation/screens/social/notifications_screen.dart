@@ -1,18 +1,20 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/notification_item.dart';
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() =>
+      _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   final _repository = SocialMediaRepository();
   final _ws = WebSocketService(path: 'notifications');
 
@@ -66,7 +68,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   Future<void> _connectWebSocket() async {
     await _ws.connect();
     _wsSub = _ws.messages.listen((data) {
-      if (data['type'] == 'notification' && data['notification'] != null) {
+      if (data['type'] == 'notification' &&
+          data['notification'] != null) {
         final newNotif = NotificationItem.fromJson(
           data['notification'] as Map<String, dynamic>,
         );
@@ -74,7 +77,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           setState(() {
             _notifications = [newNotif, ..._notifications];
           });
-          _showSnackBar('🔔 ${newNotif.title}');
+          _showSnackBar(newNotif.title);
         }
       }
     });
@@ -87,20 +90,18 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       if (mounted) {
         setState(() {
           _notifications = _notifications.map((n) {
-            if (n.id == notif.id) {
-              return NotificationItem(
-                id: n.id,
-                title: n.title,
-                message: n.message,
-                type: n.type,
-                isRead: true,
-              );
-            }
+            if (n.id == notif.id) return n.copyWith(isRead: true);
             return n;
           }).toList();
         });
       }
     } catch (_) {}
+  }
+
+  Future<void> _markAllRead() async {
+    for (final n in _notifications.where((n) => !n.isRead)) {
+      await _markRead(n);
+    }
   }
 
   void _showSnackBar(String text) {
@@ -115,17 +116,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final hasUnread = _notifications.any((n) => !n.isRead);
+
     return Scaffold(
-      body: _buildBody(),
-      floatingActionButton: FloatingActionButton.small(
-        tooltip: 'Actualizar',
-        onPressed: _fetchNotifications,
-        child: const Icon(Icons.refresh),
+      appBar: AppBar(
+        title: const Text('Notificaciones'),
+        actions: [
+          if (hasUnread)
+            TextButton(
+              onPressed: _markAllRead,
+              child: const Text('Leer todo',
+                  style: TextStyle(color: Colors.white)),
+            ),
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _fetchNotifications,
+          ),
+        ],
       ),
+      body: _buildBody(theme),
     );
   }
 
-  Widget _buildBody() {
+  Widget _buildBody(ThemeData theme) {
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -139,20 +153,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             children: [
               const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
               const SizedBox(height: 12),
-              Text(
-                'No se pudieron cargar las notificaciones',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
+              Text('No se pudieron cargar las notificaciones',
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.titleMedium),
               const SizedBox(height: 8),
-              Text(
-                _error!,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodySmall
-                    ?.copyWith(color: Colors.grey),
-              ),
+              Text(_error!,
+                  textAlign: TextAlign.center,
+                  style: theme.textTheme.bodySmall
+                      ?.copyWith(color: Colors.grey)),
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: _loadAndConnect,
@@ -166,13 +174,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
 
     if (_notifications.isEmpty) {
-      return const Center(
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none, size: 56, color: Colors.grey),
-            SizedBox(height: 12),
-            Text('Sin notificaciones por ahora'),
+            Icon(Icons.notifications_none,
+                size: 64,
+                color: theme.colorScheme.primary
+                    .withValues(alpha: 0.4)),
+            const SizedBox(height: 12),
+            Text('Sin notificaciones por ahora',
+                style: theme.textTheme.titleMedium),
           ],
         ),
       );
@@ -189,20 +201,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 const Icon(Icons.circle, size: 10, color: Colors.green),
                 const SizedBox(width: 6),
                 Text(
-                  'Conectado — recibiendo avisos en tiempo real',
-                  style: Theme.of(context)
-                      .textTheme
-                      .labelSmall
+                  'Recibiendo notificaciones en tiempo real',
+                  style: theme.textTheme.labelSmall
                       ?.copyWith(color: Colors.green.shade800),
                 ),
               ],
             ),
           ),
         Expanded(
-          child: ListView.separated(
-            padding: const EdgeInsets.all(16),
+          child: ListView.builder(
+            padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: _notifications.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 8),
             itemBuilder: (context, index) {
               final notif = _notifications[index];
               return _NotificationCard(
@@ -228,20 +237,20 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final isUnread = !notification.isRead;
 
     return Card(
-      elevation: isUnread ? 3 : 1,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
+      elevation: isUnread ? 2 : 0,
       color: isUnread
-          ? Theme.of(context)
-              .colorScheme
-              .primaryContainer
-              .withValues(alpha: 0.3)
+          ? theme.colorScheme.primaryContainer
+              .withValues(alpha: 0.2)
           : null,
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: _colorForType(notification.type, context),
+          backgroundColor: _colorForType(notification.type, theme),
           child: Icon(
             _iconForType(notification.type),
             color: Colors.white,
@@ -250,27 +259,27 @@ class _NotificationCard extends StatelessWidget {
         ),
         title: Text(
           notification.title,
-          style: TextStyle(
-            fontWeight: isUnread ? FontWeight.bold : FontWeight.normal,
+          style: theme.textTheme.titleSmall?.copyWith(
+            fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
           ),
         ),
-        subtitle: Text(notification.message),
-        trailing: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Chip(
-              label: Text(notification.type),
-              padding: EdgeInsets.zero,
-              labelStyle: const TextStyle(fontSize: 11),
-            ),
-            if (isUnread) const Icon(Icons.circle, size: 8, color: Colors.blue),
-          ],
-        ),
+        subtitle: Text(notification.message,
+            maxLines: 2, overflow: TextOverflow.ellipsis),
+        trailing: isUnread
+            ? Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary,
+                  shape: BoxShape.circle,
+                ),
+              )
+            : null,
       ),
     );
   }
 
-  Color _colorForType(String type, BuildContext context) {
+  Color _colorForType(String type, ThemeData theme) {
     switch (type) {
       case 'community':
         return Colors.indigo;
@@ -279,7 +288,7 @@ class _NotificationCard extends StatelessWidget {
       case 'system':
         return Colors.grey.shade700;
       default:
-        return Theme.of(context).colorScheme.primary;
+        return theme.colorScheme.primary;
     }
   }
 

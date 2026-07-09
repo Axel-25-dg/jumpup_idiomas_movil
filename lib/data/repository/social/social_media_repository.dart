@@ -3,19 +3,6 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 
-/// Repositorio real que consume la API del VPS Hetzner.
-///
-/// BaseURL (leída del .env): https://guaman-idiomas-ute.online/api/
-///
-/// Endpoints implementados:
-///   GET  /social/feed/          → fetchSocialFeed()
-///   GET  /messaging/threads/    → fetchMessages()
-///   GET  /community/threads/    → fetchForumThreads()
-///   POST /community/threads/    → createForumThread()
-///   GET  /live-sessions/        → fetchLiveSessions()
-///   GET  /notifications/        → fetchNotifications()
-///   POST /notifications/{id}/read/ → markNotificationRead()
-///   GET  /search/?q=            → search()
 class SocialMediaRepository {
   SocialMediaRepository({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
 
@@ -31,7 +18,7 @@ class SocialMediaRepository {
 
   Future<List<SocialPost>> fetchSocialFeed() async {
     try {
-      final response = await _dio.get<dynamic>('/social/feed/');
+      final response = await _dio.get<dynamic>('/social-posts/');
       final list = _listFrom(response.data);
       return list
           .map((json) => SocialPost.fromJson(json as Map<String, dynamic>))
@@ -41,11 +28,69 @@ class SocialMediaRepository {
     }
   }
 
+  Future<SocialPost> createSocialPost({
+    required String content,
+    String? imageUrl,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/social-posts/',
+        data: {'content': content, 'image_url': imageUrl},
+      );
+      return SocialPost.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo crear la publicación');
+    }
+  }
+
+  Future<void> likePost(String postId) async {
+    try {
+      await _dio.post<void>('/social-posts/$postId/like/');
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo dar like');
+    }
+  }
+
+  Future<void> unlikePost(String postId) async {
+    try {
+      await _dio.post<void>('/social-posts/$postId/unlike/');
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo quitar el like');
+    }
+  }
+
+  Future<List<SocialComment>> fetchComments(String postId) async {
+    try {
+      final response = await _dio.get<dynamic>('/social-posts/$postId/comments/');
+      final list = _listFrom(response.data);
+      return list
+          .map((json) => SocialComment.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudieron cargar los comentarios');
+    }
+  }
+
+  Future<SocialComment> createComment({
+    required String postId,
+    required String content,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/social-posts/$postId/comments/',
+        data: {'content': content},
+      );
+      return SocialComment.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo crear el comentario');
+    }
+  }
+
   // ── Mensajería ───────────────────────────────────────────────────────────────
 
   Future<List<MessageThread>> fetchMessages() async {
     try {
-      final response = await _dio.get<dynamic>('/messaging/threads/');
+      final response = await _dio.get<dynamic>('/threads/');
       final list = _listFrom(response.data);
       return list
           .map((json) => MessageThread.fromJson(json as Map<String, dynamic>))
@@ -58,7 +103,7 @@ class SocialMediaRepository {
   Future<List<ChatMessage>> fetchChatMessages(String threadId) async {
     try {
       final response =
-          await _dio.get<dynamic>('/messaging/threads/$threadId/messages/');
+          await _dio.get<dynamic>('/threads/$threadId/messages/');
       final list = _listFrom(response.data);
       return list
           .map((json) => ChatMessage.fromJson(json as Map<String, dynamic>))
@@ -74,7 +119,7 @@ class SocialMediaRepository {
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/messaging/threads/$threadId/messages/',
+        '/threads/$threadId/messages/',
         data: {'content': content},
       );
       return ChatMessage.fromJson(response.data!);
@@ -87,7 +132,7 @@ class SocialMediaRepository {
 
   Future<List<ForumThread>> fetchForumThreads() async {
     try {
-      final response = await _dio.get<dynamic>('/community/threads/');
+      final response = await _dio.get<dynamic>('/forum-threads/');
       final list = _listFrom(response.data);
       return list
           .map((json) => ForumThread.fromJson(json as Map<String, dynamic>))
@@ -104,7 +149,7 @@ class SocialMediaRepository {
   }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
-        '/community/threads/',
+        '/forum-threads/',
         data: {'title': title, 'body': body, 'language': language},
       );
       return ForumThread.fromJson(response.data!);
@@ -157,7 +202,11 @@ class SocialMediaRepository {
     try {
       final response = await _dio.get<dynamic>(
         '/search/',
-        queryParameters: {'q': query.trim()},
+        queryParameters: {
+          'q': query.trim(),
+          'type': 'all',
+          'limit': 20,
+        },
       );
       final list = _listFrom(response.data);
       return list

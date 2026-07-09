@@ -25,27 +25,25 @@ Future<void> main() async {
     DeviceOrientation.portraitDown,
   ]);
 
-  runApp(const JumpUpApp());
+  runApp(const ProviderScope(child: JumpUpApp()));
 }
 
-class JumpUpApp extends StatelessWidget {
+class JumpUpApp extends ConsumerWidget {
   const JumpUpApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return ProviderScope(
-      child: MaterialApp.router(
-        title: 'JumpUp',
-        debugShowCheckedModeBanner: false,
+  Widget build(BuildContext context, WidgetRef ref) {
+    return MaterialApp.router(
+      title: 'JumpUp',
+      debugShowCheckedModeBanner: false,
 
-        // ── Tema azul/celeste/blanco ─────────────────────────────────────────
-        theme: lightTheme,
-        darkTheme: darkTheme,
-        themeMode: ThemeMode.system, // respeta la preferencia del SO
+      // ── Tema azul/celeste/blanco ─────────────────────────────────────────
+      theme: lightTheme,
+      darkTheme: darkTheme,
+      themeMode: ThemeMode.system, // respeta la preferencia del SO
 
-        // ── go_router ────────────────────────────────────────────────────────
-        routerConfig: buildAppRouter(),
-      ),
+      // ── go_router ────────────────────────────────────────────────────────
+      routerConfig: buildAppRouter(ref),
     );
   }
 }

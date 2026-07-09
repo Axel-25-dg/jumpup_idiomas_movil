@@ -82,23 +82,22 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
       switch (type) {
         case 'chat_message':
-          final msg = ChatMessage.fromJson(
-            data['message'] as Map<String, dynamic>,
-          );
-          setState(() {
-            _messages = [..._messages, msg];
-            _isTyping = false;
-          });
-          _scrollToBottom();
+        case 'message':
+          final msgData = data['message'] ?? data;
+          if (msgData is Map<String, dynamic>) {
+            final msg = ChatMessage.fromJson(msgData);
+            setState(() {
+              _messages = [..._messages, msg];
+              _isTyping = false;
+            });
+            _scrollToBottom();
+          }
 
         case 'typing':
           setState(() => _isTyping = true);
           Future.delayed(const Duration(seconds: 3), () {
             if (mounted) setState(() => _isTyping = false);
           });
-
-        case 'message_sent':
-          break;
       }
     });
   }
@@ -108,7 +107,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     if (text.isEmpty || _sending) return;
 
     final optimistic = ChatMessage(
-      id: 'optimistic-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'opt-${DateTime.now().millisecondsSinceEpoch}',
       senderId: 'me',
       senderName: 'Tú',
       content: text,
@@ -161,6 +160,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -169,20 +169,20 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             Text(widget.thread.title),
             Text(
               widget.thread.participantName,
-              style: Theme.of(context)
-                  .textTheme
-                  .labelSmall
-                  ?.copyWith(color: Colors.white70),
+              style: theme.textTheme.labelSmall
+                  ?.copyWith(color: theme.colorScheme.onPrimary.withValues(alpha: 0.7)),
             ),
           ],
         ),
         actions: [
-          Icon(
-            _ws.isConnected ? Icons.wifi : Icons.wifi_off,
-            color: _ws.isConnected ? Colors.greenAccent : Colors.white30,
-            size: 18,
+          Padding(
+            padding: const EdgeInsets.only(right: 12),
+            child: Icon(
+              _ws.isConnected ? Icons.wifi : Icons.wifi_off,
+              color: _ws.isConnected ? Colors.greenAccent : Colors.white38,
+              size: 18,
+            ),
           ),
-          const SizedBox(width: 12),
         ],
       ),
       body: Column(
@@ -196,6 +196,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   }
 
   Widget _buildMessageList() {
+    final theme = Theme.of(context);
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -219,8 +221,19 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     }
 
     if (_messages.isEmpty) {
-      return const Center(
-        child: Text('Sin mensajes aún. ¡Di algo primero!'),
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.chat_bubble_outline,
+                size: 48,
+                color: theme.colorScheme.onSurfaceVariant),
+            const SizedBox(height: 8),
+            Text('Sin mensajes aún. ¡Di algo primero!',
+                style: theme.textTheme.bodyMedium
+                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+          ],
+        ),
       );
     }
 

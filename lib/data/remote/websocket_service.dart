@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -26,7 +27,15 @@ class WebSocketService {
   /// ID de sala/conversación, si aplica.
   final String? roomId;
 
-  static const _wsBase = 'wss://guaman-idiomas-ute.online/ws';
+  static String get _wsBase {
+    final httpUrl = AppConfig.baseUrl;
+    final wsUrl = httpUrl
+        .replaceFirst('https://', 'wss://')
+        .replaceFirst('http://', 'ws://');
+    final clean = wsUrl.endsWith('/') ? wsUrl.substring(0, wsUrl.length - 1) : wsUrl;
+    if (clean.endsWith('/api')) return '$clean/ws';
+    return '${clean.replaceAll('/api', '')}/ws';
+  }
 
   final TokenStorage _tokenStorage = TokenStorage();
 

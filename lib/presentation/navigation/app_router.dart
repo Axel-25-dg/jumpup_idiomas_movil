@@ -1,5 +1,7 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/login_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/register_screen.dart';
@@ -88,10 +90,30 @@ abstract final class AppRoutes {
   static const adminSubscriptions = '/admin/subscriptions';
 }
 
-GoRouter buildAppRouter() {
+GoRouter buildAppRouter(WidgetRef ref) {
   return GoRouter(
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
+    redirect: (context, state) {
+      final authState = ref.read(authProvider);
+      final isAuth = authState.status == AuthStatus.authenticated;
+      final location = state.uri.toString();
+
+      final isAuthRoute = location == AppRoutes.login ||
+          location == AppRoutes.register ||
+          location == AppRoutes.forgotPassword ||
+          location == AppRoutes.splash;
+
+      if (!isAuth && isProtectedRoute(location)) {
+        return AppRoutes.login;
+      }
+
+      if (isAuth && isAuthRoute) {
+        return routeForRole(authState.user!.role);
+      }
+
+      return null;
+    },
     routes: [
       // Auth
       GoRoute(
@@ -265,6 +287,16 @@ String routeForRole(UserRole role) {
     case UserRole.student:
       return AppRoutes.studentDashboard;
     case UserRole.unknown:
-      return AppRoutes.home;
+      return AppRoutes.login;
   }
+}
+
+bool isProtectedRoute(String location) {
+  if (location == AppRoutes.splash ||
+      location == AppRoutes.login ||
+      location == AppRoutes.register ||
+      location == AppRoutes.forgotPassword) {
+    return false;
+  }
+  return true;
 }
