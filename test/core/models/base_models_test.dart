@@ -1,7 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
-import 'package:jumpup_app/core/models/models.dart';
-import 'package:jumpup_app/core/repositories/base_repository.dart';
+import 'package:jumpup_app/domain/model/models.dart';
+import 'package:jumpup_app/data/repository/base_repository.dart';
 
 class _TestRepository extends BaseRepository {
   const _TestRepository();

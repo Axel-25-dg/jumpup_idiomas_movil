@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jumpup_app/features/social_media/models/forum_thread.dart';
-import 'package:jumpup_app/features/social_media/models/live_session.dart';
-import 'package:jumpup_app/features/social_media/models/message_thread.dart';
-import 'package:jumpup_app/features/social_media/models/notification_item.dart';
-import 'package:jumpup_app/features/social_media/models/search_result.dart';
-import 'package:jumpup_app/features/social_media/models/social_post.dart';
-import 'package:jumpup_app/features/social_media/services/social_media_service.dart';
+import 'package:jumpup_app/domain/model/forum_thread.dart';
+import 'package:jumpup_app/domain/model/live_session.dart';
+import 'package:jumpup_app/domain/model/message_thread.dart';
+import 'package:jumpup_app/domain/model/notification_item.dart';
+import 'package:jumpup_app/domain/model/search_result.dart';
+import 'package:jumpup_app/domain/model/social_post.dart';
+import 'package:jumpup_app/data/repository/social/social_media_service.dart';
 
 void main() {
   group('social media models', () {

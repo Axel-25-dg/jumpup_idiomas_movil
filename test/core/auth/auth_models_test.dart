@@ -1,9 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jumpup_app/core/auth/models/login_request.dart';
-import 'package:jumpup_app/core/auth/models/register_request.dart';
-import 'package:jumpup_app/core/auth/models/forgot_password_request.dart';
-import 'package:jumpup_app/core/auth/models/two_factor_request.dart';
-import 'package:jumpup_app/core/auth/models/auth_token_model.dart';
+import 'package:jumpup_app/domain/model/login_request.dart';
+import 'package:jumpup_app/domain/model/register_request.dart';
+import 'package:jumpup_app/domain/model/forgot_password_request.dart';
+import 'package:jumpup_app/domain/model/two_factor_request.dart';
+import 'package:jumpup_app/domain/model/auth_token_model.dart';
 
 void main() {
   group('auth models', () {
