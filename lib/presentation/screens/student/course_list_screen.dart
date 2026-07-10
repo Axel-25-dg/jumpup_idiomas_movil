@@ -54,13 +54,16 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                 onFilterTap: _showFilterBottomSheet,
               ),
               SliverToBoxAdapter(
-                child: _DifficultySelector(
-                  selectedDifficulty: _selectedDifficulty,
-                  difficulties: _difficulties,
-                  onSelect: (level) {
-                    setState(() => _selectedDifficulty = level);
-                    _applyFilters();
-                  },
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: _DifficultySelector(
+                    selectedDifficulty: _selectedDifficulty,
+                    difficulties: _difficulties,
+                    onSelect: (level) {
+                      setState(() => _selectedDifficulty = level);
+                      _applyFilters();
+                    },
+                  ),
                 ),
               ),
               SliverPadding(
@@ -112,13 +115,17 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => _FilterBottomSheet(
-        onClear: () {
-          ref.read(courseFiltersProvider.notifier).state = const CourseFilters();
-          setState(() => _selectedDifficulty = null);
-          _searchController.clear();
-          Navigator.pop(context);
-        },
+      builder: (context) => GlassContainer(
+        padding: EdgeInsets.zero,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+        child: _FilterBottomSheet(
+          onClear: () {
+            ref.read(courseFiltersProvider.notifier).state = const CourseFilters();
+            setState(() => _selectedDifficulty = null);
+            _searchController.clear();
+            Navigator.pop(context);
+          },
+        ),
       ),
     );
   }
@@ -164,7 +171,7 @@ class _SliverAppBar extends StatelessWidget {
           ],
         ),
       ),
-      title: Text('Explorar Cursos', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+      title: Text('Explorar Cursos', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 28)),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Padding(
@@ -172,13 +179,10 @@ class _SliverAppBar extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Container(
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E2E),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white10),
-                  ),
+                child: GlassContainer(
+                  padding: EdgeInsets.zero,
+                  opacity: 0.1,
+                  borderRadius: BorderRadius.circular(16),
                   child: TextField(
                     controller: searchController,
                     onChanged: onSearchChanged,
@@ -188,23 +192,21 @@ class _SliverAppBar extends StatelessWidget {
                       hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
                       prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                       border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 12),
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-              GestureDetector(
+              GlassContainer(
+                padding: EdgeInsets.zero,
+                opacity: 0.1,
+                borderRadius: BorderRadius.circular(16),
                 onTap: onFilterTap,
-                child: Container(
+                child: const SizedBox(
                   height: 50,
                   width: 50,
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E1E2E),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white10),
-                  ),
-                  child: const Icon(Icons.tune_rounded, color: Colors.blueAccent),
+                  child: Icon(Icons.tune_rounded, color: Colors.blueAccent),
                 ),
               ),
             ],
@@ -281,33 +283,33 @@ class _CourseListItem extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              height: 120,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
+              height: 140,
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
                   colors: [Color(0xFF2575FC), Color(0xFF6A11CB)],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
               ),
               child: Stack(
                 children: [
                   Positioned(
                     right: -20,
                     bottom: -20,
-                    child: Icon(Icons.language_rounded, size: 140, color: Colors.white.withValues(alpha: 0.1)),
+                    child: Icon(Icons.language_rounded, size: 160, color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   Padding(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
                         DifficultyBadge(level: course.difficultyLevel),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 12),
                         Text(
                           course.title,
-                          style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                          style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 24),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -318,28 +320,29 @@ class _CourseListItem extends StatelessWidget {
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     course.description,
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white60),
-                    maxLines: 2,
+                    style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+                    maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Row(
                     children: [
                       _InfoItem(icon: Icons.layers_outlined, label: '${course.modulesCount} Módulos'),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 20),
                       _InfoItem(icon: Icons.menu_book_outlined, label: '${course.lessonsCount} Lecciones'),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.blueAccent.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(8),
+                          color: Colors.blueAccent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           '${course.totalXpReward} XP',
@@ -385,9 +388,9 @@ class _FilterBottomSheet extends ConsumerWidget {
 
     return Container(
       padding: const EdgeInsets.all(24),
-      decoration: const BoxDecoration(
-        color: Color(0xFF1E1E2E), // Dark background for consistency
-        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0F111A).withValues(alpha: 0.8), // Dark background for consistency
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -396,32 +399,43 @@ class _FilterBottomSheet extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Filtros Avanzados', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('Filtros Avanzados', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
               IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
             ],
           ),
           const SizedBox(height: 24),
-          const Text('Idioma', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 12),
+          Text('Idioma', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16),
           languagesAsync.when(
             data: (langs) => Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: langs.map((lang) => ChoiceChip(
-                label: Text(lang.name),
-                selected: ref.watch(courseFiltersProvider).languageId == lang.id,
-                onSelected: (selected) {
-                  ref.read(courseFiltersProvider.notifier).state = ref.read(courseFiltersProvider).copyWith(languageId: selected ? lang.id : null);
-                },
-                selectedColor: Colors.blueAccent,
-                backgroundColor: Colors.white12,
-                labelStyle: TextStyle(color: ref.watch(courseFiltersProvider).languageId == lang.id ? Colors.white : Colors.white60),
-              )).toList(),
+              spacing: 12,
+              runSpacing: 12,
+              children: langs.map((lang) {
+                final isSelected = ref.watch(courseFiltersProvider).languageId == lang.id;
+                return ChoiceChip(
+                  label: Text(lang.name),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    ref.read(courseFiltersProvider.notifier).state = ref.read(courseFiltersProvider).copyWith(languageId: selected ? lang.id : null);
+                  },
+                  selectedColor: Colors.blueAccent,
+                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  labelStyle: TextStyle(
+                    color: isSelected ? Colors.white : Colors.white60,
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    side: BorderSide(color: isSelected ? Colors.blueAccent : Colors.white10),
+                  ),
+                  showCheckmark: false,
+                );
+              }).toList(),
             ),
             loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
             error: (_, __) => const Text('Error al cargar idiomas', style: TextStyle(color: Colors.redAccent)),
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 40),
           Row(
             children: [
               Expanded(

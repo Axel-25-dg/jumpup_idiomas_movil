@@ -10,6 +10,7 @@ class GlassContainer extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final double? height;
   final double? width;
+  final BoxConstraints? constraints;
   final VoidCallback? onTap;
 
   const GlassContainer({
@@ -22,6 +23,7 @@ class GlassContainer extends StatelessWidget {
     this.margin,
     this.height,
     this.width,
+    this.constraints,
     this.onTap,
   });
 
@@ -32,6 +34,7 @@ class GlassContainer extends StatelessWidget {
       margin: margin,
       height: height,
       width: width,
+      constraints: constraints,
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: opacity),
         borderRadius: borderRadius,

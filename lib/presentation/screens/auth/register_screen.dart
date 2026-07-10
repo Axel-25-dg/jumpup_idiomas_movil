@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -62,252 +63,322 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
     });
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F111A),
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: Text('Crear cuenta',
-            style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_rounded),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
           onPressed: () => context.pop(),
         ),
       ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 16, 24, 32),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Logo
-                  Container(
-                    width: 70,
-                    height: 70,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: AppColors.primaryGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
-                          blurRadius: 16,
-                          offset: const Offset(0, 6),
-                        ),
-                      ],
-                    ),
-                    child: const Icon(Icons.translate_rounded,
-                        size: 36, color: Colors.white),
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Únete a JumpUp',
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Crea tu cuenta y empieza a aprender',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: AppColors.textSecondary,
-                    ),
-                  ),
-                  const SizedBox(height: 28),
+      body: Stack(
+        children: [
+          // Decorative Blobs
+          Positioned(
+            top: -50,
+            left: -50,
+            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: 0.1), size: 200),
+          ),
+          Positioned(
+            bottom: 50,
+            right: -100,
+            child: _BlurBlob(color: Colors.purpleAccent.withValues(alpha: 0.1), size: 300),
+          ),
 
-                  // ── Campos ─────────────────────────────────────────
-                  // Nombre y Apellido en fila
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextFormField(
-                          controller: _firstNameCtrl,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Requerido' : null,
-                          decoration: _inputDecoration(
-                              'Nombre', Icons.person_outline),
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: TextFormField(
-                          controller: _lastNameCtrl,
-                          textCapitalization: TextCapitalization.words,
-                          textInputAction: TextInputAction.next,
-                          validator: (v) =>
-                              v == null || v.trim().isEmpty ? 'Requerido' : null,
-                          decoration: _inputDecoration(
-                              'Apellido', Icons.person_outline),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _usernameCtrl,
-                    textInputAction: TextInputAction.next,
-                    autocorrect: false,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Requerido';
-                      if (v.trim().length < 3) return 'Mínimo 3 caracteres';
-                      return null;
-                    },
-                    decoration: _inputDecoration(
-                        'Nombre de usuario', Icons.alternate_email),
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _emailCtrl,
-                    keyboardType: TextInputType.emailAddress,
-                    textInputAction: TextInputAction.next,
-                    autocorrect: false,
-                    validator: (v) {
-                      if (v == null || v.trim().isEmpty) return 'Requerido';
-                      if (!v.contains('@')) return 'Correo inválido';
-                      return null;
-                    },
-                    decoration: _inputDecoration(
-                        'Correo electrónico', Icons.email_outlined),
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _passCtrl,
-                    obscureText: _obscurePass,
-                    textInputAction: TextInputAction.next,
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Requerido';
-                      if (v.length < 8) return 'Mínimo 8 caracteres';
-                      return null;
-                    },
-                    decoration: _inputDecoration(
-                            'Contraseña', Icons.lock_outline)
-                        .copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePass
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: AppColors.textSecondary,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscurePass = !_obscurePass),
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      'Únete hoy',
+                      style: AppTextStyles.headlineLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 14),
-                  TextFormField(
-                    controller: _confirmPassCtrl,
-                    obscureText: _obscureConfirm,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => isLoading ? null : _register(),
-                    validator: (v) {
-                      if (v == null || v.isEmpty) return 'Requerido';
-                      if (v != _passCtrl.text) return 'No coinciden';
-                      return null;
-                    },
-                    decoration: _inputDecoration(
-                            'Confirmar contraseña', Icons.lock)
-                        .copyWith(
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirm
-                              ? Icons.visibility_off_outlined
-                              : Icons.visibility_outlined,
-                          color: AppColors.textSecondary,
-                        ),
-                        onPressed: () =>
-                            setState(() => _obscureConfirm = !_obscureConfirm),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Crea tu cuenta y lleva tus idiomas al siguiente nivel.',
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: Colors.white.withValues(alpha: 0.5),
                       ),
                     ),
-                  ),
+                    const SizedBox(height: 32),
 
-                  const SizedBox(height: 28),
-
-                  SizedBox(
-                    width: double.infinity,
-                    height: 52,
-                    child: FilledButton(
-                      onPressed: isLoading ? null : _register,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 2,
-                        shadowColor: AppColors.shadow,
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                  color: Colors.white, strokeWidth: 2.5),
-                            )
-                          : Text(
-                              'Crear cuenta',
-                              style: AppTextStyles.buttonText
-                                  .copyWith(color: Colors.white),
+                    // ── Glass Form ───────────────────────────────────
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(24),
+                      child: BackdropFilter(
+                        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                        child: Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.05),
+                            borderRadius: BorderRadius.circular(24),
+                            border: Border.all(
+                              color: Colors.white.withValues(alpha: 0.1),
+                              width: 1,
                             ),
-                    ),
-                  ),
-
-                  const SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text('¿Ya tienes cuenta? ',
-                          style: AppTextStyles.bodyMedium.copyWith(
-                              color: AppColors.textSecondary)),
-                      GestureDetector(
-                        onTap: () => context.pop(),
-                        child: Text(
-                          'Iniciar sesión',
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: _CustomTextField(
+                                      controller: _firstNameCtrl,
+                                      hint: 'Nombre',
+                                      icon: Icons.person_outline,
+                                      textCapitalization: TextCapitalization.words,
+                                      validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Expanded(
+                                    child: _CustomTextField(
+                                      controller: _lastNameCtrl,
+                                      hint: 'Apellido',
+                                      icon: Icons.person_outline,
+                                      textCapitalization: TextCapitalization.words,
+                                      validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16),
+                              _CustomTextField(
+                                controller: _usernameCtrl,
+                                hint: 'Nombre de usuario',
+                                icon: Icons.alternate_email,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return 'Requerido';
+                                  if (v.trim().length < 3) return 'Mínimo 3 caracteres';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              _CustomTextField(
+                                controller: _emailCtrl,
+                                hint: 'Correo electrónico',
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) return 'Requerido';
+                                  if (!v.contains('@')) return 'Correo inválido';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              _CustomTextField(
+                                controller: _passCtrl,
+                                hint: 'Contraseña',
+                                icon: Icons.lock_outline,
+                                obscureText: _obscurePass,
+                                onToggleObscure: () => setState(() => _obscurePass = !_obscurePass),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Requerido';
+                                  if (v.length < 8) return 'Mínimo 8 caracteres';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 16),
+                              _CustomTextField(
+                                controller: _confirmPassCtrl,
+                                hint: 'Confirmar contraseña',
+                                icon: Icons.lock_outline,
+                                obscureText: _obscureConfirm,
+                                onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) return 'Requerido';
+                                  if (v != _passCtrl.text) return 'No coinciden';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 32),
+                              
+                              // ── Register Button ──────────────────────────
+                              SizedBox(
+                                width: double.infinity,
+                                height: 54,
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    gradient: const LinearGradient(
+                                      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 4),
+                                      ),
+                                    ],
+                                  ),
+                                  child: ElevatedButton(
+                                    onPressed: isLoading ? null : _register,
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.transparent,
+                                      shadowColor: Colors.transparent,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                    ),
+                                    child: isLoading
+                                        ? const SizedBox(
+                                            width: 24,
+                                            height: 24,
+                                            child: CircularProgressIndicator(
+                                                color: Colors.white, strokeWidth: 2),
+                                          )
+                                        : Text(
+                                            'Crear Cuenta',
+                                            style: AppTextStyles.buttonText.copyWith(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 32),
+
+                    // ── Login Link ──────────────────────────────────
+                    Center(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '¿Ya tienes cuenta? ',
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: Colors.white.withValues(alpha: 0.5),
+                            ),
+                          ),
+                          GestureDetector(
+                            onTap: () => context.pop(),
+                            child: Text(
+                              'Inicia sesión',
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: Colors.blueAccent,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 40),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
+}
 
-  InputDecoration _inputDecoration(String hint, IconData icon) {
-    return InputDecoration(
-      hintText: hint,
-      hintStyle: AppTextStyles.bodyMedium
-          .copyWith(color: AppColors.textHint),
-      prefixIcon: Icon(icon, color: AppColors.textSecondary),
-      filled: true,
-      fillColor: AppColors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.divider),
+class _BlurBlob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _BlurBlob({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.5),
+            blurRadius: 80,
+            spreadRadius: 40,
+          ),
+        ],
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.divider),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-      errorBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.error),
+    );
+  }
+}
+
+class _CustomTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String hint;
+  final IconData icon;
+  final bool obscureText;
+  final VoidCallback? onToggleObscure;
+  final TextInputType? keyboardType;
+  final TextCapitalization textCapitalization;
+  final String? Function(String?)? validator;
+
+  const _CustomTextField({
+    required this.controller,
+    required this.hint,
+    required this.icon,
+    this.obscureText = false,
+    this.onToggleObscure,
+    this.keyboardType,
+    this.textCapitalization = TextCapitalization.none,
+    this.validator,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscureText,
+      keyboardType: keyboardType,
+      textCapitalization: textCapitalization,
+      style: const TextStyle(color: Colors.white, fontSize: 14),
+      validator: validator,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 14),
+        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 18),
+        suffixIcon: onToggleObscure != null
+            ? IconButton(
+                icon: Icon(
+                  obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  color: Colors.white.withValues(alpha: 0.3),
+                  size: 18,
+                ),
+                onPressed: onToggleObscure,
+              )
+            : null,
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.05),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.blueAccent.withValues(alpha: 0.5)),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: Colors.redAccent.withValues(alpha: 0.5)),
+        ),
+        errorStyle: const TextStyle(color: Colors.redAccent, fontSize: 11),
       ),
     );
   }

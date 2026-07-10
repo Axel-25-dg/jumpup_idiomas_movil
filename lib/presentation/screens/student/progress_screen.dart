@@ -103,71 +103,104 @@ class _XPCard extends StatelessWidget {
     final progress = stats.levelProgress.clamp(0.0, 1.0);
     return GlassContainer(
       borderRadius: BorderRadius.circular(28),
-      padding: const EdgeInsets.all(28),
+      padding: const EdgeInsets.all(24),
       child: Column(
         children: [
           Row(
             children: [
-              // Ring progress indicator
-              SizedBox(
-                width: 100,
-                height: 100,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    const CircularProgressIndicator(
-                      value: 1,
-                      strokeWidth: 10,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white12),
-                    ),
-                    CircularProgressIndicator(
-                      value: progress,
-                      strokeWidth: 10,
-                      valueColor: const AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
-                      backgroundColor: Colors.transparent,
-                    ),
-                    Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text('${(progress * 100).toInt()}%', style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                        const Text('Nivel', style: TextStyle(color: Colors.white54, fontSize: 11)),
+              // Ring progress indicator with Glow
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purpleAccent.withValues(alpha: 0.2),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
                       ],
                     ),
-                  ],
-                ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    height: 90,
+                    child: CircularProgressIndicator(
+                      value: 1,
+                      strokeWidth: 8,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withValues(alpha: 0.05)),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    height: 90,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 8,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6A11CB)),
+                      backgroundColor: Colors.transparent,
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${(progress * 100).toInt()}%', 
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text('EXP', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
               ),
-              const SizedBox(width: 24),
+              const SizedBox(width: 20),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Nivel ${stats.level}', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900)),
-                    const SizedBox(height: 4),
-                    Text('${stats.xpProgress} / ${stats.xpForNextLevel} XP', style: const TextStyle(color: Colors.white70, fontSize: 14)),
-                    const SizedBox(height: 16),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purpleAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.2)),
+                      ),
+                      child: Text('Nivel ${stats.level}', 
+                        style: const TextStyle(color: Colors.purpleAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Maestro de Idiomas', 
+                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.white12,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
-                        minHeight: 8,
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+                        minHeight: 6,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text('${stats.xpForNextLevel - stats.xpProgress} XP para subir de nivel', style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                    Text('${stats.xpForNextLevel - stats.xpProgress} XP para el siguiente nivel', 
+                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _SmallStat(icon: Icons.star_rounded, label: 'XP Total', value: '${stats.totalXp}', color: Colors.purpleAccent),
               _SmallStat(icon: Icons.local_fire_department_rounded, label: 'Racha', value: '${stats.currentStreak} días', color: Colors.orangeAccent),
-              _SmallStat(icon: Icons.trending_up_rounded, label: 'Mejor', value: '${stats.longestStreak} d', color: Colors.amberAccent),
+              _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '12', color: Colors.amberAccent),
             ],
           ),
         ],
@@ -203,21 +236,42 @@ class _StreakCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(colors: [Color(0xFFE65100), Color(0xFFFFA726)]),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [BoxShadow(color: Colors.orange.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))],
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Row(
         children: [
-          const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 48),
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 40),
+          ),
           const SizedBox(width: 20),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text('$current días seguidos', style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-              const SizedBox(height: 4),
-              Text('Mejor racha: $longest días', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13)),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$current Días Seguidos', 
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                Text('¡Mantén el fuego encendido! 🔥 Mejor racha: $longest', 
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w500)),
+              ],
+            ),
           ),
         ],
       ),
@@ -325,11 +379,15 @@ class _SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       height: height,
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
-        borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.circular(24),
+      opacity: 0.05,
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white24,
+          strokeWidth: 2,
+        ),
       ),
     );
   }

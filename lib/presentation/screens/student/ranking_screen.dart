@@ -71,7 +71,7 @@ class RankingScreen extends ConsumerWidget {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, i) {
-                    final entry = ranking[i + 3 < ranking.length ? i + 3 : i];
+                    final entry = ranking[i + 3];
                     return _RankingRow(entry: entry, position: i + 4);
                   },
                   childCount: ranking.length > 3 ? ranking.length - 3 : 0,
@@ -131,7 +131,11 @@ class _PodiumItem extends StatelessWidget {
           radius: 22,
           backgroundColor: color.withValues(alpha: 0.3),
           child: Text(
-            (entry.username ?? entry.fullName ?? '?')[0].toUpperCase(),
+            (entry.username != null && entry.username!.isNotEmpty)
+                ? entry.username![0].toUpperCase()
+                : (entry.fullName != null && entry.fullName!.isNotEmpty)
+                    ? entry.fullName![0].toUpperCase()
+                    : '?',
             style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
           ),
         ),
@@ -200,7 +204,9 @@ class _RankingRow extends StatelessWidget {
               radius: 20,
               backgroundColor: const Color(0xFF1A1A2E),
               child: Text(
-                (entry.username ?? 'U')[0].toUpperCase(),
+                (entry.username != null && entry.username!.isNotEmpty)
+                    ? entry.username![0].toUpperCase()
+                    : 'U',
                 style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),

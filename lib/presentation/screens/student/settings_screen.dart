@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -6,6 +7,7 @@ import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/preferences_provider.dart';
 import 'package:jumpup_app/presentation/providers/feedback_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
@@ -13,6 +15,8 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final prefs = ref.watch(preferencesProvider);
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
@@ -41,9 +45,10 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Mejora la lectura en la noche',
             icon: Icons.dark_mode_rounded,
             trailing: Switch(
-              value: true,
-              onChanged: (v) {},
+              value: prefs.darkMode,
+              onChanged: (_) => ref.read(preferencesProvider.notifier).toggleDarkMode(),
               activeThumbColor: Colors.blueAccent,
+              activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 12),
@@ -53,9 +58,10 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Recordatorios de clases y retos',
             icon: Icons.notifications_active_rounded,
             trailing: Switch(
-              value: true,
-              onChanged: (v) {},
+              value: prefs.notifications,
+              onChanged: (_) => ref.read(preferencesProvider.notifier).toggleNotifications(),
               activeThumbColor: Colors.blueAccent,
+              activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
             ),
           ),
           const SizedBox(height: 12),
@@ -65,9 +71,10 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: 'Feedback táctil al interactuar',
             icon: Icons.vibration_rounded,
             trailing: Switch(
-              value: true,
-              onChanged: (v) {},
+              value: prefs.haptics,
+              onChanged: (_) => ref.read(preferencesProvider.notifier).toggleHaptics(),
               activeThumbColor: Colors.blueAccent,
+              activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
             ),
           ),
           
@@ -182,30 +189,60 @@ class SettingsScreen extends ConsumerWidget {
   void _confirmLogout(BuildContext context, WidgetRef ref) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Cerrar Sesión'),
-        content: const Text(
-          '¿Estás seguro que deseas cerrar sesión?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      builder: (ctx) => BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+        child: AlertDialog(
+          backgroundColor: const Color(0xFF1E1E2E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           ),
-          FilledButton(
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) {
-                context.go(AppRoutes.login);
-              }
-            },
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
+          title: Text(
+            'Cerrar Sesión',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+          ),
+          content: Text(
+            '¿Estás seguro que deseas cerrar sesión en JumpUp?',
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+          ),
+          actionsAlignment: MainAxisAlignment.center,
+          actionsPadding: const EdgeInsets.only(bottom: 24, left: 20, right: 20),
+          actions: [
+            Expanded(
+              child: TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: TextButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  foregroundColor: Colors.white54,
+                ),
+                child: const Text('CANCELAR', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
             ),
-            child: const Text('Cerrar Sesión'),
-          ),
-        ],
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) {
+                    context.go(AppRoutes.login);
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                  foregroundColor: Colors.redAccent,
+                  elevation: 0,
+                  side: const BorderSide(color: Colors.redAccent, width: 1),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                child: const Text('SALIR', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -217,66 +254,87 @@ class SettingsScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: const Text('Enviar sugerencia'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              DropdownButtonFormField<String>(
-                initialValue: selectedCategory,
-                hint: const Text('Categoría'),
-                items: const [
-                  DropdownMenuItem(value: 'bug', child: Text('Error')),
-                  DropdownMenuItem(value: 'feature', child: Text('Nueva función')),
-                  DropdownMenuItem(value: 'improvement', child: Text('Mejora')),
-                  DropdownMenuItem(value: 'other', child: Text('Otro')),
-                ],
-                onChanged: (v) => setDialogState(() => selectedCategory = v),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
+        builder: (ctx, setDialogState) => BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2E),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+            ),
+            title: Text(
+              'Enviar sugerencia',
+              style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                DropdownButtonFormField<String>(
+                  initialValue: selectedCategory,
+                  dropdownColor: const Color(0xFF2A2D3E),
+                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  hint: const Text('Categoría', style: TextStyle(color: Colors.white54)),
+                  items: const [
+                    DropdownMenuItem(value: 'bug', child: Text('Error')),
+                    DropdownMenuItem(value: 'feature', child: Text('Nueva función')),
+                    DropdownMenuItem(value: 'improvement', child: Text('Mejora')),
+                    DropdownMenuItem(value: 'other', child: Text('Otro')),
+                  ],
+                  onChanged: (v) => setDialogState(() => selectedCategory = v),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.2),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                 ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: controller,
+                  maxLines: 4,
+                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  decoration: InputDecoration(
+                    hintText: 'Describe tu sugerencia...',
+                    hintStyle: const TextStyle(color: Colors.white24),
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.2),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('CANCELAR', style: TextStyle(color: Colors.white54)),
               ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                maxLines: 4,
-                decoration: InputDecoration(
-                  hintText: 'Describe tu sugerencia...',
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              ElevatedButton(
+                onPressed: () async {
+                  if (controller.text.trim().isEmpty) return;
+                  await ref.read(feedbackNotifierProvider.notifier).sendSuggestion(
+                        message: controller.text.trim(),
+                        category: selectedCategory,
+                      );
+                  if (ctx.mounted) Navigator.pop(ctx);
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('¡Gracias por tu sugerencia!'),
+                        backgroundColor: Colors.blueAccent,
+                        behavior: SnackBarBehavior.floating,
+                      ),
+                    );
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                 ),
+                child: const Text('ENVIAR'),
               ),
             ],
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar'),
-            ),
-            FilledButton(
-              onPressed: () async {
-                if (controller.text.trim().isEmpty) return;
-                await ref.read(feedbackNotifierProvider.notifier).sendSuggestion(
-                      message: controller.text.trim(),
-                      category: selectedCategory,
-                    );
-                if (ctx.mounted) Navigator.pop(ctx);
-                if (context.mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('¡Gracias por tu sugerencia!'),
-                      backgroundColor: AppColors.success,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Enviar'),
-            ),
-          ],
         ),
       ),
     );

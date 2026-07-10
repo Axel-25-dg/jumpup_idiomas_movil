@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
@@ -219,12 +220,22 @@ class _ForumThreadCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 6),
           child: Row(
             children: [
-              Text(thread.authorName, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: Colors.white54)),
+              Flexible(
+                child: Text(thread.authorName, 
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: Colors.white54)),
+              ),
               if (thread.categoryName.isNotEmpty) ...[
                 Text(' · ', style: AppTextStyles.bodySmall.copyWith(color: Colors.white24)),
-                Text(thread.categoryName, style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                Flexible(
+                  child: Text(thread.categoryName, 
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                ),
               ],
-              const Spacer(),
+              const SizedBox(width: 8),
               const Icon(Icons.remove_red_eye_outlined, size: 14, color: Colors.white24),
               const SizedBox(width: 4),
               Text('${thread.views}', style: AppTextStyles.bodySmall.copyWith(color: Colors.white38)),
@@ -283,102 +294,138 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
   Widget build(BuildContext context) {
     final categoriesAsync = ref.watch(forumCategoriesProvider);
 
-    return Padding(
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        left: 16, right: 16, top: 16,
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('Nuevo tema', style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16),
-          categoriesAsync.when(
-            loading: () => const SizedBox.shrink(),
-            error: (_, __) => const SizedBox.shrink(),
-            data: (categories) => DropdownButtonFormField<int>(
-              initialValue: _categoryId,
-              hint: const Text('Seleccionar categoría'),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: AppColors.surface,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-                enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-                focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
+    return BackdropFilter(
+      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+      child: Container(
+        padding: EdgeInsets.fromLTRB(
+          24, 24, 24, 
+          MediaQuery.of(context).viewInsets.bottom + 32
+        ),
+        decoration: BoxDecoration(
+          color: const Color(0xFF1E1E2E).withValues(alpha: 0.95),
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
               ),
-              items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-              onChanged: (v) => setState(() => _categoryId = v),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _titleCtrl,
-            style: AppTextStyles.bodyMedium,
-            decoration: InputDecoration(
-              hintText: 'Título del tema',
-              filled: true,
-              fillColor: AppColors.surface,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-            ),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _bodyCtrl,
-            maxLines: 4,
-            style: AppTextStyles.bodyMedium,
-            decoration: InputDecoration(
-              hintText: 'Escribe tu mensaje...',
-              filled: true,
-              fillColor: AppColors.surface,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-              enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.divider)),
-              focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-            ),
-          ),
-          const SizedBox(height: 16),
-          SizedBox(
-            width: double.infinity,
-            child: FilledButton(
-              onPressed: (_loading || _categoryId == null || _titleCtrl.text.trim().isEmpty)
-                  ? null
-                  : () async {
-                      setState(() => _loading = true);
-                      try {
-                        await ref.read(socialRepositoryProvider).createForumThread(
-                              categoryId: _categoryId!,
-                              title: _titleCtrl.text.trim(),
-                              body: _bodyCtrl.text.trim(),
-                            );
-                        widget.onCreated?.call();
-                        if (context.mounted) Navigator.pop(context);
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                          );
-                        }
-                      } finally {
-                        if (context.mounted) setState(() => _loading = false);
-                      }
-                    },
-              style: FilledButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+              const SizedBox(height: 24),
+              Text(
+                'Nuevo Tema', 
+                style: AppTextStyles.headlineSmall.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: Colors.white,
+                  letterSpacing: -0.5,
+                )
               ),
-              child: _loading
-                  ? const SizedBox(width: 20, height: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                  : Text('Publicar', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
-            ),
+              const SizedBox(height: 8),
+              Text(
+                'Comparte tus dudas o conocimientos con la comunidad.',
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54),
+              ),
+              const SizedBox(height: 32),
+              
+              categoriesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (_, __) => const Text('Error cargando categorías', style: TextStyle(color: Colors.redAccent)),
+                data: (categories) => DropdownButtonFormField<int>(
+                  value: _categoryId,
+                  dropdownColor: const Color(0xFF2A2D3E),
+                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  decoration: _inputDecoration('Seleccionar categoría', Icons.category_outlined),
+                  items: categories.map((c) => DropdownMenuItem(
+                    value: c.id, 
+                    child: Text(c.name)
+                  )).toList(),
+                  onChanged: (v) => setState(() => _categoryId = v),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _titleCtrl,
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                decoration: _inputDecoration('Título del tema', Icons.title_rounded),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _bodyCtrl,
+                maxLines: 4,
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                decoration: _inputDecoration('Escribe tu mensaje...', Icons.text_fields_rounded),
+              ),
+              const SizedBox(height: 32),
+              
+              SizedBox(
+                width: double.infinity,
+                height: 56,
+                child: ElevatedButton(
+                  onPressed: (_loading || _categoryId == null || _titleCtrl.text.trim().isEmpty)
+                      ? null
+                      : _submit,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C4DFF),
+                    foregroundColor: Colors.white,
+                    disabledBackgroundColor: Colors.white.withValues(alpha: 0.05),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    elevation: 0,
+                  ),
+                  child: _loading
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text('PUBLICAR TEMA', style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w800, color: Colors.white)),
+                ),
+              ),
+            ],
           ),
-          const SizedBox(height: 16),
-        ],
+        ),
       ),
     );
+  }
+
+  InputDecoration _inputDecoration(String hint, IconData icon) {
+    return InputDecoration(
+      hintText: hint,
+      prefixIcon: Icon(icon, color: Colors.white38, size: 20),
+      hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white24),
+      filled: true,
+      fillColor: Colors.black.withValues(alpha: 0.2),
+      border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+      focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5)),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+    );
+  }
+
+  Future<void> _submit() async {
+    setState(() => _loading = true);
+    try {
+      await ref.read(socialRepositoryProvider).createForumThread(
+            categoryId: _categoryId!,
+            title: _titleCtrl.text.trim(),
+            body: _bodyCtrl.text.trim(),
+          );
+      widget.onCreated?.call();
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 }
 
@@ -404,123 +451,165 @@ class _ForumThreadDetailScreenState extends ConsumerState<_ForumThreadDetailScre
     final postsAsync = ref.watch(forumPostsProvider(widget.thread.id));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
+        ),
         title: Text(widget.thread.title,
-            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800)),
       ),
-      body: Column(
+      body: Stack(
         children: [
-          // Thread header
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            color: AppColors.white,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(widget.thread.body, style: AppTextStyles.bodyMedium.copyWith(height: 1.5)),
-                const SizedBox(height: 8),
-                Row(
+          Column(
+            children: [
+              // Thread header
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1E1E2E).withValues(alpha: 0.5),
+                  border: Border(bottom: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.person_outline, size: 14, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Text(widget.thread.authorName,
-                        style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500)),
-                    const SizedBox(width: 12),
-                    const Icon(Icons.remove_red_eye_outlined, size: 14, color: AppColors.textSecondary),
-                    const SizedBox(width: 4),
-                    Text('${widget.thread.views} vistas', style: AppTextStyles.bodySmall),
+                    Text(widget.thread.body, 
+                        style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, height: 1.6)),
+                    const SizedBox(height: 20),
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                          child: const Icon(Icons.person_outline, size: 14, color: Color(0xFF7C4DFF)),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(widget.thread.authorName,
+                            style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: Colors.white70)),
+                        const Spacer(),
+                        const Icon(Icons.remove_red_eye_outlined, size: 14, color: Colors.white24),
+                        const SizedBox(width: 4),
+                        Text('${widget.thread.views} vistas', 
+                            style: AppTextStyles.bodySmall.copyWith(color: Colors.white38)),
+                      ],
+                    ),
                   ],
                 ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
+              ),
 
-          // Posts
-          Expanded(
-            child: postsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-              error: (e, _) => Center(child: Text('Error: $e')),
-              data: (posts) {
-                final visible = posts.where((p) => !p.isDeleted).toList();
-                if (visible.isEmpty) {
-                  return Center(
-                    child: Text('No hay respuestas aún',
-                        style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.all(12),
-                  itemCount: visible.length,
-                  itemBuilder: (ctx, i) => _ForumPostCard(post: visible[i]),
-                );
-              },
-            ),
+              // Posts
+              Expanded(
+                child: postsAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  error: (e, _) => Center(child: Text('Error: $e', style: const TextStyle(color: Colors.white54))),
+                  data: (posts) {
+                    final visible = posts.where((p) => !p.isDeleted).toList();
+                    if (visible.isEmpty) {
+                      return Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.chat_bubble_outline_rounded, size: 48, color: Colors.white.withValues(alpha: 0.05)),
+                            const SizedBox(height: 16),
+                            Text('No hay respuestas aún',
+                                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white24)),
+                          ],
+                        ),
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: visible.length,
+                      itemBuilder: (ctx, i) => _ForumPostCard(post: visible[i]),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
 
           // Reply input
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: const BoxDecoration(
-              color: AppColors.white,
-              border: Border(top: BorderSide(color: AppColors.divider)),
-            ),
-            child: SafeArea(
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _replyCtrl,
-                      style: AppTextStyles.bodyMedium,
-                      decoration: InputDecoration(
-                        hintText: 'Escribe una respuesta...',
-                        filled: true,
-                        fillColor: AppColors.surface,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(24),
-                          borderSide: BorderSide.none,
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: ClipRRect(
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Container(
+                  padding: EdgeInsets.fromLTRB(16, 12, 16, MediaQuery.of(context).padding.bottom + 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF0F111A).withValues(alpha: 0.8),
+                    border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _replyCtrl,
+                          style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Escribe una respuesta...',
+                            hintStyle: const TextStyle(color: Colors.white24),
+                            filled: true,
+                            fillColor: Colors.white.withValues(alpha: 0.05),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              borderSide: BorderSide.none,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                          ),
                         ),
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Container(
+                        decoration: const BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+                        ),
+                        child: IconButton(
+                          onPressed: _sendReply,
+                          icon: const Icon(Icons.send_rounded, size: 20, color: Colors.white),
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(width: 8),
-                  IconButton.filled(
-                    onPressed: () async {
-                      final text = _replyCtrl.text.trim();
-                      if (text.isEmpty) return;
-                      try {
-                        await ref.read(socialRepositoryProvider).createForumPost(
-                              threadId: widget.thread.id,
-                              body: text,
-                            );
-                        _replyCtrl.clear();
-                        ref.invalidate(forumPostsProvider(widget.thread.id));
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
-                          );
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.send, size: 20),
-                    style: IconButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
           ),
         ],
       ),
     );
+  }
+
+  Future<void> _sendReply() async {
+    final text = _replyCtrl.text.trim();
+    if (text.isEmpty) return;
+    try {
+      await ref.read(socialRepositoryProvider).createForumPost(
+            threadId: widget.thread.id,
+            body: text,
+          );
+      _replyCtrl.clear();
+      ref.invalidate(forumPostsProvider(widget.thread.id));
+      if (mounted) {
+        FocusScope.of(context).unfocus();
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    }
   }
 }
 
@@ -531,12 +620,12 @@ class _ForumPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
+        color: const Color(0xFF1E1E2E),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -544,30 +633,38 @@ class _ForumPostCard extends StatelessWidget {
           Row(
             children: [
               CircleAvatar(
-                radius: 16,
-                backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                radius: 14,
+                backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
                 child: Text(
                   post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?',
-                  style: AppTextStyles.labelMedium.copyWith(color: AppColors.primary, fontWeight: FontWeight.w700),
+                  style: AppTextStyles.labelSmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w800),
                 ),
               ),
-              const SizedBox(width: 8),
+              const SizedBox(width: 10),
               Expanded(
                 child: Text(post.authorName,
-                    style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w600)),
+                    style: AppTextStyles.labelMedium.copyWith(fontWeight: FontWeight.w700, color: Colors.white)),
               ),
               if (post.reactionCount > 0)
-                Row(
-                  children: [
-                    const Icon(Icons.thumb_up_alt_rounded, size: 14, color: AppColors.primary),
-                    const SizedBox(width: 4),
-                    Text('${post.reactionCount}', style: AppTextStyles.bodySmall),
-                  ],
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.thumb_up_alt_rounded, size: 12, color: Colors.blueAccent),
+                      const SizedBox(width: 4),
+                      Text('${post.reactionCount}', 
+                          style: AppTextStyles.labelSmall.copyWith(color: Colors.white54, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
                 ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(post.body, style: AppTextStyles.bodyMedium.copyWith(height: 1.5)),
+          const SizedBox(height: 12),
+          Text(post.body, style: AppTextStyles.bodyMedium.copyWith(height: 1.5, color: Colors.white.withValues(alpha: 0.8))),
         ],
       ),
     );

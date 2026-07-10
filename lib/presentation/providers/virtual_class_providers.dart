@@ -29,15 +29,17 @@ class JoinClassNotifier extends StateNotifier<JoinClassStatus> {
   final VirtualClassService _service;
   String? errorMessage;
 
-  Future<void> joinClass(int classId) async {
+  Future<VirtualClassRegistrationModel?> joinClass(int classId) async {
     state = JoinClassStatus.loading;
     errorMessage = null;
     try {
-      await _service.joinVirtualClass(classId);
+      final result = await _service.joinVirtualClass(classId);
       state = JoinClassStatus.success;
+      return result;
     } catch (e) {
       errorMessage = e.toString();
       state = JoinClassStatus.failure;
+      return null;
     }
   }
 

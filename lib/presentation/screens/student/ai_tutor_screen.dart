@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
@@ -165,16 +166,22 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF0D0D15).withValues(alpha: 0.8),
+      backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
       iconTheme: const IconThemeData(color: Colors.white),
+      flexibleSpace: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(color: const Color(0xFF0D0D15).withValues(alpha: 0.7)),
+        ),
+      ),
       title: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(2),
             decoration: const BoxDecoration(
-              gradient: LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
+              gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
               shape: BoxShape.circle,
             ),
             child: const CircleAvatar(
@@ -189,13 +196,21 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
             children: [
               const Text(
                 'AI Tutor',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
               ),
               Row(
                 children: [
-                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
-                  const SizedBox(width: 4),
-                  const Text('GPT-4o Online', style: TextStyle(color: Colors.white70, fontSize: 10)),
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00C853),
+                      shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Color(0xFF00C853), blurRadius: 4)],
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  const Text('Online', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -217,40 +232,64 @@ class _ChatBubble extends StatelessWidget {
     return Align(
       alignment: isBot ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+        margin: const EdgeInsets.only(bottom: 20),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
         child: Column(
           crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: isBot
-                    ? const LinearGradient(colors: [Color(0xFF232336), Color(0xFF1F1F30)])
-                    : const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(20),
-                  topRight: const Radius.circular(20),
-                  bottomLeft: Radius.circular(isBot ? 4 : 20),
-                  bottomRight: Radius.circular(isBot ? 20 : 4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: isBot ? Colors.black26 : Colors.blueAccent.withValues(alpha: 0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
+            if (isBot)
+              Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF1F1F30),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(4),
                   ),
-                ],
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  text,
+                  style: const TextStyle(color: Colors.white, height: 1.5, fontSize: 15),
+                ),
+              )
+            else
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(4),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2575FC).withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  text,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
+                ),
               ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                text,
-                style: const TextStyle(color: Colors.white, height: 1.4, fontSize: 14),
+                '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
+                style: const TextStyle(fontSize: 10, color: Colors.white38, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
-              style: const TextStyle(fontSize: 10, color: Colors.white54),
             ),
           ],
         ),
@@ -365,54 +404,60 @@ class _ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1E1E2A),
-        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, -5)),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              decoration: BoxDecoration(
-                color: const Color(0xFF2A2A3D),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: TextField(
-                controller: controller,
-                enabled: enabled,
-                style: const TextStyle(color: Colors.white),
-                decoration: const InputDecoration(
-                  hintText: 'Ask the tutor anything...',
-                  hintStyle: TextStyle(color: Colors.white54, fontSize: 14),
-                  border: InputBorder.none,
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          decoration: BoxDecoration(
+            color: const Color(0xFF0F111A).withValues(alpha: 0.8),
+            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: GlassContainer(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  borderRadius: BorderRadius.circular(25),
+                  opacity: 0.05,
+                  child: TextField(
+                    controller: controller,
+                    enabled: enabled,
+                    style: const TextStyle(color: Colors.white, fontSize: 15),
+                    decoration: const InputDecoration(
+                      hintText: 'Pregúntale algo al tutor...',
+                      hintStyle: TextStyle(color: Colors.white38, fontSize: 14),
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (_) => onSend(),
+                    textInputAction: TextInputAction.send,
+                  ),
                 ),
-                onSubmitted: (_) => onSend(),
-                textInputAction: TextInputAction.send,
               ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: enabled ? onSend : null,
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
-                ],
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: enabled ? onSend : null,
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                ),
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
-            ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

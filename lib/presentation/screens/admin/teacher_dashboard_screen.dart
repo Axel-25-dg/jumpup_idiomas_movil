@@ -25,32 +25,9 @@ class TeacherDashboardScreen extends ConsumerWidget {
       body: Stack(
         children: [
           // Background Blobs for consistency with Student UI
-          Positioned(
-            top: -50,
-            left: -50,
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.1), blurRadius: 100)],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            right: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withValues(alpha: 0.1),
-                boxShadow: [BoxShadow(color: const Color(0xFF00B4DB).withValues(alpha: 0.1), blurRadius: 100)],
-              ),
-            ),
-          ),
+          Positioned(top: -100, left: -100, child: _blob(const Color(0xFF7C4DFF), 300)),
+          Positioned(bottom: -50, right: -50, child: _blob(const Color(0xFF00B4DB), 250)),
+          
           RefreshIndicator(
             color: const Color(0xFF7C4DFF),
             backgroundColor: const Color(0xFF1A1828),
@@ -84,32 +61,39 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
-                              profileAsync.when(
-                                loading: () => const CircleAvatar(
+                              Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(colors: [Color(0xFF7C4DFF), Color(0xFF00B4DB)]),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: profileAsync.when(
+                                  loading: () => const CircleAvatar(
+                                      radius: 24,
+                                      backgroundColor: Color(0xFF1E1E2A),
+                                      child: CircularProgressIndicator(color: Color(0xFF7C4DFF), strokeWidth: 2)),
+                                  error: (_, __) => const CircleAvatar(
+                                      radius: 24,
+                                      backgroundColor: Color(0xFF1E1E2A),
+                                      child: Icon(Icons.person_rounded, color: Colors.white)),
+                                  data: (p) => CircleAvatar(
                                     radius: 24,
-                                    backgroundColor: Colors.white12,
-                                    child: CircularProgressIndicator(color: Color(0xFF7C4DFF), strokeWidth: 2)),
-                                error: (_, __) => const CircleAvatar(
-                                    radius: 24,
-                                    backgroundColor: Colors.white12,
-                                    child: Icon(Icons.person_rounded, color: Colors.white)),
-                                data: (p) => CircleAvatar(
-                                  radius: 24,
-                                  backgroundColor: Colors.white12,
-                                  backgroundImage: p.avatarUrl != null
-                                      ? NetworkImage(p.avatarUrl!)
-                                      : null,
-                                  child: p.avatarUrl == null
-                                      ? Text(
-                                          p.username.isNotEmpty
-                                              ? p.username[0].toUpperCase()
-                                              : '?',
-                                          style: const TextStyle(
-                                              color: Colors.white,
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 18),
-                                        )
-                                      : null,
+                                    backgroundColor: const Color(0xFF1E1E2A),
+                                    backgroundImage: p.avatarUrl != null
+                                        ? NetworkImage(p.avatarUrl!)
+                                        : null,
+                                    child: p.avatarUrl == null
+                                        ? Text(
+                                            p.username.isNotEmpty
+                                                ? p.username[0].toUpperCase()
+                                                : '?',
+                                            style: const TextStyle(
+                                                color: Colors.white,
+                                                fontWeight: FontWeight.bold,
+                                                fontSize: 18),
+                                          )
+                                        : null,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 12),
@@ -211,33 +195,21 @@ class TeacherDashboardScreen extends ConsumerWidget {
                             icon: Icons.school_rounded,
                             label: 'Aulas',
                             value: '${stats.totalAulas}',
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF7C4DFF), Color(0xFF5E35B1)],
-                            ),
+                            color: const Color(0xFF7C4DFF),
                           ),
                           const SizedBox(width: 12),
                           _TeacherStatBadge(
                             icon: Icons.people_alt_rounded,
                             label: 'Alumnos',
                             value: '${stats.totalAlumnos}',
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFF00B4DB), Color(0xFF0083B0)],
-                            ),
+                            color: const Color(0xFF00B4DB),
                           ),
                           const SizedBox(width: 12),
                           _TeacherStatBadge(
                             icon: Icons.menu_book_rounded,
                             label: 'Cursos',
                             value: '${stats.totalCursos}',
-                            gradient: const LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: [Color(0xFFF093FB), Color(0xFFF5576C)],
-                            ),
+                            color: const Color(0xFFF5576C),
                           ),
                         ],
                       ),
@@ -385,32 +357,45 @@ class TeacherDashboardScreen extends ConsumerWidget {
     );
   }
 
+  Widget _blob(Color color, double size) => Container(
+    width: size,
+    height: size,
+    decoration: BoxDecoration(
+      shape: BoxShape.circle,
+      color: color.withValues(alpha: 0.1),
+      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 100)],
+    ),
+  );
+
   void _confirmLogout(BuildContext context, WidgetRef ref) {
-    showDialog(
+    showGeneralDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1A1D2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('Cerrar sesión', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text('¿Seguro que quieres salir del portal?', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70)),
-        actions: [
-          TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: Text('Cancelar', style: AppTextStyles.labelLarge.copyWith(color: Colors.white38))),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFFFF5252),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              elevation: 0,
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) context.go(AppRoutes.login);
-            },
-            child: const Text('Cerrar sesión', style: TextStyle(color: Colors.white)),
+      barrierDismissible: true,
+      barrierLabel: '',
+      pageBuilder: (ctx, a1, a2) => Container(),
+      transitionBuilder: (ctx, a1, a2, child) => Transform.scale(
+        scale: a1.value,
+        child: Opacity(
+          opacity: a1.value,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2A),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Text('Cerrar Sesión', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+            content: Text('¿Seguro que quieres salir del portal?', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70)),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: Text('Cancelar', style: AppTextStyles.labelLarge.copyWith(color: Colors.white38))),
+              FilledButton(
+                style: FilledButton.styleFrom(backgroundColor: const Color(0xFFFF5252), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) context.go(AppRoutes.login);
+                },
+                child: const Text('Salir'),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -423,39 +408,33 @@ class _TeacherStatBadge extends StatelessWidget {
     required this.icon,
     required this.label,
     required this.value,
-    required this.gradient,
+    required this.color,
   });
   final IconData icon;
   final String label;
   final String value;
-  final LinearGradient gradient;
+  final Color color;
 
   @override
   Widget build(BuildContext context) {
     return Expanded(
-      child: Container(
+      child: GlassContainer(
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
-        decoration: BoxDecoration(
-          gradient: gradient,
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: gradient.colors.first.withValues(alpha: 0.4),
-              blurRadius: 12,
-              offset: const Offset(0, 6),
-            ),
-          ],
-        ),
+        borderRadius: BorderRadius.circular(20),
         child: Column(
           children: [
-            Icon(icon, color: Colors.white, size: 28),
-            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+              child: Icon(icon, color: color, size: 24),
+            ),
+            const SizedBox(height: 12),
             Text(value,
                 style: AppTextStyles.headlineSmall.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w900)),
             Text(label,
-                style: AppTextStyles.labelSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold)),
+                style: AppTextStyles.labelSmall.copyWith(color: Colors.white54, fontWeight: FontWeight.bold)),
           ],
         ),
       ),
