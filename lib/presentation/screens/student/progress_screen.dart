@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
@@ -14,16 +15,10 @@ class ProgressScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text('Mi Progreso',
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.leaderboard, color: AppColors.textPrimary),
-            tooltip: 'Ver Ranking',
-            onPressed: () {},
-          ),
-        ],
+        backgroundColor: AppColors.primary,
+        title: Text('Mi Progreso',
+            style: AppTextStyles.titleLarge
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
       body: RefreshIndicator(
         color: AppColors.primary,
@@ -59,21 +54,18 @@ class ProgressScreen extends ConsumerWidget {
                 data: (summary) => _CourseStatsCard(summary: summary),
               ),
               const SizedBox(height: 20),
-              const Text(
-                'Mis logros',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18),
-              ),
+              Text('Mis logros',
+                  style: AppTextStyles.titleMedium
+                      .copyWith(fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
               Consumer(
                 builder: (context, ref, _) {
                   final achievementsAsync = ref.watch(myAchievementsProvider);
                   return achievementsAsync.when(
                     loading: () => const _SkeletonCard(height: 100),
-                    error: (_, __) => const Text('Error al cargar logros',
-                        style: TextStyle(color: Colors.redAccent)),
+                    error: (_, __) => Text('Error al cargar logros',
+                        style: AppTextStyles.bodyMedium
+                            .copyWith(color: AppColors.error)),
                     data: (achievements) => achievements.isEmpty
                         ? const _EmptyAchievements()
                         : SizedBox(
@@ -93,12 +85,12 @@ class ProgressScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: OutlinedButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.leaderboard, color: Color(0xFFFFD700)),
-                  label: const Text('Ver tabla de clasificación',
-                      style: TextStyle(color: AppColors.textPrimary)),
+                  icon: const Icon(Icons.leaderboard, color: AppColors.primary),
+                  label: Text('Ver tabla de clasificacion',
+                      style: AppTextStyles.labelLarge
+                          .copyWith(color: AppColors.primary)),
                   style: OutlinedButton.styleFrom(
-                    side:
-                        const BorderSide(color: Color(0xFFFFD700), width: 1.5),
+                    side: const BorderSide(color: AppColors.primary, width: 1.5),
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12)),
@@ -122,11 +114,7 @@ class _XPLevelCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [AppColors.primary, Color(0xFF448AFF)],
-        ),
+        gradient: AppColors.primaryGradient,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -145,12 +133,13 @@ class _XPLevelCard extends StatelessWidget {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Nivel actual',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+                  Text('Nivel actual',
+                      style: AppTextStyles.bodySmall
+                          .copyWith(color: Colors.white70)),
                   Text(
                     'Nivel ${stats.level}',
                     style: const TextStyle(
-                        color: AppColors.textPrimary,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 28),
                   ),
@@ -162,7 +151,11 @@ class _XPLevelCard extends StatelessWidget {
                   color: Colors.white24,
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text('⚡', style: TextStyle(fontSize: 28)),
+                child: const Text('XP', style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                )),
               ),
             ],
           ),
@@ -172,12 +165,12 @@ class _XPLevelCard extends StatelessWidget {
             children: [
               Text(
                 '${stats.totalXp} XP totales',
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
               ),
               Text(
                 '${stats.xpProgress} / ${stats.xpForNextLevel} XP',
                 style: const TextStyle(
-                    color: AppColors.textPrimary,
+                    color: Colors.white,
                     fontSize: 13,
                     fontWeight: FontWeight.w600),
               ),
@@ -189,7 +182,7 @@ class _XPLevelCard extends StatelessWidget {
             child: LinearProgressIndicator(
               value: stats.levelProgress,
               backgroundColor: Colors.white24,
-              color: AppColors.textPrimary,
+              color: Colors.white,
               minHeight: 10,
             ),
           ),
@@ -209,28 +202,35 @@ class _StreakCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
-          const Text('🔥', style: TextStyle(fontSize: 36)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.secondary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(Icons.local_fire_department_rounded,
+                color: AppColors.secondary, size: 28),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '$currentStreak días de racha',
-                  style: const TextStyle(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 18),
+                  '$currentStreak dias de racha',
+                  style: AppTextStyles.titleMedium
+                      .copyWith(fontWeight: FontWeight.w700),
                 ),
                 Text(
-                  'Mejor racha: $longestStreak días',
-                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
+                  'Mejor racha: $longestStreak dias',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -239,16 +239,13 @@ class _StreakCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFFFF6D00).withValues(alpha: 0.2),
+                color: AppColors.secondary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(
-                    color: const Color(0xFFFF6D00).withValues(alpha: 0.5)),
               ),
-              child: const Text('¡En racha!',
-                  style: TextStyle(
-                      color: Color(0xFFFF6D00),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold)),
+              child: Text('En racha!',
+                  style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.secondary,
+                      fontWeight: FontWeight.w700)),
             ),
         ],
       ),
@@ -265,30 +262,28 @@ class _CourseStatsCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Resumen de cursos',
-              style: TextStyle(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16)),
+          Text('Resumen de cursos',
+              style: AppTextStyles.titleMedium
+                  .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           Row(
             children: [
               _MiniStat(
                   value: '${summary.lessonsCompleted}',
                   label: 'Completadas',
-                  color: const Color(0xFF4CAF50)),
+                  color: AppColors.success),
               const SizedBox(width: 12),
               _MiniStat(
                   value: '${summary.lessonsInProgress}',
                   label: 'En progreso',
-                  color: const Color(0xFF03A9F4)),
+                  color: AppColors.secondary),
               const SizedBox(width: 12),
               _MiniStat(
                   value: '${summary.coursesCompleted}',
@@ -302,14 +297,12 @@ class _CourseStatsCard extends StatelessWidget {
             children: [
               Text(
                 'Progreso total: ${summary.percentage.toStringAsFixed(1)}%',
-                style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                style: AppTextStyles.bodySmall,
               ),
               Text(
                 '${summary.lessonsCompleted} / ${summary.totalLessons}',
-                style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    fontSize: 13),
+                style: AppTextStyles.bodySmall
+                    .copyWith(fontWeight: FontWeight.w600),
               ),
             ],
           ),
@@ -318,8 +311,8 @@ class _CourseStatsCard extends StatelessWidget {
             borderRadius: BorderRadius.circular(8),
             child: LinearProgressIndicator(
               value: summary.percentage / 100,
-              backgroundColor: Colors.white12,
-              color: const Color(0xFF4CAF50),
+              backgroundColor: AppColors.divider,
+              color: AppColors.success,
               minHeight: 8,
             ),
           ),
@@ -352,7 +345,8 @@ class _MiniStat extends StatelessWidget {
                 style: TextStyle(
                     color: color, fontWeight: FontWeight.bold, fontSize: 20)),
             Text(label,
-                style: const TextStyle(color: AppColors.textSecondary, fontSize: 11),
+                style: AppTextStyles.labelSmall
+                    .copyWith(color: AppColors.textSecondary),
                 textAlign: TextAlign.center),
           ],
         ),
@@ -372,20 +366,20 @@ class _AchievementBadge extends StatelessWidget {
       margin: const EdgeInsets.only(right: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        border:
-            Border.all(color: const Color(0xFFFFD700).withValues(alpha: 0.4)),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Text('🏆', style: TextStyle(fontSize: 32)),
+          Icon(Icons.emoji_events_rounded,
+              color: AppColors.primary, size: 32),
           const SizedBox(height: 6),
           Text(
             achievement.achievement.name,
-            style: const TextStyle(
-                color: AppColors.textPrimary, fontSize: 11, fontWeight: FontWeight.w600),
+            style: AppTextStyles.labelSmall
+                .copyWith(fontWeight: FontWeight.w600),
             textAlign: TextAlign.center,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -404,13 +398,14 @@ class _EmptyAchievements extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
-      child: const Center(
-        child: Text('Completa lecciones para desbloquear logros 🎯',
-            style: TextStyle(color: AppColors.textSecondary, fontSize: 14)),
+      child: Center(
+        child: Text('Completa lecciones para desbloquear logros',
+            style: AppTextStyles.bodyMedium
+                .copyWith(color: AppColors.textSecondary)),
       ),
     );
   }
@@ -425,7 +420,7 @@ class _SkeletonCard extends StatelessWidget {
     return Container(
       height: height,
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.divider,
         borderRadius: BorderRadius.circular(16),
       ),
     );

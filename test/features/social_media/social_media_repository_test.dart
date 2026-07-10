@@ -85,7 +85,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/threads/': json});
+      dio.httpClientAdapter = _JsonAdapter({'threads/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchMessages();
@@ -110,7 +110,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/notifications/': json});
+      dio.httpClientAdapter = _JsonAdapter({'notifications/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchNotifications();
@@ -135,7 +135,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/notifications/': json});
+      dio.httpClientAdapter = _JsonAdapter({'notifications/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchNotifications();
@@ -160,7 +160,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/social-posts/': json});
+      dio.httpClientAdapter = _JsonAdapter({'social-posts/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.fetchSocialFeed();
@@ -196,7 +196,7 @@ void main() {
       ''';
 
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/search/': json});
+      dio.httpClientAdapter = _JsonAdapter({'search/': json});
 
       final repo = SocialMediaRepository(dio: dio);
       final result = await repo.search('inglés');

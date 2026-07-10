@@ -3,41 +3,52 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/presentation/screens/social/message_detail_screen.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 class ChatScreen extends ConsumerWidget {
   const ChatScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final threadsAsync = ref.watch(chatThreadsProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Mensajes'),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: Text('Mensajes',
+            style: AppTextStyles.titleLarge
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: () => ref.invalidate(chatThreadsProvider),
           ),
         ],
       ),
       body: threadsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.wifi_off, size: 48,
-                    color: theme.colorScheme.error),
+                const Icon(Icons.wifi_off_rounded,
+                    size: 48, color: AppColors.error),
                 const SizedBox(height: 12),
                 Text('Error al cargar mensajes',
-                    style: theme.textTheme.titleMedium),
+                    style: AppTextStyles.titleMedium),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () => ref.invalidate(chatThreadsProvider),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Reintentar'),
                 ),
               ],
@@ -50,23 +61,29 @@ class ChatScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.chat_bubble_outline,
-                      size: 64,
-                      color: theme.colorScheme.primary
-                          .withValues(alpha: 0.4)),
-                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                    ),
+                    child: Icon(Icons.chat_bubble_outline_rounded,
+                        size: 56, color: AppColors.primary.withValues(alpha: 0.4)),
+                  ),
+                  const SizedBox(height: 16),
                   Text('Sin conversaciones',
-                      style: theme.textTheme.titleMedium),
+                      style: AppTextStyles.titleMedium
+                          .copyWith(color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text('Inicia un nuevo chat',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.textSecondary)),
                 ],
               ),
             );
           }
           return ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+            padding: const EdgeInsets.symmetric(vertical: 8),
             itemCount: threads.length,
             itemBuilder: (context, index) {
               final thread = threads[index];
@@ -85,33 +102,42 @@ class _ThreadTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.divider),
+      ),
       child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
         leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
+          radius: 24,
+          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
           child: Text(
             thread.participantName.isNotEmpty
                 ? thread.participantName[0].toUpperCase()
                 : '?',
-            style: TextStyle(
-              fontWeight: FontWeight.bold,
-              color: theme.colorScheme.onPrimaryContainer,
+            style: AppTextStyles.titleMedium.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w700,
             ),
           ),
         ),
         title: Text(thread.title,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+            style: AppTextStyles.labelLarge.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            )),
         subtitle: Text(
           thread.lastMessage ?? 'Sin mensajes',
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodySmall?.copyWith(
+          style: AppTextStyles.bodySmall.copyWith(
             color: thread.unreadCount > 0
-                ? theme.colorScheme.onSurface
-                : theme.colorScheme.onSurfaceVariant,
+                ? AppColors.textPrimary
+                : AppColors.textSecondary,
             fontWeight:
                 thread.unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
           ),
@@ -119,15 +145,17 @@ class _ThreadTile extends StatelessWidget {
         trailing: thread.unreadCount > 0
             ? Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
+                  color: AppColors.primary,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
                   '${thread.unreadCount}',
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: theme.colorScheme.onPrimary),
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               )
             : null,

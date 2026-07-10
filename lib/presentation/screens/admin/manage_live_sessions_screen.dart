@@ -237,6 +237,7 @@ class _SessionCardState extends ConsumerState<_SessionCard> {
                               strokeWidth: 2, color: Colors.white))
                       : Text(isLive ? 'Finalizar Sesión' : 'Iniciar Sesión'),
                 ),
+                ),
               ),
             ],
           ],

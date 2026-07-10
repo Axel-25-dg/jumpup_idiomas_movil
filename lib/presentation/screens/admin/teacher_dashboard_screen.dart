@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/theme/colors.dart';
-import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_teacher_provider.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
@@ -178,6 +182,13 @@ class _TeacherHomeTab extends ConsumerWidget {
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
                         color: AppColors.textPrimary)),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+>>>>>>> origin/main
               ),
             ),
             SliverToBoxAdapter(
@@ -328,6 +339,7 @@ class _TeacherHomeTab extends ConsumerWidget {
                         message: 'No tienes aulas aún. ¡Crea la primera!',
                       ),
                     ),
+<<<<<<< HEAD
                   );
                 }
                 return SliverList(
@@ -347,6 +359,145 @@ class _TeacherHomeTab extends ConsumerWidget {
                                     ManageClassroomScreen(classroomId: c.id)),
                           ),
                         ),
+=======
+                    const SizedBox(width: 12),
+                    _TeacherStatBadge(
+                      icon: Icons.people_rounded,
+                      label: 'Alumnos',
+                      value: '${stats.totalAlumnos}',
+                      gradient: const LinearGradient(colors: [Color(0xFF00B4DB), Color(0xFF0083B0)]),
+                    ),
+                    const SizedBox(width: 12),
+                    _TeacherStatBadge(
+                      icon: Icons.menu_book_rounded,
+                      label: 'Cursos',
+                      value: '${stats.totalCursos}',
+                      gradient: const LinearGradient(colors: [Color(0xFFF093FB), Color(0xFFF5576C)]),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Acciones rápidas (Grid) ───────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Accesos Rápidos',
+                      style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      _TeacherQuickBtn(
+                        icon: Icons.add_business_rounded,
+                        label: 'Nueva Aula',
+                        color: const Color(0xFF00E676),
+                        onTap: () => context.push(AppRoutes.teacherCreateClassroom),
+                      ),
+                      const SizedBox(width: 12),
+                      _TeacherQuickBtn(
+                        icon: Icons.quiz_rounded,
+                        label: 'Ejercicio',
+                        color: const Color(0xFFFFD54F),
+                        onTap: () => context.push(AppRoutes.teacherCreateExercise),
+                      ),
+                      const SizedBox(width: 12),
+                      _TeacherQuickBtn(
+                        icon: Icons.view_module_rounded,
+                        label: 'Módulo',
+                        color: const Color(0xFF4FC3F7),
+                        onTap: () => context.push(AppRoutes.teacherCreateModule),
+                      ),
+                      const SizedBox(width: 12),
+                      _TeacherQuickBtn(
+                        icon: Icons.play_lesson_rounded,
+                        label: 'Lección',
+                        color: const Color(0xFFFF8A65),
+                        onTap: () => context.push(AppRoutes.teacherCreateLesson),
+                      ),
+                      const SizedBox(width: 12),
+                      _TeacherQuickBtn(
+                        icon: Icons.folder_open_rounded,
+                        label: 'Recursos',
+                        color: const Color(0xFFAB47BC),
+                        onTap: () => context.push(AppRoutes.teacherResources),
+                      ),
+                      const SizedBox(width: 12),
+                      _TeacherQuickBtn(
+                        icon: Icons.chat_rounded,
+                        label: 'Mensajes',
+                        color: const Color(0xFF66BB6A),
+                        onTap: () => context.push(AppRoutes.teacherInbox),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Mis aulas ────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 32, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Gestión de Aulas',
+                          style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      TextButton.icon(
+                        onPressed: () => context.push(AppRoutes.teacherCreateClassroom),
+                        icon: const Icon(Icons.add, size: 18, color: Color(0xFF7C4DFF)),
+                        label: const Text('Crear', style: TextStyle(color: Color(0xFF7C4DFF))),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  classroomsAsync.when(
+                    loading: () => const Center(
+                        child: Padding(
+                            padding: EdgeInsets.all(24),
+                            child: CircularProgressIndicator(color: Color(0xFF7C4DFF)))),
+                    error: (e, _) => GlassContainer(
+                      opacity: 0.05,
+                      child: Text('Error al cargar aulas: $e', style: const TextStyle(color: Colors.redAccent)),
+                    ),
+                    data: (classrooms) {
+                      if (classrooms.isEmpty) {
+                        return GlassContainer(
+                          opacity: 0.05,
+                          padding: const EdgeInsets.all(32),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                const Icon(Icons.school_outlined, size: 48, color: Colors.white30),
+                                const SizedBox(height: 12),
+                                const Text('No tienes aulas asignadas',
+                                    style: TextStyle(color: Colors.white54)),
+                                const SizedBox(height: 16),
+                                NeonButton(
+                                  text: 'Crear Aula',
+                                  onPressed: () => context.push(AppRoutes.teacherCreateClassroom),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: classrooms
+                            .map((c) => _ClassroomTile(
+                                classroom: c,
+                                onTap: () => context.push(AppRoutes.teacherManageClassroom.replaceAll(':id', c.id.toString()))))
+                            .toList(),
+>>>>>>> origin/main
                       );
                     },
                     childCount: classrooms.length,
@@ -646,6 +797,7 @@ class _QuickActionCard extends StatelessWidget {
   }
 }
 
+<<<<<<< HEAD
 class _ClassroomCard extends StatelessWidget {
   const _ClassroomCard({
     required this.name,
@@ -656,6 +808,11 @@ class _ClassroomCard extends StatelessWidget {
   final String name;
   final int students;
   final String courseTitle;
+=======
+class _ClassroomTile extends StatelessWidget {
+  const _ClassroomTile({required this.classroom, required this.onTap});
+  final ClassroomModel classroom;
+>>>>>>> origin/main
   final VoidCallback onTap;
 
   @override
@@ -684,6 +841,7 @@ class _ClassroomCard extends StatelessWidget {
                 color: AppColors.secondary.withOpacity(0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
+<<<<<<< HEAD
               child: const Icon(Icons.class_rounded,
                   color: AppColors.secondary, size: 24),
             ),
@@ -702,6 +860,20 @@ class _ClassroomCard extends StatelessWidget {
                       style: const TextStyle(
                           color: AppColors.textSecondary, fontSize: 13)),
                 ],
+=======
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(classroom.name,
+                        style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 4),
+                    Text('${classroom.studentsCount} estudiantes',
+                        style: const TextStyle(color: Colors.white54, fontSize: 13)),
+                  ],
+                ),
+>>>>>>> origin/main
               ),
             ),
             Column(

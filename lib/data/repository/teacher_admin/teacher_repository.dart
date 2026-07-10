@@ -32,7 +32,7 @@ class TeacherRepository {
     return const {};
   }
 
-  Future<Classroom> createClassroom({
+  Future<ClassroomModel> createClassroom({
     required String name,
     required String description,
     required int courseId,
@@ -47,7 +47,7 @@ class TeacherRepository {
           'is_active': true,
         },
       );
-      return Classroom.fromJson(response.data!);
+      return ClassroomModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiException(
           e.message ?? 'Error al crear aula', e.response?.statusCode, e);
@@ -121,11 +121,11 @@ class TeacherRepository {
   }
 
   /// Obtiene todas las aulas del profesor
-  Future<List<Classroom>> fetchAllClassrooms() async {
+  Future<List<ClassroomModel>> fetchAllClassrooms() async {
     try {
       final response = await _dio.get<dynamic>('classrooms/');
       return _listFrom(response.data)
-          .map((json) => Classroom.fromJson(json as Map<String, dynamic>))
+          .map((json) => ClassroomModel.fromJson(json as Map<String, dynamic>))
           .toList();
     } on DioException catch (e) {
       throw ApiException(
@@ -289,12 +289,12 @@ class TeacherRepository {
       try {
         final classroomsRes = await _dio.get<dynamic>('classrooms/');
         final classrooms = _listFrom(classroomsRes.data)
-            .map((i) => Classroom.fromJson(i))
+            .map((i) => ClassroomModel.fromJson(i))
             .toList();
         return TeacherStats(
           totalAulas: classrooms.length,
           totalAlumnos:
-              classrooms.fold(0, (sum, item) => sum + item.totalStudents),
+              classrooms.fold(0, (sum, item) => sum + item.studentsCount),
         );
       } catch (_) {
         throw ApiException('Error al cargar estadísticas del profesor',

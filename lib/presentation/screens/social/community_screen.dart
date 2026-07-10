@@ -3,26 +3,34 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 class CommunityScreen extends ConsumerWidget {
   const CommunityScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final forumAsync = ref.watch(forumThreadsProvider);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Foro de la Comunidad'),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: Text('Foro',
+            style: AppTextStyles.titleLarge
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: () => ref.invalidate(forumThreadsProvider),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton.extended(
+        backgroundColor: AppColors.primary,
+        elevation: 3,
         onPressed: () async {
           final created = await showDialog<bool>(
             context: context,
@@ -32,25 +40,31 @@ class CommunityScreen extends ConsumerWidget {
             ref.invalidate(forumThreadsProvider);
           }
         },
-        icon: const Icon(Icons.add),
-        label: const Text('Nuevo Tema'),
+        icon: const Icon(Icons.add_rounded, color: Colors.white),
+        label: Text('Nuevo Tema',
+            style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
       ),
       body: forumAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
+        loading: () =>
+            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
           child: Padding(
             padding: const EdgeInsets.all(24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.wifi_off, size: 48,
-                    color: theme.colorScheme.error),
+                const Icon(Icons.wifi_off_rounded,
+                    size: 48, color: AppColors.error),
                 const SizedBox(height: 12),
                 Text('Error al cargar el foro',
-                    style: theme.textTheme.titleMedium),
+                    style: AppTextStyles.titleMedium),
                 const SizedBox(height: 16),
                 FilledButton(
                   onPressed: () => ref.invalidate(forumThreadsProvider),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                  ),
                   child: const Text('Reintentar'),
                 ),
               ],
@@ -63,17 +77,24 @@ class CommunityScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.forum_outlined,
-                      size: 64,
-                      color: theme.colorScheme.primary
-                          .withValues(alpha: 0.4)),
-                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(28),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: AppColors.primary.withValues(alpha: 0.08),
+                    ),
+                    child: Icon(Icons.forum_outlined,
+                        size: 56,
+                        color: AppColors.primary.withValues(alpha: 0.4)),
+                  ),
+                  const SizedBox(height: 16),
                   Text('No hay temas aún',
-                      style: theme.textTheme.titleMedium),
+                      style: AppTextStyles.titleMedium
+                          .copyWith(color: AppColors.textPrimary)),
                   const SizedBox(height: 4),
                   Text('¡Crea el primer tema!',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
+                      style: AppTextStyles.bodyMedium
+                          .copyWith(color: AppColors.textSecondary)),
                 ],
               ),
             );
@@ -98,65 +119,71 @@ class _ForumThreadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
+    return Container(
       margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: thread.isPinned ? AppColors.secondary : AppColors.divider,
+        ),
+      ),
       child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
         leading: CircleAvatar(
+          radius: 22,
           backgroundColor: thread.isPinned
-              ? Colors.amber.shade100
-              : theme.colorScheme.primaryContainer,
+              ? AppColors.secondary.withValues(alpha: 0.15)
+              : AppColors.primary.withValues(alpha: 0.1),
           child: Icon(
-            thread.isPinned ? Icons.push_pin : Icons.forum_outlined,
+            thread.isPinned ? Icons.push_pin_rounded : Icons.forum_outlined,
             size: 20,
-            color: thread.isPinned
-                ? Colors.amber.shade800
-                : theme.colorScheme.onPrimaryContainer,
+            color: thread.isPinned ? AppColors.secondary : AppColors.primary,
           ),
         ),
         title: Text(
           thread.title,
-          style: theme.textTheme.titleSmall
-              ?.copyWith(fontWeight: FontWeight.w600),
+          style: AppTextStyles.labelLarge.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
         ),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
           child: Row(
             children: [
               Text(thread.authorName,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(fontWeight: FontWeight.w500)),
-              const Text(' · ',
-                  style: TextStyle(color: Colors.grey)),
-              Text(thread.language,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: theme.colorScheme.primary)),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(fontWeight: FontWeight.w500)),
+              Text(' · ',
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.textHint)),
+              Text(thread.language.toUpperCase(),
+                  style: AppTextStyles.bodySmall
+                      .copyWith(color: AppColors.primary)),
               const Spacer(),
-              Icon(Icons.chat_bubble_outline,
-                  size: 14,
-                  color: theme.colorScheme.onSurfaceVariant),
+              Icon(Icons.chat_bubble_outline_rounded,
+                  size: 14, color: AppColors.textSecondary),
               const SizedBox(width: 4),
-              Text('${thread.replies}',
-                  style: theme.textTheme.bodySmall),
+              Text('${thread.replies}', style: AppTextStyles.bodySmall),
             ],
           ),
         ),
         trailing: thread.isPinned
             ? Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: Colors.amber.shade100,
+                  color: AppColors.secondary.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('Fijado',
-                    style: theme.textTheme.labelSmall
-                        ?.copyWith(color: Colors.amber.shade800)),
+                    style: AppTextStyles.labelSmall
+                        .copyWith(color: AppColors.secondary)),
               )
             : null,
-        onTap: () {
-          // TODO: Navigate to thread detail
-        },
+        onTap: () {},
       ),
     );
   }
@@ -188,25 +215,65 @@ class _ForumCreateDialogState extends State<ForumCreateDialog> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Nuevo tema'),
+      backgroundColor: AppColors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text('Nuevo tema',
+          style: AppTextStyles.titleLarge.copyWith(
+            color: AppColors.textPrimary,
+            fontWeight: FontWeight.w700,
+          )),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             TextField(
               controller: titleController,
-              decoration: const InputDecoration(
+              style: AppTextStyles.bodyMedium,
+              decoration: InputDecoration(
                 labelText: 'Título',
+                labelStyle: AppTextStyles.inputLabel,
                 hintText: '¿De qué quieres hablar?',
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
+                ),
               ),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: bodyController,
               maxLines: 4,
-              decoration: const InputDecoration(
+              style: AppTextStyles.bodyMedium,
+              decoration: InputDecoration(
                 labelText: 'Descripción',
+                labelStyle: AppTextStyles.inputLabel,
                 hintText: 'Escribe más detalles...',
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
+                ),
               ),
             ),
             const SizedBox(height: 12),
@@ -214,16 +281,32 @@ class _ForumCreateDialogState extends State<ForumCreateDialog> {
               value: _languages.contains(languageController.text)
                   ? languageController.text
                   : 'en',
-              decoration: const InputDecoration(labelText: 'Idioma'),
+              style: AppTextStyles.bodyMedium,
+              decoration: InputDecoration(
+                labelText: 'Idioma',
+                labelStyle: AppTextStyles.inputLabel,
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide: const BorderSide(color: AppColors.divider),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                  borderSide:
+                      const BorderSide(color: AppColors.primary, width: 2),
+                ),
+              ),
               items: _languages
                   .map((l) => DropdownMenuItem(
-                      value: l,
-                      child: Text(l.toUpperCase())))
+                      value: l, child: Text(l.toUpperCase())))
                   .toList(),
               onChanged: (v) {
-                if (v != null) {
-                  languageController.text = v;
-                }
+                if (v != null) languageController.text = v;
               },
             ),
           ],
@@ -232,7 +315,9 @@ class _ForumCreateDialogState extends State<ForumCreateDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancelar'),
+          child: Text('Cancelar',
+              style: AppTextStyles.labelLarge
+                  .copyWith(color: AppColors.textSecondary)),
         ),
         FilledButton(
           onPressed: loading
@@ -250,16 +335,24 @@ class _ForumCreateDialogState extends State<ForumCreateDialog> {
                   } catch (e) {
                     if (!context.mounted) return;
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error: $e')),
+                      SnackBar(
+                        content: Text('Error al crear tema'),
+                        backgroundColor: AppColors.error,
+                      ),
                     );
                     setState(() => loading = false);
                   }
                 },
+          style: FilledButton.styleFrom(
+            backgroundColor: AppColors.primary,
+            foregroundColor: Colors.white,
+          ),
           child: loading
               ? const SizedBox(
                   width: 18,
                   height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
+                  child: CircularProgressIndicator(
+                      strokeWidth: 2, color: Colors.white),
                 )
               : const Text('Publicar'),
         ),

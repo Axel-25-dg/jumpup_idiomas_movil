@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 
-/// Pantalla principal que muestra la lista de cursos disponibles.
-/// Permite filtrar por idioma, nivel de dificultad y buscar por texto.
 class CourseListScreen extends ConsumerStatefulWidget {
   const CourseListScreen({super.key});
 
@@ -38,134 +40,51 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text(
-          'Cursos',
-          style: TextStyle(
-            color: AppColors.textPrimary,
-            fontWeight: FontWeight.bold,
-            fontSize: 22,
+      body: CustomScrollView(
+        physics: const BouncingScrollPhysics(),
+        slivers: [
+          _SliverAppBar(
+            searchController: _searchController,
+            onSearchChanged: (_) => _applyFilters(),
+            onFilterTap: _showFilterBottomSheet,
           ),
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.filter_list, color: AppColors.textPrimary),
-            onPressed: _showFilterBottomSheet,
-          ),
-        ],
-      ),
-      body: Column(
-        children: [
-          // ── Barra de búsqueda ──────────────────────────────────────────
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: TextField(
-              controller: _searchController,
-              style: const TextStyle(color: AppColors.textPrimary),
-              decoration: InputDecoration(
-                hintText: 'Buscar cursos...',
-                hintStyle: const TextStyle(color: AppColors.textSecondary),
-                prefixIcon: const Icon(Icons.search, color: AppColors.textSecondary),
-                filled: true,
-                fillColor: AppColors.surface,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
-                ),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear, color: AppColors.textSecondary),
-                        onPressed: () {
-                          _searchController.clear();
-                          _applyFilters();
-                        },
-                      )
-                    : null,
-              ),
-              onChanged: (_) => _applyFilters(),
-            ),
-          ),
-
-          // ── Chips de dificultad ────────────────────────────────────────
-          SizedBox(
-            height: 40,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              itemCount: _difficulties.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return _DifficultyChip(
-                    label: 'Todos',
-                    isSelected: _selectedDifficulty == null,
-                    color: Colors.purple,
-                    onTap: () {
-                      setState(() => _selectedDifficulty = null);
-                      _applyFilters();
-                    },
-                  );
-                }
-                final level = _difficulties[index - 1];
-                return _DifficultyChip(
-                  label: level,
-                  isSelected: _selectedDifficulty == level,
-                  color: _levelColor(level),
-                  onTap: () {
-                    setState(() => _selectedDifficulty = level);
-                    _applyFilters();
-                  },
-                );
+          SliverToBoxAdapter(
+            child: _DifficultySelector(
+              selectedDifficulty: _selectedDifficulty,
+              difficulties: _difficulties,
+              onSelect: (level) {
+                setState(() => _selectedDifficulty = level);
+                _applyFilters();
               },
             ),
           ),
-
-          const SizedBox(height: 12),
-
-          // ── Lista de cursos ────────────────────────────────────────────
-          Expanded(
-            child: coursesAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-              error: (err, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.redAccent, size: 48),
-                    const SizedBox(height: 12),
-                    Text(
-                      'Error al cargar cursos',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(coursesProvider),
-                      child: const Text('Reintentar'),
-                    ),
-                  ],
-                ),
-              ),
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            sliver: coursesAsync.when(
               data: (courses) {
                 if (courses.isEmpty) {
-                  return const Center(
-                    child: Text(
-                      'No se encontraron cursos',
-                      style: TextStyle(color: AppColors.textSecondary),
-                    ),
+                  return const SliverFillRemaining(
+                    hasScrollBody: false,
+                    child: _EmptyCoursesState(),
                   );
                 }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: courses.length,
-                  itemBuilder: (context, index) {
-                    return _CourseCard(course: courses[index]);
-                  },
+                return SliverList(
+                  delegate: SliverChildBuilderDelegate(
+                    (context, index) => _CourseListItem(course: courses[index]),
+                    childCount: courses.length,
+                  ),
                 );
               },
+              loading: () => const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              ),
+              error: (err, _) => SliverFillRemaining(
+                hasScrollBody: false,
+                child: _ErrorState(onRetry: () => ref.invalidate(coursesProvider)),
+              ),
             ),
           ),
+          const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
     );
@@ -174,264 +93,369 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
   void _showFilterBottomSheet() {
     showModalBottomSheet(
       context: context,
-      backgroundColor: AppColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => _FilterBottomSheet(
+        onClear: () {
+          ref.read(courseFiltersProvider.notifier).state = const CourseFilters();
+          setState(() => _selectedDifficulty = null);
+          _searchController.clear();
+          Navigator.pop(context);
+        },
       ),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
+    );
+  }
+}
+
+class _SliverAppBar extends StatelessWidget {
+  final TextEditingController searchController;
+  final ValueChanged<String> onSearchChanged;
+  final VoidCallback onFilterTap;
+
+  const _SliverAppBar({
+    required this.searchController,
+    required this.onSearchChanged,
+    required this.onFilterTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 140,
+      floating: true,
+      pinned: true,
+      elevation: 0,
+      backgroundColor: AppColors.primary,
+      flexibleSpace: FlexibleSpaceBar(
+        background: Container(decoration: const BoxDecoration(gradient: AppColors.primaryGradient)),
+      ),
+      title: Text('Explorar Cursos', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+      bottom: PreferredSize(
+        preferredSize: const Size.fromHeight(70),
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+          child: Row(
             children: [
-              const Text(
-                'Filtrar por idioma',
-                style: TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Consumer(
-                builder: (context, ref, _) {
-                  final languagesAsync = ref.watch(languagesProvider);
-                  return languagesAsync.when(
-                    loading: () => const CircularProgressIndicator(),
-                    error: (_, __) => const Text('Error al cargar idiomas',
-                        style: TextStyle(color: Colors.redAccent)),
-                    data: (languages) => Wrap(
-                      spacing: 8,
-                      children: languages.map((lang) {
-                        return ActionChip(
-                          label: Text(lang.name),
-                          backgroundColor: AppColors.primary,
-                          labelStyle: const TextStyle(color: AppColors.textPrimary),
-                          onPressed: () {
-                            ref.read(courseFiltersProvider.notifier).state =
-                                CourseFilters(languageId: lang.id);
-                            Navigator.pop(context);
-                          },
-                        );
-                      }).toList(),
+              Expanded(
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: searchController,
+                    onChanged: onSearchChanged,
+                    decoration: InputDecoration(
+                      hintText: '¿Qué quieres aprender?',
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
+                      prefixIcon: const Icon(Icons.search, color: AppColors.primary),
+                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 15),
                     ),
-                  );
-                },
+                  ),
+                ),
               ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: TextButton(
-                  onPressed: () {
-                    ref.read(courseFiltersProvider.notifier).state =
-                        const CourseFilters();
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Limpiar filtros',
-                      style: TextStyle(color: AppColors.textSecondary)),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: onFilterTap,
+                child: Container(
+                  height: 50,
+                  width: 50,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.tune_rounded, color: AppColors.primary),
                 ),
               ),
             ],
           ),
-        );
-      },
-    );
-  }
-
-  Color _levelColor(String level) {
-    const colors = {
-      'A1': Color(0xFF4CAF50),
-      'A2': Color(0xFF8BC34A),
-      'B1': Color(0xFF03A9F4),
-      'B2': Color(0xFF2196F3),
-      'C1': Color(0xFFFF9800),
-      'C2': Color(0xFFF44336),
-    };
-    return colors[level] ?? Colors.purple;
-  }
-}
-
-// ─── Widgets auxiliares ───────────────────────────────────────────────────────
-
-class _DifficultyChip extends StatelessWidget {
-  const _DifficultyChip({
-    required this.label,
-    required this.isSelected,
-    required this.color,
-    required this.onTap,
-  });
-
-  final String label;
-  final bool isSelected;
-  final Color color;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        margin: const EdgeInsets.only(right: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        decoration: BoxDecoration(
-          color: isSelected ? color : Colors.transparent,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: isSelected ? color : Colors.white24),
-        ),
-        child: Text(
-          label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : AppColors.textSecondary,
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-            fontSize: 13,
-          ),
         ),
       ),
     );
   }
 }
 
-class _CourseCard extends StatelessWidget {
-  const _CourseCard({required this.course});
+class _DifficultySelector extends StatelessWidget {
+  final String? selectedDifficulty;
+  final List<String> difficulties;
+  final Function(String?) onSelect;
 
-  final CourseModel course;
+  const _DifficultySelector({
+    required this.selectedDifficulty,
+    required this.difficulties,
+    required this.onSelect,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            AppColors.surface,
-            AppColors.surface.withValues(alpha: 0.8),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+      height: 60,
+      padding: const EdgeInsets.symmetric(vertical: 12),
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        itemCount: difficulties.length + 1,
+        itemBuilder: (context, index) {
+          final isAll = index == 0;
+          final level = isAll ? null : difficulties[index - 1];
+          final isSelected = selectedDifficulty == level;
+
+          return Padding(
+            padding: const EdgeInsets.only(right: 8),
+            child: ChoiceChip(
+              label: Text(isAll ? 'Todos' : level!),
+              selected: isSelected,
+              onSelected: (selected) => onSelect(selected ? level : null),
+              selectedColor: AppColors.primary,
+              backgroundColor: Colors.white,
+              labelStyle: TextStyle(
+                color: isSelected ? Colors.white : AppColors.textSecondary,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+                side: BorderSide(color: isSelected ? AppColors.primary : AppColors.divider),
+              ),
+              showCheckmark: false,
+            ),
+          );
+        },
       ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: () {
-            // TODO: Navegar al detalle del curso con GoRouter
-            // context.push('/courses/${course.id}');
-          },
-          child: Padding(
+    );
+  }
+}
+
+class _CourseListItem extends StatelessWidget {
+  final CourseModel course;
+  const _CourseListItem({required this.course});
+
+  @override
+  Widget build(BuildContext context) {
+    return StudentCard(
+      onTap: () => context.push(AppRoutes.studentCourseDetail.replaceAll(':id', course.id.toString())),
+      padding: EdgeInsets.zero,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            height: 120,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [AppColors.primary, AppColors.primary.withValues(alpha: 0.7)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: -20,
+                  bottom: -20,
+                  child: Icon(Icons.language_rounded, size: 140, color: Colors.white.withValues(alpha: 0.1)),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      DifficultyBadge(level: course.difficultyLevel),
+                      const SizedBox(height: 8),
+                      Text(
+                        course.title,
+                        style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Padding(
             padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // ── Header ──────────────────────────────────────────────
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: _levelColor(course.difficultyLevel),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        course.difficultyLevel,
-                        style: const TextStyle(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(
-                      course.languageName,
-                      style:
-                          const TextStyle(color: AppColors.textSecondary, fontSize: 13),
-                    ),
-                    const Spacer(),
-                    Text(
-                      '⚡ ${course.totalXpReward} XP',
-                      style: const TextStyle(
-                        color: Color(0xFFFFD700),
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // ── Título ───────────────────────────────────────────────
-                Text(
-                  course.title,
-                  style: const TextStyle(
-                    color: AppColors.textPrimary,
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 6),
                 Text(
                   course.description,
-                  style: const TextStyle(color: Colors.white60, fontSize: 13),
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 12),
-
-                // ── Stats ────────────────────────────────────────────────
+                const SizedBox(height: 16),
                 Row(
                   children: [
-                    _StatChip(
-                        icon: Icons.layers_outlined,
-                        label: '${course.modulesCount} módulos'),
-                    const SizedBox(width: 12),
-                    _StatChip(
-                        icon: Icons.menu_book_outlined,
-                        label: '${course.lessonsCount} lecciones'),
+                    _InfoItem(icon: Icons.layers_outlined, label: '${course.modulesCount} Módulos'),
+                    const SizedBox(width: 16),
+                    _InfoItem(icon: Icons.menu_book_outlined, label: '${course.lessonsCount} Lecciones'),
                     const Spacer(),
-                    const Icon(Icons.arrow_forward_ios,
-                        color: Colors.white24, size: 14),
+                    Text(
+                      '${course.totalXpReward} XP',
+                      style: AppTextStyles.labelLarge.copyWith(color: AppColors.primary, fontWeight: FontWeight.w800),
+                    ),
                   ],
                 ),
               ],
             ),
           ),
-        ),
+        ],
       ),
     );
   }
-
-  Color _levelColor(String level) {
-    const colors = {
-      'A1': Color(0xFF4CAF50),
-      'A2': Color(0xFF8BC34A),
-      'B1': Color(0xFF03A9F4),
-      'B2': Color(0xFF2196F3),
-      'C1': Color(0xFFFF9800),
-      'C2': Color(0xFFF44336),
-    };
-    return colors[level] ?? Colors.purple;
-  }
 }
 
-class _StatChip extends StatelessWidget {
-  const _StatChip({required this.icon, required this.label});
+class _InfoItem extends StatelessWidget {
   final IconData icon;
   final String label;
+  const _InfoItem({required this.icon, required this.label});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Icon(icon, color: AppColors.primary, size: 16),
+        Icon(icon, size: 16, color: AppColors.textSecondary),
         const SizedBox(width: 4),
-        Text(label,
-            style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
+        Text(label, style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary)),
       ],
+    );
+  }
+}
+
+class _FilterBottomSheet extends ConsumerWidget {
+  final VoidCallback onClear;
+  const _FilterBottomSheet({required this.onClear});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final languagesAsync = ref.watch(languagesProvider);
+
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Filtros Avanzados', style: AppTextStyles.headlineSmall),
+              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close)),
+            ],
+          ),
+          const SizedBox(height: 24),
+          Text('Idioma', style: AppTextStyles.titleMedium.copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
+          languagesAsync.when(
+            data: (langs) => Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: langs.map((lang) => ChoiceChip(
+                label: Text(lang.name),
+                selected: ref.watch(courseFiltersProvider).languageId == lang.id,
+                onSelected: (selected) {
+                  ref.read(courseFiltersProvider.notifier).state = ref.read(courseFiltersProvider).copyWith(languageId: selected ? lang.id : null);
+                },
+              )).toList(),
+            ),
+            loading: () => const Center(child: CircularProgressIndicator()),
+            error: (_, __) => const Text('Error al cargar idiomas'),
+          ),
+          const SizedBox(height: 32),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: onClear,
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('Limpiar Todo'),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: FilledButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('Aplicar'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+        ],
+      ),
+    );
+  }
+}
+
+class _EmptyCoursesState extends StatelessWidget {
+  const _EmptyCoursesState();
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.search_off_rounded, size: 80, color: AppColors.textHint),
+          const SizedBox(height: 16),
+          Text('No encontramos cursos', style: AppTextStyles.titleLarge),
+          const SizedBox(height: 8),
+          Text('Intenta con otros filtros o términos de búsqueda', style: AppTextStyles.bodyMedium, textAlign: TextAlign.center),
+        ],
+      ),
+    );
+  }
+}
+
+class _ErrorState extends StatelessWidget {
+  final VoidCallback onRetry;
+  const _ErrorState({required this.onRetry});
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.error_outline_rounded, size: 80, color: AppColors.error),
+          const SizedBox(height: 16),
+          Text('Algo salió mal', style: AppTextStyles.titleLarge),
+          const SizedBox(height: 24),
+          FilledButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh_rounded),
+            label: const Text('Reintentar'),
+          ),
+        ],
+      ),
     );
   }
 }

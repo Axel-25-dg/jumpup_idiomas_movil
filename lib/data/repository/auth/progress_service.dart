@@ -51,10 +51,65 @@ class ProgressService extends BaseRepository {
 
   Future<List<Map<String, dynamic>>> getDailyChallenges() async {
     return handleRequest<List<Map<String, dynamic>>>(() async {
-      final response = await dio.get<dynamic>('daily-challenges/');
-      final data = response.data;
-      if (data is List) return data.cast<Map<String, dynamic>>();
-      return [];
+      // El backend no tiene endpoint daily-challenges/.
+      // Los construimos en base a stats y logros del usuario.
+      final statsResp = await dio.get<dynamic>('stats/');
+      final statsData = statsResp.data is Map<String, dynamic>
+          ? statsResp.data as Map<String, dynamic>
+          : <String, dynamic>{};
+
+      final currentXp = (statsData['total_xp'] ?? statsData['xp'] ?? 0) as int;
+      final streak = (statsData['current_streak'] ?? statsData['streak'] ?? 0) as int;
+
+      // Reto 1: completar una lección hoy
+      final progressResp = await dio.get<dynamic>(
+        'progress/',
+        queryParameters: {'page_size': 5},
+      );
+      final progressList = progressResp.data is List
+          ? progressResp.data as List
+          : (progressResp.data is Map && progressResp.data['results'] is List
+              ? progressResp.data['results'] as List
+              : []);
+      final completedToday = progressList.where((p) {
+        if (p is! Map) return false;
+        final updated = p['updated_at']?.toString() ?? p['completed_at']?.toString() ?? '';
+        if (updated.isEmpty) return false;
+        final date = DateTime.tryParse(updated);
+        if (date == null) return false;
+        final now = DateTime.now();
+        return date.year == now.year && date.month == now.month && date.day == now.day;
+      }).length;
+
+      return [
+        {
+          'title': 'Completa una lección hoy',
+          'xpReward': 50,
+          'progress': (completedToday >= 1 ? 1.0 : completedToday.toDouble()),
+          'current': completedToday.clamp(0, 1),
+          'target': 1,
+          'icon': 'menu_book',
+          'isCompleted': completedToday >= 1,
+        },
+        {
+          'title': 'Mantén tu racha diaria',
+          'xpReward': 30,
+          'progress': streak > 0 ? 1.0 : 0.0,
+          'current': streak > 0 ? 1 : 0,
+          'target': 1,
+          'icon': 'quiz',
+          'isCompleted': streak > 0,
+        },
+        {
+          'title': 'Gana 20 XP hoy',
+          'xpReward': 20,
+          'progress': (currentXp % 100).clamp(0, 20) / 20.0,
+          'current': (currentXp % 100).clamp(0, 20),
+          'target': 20,
+          'icon': 'smart_toy',
+          'isCompleted': (currentXp % 100) >= 20,
+        },
+      ];
     }, message: 'No se pudieron obtener los retos diarios');
   }
 

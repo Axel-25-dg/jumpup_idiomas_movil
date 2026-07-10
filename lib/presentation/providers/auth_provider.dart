@@ -50,6 +50,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     }
     state = const AuthState(status: AuthStatus.loading);
     try {
+      // Carga el perfil solo si ya hay token guardado (inicio en frío)
       final user = await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (_) {
@@ -63,10 +64,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      await _authService.login(
+      final result = await _authService.login(
         LoginRequest(email: email, password: password),
       );
-      final user = await _authService.getProfile();
+
+      // Si el login ya trajo el perfil del usuario, lo usamos directamente
+      // sin hacer una segunda llamada a /auth/me/
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -91,8 +95,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
-      await _authService.loginWithGoogle(idToken);
-      final user = await _authService.getProfile();
+      final result = await _authService.loginWithGoogle(idToken);
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -109,15 +113,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
-  /// Autentica al usuario con huella dactilar.
-  /// Requiere que el dispositivo haya sido registrado previamente.
   Future<void> loginWithBiometric({
     required String deviceId,
     required String biometricToken,
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      // 1. Solicita verificación biométrica al sistema operativo
       final authenticated = await BiometricService.instance.authenticate();
       if (!authenticated) {
         state = const AuthState(
@@ -126,12 +127,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         return;
       }
-      // 2. Envía el token al backend para obtener JWT
-      await _authService.biometricLogin(
+      final result = await _authService.biometricLogin(
         deviceId: deviceId,
         biometricToken: biometricToken,
       );
-      final user = await _authService.getProfile();
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -157,7 +157,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      await _authService.register(
+      final result = await _authService.register(
         RegisterRequest(
           email: email,
           password: password,
@@ -167,7 +167,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           confirmPassword: password,
         ),
       );
-      final user = await _authService.getProfile();
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -195,7 +195,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(
-          errorMessage: null, status: AuthStatus.unauthenticated);
+        errorMessage: null,
+        status: AuthStatus.unauthenticated,
+      );
     }
   }
 }
