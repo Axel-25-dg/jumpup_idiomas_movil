@@ -1,10 +1,8 @@
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class RankingScreen extends ConsumerWidget {
   const RankingScreen({super.key});
@@ -14,28 +12,22 @@ class RankingScreen extends ConsumerWidget {
     final rankingAsync = ref.watch(rankingProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F111A),
       body: rankingAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
+        loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
         error: (err, _) => Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline,
-                  color: AppColors.error, size: 48),
-              const SizedBox(height: 12),
-              Text('No se pudo cargar el ranking',
-                  style: AppTextStyles.bodyLarge),
+              const Icon(Icons.wifi_off_rounded, color: Colors.white54, size: 60),
               const SizedBox(height: 16),
-              FilledButton.icon(
+              const Text('No se pudo cargar el ranking', style: TextStyle(color: Colors.white, fontSize: 18)),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
                 onPressed: () => ref.invalidate(rankingProvider),
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                ),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: const Text('Reintentar', style: TextStyle(color: Colors.white)),
               ),
             ],
           ),
@@ -43,64 +35,49 @@ class RankingScreen extends ConsumerWidget {
         data: (ranking) => CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            SliverAppBar(
-              expandedHeight: 340,
-              pinned: true,
-              stretch: true,
-              backgroundColor: AppColors.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+            // Header with Podium
+            SliverToBoxAdapter(
+              child: Stack(
+                children: [
+                  // Gradient background
+                  Container(
+                    height: 380,
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1A0533), Color(0xFF0F111A)],
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                      ),
+                    ),
                   ),
-                  child: SafeArea(
-                    child: ranking.length >= 3
-                        ? Padding(
-                            padding: const EdgeInsets.only(top: 40),
-                            child: _PodiumWidget(
-                              first: ranking[0],
-                              second: ranking[1],
-                              third: ranking[2],
-                            ),
-                          )
-                        : const Center(
-                            child: Icon(Icons.emoji_events_rounded,
-                                size: 80, color: Colors.white24),
-                          ),
+                  SafeArea(
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 12),
+                        const Text('🏆 Ranking Global', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+                        const SizedBox(height: 4),
+                        Text('Los estudiantes más dedicados', style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13)),
+                        const SizedBox(height: 32),
+                        if (ranking.length >= 3) _PodiumWidget(ranking: ranking) else const SizedBox(height: 40),
+                      ],
+                    ),
                   ),
-                ),
-                title: Text(
-                  'Ranking Global',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-                centerTitle: true,
+                ],
               ),
             ),
-            if (ranking.length > 3)
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final entry = ranking[index + 3];
-                      return FadeInUp(
-                        delay: Duration(milliseconds: index * 50),
-                        child: _RankingTile(entry: entry),
-                      );
-                    },
-                    childCount: ranking.length - 3,
-                  ),
-                ),
-              )
-            else
-              const SliverFillRemaining(
-                child: Center(
-                  child: Text('Explora y gana XP para aparecer aquí'),
+            // Ranking list
+            SliverPadding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, i) {
+                    final entry = ranking[i + 3 < ranking.length ? i + 3 : i];
+                    return _RankingRow(entry: entry, position: i + 4);
+                  },
+                  childCount: ranking.length > 3 ? ranking.length - 3 : 0,
                 ),
               ),
+            ),
           ],
         ),
       ),
@@ -109,48 +86,25 @@ class RankingScreen extends ConsumerWidget {
 }
 
 class _PodiumWidget extends StatelessWidget {
-  const _PodiumWidget({
-    required this.first,
-    required this.second,
-    required this.third,
-  });
-
-  final dynamic first;
-  final dynamic second;
-  final dynamic third;
+  final List<dynamic> ranking;
+  const _PodiumWidget({required this.ranking});
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
+    return SizedBox(
+      height: 220,
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          _PodiumItem(
-            entry: second,
-            rank: 2,
-            height: 100,
-            color: const Color(0xFFC0C0C0), // Silver
-            animationDelay: 400,
-          ),
+          // 2nd place
+          _PodiumItem(entry: ranking[1], position: 2, height: 140, color: Colors.grey.shade400),
           const SizedBox(width: 8),
-          _PodiumItem(
-            entry: first,
-            rank: 1,
-            height: 140,
-            color: const Color(0xFFFFD700), // Gold
-            isFirst: true,
-            animationDelay: 200,
-          ),
+          // 1st place
+          _PodiumItem(entry: ranking[0], position: 1, height: 190, color: Colors.amberAccent),
           const SizedBox(width: 8),
-          _PodiumItem(
-            entry: third,
-            rank: 3,
-            height: 80,
-            color: const Color(0xFFCD7F32), // Bronze
-            animationDelay: 600,
-          ),
+          // 3rd place
+          _PodiumItem(entry: ranking[2], position: 3, height: 110, color: Colors.brown.shade400),
         ],
       ),
     );
@@ -158,163 +112,96 @@ class _PodiumWidget extends StatelessWidget {
 }
 
 class _PodiumItem extends StatelessWidget {
-  const _PodiumItem({
-    required this.entry,
-    required this.rank,
-    required this.height,
-    required this.color,
-    this.isFirst = false,
-    required this.animationDelay,
-  });
-
   final dynamic entry;
-  final int rank;
+  final int position;
   final double height;
   final Color color;
-  final bool isFirst;
-  final int animationDelay;
+
+  const _PodiumItem({required this.entry, required this.position, required this.height, required this.color});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: FadeInUp(
-        delay: Duration(milliseconds: animationDelay),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: color, width: 3),
-                    boxShadow: [
-                      BoxShadow(
-                        color: color.withValues(alpha: 0.3),
-                        blurRadius: 15,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                  child: CircleAvatar(
-                    radius: isFirst ? 36 : 28,
-                    backgroundColor: Colors.white24,
-                    child: Text(
-                      entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
-                      style: AppTextStyles.headlineSmall.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  bottom: 0,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: color,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '#$rank',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(
-              entry.username,
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: isFirst ? 14 : 12,
-                fontWeight: FontWeight.w700,
-              ),
-              textAlign: TextAlign.center,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-            Text(
-              '${entry.totalXp} XP',
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.9),
-                fontSize: isFirst ? 12 : 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Container(
-              height: height,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                  colors: [
-                    color.withValues(alpha: 0.8),
-                    color.withValues(alpha: 0.2),
-                  ],
-                ),
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: isFirst
-                  ? const Icon(Icons.emoji_events_rounded, color: Colors.white54, size: 40)
-                  : null,
-            ),
-          ],
+    final medal = position == 1 ? '👑' : position == 2 ? '🥈' : '🥉';
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Text(medal, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        CircleAvatar(
+          radius: 22,
+          backgroundColor: color.withOpacity(0.3),
+          child: Text(
+            (entry.username ?? entry.fullName ?? '?')[0].toUpperCase(),
+            style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
+          ),
         ),
-      ),
+        const SizedBox(height: 8),
+        Text(
+          entry.username ?? entry.fullName ?? 'Usuario',
+          style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
+          overflow: TextOverflow.ellipsis,
+        ),
+        Text('${entry.totalXp ?? 0} XP', style: TextStyle(color: color, fontSize: 11)),
+        const SizedBox(height: 8),
+        Container(
+          width: 80,
+          height: height,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [color.withOpacity(0.8), color.withOpacity(0.4)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+          ),
+          child: Center(
+            child: Text('#$position', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+          ),
+        ),
+      ],
     );
   }
 }
 
-class _RankingTile extends StatelessWidget {
-  const _RankingTile({required this.entry});
+class _RankingRow extends StatelessWidget {
   final dynamic entry;
+  final int position;
+
+  const _RankingRow({required this.entry, required this.position});
 
   @override
   Widget build(BuildContext context) {
-    return StudentCard(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+    return GlassContainer(
+      margin: const EdgeInsets.only(bottom: 12),
+      borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Row(
         children: [
-          Container(
-            width: 40,
-            alignment: Alignment.centerLeft,
+          SizedBox(
+            width: 32,
             child: Text(
-              '#${entry.position}',
-              style: AppTextStyles.titleMedium.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w800,
+              '#$position',
+              style: AppTextStyles.labelLarge.copyWith(
+                color: Colors.white24,
+                fontWeight: FontWeight.w900,
               ),
             ),
           ),
+          const SizedBox(width: 12),
           Container(
             padding: const EdgeInsets.all(2),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                width: 2,
+              gradient: LinearGradient(
+                colors: [Colors.blueAccent.withOpacity(0.5), Colors.purpleAccent.withOpacity(0.5)],
               ),
             ),
             child: CircleAvatar(
-              radius: 22,
-              backgroundColor: AppColors.primary.withValues(alpha: 0.05),
+              radius: 20,
+              backgroundColor: const Color(0xFF1A1A2E),
               child: Text(
-                entry.username.isNotEmpty ? entry.username[0].toUpperCase() : '?',
-                style: AppTextStyles.labelLarge.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w800,
-                ),
+                (entry.username ?? 'U')[0].toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),
             ),
           ),
@@ -324,49 +211,46 @@ class _RankingTile extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  entry.username,
-                  style: AppTextStyles.bodyLarge.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
+                  entry.username ?? 'Usuario',
+                  style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
                 ),
-                Row(
-                  children: [
-                    Icon(Icons.bolt_rounded, size: 14, color: AppColors.warning),
-                    const SizedBox(width: 4),
-                    Text(
-                      'Racha de ${entry.currentStreak} días',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'Nivel ${entry.level ?? 1} • ${_getStatus(position)}',
+                  style: AppTextStyles.bodySmall.copyWith(color: Colors.white38),
                 ),
               ],
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '${entry.totalXp}',
-                style: AppTextStyles.titleMedium.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w900,
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.flash_on_rounded, color: Colors.amber, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  '${entry.totalXp ?? 0}',
+                  style: AppTextStyles.labelMedium.copyWith(
+                    color: Colors.blueAccent,
+                    fontWeight: FontWeight.w900,
+                  ),
                 ),
-              ),
-              Text(
-                'XP',
-                style: AppTextStyles.labelSmall.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
     );
   }
-}
 
+  String _getStatus(int pos) {
+    if (pos <= 5) return 'Élite';
+    if (pos <= 10) return 'Avanzado';
+    return 'Promesa';
+  }
+}

@@ -1,13 +1,16 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/data/repository/auth/ai_tutor_service.dart';
+import 'package:jumpup_app/services/ai_chat_service.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
-final aiTutorServiceProvider = Provider<AITutorService>((ref) {
-  return const AITutorService();
-});
+import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
+import 'package:jumpup_app/domain/model/chat_message.dart';
 
 class AITutorScreen extends ConsumerStatefulWidget {
   const AITutorScreen({super.key});
@@ -19,60 +22,13 @@ class AITutorScreen extends ConsumerStatefulWidget {
 class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
-  bool _isTyping = false;
-  bool _isLoadingHistory = true;
-  String? _error;
-
-  final List<_ChatMessage> _messages = [];
-
-  final List<String> _quickReplies = [
-    'Gramática básica',
-    'Conversación',
-    'Escritura',
-    'Comprensión auditiva',
-  ];
 
   @override
   void initState() {
     super.initState();
-    _loadHistory();
-  }
-
-  Future<void> _loadHistory() async {
-    try {
-      final service = ref.read(aiTutorServiceProvider);
-      final history = await service.getChatHistory();
-      if (mounted) {
-        setState(() {
-          _isLoadingHistory = false;
-          for (final msg in history) {
-            _messages.add(_ChatMessage(
-              isBot: msg['role'] == 'assistant' || msg['role'] == 'bot',
-              text: msg['content']?.toString() ?? msg['message']?.toString() ?? '',
-              timestamp: DateTime.tryParse(msg['created_at']?.toString() ?? '') ?? DateTime.now(),
-            ));
-          }
-          if (_messages.isEmpty) {
-            _messages.add(_ChatMessage(
-              isBot: true,
-              text: '¡Hola! Soy Tutor JumpUp AI, tu asistente personal de idiomas.\n\nPuedo ayudarte con gramática, pronunciación, vocabulario y mucho más. ¿Sobre qué quieres practicar hoy?',
-              timestamp: DateTime.now(),
-            ));
-          }
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingHistory = false;
-          _messages.add(_ChatMessage(
-            isBot: true,
-            text: '¡Hola! Soy Tutor JumpUp AI, tu asistente personal de idiomas.\n\nPuedo ayudarte con gramática, pronunciación, vocabulario y mucho más. ¿Sobre qué quieres practicar hoy?',
-            timestamp: DateTime.now(),
-          ));
-        });
-      }
-    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(aiChatProvider.notifier).initChat();
+    });
   }
 
   @override
@@ -82,85 +38,14 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
     super.dispose();
   }
 
-  Future<void> _sendMessage([String? quickText]) async {
+  void _sendMessage([String? quickText]) {
     final text = quickText ?? _messageController.text.trim();
     if (text.isEmpty) return;
 
     HapticFeedback.lightImpact();
+    ref.read(aiChatProvider.notifier).sendMessage(text);
     _messageController.clear();
-
-    setState(() {
-      _messages.add(_ChatMessage(
-        isBot: false,
-        text: text,
-        timestamp: DateTime.now(),
-      ));
-      _isTyping = true;
-      _error = null;
-    });
-
     _scrollToBottom();
-
-    try {
-      final service = ref.read(aiTutorServiceProvider);
-      final response = await service.sendChatMessage(text);
-
-      final reply = response['response']?.toString() 
-          ?? response['message']?.toString() 
-          ?? response['answer']?.toString()
-          ?? 'No pude generar una respuesta. Intenta de nuevo.';
-
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
-          _messages.add(_ChatMessage(
-            isBot: true,
-            text: reply,
-            timestamp: DateTime.now(),
-          ));
-        });
-        _scrollToBottom();
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
-          _error = 'Error de conexión. Intenta de nuevo.';
-          _messages.add(_ChatMessage(
-            isBot: true,
-            text: 'Lo siento, hubo un error de conexión. Por favor, intenta de nuevo.',
-            timestamp: DateTime.now(),
-          ));
-        });
-        _scrollToBottom();
-      }
-    }
-  }
-
-  Future<void> _clearHistory() async {
-    try {
-      final service = ref.read(aiTutorServiceProvider);
-      await service.clearChatHistory();
-      if (mounted) {
-        setState(() {
-          _messages.clear();
-          _messages.add(_ChatMessage(
-            isBot: true,
-            text: 'Historial limpiado. ¿En qué puedo ayudarte?',
-            timestamp: DateTime.now(),
-          ));
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo limpiar el historial'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    }
   }
 
   void _scrollToBottom() {
@@ -177,333 +62,230 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(aiChatProvider);
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0D0D15),
       appBar: _buildAppBar(),
-      body: Column(
+      body: Stack(
         children: [
-          if (_error != null)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              color: AppColors.error.withValues(alpha: 0.1),
-              child: Row(
-                children: [
-                  const Icon(Icons.warning_amber_rounded, color: AppColors.error, size: 16),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _error!,
-                      style: AppTextStyles.labelSmall.copyWith(color: AppColors.error),
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 16),
-                    onPressed: () => setState(() => _error = null),
-                  ),
+          // Background Gradient
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.blueAccent.withOpacity(0.15),
+                boxShadow: [
+                  BoxShadow(color: Colors.blueAccent.withOpacity(0.3), blurRadius: 100),
                 ],
               ),
             ),
-          if (_isLoadingHistory)
-            const Expanded(
-              child: Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-            )
-          else
-            Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-                itemCount: _messages.length + (_isTyping ? 1 : 0),
-                itemBuilder: (context, index) {
-                  if (index == _messages.length && _isTyping) {
-                    return _TypingIndicator();
-                  }
-                  final msg = _messages[index];
-                  return Column(
+          ),
+          Column(
+            children: [
+              if (chatState.error != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: chatState.isConnecting ? Colors.orange.withOpacity(0.2) : Colors.redAccent.withOpacity(0.2),
+                  child: Row(
                     children: [
-                      _ChatBubble(message: msg),
-                      if (msg.hasQuickReplies)
-                        _QuickRepliesRow(
-                          replies: _quickReplies,
-                          onTap: _sendMessage,
+                      Icon(
+                        chatState.isConnecting ? Icons.sync : Icons.wifi_off_rounded, 
+                        color: chatState.isConnecting ? Colors.orange : Colors.redAccent, 
+                        size: 16
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          chatState.error!, 
+                          style: TextStyle(
+                            color: chatState.isConnecting ? Colors.orange : Colors.redAccent, 
+                            fontSize: 12
+                          )
+                        ),
+                      ),
+                      if (!chatState.isConnecting)
+                        IconButton(
+                          icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 16),
+                          onPressed: () => ref.read(aiChatProvider.notifier).initChat(),
                         ),
                     ],
-                  );
-                },
-              ),
-            ),
-          _ChatInput(
-            controller: _messageController,
-            onSend: () => _sendMessage(),
-          ),
-        ],
-      ),
-    );
-  }
-
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: AppColors.primary,
-      elevation: 0,
-      leadingWidth: 40,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary, size: 20),
-        onPressed: () => Navigator.pop(context),
-      ),
-      title: Row(
-        children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, AppColors.primaryLight],
                   ),
-                  borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Icon(Icons.smart_toy_rounded,
-                    color: AppColors.textPrimary, size: 22),
-              ),
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: AppColors.success,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.surface, width: 2),
+              if (chatState.isLoading)
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                    itemCount: chatState.messages.length + (chatState.isTyping ? 1 : 0),
+                    itemBuilder: (context, index) {
+                      if (index == chatState.messages.length && chatState.isTyping) {
+                        return _TypingIndicator();
+                      }
+                      final msg = chatState.messages[index];
+                      // Determine if it's bot or user based on senderName or senderId
+                      final isBot = msg.senderName.contains('AI') || msg.senderId == 0;
+                      
+                      final showQuickReplies = index == 0 && chatState.messages.length == 1 && !chatState.isLoading;
+                      return Column(
+                        children: [
+                          _ChatBubble(isBot: isBot, text: msg.body, timestamp: msg.createdAt),
+                          if (showQuickReplies)
+                            _QuickRepliesRow(
+                              replies: _quickReplies,
+                              onTap: _sendMessage,
+                            ),
+                        ],
+                      );
+                    },
+                  ),
                 ),
+              _ChatInput(
+                controller: _messageController,
+                onSend: () => _sendMessage(),
+                enabled: !chatState.isLoading,
               ),
             ],
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Tutor JumpUp AI',
-                  style: AppTextStyles.titleMedium.copyWith(
-                      fontWeight: FontWeight.w700, fontSize: 15),
-                ),
-                Text(
-                  'Asistente de idiomas con IA',
-                  style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w400),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
         ],
       ),
-      actions: [
-        PopupMenuButton<String>(
-          icon: const Icon(Icons.more_vert, color: AppColors.textPrimary),
-          onSelected: (value) {
-            if (value == 'clear') {
-              _showClearDialog();
-            }
-          },
-          itemBuilder: (context) => [
-            const PopupMenuItem(
-              value: 'clear',
-              child: Row(
+    );
+  }
+
+  final List<String> _quickReplies = [
+    'Ayúdame con la gramática',
+    'Practiquemos conversación',
+    'Explica los phrasal verbs',
+    '¿Podemos hacer un quiz?',
+  ];
+
+  AppBar _buildAppBar() {
+    return AppBar(
+      backgroundColor: const Color(0xFF0D0D15).withOpacity(0.8),
+      elevation: 0,
+      centerTitle: false,
+      iconTheme: const IconThemeData(color: Colors.white),
+      title: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
+              shape: BoxShape.circle,
+            ),
+            child: const CircleAvatar(
+              radius: 18,
+              backgroundColor: Color(0xFF1E1E2A),
+              child: Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'AI Tutor',
+                style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              Row(
                 children: [
-                  Icon(Icons.delete_outline, size: 20),
-                  SizedBox(width: 8),
-                  Text('Limpiar historial'),
+                  Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.greenAccent, shape: BoxShape.circle)),
+                  const SizedBox(width: 4),
+                  const Text('GPT-4o Online', style: TextStyle(color: Colors.white70, fontSize: 10)),
                 ],
               ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  void _showClearDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Limpiar historial'),
-        content: const Text('¿Estás seguro de que quieres borrar todo el historial de chat?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              _clearHistory();
-            },
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('Limpiar'),
+            ],
           ),
         ],
       ),
     );
   }
-}
-
-class _ChatMessage {
-  final bool isBot;
-  final String text;
-  final DateTime timestamp;
-  final bool hasQuickReplies;
-
-  const _ChatMessage({
-    required this.isBot,
-    required this.text,
-    required this.timestamp,
-    this.hasQuickReplies = false,
-  });
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.message});
-  final _ChatMessage message;
+  const _ChatBubble({required this.isBot, required this.text, required this.timestamp});
+  final bool isBot;
+  final String text;
+  final DateTime timestamp;
 
   @override
   Widget build(BuildContext context) {
     return Align(
-      alignment:
-          message.isBot ? Alignment.centerLeft : Alignment.centerRight,
+      alignment: isBot ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
-        ),
+        margin: const EdgeInsets.only(bottom: 16),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         child: Column(
-          crossAxisAlignment: message.isBot
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.end,
+          crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            if (message.isBot)
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, AppColors.primaryLight],
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Icon(Icons.smart_toy_rounded,
-                          size: 12, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Tutor AI',
-                      style: AppTextStyles.labelSmall.copyWith(
-                          fontWeight: FontWeight.w600),
-                    ),
-                  ],
-                ),
-              ),
             Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
-                gradient: message.isBot
-                    ? null
-                    : const LinearGradient(
-                        colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
-                      ),
-                color: message.isBot
-                    ? AppColors.surface
-                    : null,
+                gradient: isBot
+                    ? const LinearGradient(colors: [Color(0xFF232336), Color(0xFF1F1F30)])
+                    : const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
                 borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.isBot ? 4 : 18),
-                  bottomRight: Radius.circular(message.isBot ? 18 : 4),
+                  topLeft: const Radius.circular(20),
+                  topRight: const Radius.circular(20),
+                  bottomLeft: Radius.circular(isBot ? 4 : 20),
+                  bottomRight: Radius.circular(isBot ? 20 : 4),
                 ),
-                border: message.isBot
-                    ? Border.all(color: AppColors.divider)
-                    : null,
                 boxShadow: [
                   BoxShadow(
-                    color: message.isBot
-                        ? Colors.black26
-                        : AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                    color: isBot ? Colors.black26 : Colors.blueAccent.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
               child: Text(
-                message.text,
-                style: AppTextStyles.bodyMedium.copyWith(height: 1.5),
+                text,
+                style: const TextStyle(color: Colors.white, height: 1.4, fontSize: 14),
               ),
             ),
             const SizedBox(height: 4),
             Text(
-              _formatTime(message.timestamp),
-              style: AppTextStyles.labelSmall.copyWith(
-                  fontSize: 10,
-                  color: AppColors.textHint,
-                  fontWeight: FontWeight.w400),
+              '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
+              style: const TextStyle(fontSize: 10, color: Colors.white54),
             ),
           ],
         ),
       ),
     );
   }
-
-  String _formatTime(DateTime t) {
-    final h = t.hour.toString().padLeft(2, '0');
-    final m = t.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
 }
 
 class _QuickRepliesRow extends StatelessWidget {
-  const _QuickRepliesRow(
-      {required this.replies, required this.onTap});
+  const _QuickRepliesRow({required this.replies, required this.onTap});
   final List<String> replies;
   final void Function(String) onTap;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 20, top: 10),
       child: Wrap(
         spacing: 8,
-        runSpacing: 8,
-        children: replies
-            .map((r) => GestureDetector(
-                  onTap: () => onTap(r),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: AppColors.surface,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color:
-                              AppColors.primary.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      r,
-                      style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
-                    ),
-                  ),
-                ))
-            .toList(),
+        runSpacing: 10,
+        children: replies.map((r) => GestureDetector(
+          onTap: () => onTap(r),
+          child: GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            borderRadius: BorderRadius.circular(20),
+            child: Text(r, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+          ),
+        )).toList(),
       ),
     );
   }
@@ -515,25 +297,24 @@ class _TypingIndicator extends StatelessWidget {
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: AppColors.surface,
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
+        decoration: const BoxDecoration(
+          color: Color(0xFF232336),
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
             bottomLeft: Radius.circular(4),
           ),
-          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
+          children: const [
             _Dot(delay: 0),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 200),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 400),
           ],
         ),
@@ -557,10 +338,7 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) _ctrl.repeat(reverse: true);
     });
@@ -578,81 +356,70 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
     return FadeTransition(
       opacity: _anim,
       child: Container(
-        width: 8,
-        height: 8,
-        decoration: const BoxDecoration(
-          color: AppColors.primary,
-          shape: BoxShape.circle,
-        ),
+        width: 6,
+        height: 6,
+        decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
       ),
     );
   }
 }
 
 class _ChatInput extends StatelessWidget {
-  const _ChatInput({
-    required this.controller,
-    required this.onSend,
-  });
-
+  const _ChatInput({required this.controller, required this.onSend, required this.enabled});
   final TextEditingController controller;
   final VoidCallback onSend;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
       decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-            top: BorderSide(color: AppColors.divider.withValues(alpha: 0.5))),
+        color: const Color(0xFF1E1E2A),
+        borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
+        boxShadow: [
+          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, -5)),
+        ],
       ),
-      child: SafeArea(
-        top: false,
-        child: Row(
-          children: [
-            Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: AppColors.white,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.divider),
+      child: Row(
+        children: [
+          Expanded(
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              decoration: BoxDecoration(
+                color: const Color(0xFF2A2A3D),
+                borderRadius: BorderRadius.circular(30),
+              ),
+              child: TextField(
+                controller: controller,
+                enabled: enabled,
+                style: const TextStyle(color: Colors.white),
+                decoration: const InputDecoration(
+                  hintText: 'Ask the tutor anything...',
+                  hintStyle: TextStyle(color: Colors.white54, fontSize: 14),
+                  border: InputBorder.none,
                 ),
-                child: TextField(
-                  controller: controller,
-                  style: AppTextStyles.bodyMedium,
-                  decoration: InputDecoration(
-                    hintText: 'Escribe en inglés o español...',
-                    hintStyle: AppTextStyles.bodyMedium.copyWith(
-                        fontSize: 13, color: AppColors.textSecondary),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 12),
-                  ),
-                  onSubmitted: (_) => onSend(),
-                  textInputAction: TextInputAction.send,
-                  maxLines: null,
-                ),
+                onSubmitted: (_) => onSend(),
+                textInputAction: TextInputAction.send,
               ),
             ),
-            const SizedBox(width: 10),
-            GestureDetector(
-              onTap: onSend,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.send_rounded,
-                    color: AppColors.textPrimary, size: 20),
+          ),
+          const SizedBox(width: 12),
+          GestureDetector(
+            onTap: enabled ? onSend : null,
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
+                ],
               ),
+              child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

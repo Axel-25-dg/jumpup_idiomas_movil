@@ -20,7 +20,7 @@ import 'package:jumpup_app/presentation/screens/student/achievements_screen.dart
 import 'package:jumpup_app/presentation/screens/student/certificates_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/virtual_class_list_screen.dart';
 import 'package:jumpup_app/presentation/screens/catalog/catalog_screen.dart';
-import 'package:jumpup_app/presentation/screens/games/games_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dart'

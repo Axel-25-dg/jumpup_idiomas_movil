@@ -46,9 +46,9 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
     final unreadAsync = ref.watch(unreadNotificationsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        backgroundColor: AppColors.primary,
+        backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: false,
         toolbarHeight: 56,
@@ -56,12 +56,12 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
           'JumpUp Social',
           style: AppTextStyles.titleLarge.copyWith(
             color: Colors.white,
-            fontWeight: FontWeight.w700,
+            fontWeight: FontWeight.w900,
           ),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
             onPressed: () {
               ref.invalidate(socialFeedProvider);
               ref.invalidate(chatThreadsProvider);
@@ -73,7 +73,7 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
             children: [
               IconButton(
                 icon: const Icon(Icons.notifications_rounded,
-                    color: Colors.white),
+                    color: Colors.white70),
                 onPressed: () {
                   Navigator.push(
                     context,
@@ -85,20 +85,25 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
               unreadAsync.when(
                 data: (count) => count > 0
                     ? Positioned(
-                        right: 6,
-                        top: 6,
+                        right: 8,
+                        top: 8,
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(
                             color: AppColors.error,
                             shape: BoxShape.circle,
                           ),
+                          constraints: const BoxConstraints(
+                            minWidth: 16,
+                            minHeight: 16,
+                          ),
                           child: Text(
                             count > 9 ? '9+' : '$count',
+                            textAlign: TextAlign.center,
                             style: const TextStyle(
                                 color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700),
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold),
                           ),
                         ),
                       )
@@ -108,33 +113,71 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
               ),
             ],
           ),
-          const SizedBox(width: 4),
+          const SizedBox(width: 8),
         ],
         bottom: TabBar(
           controller: _tabController,
-          isScrollable: false,
-          labelColor: Colors.white,
-          unselectedLabelColor: Colors.white60,
-          indicatorColor: Colors.white,
+          isScrollable: true,
+          labelColor: const Color(0xFF7C4DFF),
+          unselectedLabelColor: Colors.white30,
+          indicatorColor: const Color(0xFF7C4DFF),
           indicatorWeight: 3,
           indicatorSize: TabBarIndicatorSize.label,
+          dividerColor: Colors.white10,
           labelStyle: AppTextStyles.labelMedium
-              .copyWith(fontWeight: FontWeight.w700, color: Colors.white),
-          unselectedLabelStyle: AppTextStyles.labelMedium
-              .copyWith(fontWeight: FontWeight.w500, color: Colors.white60),
+              .copyWith(fontWeight: FontWeight.w800),
           tabs: _tabs
-              .map((t) => Tab(icon: Icon(t.icon, size: 20), text: t.label))
+              .map((t) => Tab(
+                height: 40,
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(t.icon, size: 18),
+                    const SizedBox(width: 8),
+                    Text(t.label),
+                  ],
+                ),
+              ))
               .toList(),
         ),
       ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [
-          SocialFeedScreen(),
-          ChatScreen(),
-          SearchScreen(),
-          CommunityScreen(),
-          LiveSessionsScreen(),
+      body: Stack(
+        children: [
+          // Background Blobs
+          Positioned(
+            top: -100,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00B4DB).withOpacity(0.05),
+              ),
+            ),
+          ),
+          TabBarView(
+            controller: _tabController,
+            children: const [
+              SocialFeedScreen(),
+              ChatScreen(),
+              SearchScreen(),
+              CommunityScreen(),
+              LiveSessionsScreen(),
+            ],
+          ),
         ],
       ),
     );

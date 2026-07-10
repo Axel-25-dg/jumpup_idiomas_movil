@@ -5,9 +5,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/light_theme.dart';
 import 'package:jumpup_app/theme/dark_theme.dart';
+import 'package:jumpup_app/services/notification_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Inicializar notificaciones
+  await NotificationService().initialize();
 
   // Carga variables de entorno (.env bundled como asset)
   await dotenv.load(fileName: '.env');
@@ -38,10 +42,10 @@ class JumpUpApp extends ConsumerWidget {
       title: 'JumpUp',
       debugShowCheckedModeBanner: false,
 
-      // ── Tema azul/celeste/blanco ─────────────────────────────────────────
-      theme: lightTheme,
+      // ── Tema Oscuro Premium ─────────────────────────────────────────
+      theme: darkTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.light, // forzado: app solo usa tema claro
+      themeMode: ThemeMode.dark, // Cambiado a dark para diseño PRO
 
       // ── go_router ────────────────────────────────────────────────────────
       routerConfig: buildAppRouter(ref),

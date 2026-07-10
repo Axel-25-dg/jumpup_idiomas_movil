@@ -65,6 +65,8 @@ class SocialPost {
     );
   }
 
+  get likes => null;
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,

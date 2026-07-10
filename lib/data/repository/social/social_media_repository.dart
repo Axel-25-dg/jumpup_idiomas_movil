@@ -241,4 +241,9 @@ class SocialMediaRepository extends BaseRepository {
         queryParameters: {'q': query.trim(), 'type': type},
         message: 'Error en la búsqueda');
   }
+
+  Future<List<ChatMessage>> fetchMessages() async {
+    return getList('messages/', ChatMessage.fromJson,
+        message: 'No se pudieron cargar los mensajes');
+  }
 }

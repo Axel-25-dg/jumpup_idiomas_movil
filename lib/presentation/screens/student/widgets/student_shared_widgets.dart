@@ -55,13 +55,13 @@ class DifficultyBadge extends StatelessWidget {
 
   Color _getLevelColor(String level) {
     switch (level.toUpperCase()) {
-      case 'A1': return AppColors.success;
+      case 'A1': return const Color(0xFF43A047);
       case 'A2': return const Color(0xFF66BB6A);
-      case 'B1': return AppColors.secondary;
-      case 'B2': return AppColors.primary;
-      case 'C1': return AppColors.warning;
-      case 'C2': return AppColors.error;
-      default: return AppColors.primary;
+      case 'B1': return const Color(0xFF00BFFF);
+      case 'B2': return const Color(0xFF1565C0);
+      case 'C1': return const Color(0xFFFB8C00);
+      case 'C2': return const Color(0xFFE53935);
+      default: return const Color(0xFF1565C0);
     }
   }
 
@@ -71,14 +71,15 @@ class DifficultyBadge extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withOpacity(0.12),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
         level,
-        style: AppTextStyles.labelSmall.copyWith(
+        style: const TextStyle(
           color: color,
           fontWeight: FontWeight.w700,
+          fontSize: 12,
         ),
       ),
     );
@@ -169,12 +170,14 @@ class SectionHeader extends StatelessWidget {
   final String title;
   final String? actionLabel;
   final VoidCallback? onActionTap;
+  final Color? textColor;
 
   const SectionHeader({
     super.key,
     required this.title,
     this.actionLabel,
     this.onActionTap,
+    this.textColor,
   });
 
   @override
@@ -188,7 +191,7 @@ class SectionHeader extends StatelessWidget {
             title,
             style: AppTextStyles.titleLarge.copyWith(
               fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
+              color: textColor ?? AppColors.textPrimary,
             ),
           ),
           if (actionLabel != null)

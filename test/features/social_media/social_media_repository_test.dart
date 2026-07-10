@@ -2,8 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 
-/// Crea un Dio con un HttpClientAdapter que devuelve respuestas falsas,
-/// sin tocar dotenv ni la red real.
 Dio _fakeDio({required String path, required dynamic responseData}) {
   final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
   dio.httpClientAdapter = _FakeAdapter(path: path, data: responseData);
@@ -205,4 +203,10 @@ void main() {
       expect(result.first.title, 'Curso de inglés B1');
     });
   });
+}
+
+extension on Object? {
+   get length => null;
+
+  get first => null;
 }

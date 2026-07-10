@@ -2,27 +2,27 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/domain/model/forum_thread.dart';
 import 'package:jumpup_app/domain/model/live_session.dart';
 import 'package:jumpup_app/domain/model/message_thread.dart';
-import 'package:jumpup_app/domain/model/notification_item.dart';
-import 'package:jumpup_app/domain/model/search_result.dart';
-import 'package:jumpup_app/domain/model/social_post.dart';
+// import 'package:jumpup_app/domain/model/notification_item.dart';
+// import 'package:jumpup_app/domain/model/search_result.dart';
+// import 'package:jumpup_app/domain/model/social_post.dart';
 
 
 void main() {
   group('social media models', () {
     test('MessageThread crea un resumen útil', () {
-      final thread = MessageThread(
+      const thread = MessageThread(
         id: 1,
         title: 'Clase de conversación',
         participantName: 'María',
-        unreadCount: 2,
+        unreadCount: 2, subject: '',
       );
 
       expect(thread.title, contains('Clase de conversación'));
       expect(thread.unreadCount, 2);
     });
 
-    test('ForumThread serializa y deserializa correctamente', () {
-      final thread = ForumThread(
+    test('ForumThread serializa y deserialize correctamente', () {
+      const thread = ForumThread(
         id: 1,
         title: 'Dudas de pronunciación',
         authorName: 'Luis',

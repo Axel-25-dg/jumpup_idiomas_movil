@@ -9,6 +9,8 @@ import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:lottie/lottie.dart';
 
+import 'package:flutter/services.dart';
+
 class ExerciseScreen extends ConsumerStatefulWidget {
   const ExerciseScreen({super.key, required this.lessonId});
 
@@ -260,6 +262,12 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
       correct = _selectedAnswer?.toLowerCase().trim() == exercise.correctAnswer.toLowerCase().trim();
     }
 
+    if (correct) {
+      HapticFeedback.mediumImpact();
+    } else {
+      HapticFeedback.vibrate();
+    }
+
     setState(() {
       _hasAnswered = true;
       _isCorrect = correct;
@@ -299,6 +307,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
 
   void _showCompletionDialog(int total) {
     final xp = _correctCount * 20;
+    HapticFeedback.heavyImpact();
     
     ref.read(progressNotifierProvider.notifier).registerLessonProgress(
       lessonId: widget.lessonId,

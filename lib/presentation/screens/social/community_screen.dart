@@ -4,6 +4,7 @@ import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class CommunityScreen extends ConsumerStatefulWidget {
   const CommunityScreen({super.key});
@@ -21,14 +22,14 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
     final threadsAsync = ref.watch(forumThreadsProvider(_selectedCategoryId));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Colors.transparent,
       floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: AppColors.primary,
-        elevation: 3,
+        backgroundColor: const Color(0xFF7C4DFF),
+        elevation: 4,
         onPressed: () => _showCreateDialog(context, ref),
         icon: const Icon(Icons.add_rounded, color: Colors.white),
         label: Text('Nuevo Tema',
-            style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+            style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: Column(
         children: [
@@ -39,10 +40,11 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             data: (categories) {
               if (categories.isEmpty) return const SizedBox.shrink();
               return Container(
-                height: 52,
-                padding: const EdgeInsets.symmetric(horizontal: 12),
+                height: 56,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ListView(
                   scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -51,16 +53,18 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                             style: AppTextStyles.labelMedium.copyWith(
                               color: _selectedCategoryId == null
                                   ? Colors.white
-                                  : AppColors.textSecondary,
+                                  : Colors.white38,
+                              fontWeight: FontWeight.bold,
                             )),
                         selected: _selectedCategoryId == null,
                         onSelected: (_) => setState(() => _selectedCategoryId = null),
-                        backgroundColor: AppColors.white,
-                        selectedColor: AppColors.primary,
+                        backgroundColor: Colors.white.withOpacity(0.05),
+                        selectedColor: const Color(0xFF7C4DFF).withOpacity(0.3),
+                        checkmarkColor: Colors.white,
                         side: BorderSide(
                           color: _selectedCategoryId == null
-                              ? AppColors.primary
-                              : AppColors.divider,
+                              ? const Color(0xFF7C4DFF)
+                              : Colors.white12,
                         ),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
@@ -72,17 +76,19 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                             style: AppTextStyles.labelMedium.copyWith(
                               color: _selectedCategoryId == cat.id
                                   ? Colors.white
-                                  : AppColors.textSecondary,
+                                  : Colors.white38,
+                              fontWeight: FontWeight.bold,
                             )),
                         selected: _selectedCategoryId == cat.id,
                         onSelected: (_) => setState(() =>
                             _selectedCategoryId = _selectedCategoryId == cat.id ? null : cat.id),
-                        backgroundColor: AppColors.white,
-                        selectedColor: AppColors.primary,
+                        backgroundColor: Colors.white.withOpacity(0.05),
+                        selectedColor: const Color(0xFF7C4DFF).withOpacity(0.3),
+                        checkmarkColor: Colors.white,
                         side: BorderSide(
                           color: _selectedCategoryId == cat.id
-                              ? AppColors.primary
-                              : AppColors.divider,
+                              ? const Color(0xFF7C4DFF)
+                              : Colors.white12,
                         ),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                       ),
@@ -96,18 +102,18 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
           // Thread list
           Expanded(
             child: threadsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
               error: (e, _) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.wifi_off_rounded, size: 48, color: AppColors.error),
+                    const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white24),
                     const SizedBox(height: 12),
-                    Text('Error al cargar el foro', style: AppTextStyles.titleMedium),
+                    Text('Error al cargar el foro', style: AppTextStyles.titleMedium.copyWith(color: Colors.white54)),
                     const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => ref.invalidate(forumThreadsProvider(_selectedCategoryId)),
-                      style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
+                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF), foregroundColor: Colors.white),
                       child: const Text('Reintentar'),
                     ),
                   ],
@@ -116,10 +122,13 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
               data: (threads) {
                 if (threads.isEmpty) return _buildEmpty();
                 return RefreshIndicator(
+                  color: const Color(0xFF7C4DFF),
                   onRefresh: () => ref.refresh(forumThreadsProvider(_selectedCategoryId).future),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 80),
+                  child: ListView.separated(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                    physics: const BouncingScrollPhysics(),
                     itemCount: threads.length,
+                    separatorBuilder: (_, __) => const SizedBox(height: 12),
                     itemBuilder: (context, index) => _ForumThreadCard(
                       thread: threads[index],
                       onTap: () => _showThreadPosts(context, threads[index]),
@@ -143,15 +152,15 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: AppColors.primary.withValues(alpha: 0.08),
+              color: const Color(0xFF7C4DFF).withOpacity(0.1),
             ),
-            child: Icon(Icons.forum_outlined, size: 56, color: AppColors.primary.withValues(alpha: 0.4)),
+            child: const Icon(Icons.forum_outlined, size: 56, color: Color(0xFF7C4DFF)),
           ),
-          const SizedBox(height: 16),
-          Text('No hay temas aún', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
-          const SizedBox(height: 4),
+          const SizedBox(height: 20),
+          Text('No hay temas aún', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
           Text('¡Crea el primer tema!',
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
         ],
       ),
     );
@@ -186,47 +195,43 @@ class _ForumThreadCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: thread.isPinned ? AppColors.secondary.withValues(alpha: 0.3) : AppColors.divider,
-        ),
-      ),
+    return GlassContainer(
+      opacity: 0.08,
+      blur: 10,
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(20),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          radius: 22,
+          radius: 24,
           backgroundColor: thread.isPinned
-              ? AppColors.secondary.withValues(alpha: 0.15)
-              : AppColors.primary.withValues(alpha: 0.1),
+              ? const Color(0xFF00B4DB).withOpacity(0.15)
+              : const Color(0xFF7C4DFF).withOpacity(0.15),
           child: Icon(
             thread.isPinned ? Icons.push_pin_rounded : Icons.forum_outlined,
-            size: 20,
-            color: thread.isPinned ? AppColors.secondary : AppColors.primary,
+            size: 22,
+            color: thread.isPinned ? const Color(0xFF00B4DB) : const Color(0xFF7C4DFF),
           ),
         ),
         title: Text(thread.title,
-            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.only(top: 6),
           child: Row(
             children: [
-              Text(thread.authorName, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500)),
+              Text(thread.authorName, style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: Colors.white54)),
               if (thread.categoryName.isNotEmpty) ...[
-                Text(' · ', style: AppTextStyles.bodySmall.copyWith(color: AppColors.textHint)),
-                Text(thread.categoryName, style: AppTextStyles.bodySmall.copyWith(color: AppColors.primary)),
+                Text(' · ', style: AppTextStyles.bodySmall.copyWith(color: Colors.white24)),
+                Text(thread.categoryName, style: AppTextStyles.bodySmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
               ],
               const Spacer(),
-              Icon(Icons.remove_red_eye_outlined, size: 14, color: AppColors.textSecondary),
-              const SizedBox(width: 2),
-              Text('${thread.views}', style: AppTextStyles.bodySmall),
-              const SizedBox(width: 8),
-              Icon(Icons.chat_bubble_outline_rounded, size: 14, color: AppColors.textSecondary),
+              const Icon(Icons.remove_red_eye_outlined, size: 14, color: Colors.white24),
               const SizedBox(width: 4),
-              Text('${thread.postCount}', style: AppTextStyles.bodySmall),
+              Text('${thread.views}', style: AppTextStyles.bodySmall.copyWith(color: Colors.white38)),
+              const SizedBox(width: 12),
+              const Icon(Icons.chat_bubble_outline_rounded, size: 14, color: Colors.white24),
+              const SizedBox(width: 4),
+              Text('${thread.postCount}', style: AppTextStyles.bodySmall.copyWith(color: Colors.white38)),
             ],
           ),
         ),
@@ -234,12 +239,12 @@ class _ForumThreadCard extends StatelessWidget {
             ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.15),
+                  color: const Color(0xFF00B4DB).withOpacity(0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Text('Fijado', style: AppTextStyles.labelSmall.copyWith(color: AppColors.secondary)),
+                child: Text('Fijado', style: AppTextStyles.labelSmall.copyWith(color: const Color(0xFF00B4DB), fontWeight: FontWeight.bold, fontSize: 10)),
               )
-            : null,
+            : const Icon(Icons.chevron_right_rounded, color: Colors.white24),
         onTap: onTap,
       ),
     );
