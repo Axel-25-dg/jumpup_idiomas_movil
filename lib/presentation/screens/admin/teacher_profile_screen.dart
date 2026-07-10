@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
-import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/providers/course_provider.dart';
 
 class TeacherProfileScreen extends ConsumerStatefulWidget {
   const TeacherProfileScreen({super.key});
@@ -65,7 +65,7 @@ class _TeacherProfileScreenState
   @override
   Widget build(BuildContext context) {
     final profileAsync = ref.watch(userProfileProvider);
-    final langsAsync = ref.watch(languagesProvider);
+    final langsAsync = ref.watch(adminLanguagesProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -82,6 +82,7 @@ class _TeacherProfileScreenState
                 final profile = profileAsync.valueOrNull;
                 if (profile != null) {
                   _usernameCtrl.text = profile.username;
+                  _bioCtrl.text = profile.bio ?? '';
                 }
                 setState(() => _isEditing = true);
               },
@@ -96,7 +97,8 @@ class _TeacherProfileScreenState
               icon: const Icon(Icons.check_rounded,
                   color: AppColors.primary, size: 18),
               label: const Text('Guardar',
-                  style: TextStyle(color: AppColors.primary,
+                  style: TextStyle(
+                      color: AppColors.primary,
                       fontWeight: FontWeight.bold)),
             ),
         ],
@@ -173,10 +175,10 @@ class _TeacherProfileScreenState
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.25),
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.25),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -223,10 +225,11 @@ class _TeacherProfileScreenState
                                   icon: Icons.email_rounded,
                                   label: 'Email',
                                   value: profile.email),
-                              const _InfoRow(
-                                  icon: Icons.calendar_month_rounded,
-                                  label: 'Miembro desde',
-                                  value: 'Reciente'),
+                              if (profile.bio != null && profile.bio!.isNotEmpty)
+                                _InfoRow(
+                                    icon: Icons.info_outline_rounded,
+                                    label: 'Bio',
+                                    value: profile.bio!),
                             ]),
 
                       const SizedBox(height: 24),
@@ -239,8 +242,7 @@ class _TeacherProfileScreenState
                             child: CircularProgressIndicator(
                                 color: AppColors.primary)),
                         error: (e, _) => const Text('Error cargando idiomas',
-                            style:
-                                TextStyle(color: AppColors.error)),
+                            style: TextStyle(color: AppColors.error)),
                         data: (languages) => Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -274,8 +276,7 @@ class _TeacherProfileScreenState
                                         : AppColors.divider),
                                 onSelected: (val) => setState(() => val
                                     ? _selectedTeachingLangs.add(lang.id)
-                                    : _selectedTeachingLangs
-                                        .remove(lang.id)),
+                                    : _selectedTeachingLangs.remove(lang.id)),
                               );
                             }).toList(),
                           ),

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/presentation/providers/admin_stats_provider.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
-import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/users_list_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
@@ -246,44 +245,11 @@ class _ActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: const [
-          BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 8,
-              offset: Offset(0, 2)),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(title,
-            style: AppTextStyles.titleSmall.copyWith(
-                fontWeight: FontWeight.w700, color: AppColors.textPrimary)),
-        subtitle: Text(subtitle,
-            style: AppTextStyles.bodySmall
-                .copyWith(color: AppColors.textSecondary)),
-        trailing: Icon(Icons.arrow_forward_ios_rounded, size: 14, color: color),
-=======
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
         borderRadius: BorderRadius.circular(20),
         padding: EdgeInsets.zero,
->>>>>>> main
         onTap: onTap,
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
