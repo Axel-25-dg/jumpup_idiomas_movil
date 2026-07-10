@@ -22,22 +22,31 @@ class SubscriptionService extends BaseRepository {
     }, message: 'No se pudo obtener tu suscripción');
   }
 
-  Future<OrderModel> createOrder(int subscriptionId) async {
+  Future<OrderModel> createOrder({
+    required int subscriptionId,
+    required double totalAmount,
+    required String paymentMethod,
+  }) async {
     return createOne('orders/', OrderModel.fromJson,
         data: {
           'subscription': subscriptionId,
+          'total_amount': totalAmount,
+          'payment_method': paymentMethod,
         },
         message: 'No se pudo crear la orden');
   }
 
   Future<PaymentModel> registerPayment({
+    required int orderId,
     required double amount,
-    required String method,
+    required String paymentMethod,
   }) async {
     return createOne('payments/', PaymentModel.fromJson,
         data: {
+          'order': orderId,
           'amount': amount,
-          'payment_method': method,
+          'payment_method': paymentMethod,
+          'status': 'approved',
         },
         message: 'No se pudo procesar el pago');
   }

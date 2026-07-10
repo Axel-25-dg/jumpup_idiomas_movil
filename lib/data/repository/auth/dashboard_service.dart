@@ -11,8 +11,8 @@ class DashboardService extends BaseRepository {
 
   Future<UserProfileModel> updateProfile(Map<String, dynamic> data) async {
     return handleRequest<UserProfileModel>(() async {
-      final response = await dio.put<Map<String, dynamic>>(
-        'profile/',
+      final response = await dio.patch<Map<String, dynamic>>(
+        'auth/me/',
         data: data,
       );
       return UserProfileModel.fromJson(response.data!);

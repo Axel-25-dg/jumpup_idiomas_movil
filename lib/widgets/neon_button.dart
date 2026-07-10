@@ -3,13 +3,13 @@ import '../theme/colors.dart';
 
 class NeonButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color glowColor;
 
   const NeonButton({
     super.key,
     required this.text,
-    required this.onPressed,
+    this.onPressed,
     this.glowColor = AppColors.secondary,
   });
 
@@ -20,7 +20,7 @@ class NeonButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withOpacity(0.6),
+            color: glowColor.withValues(alpha: 0.6),
             blurRadius: 15,
             spreadRadius: 2,
             offset: const Offset(0, 4),

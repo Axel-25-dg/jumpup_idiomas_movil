@@ -25,11 +25,11 @@ class MediaPlayerScreen extends StatelessWidget {
               color: AppColors.white,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(color: AppColors.divider),
-              boxShadow: [
+              boxShadow: const [
                 BoxShadow(
                   color: AppColors.shadow,
                   blurRadius: 8,
-                  offset: const Offset(0, 2),
+                  offset: Offset(0, 2),
                 ),
               ],
             ),
@@ -38,14 +38,14 @@ class MediaPlayerScreen extends StatelessWidget {
               children: [
                 Container(
                   height: 200,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         AppColors.primary,
                         AppColors.primaryDark,
                       ],
                     ),
-                    borderRadius: const BorderRadius.vertical(
+                    borderRadius: BorderRadius.vertical(
                         top: Radius.circular(15)),
                   ),
                   child: const Center(
@@ -94,7 +94,7 @@ class MediaPlayerScreen extends StatelessWidget {
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
+            children: const [
               _ControlButton(
                   icon: Icons.skip_previous_rounded, label: 'Anterior'),
               _ControlButton(
@@ -113,7 +113,7 @@ class MediaPlayerScreen extends StatelessWidget {
           Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: [
+            children: const [
               _OptionChip(label: 'Subtítulos', isSelected: true),
               _OptionChip(label: '1.0x', isSelected: false),
               _OptionChip(label: 'Loop', isSelected: false),
@@ -125,17 +125,17 @@ class MediaPlayerScreen extends StatelessWidget {
               style: AppTextStyles.titleSmall
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          _MediaItem(
+          const _MediaItem(
             title: 'Introducción al curso',
             duration: '10:20',
             isActive: true,
           ),
-          _MediaItem(
+          const _MediaItem(
             title: 'Vocabulario básico',
             duration: '15:45',
             isActive: false,
           ),
-          _MediaItem(
+          const _MediaItem(
             title: 'Gramática esencial',
             duration: '12:30',
             isActive: false,

@@ -1,65 +1,69 @@
 class MessageThread {
   const MessageThread({
     required this.id,
-    required this.title,
-    required this.participantName,
+    required this.subject,
     this.unreadCount = 0,
-    this.lastMessage,
-    this.participantAvatar,
+    this.lastMessageBody,
     this.lastMessageAt,
+    this.participantNames = const [],
+    this.participantAvatar,
   });
 
-  final String id;
-  final String title;
-  final String participantName;
+  final int id;
+  final String subject;
   final int unreadCount;
-  final String? lastMessage;
-  final String? participantAvatar;
+  final String? lastMessageBody;
   final DateTime? lastMessageAt;
+  final List<String> participantNames;
+  final String? participantAvatar;
 
-  String get summary => '$title · $participantName';
+  String get participantName =>
+      participantNames.isNotEmpty ? participantNames.first : 'Usuario';
+
+  String get title => subject;
 
   factory MessageThread.fromJson(Map<String, dynamic> json) {
-    Object? participant = json['participant'] ?? json['other_user'];
-    String participantName = '';
+    List<String> participantNames = [];
     String? participantAvatar;
-    if (participant is Map) {
-      participantName = participant['name']?.toString() ??
-          participant['username']?.toString() ??
-          participant['full_name']?.toString() ??
-          '';
-      participantAvatar = participant['avatar']?.toString() ??
-          participant['avatar_url']?.toString();
+    final participants = json['participants'];
+    if (participants is List) {
+      for (final p in participants) {
+        if (p is Map) {
+          final name = p['username']?.toString() ??
+              p['name']?.toString() ??
+              p['full_name']?.toString() ??
+              '';
+          if (name.isNotEmpty) participantNames.add(name);
+          participantAvatar ??= p['avatar']?.toString() ??
+              p['avatar_url']?.toString();
+        }
+      }
+    } else if (participants is Map) {
+      final name = participants['username']?.toString() ??
+          participants['name']?.toString() ?? '';
+      if (name.isNotEmpty) participantNames.add(name);
+      participantAvatar = participants['avatar']?.toString() ??
+          participants['avatar_url']?.toString();
     }
+
+    Object? lastMsg = json['last_message'];
+    String? lastMessageBody;
+    if (lastMsg is Map) {
+      lastMessageBody = lastMsg['body']?.toString() ??
+          lastMsg['content']?.toString();
+    } else if (lastMsg is String) {
+      lastMessageBody = lastMsg;
+    }
+
     return MessageThread(
-      id: json['id']?.toString() ?? '',
-      title: json['title']?.toString() ?? '',
-      participantName: participantName.isNotEmpty
-          ? participantName
-          : json['participant_name']?.toString() ??
-              json['participantName']?.toString() ??
-              'Usuario',
-      unreadCount: int.tryParse(json['unread_count']?.toString() ?? '') ??
-          int.tryParse(json['unreadCount']?.toString() ?? '0') ??
-          0,
-      lastMessage: json['last_message']?.toString() ??
-          json['lastMessage']?.toString() ??
-          json['last_message_preview']?.toString(),
-      participantAvatar: participantAvatar,
+      id: json['id'] as int? ?? 0,
+      subject: json['subject']?.toString() ?? json['title']?.toString() ?? '',
+      unreadCount: json['unread_count'] as int? ?? 0,
+      lastMessageBody: lastMessageBody,
       lastMessageAt: DateTime.tryParse(json['last_message_at']?.toString() ?? '') ??
           DateTime.tryParse(json['lastMessageAt']?.toString() ?? ''),
+      participantNames: participantNames,
+      participantAvatar: participantAvatar,
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'participantName': participantName,
-      'unreadCount': unreadCount,
-      'lastMessage': lastMessage,
-      'participantAvatar': participantAvatar,
-      'lastMessageAt': lastMessageAt?.toIso8601String(),
-    };
   }
 }

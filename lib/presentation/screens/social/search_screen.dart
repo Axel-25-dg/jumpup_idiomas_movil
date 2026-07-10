@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -27,121 +27,100 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     final resultsAsync = ref.watch(searchResultsProvider(_query));
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        elevation: 0,
-        title: Text('Buscar',
-            style: AppTextStyles.titleLarge
-                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-      ),
+      backgroundColor: Colors.transparent,
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
         child: Column(
           children: [
-            TextField(
-              controller: _searchController,
-              autofocus: true,
-              style: AppTextStyles.bodyMedium,
-              decoration: InputDecoration(
-                hintText: 'Buscar cursos, lecciones o usuarios...',
-                hintStyle: AppTextStyles.bodyMedium
-                    .copyWith(color: AppColors.textHint),
-                prefixIcon:
-                    const Icon(Icons.search_rounded, color: AppColors.textSecondary),
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear_rounded,
-                            color: AppColors.textSecondary),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                fillColor: AppColors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.divider),
+            GlassContainer(
+              opacity: 0.1,
+              blur: 15,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(16),
+              child: TextField(
+                controller: _searchController,
+                autofocus: false,
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Buscar cursos, lecciones, personas...',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
+                  prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C4DFF)),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: const Icon(Icons.clear_rounded, color: Colors.white38),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  filled: false,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide: const BorderSide(color: AppColors.divider),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(14),
-                  borderSide:
-                      const BorderSide(color: AppColors.primary, width: 2),
-                ),
+                onChanged: (v) => setState(() => _query = v.trim()),
+                onSubmitted: (v) => setState(() => _query = v.trim()),
               ),
-              onChanged: (v) => setState(() => _query = v.trim()),
-              onSubmitted: (v) => setState(() => _query = v.trim()),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Expanded(
               child: _query.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(28),
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: AppColors.primary.withValues(alpha: 0.08),
-                            ),
-                            child: Icon(Icons.search_rounded,
-                                size: 56,
-                                color: AppColors.primary.withValues(alpha: 0.4)),
-                          ),
-                          const SizedBox(height: 16),
-                          Text('Busca en JumpUp',
-                              style: AppTextStyles.titleMedium
-                                  .copyWith(color: AppColors.textPrimary)),
-                          const SizedBox(height: 4),
-                          Text('Encuentra cursos, lecciones y personas',
-                              style: AppTextStyles.bodyMedium
-                                  .copyWith(color: AppColors.textSecondary)),
-                        ],
-                      ),
-                    )
+                  ? _buildPlaceholder()
                   : resultsAsync.when(
-                      loading: () => const Center(
-                          child: CircularProgressIndicator(color: AppColors.primary)),
+                      loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
                       error: (e, _) => Center(
-                        child: Text('Error: $e',
-                            style: AppTextStyles.bodyMedium
-                                .copyWith(color: AppColors.error)),
+                        child: Text('Error: $e', style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent)),
                       ),
                       data: (results) {
-                        if (results.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.search_off_rounded,
-                                    size: 48, color: AppColors.textHint),
-                                const SizedBox(height: 12),
-                                Text('Sin resultados para "$_query"',
-                                    style: AppTextStyles.titleMedium
-                                        .copyWith(color: AppColors.textSecondary)),
-                              ],
-                            ),
-                          );
-                        }
-                        return ListView.builder(
+                        if (results.isEmpty) return _buildNoResults();
+                        return ListView.separated(
+                          physics: const BouncingScrollPhysics(),
                           itemCount: results.length,
-                          itemBuilder: (context, index) {
-                            final r = results[index];
-                            return _SearchResultTile(result: r);
-                          },
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) => _SearchResultTile(result: results[index]),
                         );
                       },
                     ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+            ),
+            child: const Icon(Icons.search_rounded, size: 56, color: Color(0xFF7C4DFF)),
+          ),
+          const SizedBox(height: 20),
+          Text('Busca en JumpUp', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Encuentra cursos, lecciones y personas',
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoResults() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.search_off_rounded, size: 48, color: Colors.white24),
+          const SizedBox(height: 12),
+          Text('Sin resultados para "$_query"',
+              style: AppTextStyles.titleMedium.copyWith(color: Colors.white38)),
+        ],
       ),
     );
   }
@@ -154,50 +133,44 @@ class _SearchResultTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final icon = switch (result.type) {
-      'course' => Icons.book_rounded,
-      'lesson' => Icons.play_circle_rounded,
+      'course' || 'cursos' => Icons.book_rounded,
+      'lesson' || 'lecciones' => Icons.play_circle_rounded,
       'user' || 'profile' => Icons.person_rounded,
+      'forum' || 'foro' => Icons.forum_rounded,
+      'live-session' || 'sesiones' => Icons.live_tv_rounded,
       _ => Icons.article_rounded,
     };
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
+    return GlassContainer(
+      opacity: 0.08,
+      blur: 10,
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(16),
       child: ListTile(
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          radius: 22,
-          backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-          child: Icon(icon, color: AppColors.primary, size: 22),
+          radius: 24,
+          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+          child: Icon(icon, color: const Color(0xFF7C4DFF), size: 24),
         ),
         title: Text(result.title,
-            style: AppTextStyles.labelLarge.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            )),
+            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
         subtitle: result.subtitle != null
-            ? Text(result.subtitle!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodySmall)
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(result.subtitle!,
+                    maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+              )
             : null,
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            borderRadius: BorderRadius.circular(20),
+            color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
           ),
           child: Text(
             result.type[0].toUpperCase() + result.type.substring(1),
-            style: AppTextStyles.labelSmall.copyWith(
-              color: AppColors.primary,
-              fontWeight: FontWeight.w600,
-            ),
+            style: AppTextStyles.labelSmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900, fontSize: 10),
           ),
         ),
         onTap: () {},

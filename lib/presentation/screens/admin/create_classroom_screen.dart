@@ -33,10 +33,16 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
   }
 
   Future<void> _handleCreate() async {
+    if (_nameController.text.trim().isEmpty || _courseController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor completa los campos obligatorios'), backgroundColor: Colors.redAccent)
+      );
+      return;
+    }
     await ref.read(classroomNotifierProvider.notifier).create(
-          _nameController.text,
-          _descController.text,
-          int.parse(_courseController.text),
+          _nameController.text.trim(),
+          _descController.text.trim(),
+          int.parse(_courseController.text.trim()),
         );
   }
 
@@ -47,7 +53,7 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     ref.listen(classroomNotifierProvider, (previous, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
+            .showSnackBar(SnackBar(content: Text('Error: ${next.error}'), backgroundColor: Colors.redAccent));
         return;
       }
 
@@ -55,24 +61,50 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       if (classroom != null && previous?.isLoading == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
+              backgroundColor: Colors.greenAccent,
               content: Text(
-                  'Aula creada con éxito. Código: ${classroom.accessCode}')),
+                  'Aula creada con éxito. Código: ${classroom.accessCode}', style: const TextStyle(color: Colors.black))),
         );
         Navigator.pop(context);
       }
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Aula')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ClassroomForm(
-          nameController: _nameController,
-          descController: _descController,
-          courseController: _courseController,
-          loading: state.isLoading,
-          onSubmit: _handleCreate,
-        ),
+      backgroundColor: const Color(0xFF0F111A),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Nueva Aula', 
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+      body: Stack(
+        children: [
+          // Background Blobs
+          Positioned(
+            top: 20,
+            left: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.05), blurRadius: 60)],
+              ),
+            ),
+          ),
+          SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ClassroomForm(
+              nameController: _nameController,
+              descController: _descController,
+              courseController: _courseController,
+              loading: state.isLoading,
+              onSubmit: _handleCreate,
+            ),
+          ),
+        ],
       ),
     );
   }

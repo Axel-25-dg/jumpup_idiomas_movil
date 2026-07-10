@@ -7,7 +7,7 @@ class SearchResult {
     this.imageUrl,
   });
 
-  final String id;
+  final int id;
   final String title;
   final String type;
   final String? subtitle;
@@ -15,7 +15,7 @@ class SearchResult {
 
   factory SearchResult.fromJson(Map<String, dynamic> json) {
     return SearchResult(
-      id: json['id']?.toString() ?? '',
+      id: json['id'] as int? ?? 0,
       title: json['title']?.toString() ?? '',
       type: json['type']?.toString() ?? json['model_type']?.toString() ?? 'content',
       subtitle: json['subtitle']?.toString() ??
@@ -25,15 +25,5 @@ class SearchResult {
           json['imageUrl']?.toString() ??
           json['thumbnail']?.toString(),
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'title': title,
-      'type': type,
-      'subtitle': subtitle,
-      'imageUrl': imageUrl,
-    };
   }
 }

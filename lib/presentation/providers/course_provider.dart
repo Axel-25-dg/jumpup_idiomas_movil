@@ -3,13 +3,12 @@ import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart
 import 'package:jumpup_app/domain/model/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin_language_model.dart';
 
-// 1. Provider para cargar la lista de idiomas
-final languagesProvider = FutureProvider<List<Language>>((ref) async {
+// Providers de admin — nombres con prefijo para evitar colisión con course_providers.dart
+final adminLanguagesProvider = FutureProvider<List<Language>>((ref) async {
   return TeacherRepository().fetchLanguages();
 });
 
-// 2. Provider para el CRUD de Cursos
-final coursesProvider =
+final adminCoursesProvider =
     StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
   return CourseNotifier(TeacherRepository());
 });

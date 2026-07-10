@@ -24,7 +24,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final languagesAsync = ref.watch(languagesProvider);
+    final languagesAsync = ref.watch(adminLanguagesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nuevo Curso')),
@@ -60,17 +60,19 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                   : () async {
                       setState(() => _isSaving = true);
                       try {
-                        await ref.read(coursesProvider.notifier).addCourse({
+                        await ref.read(adminCoursesProvider.notifier).addCourse({
                           'title': _titleCtrl.text,
                           'description': _descCtrl.text,
                           'language': _selectedLanguageId,
                           'difficulty_level': 'A1',
                         });
-                        if (mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       } catch (e) {
                         setState(() => _isSaving = false);
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text('Error: $e')));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text('Error: $e')));
+                        }
                       }
                     },
               child: _isSaving

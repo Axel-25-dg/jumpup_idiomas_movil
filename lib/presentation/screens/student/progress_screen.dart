@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/domain/model/progress_models.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ProgressScreen extends ConsumerWidget {
   const ProgressScreen({super.key});
@@ -13,240 +13,266 @@ class ProgressScreen extends ConsumerWidget {
     final statsAsync = ref.watch(userStatsProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.primary,
-        title: Text('Mi Progreso',
-            style: AppTextStyles.titleLarge
-                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
-      ),
-      body: RefreshIndicator(
-        color: AppColors.primary,
-        onRefresh: () async {
-          ref.invalidate(progressSummaryProvider);
-          ref.invalidate(userStatsProvider);
-          ref.invalidate(myAchievementsProvider);
-        },
-        child: SingleChildScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              statsAsync.when(
-                loading: () => const _SkeletonCard(height: 160),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (stats) => _XPLevelCard(stats: stats),
-              ),
-              const SizedBox(height: 16),
-              summaryAsync.when(
-                loading: () => const _SkeletonCard(height: 80),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (summary) => _StreakCard(
-                  currentStreak: summary.currentStreak,
-                  longestStreak: summary.longestStreak,
-                ),
-              ),
-              const SizedBox(height: 16),
-              summaryAsync.when(
-                loading: () => const _SkeletonCard(height: 120),
-                error: (_, __) => const SizedBox.shrink(),
-                data: (summary) => _CourseStatsCard(summary: summary),
-              ),
-              const SizedBox(height: 20),
-              Text('Mis logros',
-                  style: AppTextStyles.titleMedium
-                      .copyWith(fontWeight: FontWeight.w700)),
-              const SizedBox(height: 12),
-              Consumer(
-                builder: (context, ref, _) {
-                  final achievementsAsync = ref.watch(myAchievementsProvider);
-                  return achievementsAsync.when(
-                    loading: () => const _SkeletonCard(height: 100),
-                    error: (_, __) => Text('Error al cargar logros',
-                        style: AppTextStyles.bodyMedium
-                            .copyWith(color: AppColors.error)),
-                    data: (achievements) => achievements.isEmpty
-                        ? const _EmptyAchievements()
-                        : SizedBox(
-                            height: 120,
-                            child: ListView.builder(
-                              scrollDirection: Axis.horizontal,
-                              itemCount: achievements.length,
-                              itemBuilder: (_, i) => _AchievementBadge(
-                                  achievement: achievements[i]),
-                            ),
-                          ),
-                  );
-                },
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {},
-                  icon: const Icon(Icons.leaderboard, color: AppColors.primary),
-                  label: Text('Ver tabla de clasificacion',
-                      style: AppTextStyles.labelLarge
-                          .copyWith(color: AppColors.primary)),
-                  style: OutlinedButton.styleFrom(
-                    side: const BorderSide(color: AppColors.primary, width: 1.5),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12)),
+      backgroundColor: const Color(0xFF0F111A),
+      body: Stack(
+        children: [
+          Positioned(top: -80, right: -80, child: _blob(Colors.purpleAccent, 250)),
+          Positioned(bottom: 100, left: -60, child: _blob(const Color(0xFF448AFF), 200)),
+          RefreshIndicator(
+            color: Colors.blueAccent,
+            backgroundColor: const Color(0xFF1E1E2E),
+            onRefresh: () async {
+              return ref.refresh(progressSummaryProvider.future);
+            },
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+              slivers: [
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  expandedHeight: 80,
+                  flexibleSpace: FlexibleSpaceBar(
+                    centerTitle: false,
+                    titlePadding: const EdgeInsets.fromLTRB(24, 0, 0, 16),
+                    title: const Text('Mi Progreso', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
                   ),
                 ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _XPLevelCard extends StatelessWidget {
-  const _XPLevelCard({required this.stats});
-  final dynamic stats;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: AppColors.primaryGradient,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.4),
-            blurRadius: 20,
-            offset: const Offset(0, 8),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Nivel actual',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: Colors.white70)),
-                  Text(
-                    'Nivel ${stats.level}',
-                    style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 28),
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                  sliver: SliverList(
+                    delegate: SliverChildListDelegate([
+                      // XP Level Ring + Stats
+                      statsAsync.when(
+                        loading: () => const _SkeletonCard(height: 200),
+                        error: (_, __) => const SizedBox.shrink(),
+                        data: (stats) => _XPCard(stats: stats),
+                      ),
+                      const SizedBox(height: 20),
+                      // Streak Card
+                      summaryAsync.when(
+                        loading: () => const _SkeletonCard(height: 100),
+                        error: (_, __) => const SizedBox.shrink(),
+                        data: (s) => _StreakCard(current: s.currentStreak, longest: s.longestStreak),
+                      ),
+                      const SizedBox(height: 20),
+                      // Course stats
+                      summaryAsync.when(
+                        loading: () => const _SkeletonCard(height: 120),
+                        error: (_, __) => const SizedBox.shrink(),
+                        data: (s) => _CourseStatsCard(summary: s),
+                      ),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: const [
+                          Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
+                          SizedBox(width: 8),
+                          Text('Mis Logros', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      const _AchievementsGrid(),
+                    ]),
                   ),
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white24,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text('XP', style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                )),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                '${stats.totalXp} XP totales',
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.white70),
-              ),
-              Text(
-                '${stats.xpProgress} / ${stats.xpForNextLevel} XP',
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: stats.levelProgress,
-              backgroundColor: Colors.white24,
-              color: Colors.white,
-              minHeight: 10,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StreakCard extends StatelessWidget {
-  const _StreakCard({required this.currentStreak, required this.longestStreak});
-  final int currentStreak;
-  final int longestStreak;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.secondary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(Icons.local_fire_department_rounded,
-                color: AppColors.secondary, size: 28),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '$currentStreak dias de racha',
-                  style: AppTextStyles.titleMedium
-                      .copyWith(fontWeight: FontWeight.w700),
-                ),
-                Text(
-                  'Mejor racha: $longestStreak dias',
-                  style: AppTextStyles.bodySmall
-                      .copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),
           ),
-          if (currentStreak > 0)
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.secondary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: 0.1),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 100)],
+        ),
+      );
+}
+
+class _XPCard extends StatelessWidget {
+  final UserStatsModel stats;
+  const _XPCard({required this.stats});
+
+  @override
+  Widget build(BuildContext context) {
+    final progress = stats.levelProgress.clamp(0.0, 1.0);
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(28),
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Ring progress indicator with Glow
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  Container(
+                    width: 90,
+                    height: 90,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purpleAccent.withValues(alpha: 0.2),
+                          blurRadius: 15,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    height: 90,
+                    child: CircularProgressIndicator(
+                      value: 1,
+                      strokeWidth: 8,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withValues(alpha: 0.05)),
+                    ),
+                  ),
+                  SizedBox(
+                    width: 90,
+                    height: 90,
+                    child: CircularProgressIndicator(
+                      value: progress,
+                      strokeWidth: 8,
+                      valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF6A11CB)),
+                      backgroundColor: Colors.transparent,
+                      strokeCap: StrokeCap.round,
+                    ),
+                  ),
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('${(progress * 100).toInt()}%', 
+                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                      const Text('EXP', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                ],
               ),
-              child: Text('En racha!',
-                  style: AppTextStyles.labelSmall.copyWith(
-                      color: AppColors.secondary,
-                      fontWeight: FontWeight.w700)),
+              const SizedBox(width: 20),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purpleAccent.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.2)),
+                      ),
+                      child: Text('Nivel ${stats.level}', 
+                        style: const TextStyle(color: Colors.purpleAccent, fontSize: 12, fontWeight: FontWeight.bold)),
+                    ),
+                    const SizedBox(height: 8),
+                    const Text('Maestro de Idiomas', 
+                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                    const SizedBox(height: 12),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: progress,
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+                        minHeight: 6,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text('${stats.xpForNextLevel - stats.xpProgress} XP para el siguiente nivel', 
+                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
+          const Divider(color: Colors.white10),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _SmallStat(icon: Icons.star_rounded, label: 'XP Total', value: '${stats.totalXp}', color: Colors.purpleAccent),
+              _SmallStat(icon: Icons.local_fire_department_rounded, label: 'Racha', value: '${stats.currentStreak} días', color: Colors.orangeAccent),
+              _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '12', color: Colors.amberAccent),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _SmallStat extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
+  final Color color;
+
+  const _SmallStat({required this.icon, required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      Icon(icon, color: color, size: 28),
+      const SizedBox(height: 6),
+      Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+      Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10)),
+    ],
+  );
+}
+
+class _StreakCard extends StatelessWidget {
+  final int current, longest;
+  const _StreakCard({required this.current, required this.longest});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.2),
+              shape: BoxShape.circle,
             ),
+            child: const Icon(Icons.local_fire_department_rounded, color: Colors.white, size: 40),
+          ),
+          const SizedBox(width: 20),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('$current Días Seguidos', 
+                  style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 4),
+                Text('¡Mantén el fuego encendido! 🔥 Mejor racha: $longest', 
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w500)),
+              ],
+            ),
+          ),
         ],
       ),
     );
@@ -254,174 +280,114 @@ class _StreakCard extends StatelessWidget {
 }
 
 class _CourseStatsCard extends StatelessWidget {
+  final ProgressSummaryModel summary;
   const _CourseStatsCard({required this.summary});
-  final dynamic summary;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-      ),
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('Resumen de cursos',
-              style: AppTextStyles.titleMedium
-                  .copyWith(fontWeight: FontWeight.w700)),
-          const SizedBox(height: 16),
           Row(
-            children: [
-              _MiniStat(
-                  value: '${summary.lessonsCompleted}',
-                  label: 'Completadas',
-                  color: AppColors.success),
-              const SizedBox(width: 12),
-              _MiniStat(
-                  value: '${summary.lessonsInProgress}',
-                  label: 'En progreso',
-                  color: AppColors.secondary),
-              const SizedBox(width: 12),
-              _MiniStat(
-                  value: '${summary.coursesCompleted}',
-                  label: 'Cursos\nterminados',
-                  color: AppColors.primary),
+            children: const [
+              Icon(Icons.auto_stories_rounded, color: Colors.blueAccent),
+              SizedBox(width: 8),
+              Text('Estadísticas de Aprendizaje', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
-          const SizedBox(height: 16),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Progreso total: ${summary.percentage.toStringAsFixed(1)}%',
-                style: AppTextStyles.bodySmall,
-              ),
-              Text(
-                '${summary.lessonsCompleted} / ${summary.totalLessons}',
-                style: AppTextStyles.bodySmall
-                    .copyWith(fontWeight: FontWeight.w600),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(8),
-            child: LinearProgressIndicator(
-              value: summary.percentage / 100,
-              backgroundColor: AppColors.divider,
-              color: AppColors.success,
-              minHeight: 8,
-            ),
-          ),
+          const SizedBox(height: 20),
+          _StatRow(icon: Icons.school_rounded, label: 'Cursos Iniciados', value: '${summary.coursesStarted}', color: Colors.blueAccent),
+          const Divider(color: Colors.white12, height: 20),
+          _StatRow(icon: Icons.check_circle_rounded, label: 'Cursos Completados', value: '${summary.coursesCompleted}', color: Colors.greenAccent),
+          const Divider(color: Colors.white12, height: 20),
+          _StatRow(icon: Icons.play_lesson_rounded, label: 'Lecciones Completas', value: '${summary.lessonsCompleted}', color: Colors.orangeAccent),
         ],
       ),
     );
   }
 }
 
-class _MiniStat extends StatelessWidget {
-  const _MiniStat(
-      {required this.value, required this.label, required this.color});
-  final String value;
-  final String label;
+class _StatRow extends StatelessWidget {
+  final IconData icon;
+  final String label, value;
   final Color color;
 
+  const _StatRow({required this.icon, required this.label, required this.value, required this.color});
+
   @override
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
-        ),
-        child: Column(
-          children: [
-            Text(value,
-                style: TextStyle(
-                    color: color, fontWeight: FontWeight.bold, fontSize: 20)),
-            Text(label,
-                style: AppTextStyles.labelSmall
-                    .copyWith(color: AppColors.textSecondary),
-                textAlign: TextAlign.center),
-          ],
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Row(
+    children: [
+      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle), child: Icon(icon, color: color, size: 18)),
+      const SizedBox(width: 12),
+      Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14))),
+      Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+    ],
+  );
 }
 
-class _AchievementBadge extends StatelessWidget {
-  const _AchievementBadge({required this.achievement});
-  final dynamic achievement;
+class _AchievementsGrid extends ConsumerWidget {
+  const _AchievementsGrid();
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: 100,
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(Icons.emoji_events_rounded,
-              color: AppColors.primary, size: 32),
-          const SizedBox(height: 6),
-          Text(
-            achievement.achievement.name,
-            style: AppTextStyles.labelSmall
-                .copyWith(fontWeight: FontWeight.w600),
-            textAlign: TextAlign.center,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _EmptyAchievements extends StatelessWidget {
-  const _EmptyAchievements();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: AppColors.divider),
-      ),
-      child: Center(
-        child: Text('Completa lecciones para desbloquear logros',
-            style: AppTextStyles.bodyMedium
-                .copyWith(color: AppColors.textSecondary)),
-      ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final achAsync = ref.watch(myAchievementsProvider);
+    return achAsync.when(
+      loading: () => const _SkeletonCard(height: 120),
+      error: (_, __) => const SizedBox.shrink(),
+      data: (achievements) {
+        if (achievements.isEmpty) {
+          return GlassContainer(
+            borderRadius: BorderRadius.circular(20),
+            padding: const EdgeInsets.all(24),
+            child: const Center(
+              child: Text('Completa cursos y juegos para ganar logros 🏅', style: TextStyle(color: Colors.white54), textAlign: TextAlign.center),
+            ),
+          );
+        }
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 12, crossAxisSpacing: 12),
+          itemCount: achievements.length,
+          itemBuilder: (context, i) {
+            final a = achievements[i];
+            return GlassContainer(
+              borderRadius: BorderRadius.circular(16),
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(a.achievement.iconUrl ?? '🏅', style: const TextStyle(fontSize: 28)),
+                  const SizedBox(height: 6),
+                  Text(a.achievement.name, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
 
 class _SkeletonCard extends StatelessWidget {
-  const _SkeletonCard({required this.height});
   final double height;
+  const _SkeletonCard({required this.height});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    return GlassContainer(
       height: height,
-      decoration: BoxDecoration(
-        color: AppColors.divider,
-        borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(24),
+      opacity: 0.05,
+      child: const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white24,
+          strokeWidth: 2,
+        ),
       ),
     );
   }

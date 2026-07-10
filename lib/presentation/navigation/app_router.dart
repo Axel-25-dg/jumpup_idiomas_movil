@@ -19,6 +19,7 @@ import 'package:jumpup_app/presentation/screens/student/ranking_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/achievements_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/certificates_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/virtual_class_list_screen.dart';
+import 'package:jumpup_app/presentation/screens/catalog/catalog_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
@@ -27,6 +28,7 @@ import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dar
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/cart/cart_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 import 'package:jumpup_app/presentation/screens/admin/admin_dashboard_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/teacher_dashboard_screen.dart';
@@ -78,6 +80,8 @@ abstract final class AppRoutes {
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
   static const studentGames = '/student/games';
+  static const studentCart = '/cart';
+  static const studentCatalog = '/student/catalog';
 
   // Teacher
   static const teacherDashboard = '/teacher';
@@ -231,6 +235,14 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentGames,
           name: 'studentGames',
           builder: (_, __) => const GamesScreen()),
+      GoRoute(
+          path: AppRoutes.studentCart,
+          name: 'studentCart',
+          builder: (_, __) => const CartScreen()),
+      GoRoute(
+          path: AppRoutes.studentCatalog,
+          name: 'studentCatalog',
+          builder: (_, __) => const CatalogScreen()),
 
       // Teacher
       GoRoute(

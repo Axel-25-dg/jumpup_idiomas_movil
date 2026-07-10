@@ -76,3 +76,26 @@ final dailyChallengesProvider =
   final service = ref.watch(progressServiceProvider);
   return service.getDailyChallenges();
 });
+
+class ExerciseSubmitNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>?>> {
+  ExerciseSubmitNotifier(this._service) : super(const AsyncValue.data(null));
+
+  final ProgressService _service;
+
+  Future<void> submitExercise({
+    required int exerciseId,
+    required String answer,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _service.submitExercise(
+          exerciseId: exerciseId,
+          answer: answer,
+        ));
+  }
+}
+
+final exerciseSubmitNotifierProvider =
+    StateNotifierProvider<ExerciseSubmitNotifier, AsyncValue<Map<String, dynamic>?>>(
+        (ref) {
+  return ExerciseSubmitNotifier(ref.watch(progressServiceProvider));
+});

@@ -3,25 +3,25 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
-import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/notification_item.dart';
+import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() =>
-      _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  final _repository = SocialMediaRepository();
   final _ws = WebSocketService(path: 'notifications');
+  StreamSubscription<Map<String, dynamic>>? _wsSub;
 
   List<NotificationItem> _notifications = [];
   bool _loading = true;
   String? _error;
-  StreamSubscription<Map<String, dynamic>>? _wsSub;
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       _error = null;
     });
     try {
-      final result = await _repository.fetchNotifications();
+      final result = await ref.read(socialRepositoryProvider).fetchNotifications();
       if (mounted) {
         setState(() {
           _notifications = result;
@@ -68,8 +68,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _connectWebSocket() async {
     await _ws.connect();
     _wsSub = _ws.messages.listen((data) {
-      if (data['type'] == 'notification' &&
-          data['notification'] != null) {
+      if (data['type'] == 'notification' && data['notification'] != null) {
         final newNotif = NotificationItem.fromJson(
           data['notification'] as Map<String, dynamic>,
         );
@@ -77,7 +76,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           setState(() {
             _notifications = [newNotif, ..._notifications];
           });
-          _showSnackBar(newNotif.title);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(newNotif.title), duration: const Duration(seconds: 3)),
+          );
         }
       }
     });
@@ -86,7 +87,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _markRead(NotificationItem notif) async {
     if (notif.isRead) return;
     try {
-      await _repository.markNotificationRead(notif.id);
+      await ref.read(socialRepositoryProvider).markNotificationRead(notif.id);
       if (mounted) {
         setState(() {
           _notifications = _notifications.map((n) {
@@ -94,80 +95,125 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             return n;
           }).toList();
         });
+        ref.invalidate(unreadNotificationsProvider);
       }
     } catch (_) {}
   }
 
   Future<void> _markAllRead() async {
-    for (final n in _notifications.where((n) => !n.isRead)) {
-      await _markRead(n);
-    }
-  }
-
-  void _showSnackBar(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    try {
+      await ref.read(socialRepositoryProvider).markAllNotificationsRead();
+      if (mounted) {
+        setState(() {
+          _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+        });
+        ref.invalidate(unreadNotificationsProvider);
+      }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasUnread = _notifications.any((n) => !n.isRead);
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('Notificaciones'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: Text('Notificaciones',
+            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
         actions: [
           if (hasUnread)
             TextButton(
               onPressed: _markAllRead,
-              child: const Text('Leer todo',
-                  style: TextStyle(color: Colors.white)),
+              child: Text('Leído todo',
+                  style: AppTextStyles.labelMedium.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
             onPressed: _fetchNotifications,
           ),
+          const SizedBox(width: 8),
         ],
       ),
-      body: _buildBody(theme),
+      body: Stack(
+        children: [
+          // Background Blobs
+          Positioned(
+            top: -50,
+            right: -50,
+            child: Container(
+              width: 200,
+              height: 200,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -30,
+            child: Container(
+              width: 150,
+              height: 150,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00B4DB).withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+          _buildBody(),
+        ],
+      ),
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
+  Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
     }
 
     if (_error != null) {
       return Center(
         child: Padding(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
-              const SizedBox(height: 12),
-              Text('No se pudieron cargar las notificaciones',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium),
-              const SizedBox(height: 8),
-              Text(_error!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey)),
-              const SizedBox(height: 20),
-              FilledButton.icon(
-                onPressed: _loadAndConnect,
-                icon: const Icon(Icons.refresh),
-                label: const Text('Reintentar'),
-              ),
-            ],
+          padding: const EdgeInsets.all(32),
+          child: GlassContainer(
+            opacity: 0.1,
+            blur: 15,
+            padding: const EdgeInsets.all(24),
+            borderRadius: BorderRadius.circular(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white24),
+                const SizedBox(height: 16),
+                Text('¡Vaya! Hubo un problema',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 8),
+                Text('No pudimos conectar con el centro de notificaciones.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+                const SizedBox(height: 24),
+                FilledButton.icon(
+                  onPressed: _loadAndConnect,
+                  icon: const Icon(Icons.refresh_rounded, size: 18),
+                  label: const Text('Reintentar conexión'),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C4DFF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -178,13 +224,20 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none,
-                size: 64,
-                color: theme.colorScheme.primary
-                    .withValues(alpha: 0.4)),
-            const SizedBox(height: 12),
-            Text('Sin notificaciones por ahora',
-                style: theme.textTheme.titleMedium),
+            Container(
+              padding: const EdgeInsets.all(32),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+              ),
+              child: const Icon(Icons.notifications_none_rounded, size: 64, color: Colors.white24),
+            ),
+            const SizedBox(height: 24),
+            Text('Todo al día por aquí',
+                style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 8),
+            Text('Te avisaremos cuando pase algo importante',
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
           ],
         ),
       );
@@ -193,25 +246,34 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
     return Column(
       children: [
         if (_ws.isConnected)
-          Container(
-            color: Colors.green.shade50,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                const Icon(Icons.circle, size: 10, color: Colors.green),
-                const SizedBox(width: 6),
-                Text(
-                  'Recibiendo notificaciones en tiempo real',
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: Colors.green.shade800),
-                ),
-              ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
+            child: GlassContainer(
+              opacity: 0.05,
+              blur: 5,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              borderRadius: BorderRadius.circular(12),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(color: Color(0xFF00E676), shape: BoxShape.circle),
+                  ),
+                  const SizedBox(width: 8),
+                  Text('Conectado en tiempo real',
+                      style: AppTextStyles.labelSmall.copyWith(color: Colors.white60, fontWeight: FontWeight.bold)),
+                ],
+              ),
             ),
           ),
         Expanded(
-          child: ListView.builder(
-            padding: const EdgeInsets.symmetric(vertical: 4),
+          child: ListView.separated(
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
             itemCount: _notifications.length,
+            physics: const BouncingScrollPhysics(),
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
             itemBuilder: (context, index) {
               final notif = _notifications[index];
               return _NotificationCard(
@@ -227,81 +289,104 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({
-    required this.notification,
-    required this.onTap,
-  });
-
+  const _NotificationCard({required this.notification, required this.onTap});
   final NotificationItem notification;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isUnread = !notification.isRead;
 
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      elevation: isUnread ? 2 : 0,
-      color: isUnread
-          ? theme.colorScheme.primaryContainer
-              .withValues(alpha: 0.2)
-          : null,
-      child: ListTile(
-        onTap: onTap,
-        leading: CircleAvatar(
-          backgroundColor: _colorForType(notification.type, theme),
-          child: Icon(
-            _iconForType(notification.type),
-            color: Colors.white,
-            size: 20,
-          ),
-        ),
-        title: Text(
-          notification.title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
-        subtitle: Text(notification.message,
-            maxLines: 2, overflow: TextOverflow.ellipsis),
-        trailing: isUnread
-            ? Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
+    return GlassContainer(
+      opacity: isUnread ? 0.12 : 0.05,
+      blur: 10,
+      borderRadius: BorderRadius.circular(20),
+      padding: EdgeInsets.zero,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(20),
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    color: _colorForType(notification.type).withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                  ),
+                  child: Icon(_iconForType(notification.type),
+                      color: _colorForType(notification.type), size: 20),
                 ),
-              )
-            : null,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Expanded(
+                            child: Text(
+                              notification.title,
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: Colors.white,
+                                fontWeight: isUnread ? FontWeight.w900 : FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                          if (isUnread)
+                            Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Color(0xFF7C4DFF),
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        notification.message,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: isUnread ? Colors.white70 : Colors.white38,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
 
-  Color _colorForType(String type, ThemeData theme) {
+  Color _colorForType(String type) {
     switch (type) {
-      case 'community':
-        return Colors.indigo;
-      case 'teacher':
-        return Colors.teal;
-      case 'system':
-        return Colors.grey.shade700;
-      default:
-        return theme.colorScheme.primary;
+      case 'community': return const Color(0xFF7C4DFF);
+      case 'teacher': return const Color(0xFF00E676);
+      case 'system': return const Color(0xFF00B4DB);
+      case 'forum': return const Color(0xFFFFD54F);
+      case 'chat': return const Color(0xFF00B4DB);
+      default: return const Color(0xFF7C4DFF);
     }
   }
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'community':
-        return Icons.group;
-      case 'teacher':
-        return Icons.school;
-      case 'system':
-        return Icons.info_outline;
-      default:
-        return Icons.notifications;
+      case 'community': return Icons.group_rounded;
+      case 'teacher': return Icons.school_rounded;
+      case 'system': return Icons.info_outline_rounded;
+      case 'forum': return Icons.forum_rounded;
+      case 'chat': return Icons.chat_rounded;
+      default: return Icons.notifications_rounded;
     }
   }
 }
