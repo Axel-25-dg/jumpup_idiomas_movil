@@ -6,6 +6,19 @@ class AppConfig {
     return value.endsWith('/') ? value : '$value/';
   }
 
+  static String resolveImageUrl(String? path) {
+    if (path == null || path.isEmpty) return '';
+    if (path.startsWith('http://') || path.startsWith('https://')) return path;
+    
+    final apiFreeBase = baseUrl.replaceFirst(RegExp(r'/?api/?$'), '');
+    final cleanBase = apiFreeBase.endsWith('/')
+        ? apiFreeBase.substring(0, apiFreeBase.length - 1)
+        : apiFreeBase;
+    final cleanPath = path.startsWith('/') ? path : '/$path';
+    return '$cleanBase$cleanPath';
+  }
+
+
   static const String appName = 'JumpUp';
 
   static const String appVersion = '1.0.0';

@@ -15,14 +15,19 @@ class NotificationService {
   Future<void> initialize() async {
     // Solicitar permisos en iOS
     await _firebaseMessaging.requestPermission();
-    
-    // Configuracion de Notificaciones Locales (Android/iOS)
+
     const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosInit = DarwinInitializationSettings();
-    const InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
-    
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
+
     await _localNotifications.initialize(
-      initSettings,
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Opcional: manejar cuando el usuario toca la notificación
+      },
     );
 
     // Escuchar mensajes en primer plano

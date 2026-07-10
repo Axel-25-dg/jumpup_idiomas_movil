@@ -196,7 +196,7 @@ class _SliverHeader extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         UserAvatar(
-                          imageUrl: _resolveAvatarUrl(user.avatarUrl),
+                          imageUrl: AppConfig.resolveImageUrl(user.avatarUrl),
                           fullName: user.username,
                           radius: 30,
                         ),
@@ -246,16 +246,6 @@ class _SliverHeader extends ConsumerWidget {
         style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
-  }
-
-  String? _resolveAvatarUrl(String? url) {
-    if (url == null || url.isEmpty) return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    final base = AppConfig.baseUrl;
-    final apiFreeBase = base.replaceFirst(RegExp(r'/?api/?$'), '');
-    final cleanBase = apiFreeBase.endsWith('/') ? apiFreeBase.substring(0, apiFreeBase.length - 1) : apiFreeBase;
-    final cleanPath = url.startsWith('/') ? url : '/$url';
-    return '$cleanBase$cleanPath';
   }
 }
 

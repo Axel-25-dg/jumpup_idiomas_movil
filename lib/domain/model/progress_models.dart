@@ -76,21 +76,22 @@ class ProgressSummaryModel {
 
   factory ProgressSummaryModel.fromJson(Map<String, dynamic> json) {
     return ProgressSummaryModel(
-      totalLessons: json['total_lessons'] as int? ?? 0,
-      lessonsCompleted: json['lessons_completed'] as int? ?? 0,
-      lessonsInProgress: json['lessons_in_progress'] as int? ?? 0,
-      coursesStarted: json['courses_started'] as int? ?? 0,
-      coursesCompleted: json['courses_completed'] as int? ?? 0,
+      totalLessons: int.tryParse(json['total_lessons']?.toString() ?? '0') ?? 0,
+      lessonsCompleted: int.tryParse(json['lessons_completed']?.toString() ?? '0') ?? 0,
+      lessonsInProgress: int.tryParse(json['lessons_in_progress']?.toString() ?? '0') ?? 0,
+      coursesStarted: int.tryParse(json['courses_started']?.toString() ?? '0') ?? 0,
+      coursesCompleted: int.tryParse(json['courses_completed']?.toString() ?? '0') ?? 0,
       percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
-      totalXp: json['total_xp'] as int? ?? 0,
-      level: json['level'] as int? ?? 1,
-      xpForNextLevel: json['xp_for_next_level'] as int? ?? 100,
-      xpProgress: json['xp_progress'] as int? ?? 0,
-      currentStreak: json['current_streak'] as int? ?? 0,
-      longestStreak: json['longest_streak'] as int? ?? 0,
-      achievementsCount: json['achievements_count'] as int? ?? 0,
+      totalXp: int.tryParse(json['total_xp']?.toString() ?? json['xp']?.toString() ?? '0') ?? 0,
+      level: int.tryParse(json['level']?.toString() ?? '1') ?? 1,
+      xpForNextLevel: int.tryParse(json['xp_for_next_level']?.toString() ?? '100') ?? 100,
+      xpProgress: int.tryParse(json['xp_progress']?.toString() ?? '0') ?? 0,
+      currentStreak: int.tryParse(json['current_streak']?.toString() ?? json['streak']?.toString() ?? '0') ?? 0,
+      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '0') ?? 0,
+      achievementsCount: int.tryParse(json['achievements_count']?.toString() ?? '0') ?? 0,
     );
   }
+
 }
 
 // ─── UserStats ────────────────────────────────────────────────────────────────
@@ -118,14 +119,15 @@ class UserStatsModel {
 
   factory UserStatsModel.fromJson(Map<String, dynamic> json) {
     return UserStatsModel(
-      totalXp: json['total_xp'] as int? ?? 0,
-      level: json['level'] as int? ?? 1,
-      xpForNextLevel: json['xp_for_next_level'] as int? ?? 100,
-      xpProgress: json['xp_progress'] as int? ?? 0,
-      currentStreak: json['current_streak'] as int? ?? 0,
-      longestStreak: json['longest_streak'] as int? ?? 0,
+      totalXp: int.tryParse(json['total_xp']?.toString() ?? json['xp']?.toString() ?? '0') ?? 0,
+      level: int.tryParse(json['level']?.toString() ?? '1') ?? 1,
+      xpForNextLevel: int.tryParse(json['xp_for_next_level']?.toString() ?? '100') ?? 100,
+      xpProgress: int.tryParse(json['xp_progress']?.toString() ?? '0') ?? 0,
+      currentStreak: int.tryParse(json['current_streak']?.toString() ?? json['streak']?.toString() ?? '0') ?? 0,
+      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '0') ?? 0,
     );
   }
+
 }
 
 // ─── Achievement ──────────────────────────────────────────────────────────────

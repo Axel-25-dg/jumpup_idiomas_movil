@@ -23,7 +23,7 @@ class UserAvatar extends StatelessWidget {
       onTap: onTap,
       child: CircleAvatar(
         radius: radius,
-        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
         backgroundImage: (imageUrl != null && imageUrl!.isNotEmpty)
             ? CachedNetworkImageProvider(imageUrl!)
             : null,
@@ -42,11 +42,12 @@ class UserAvatar extends StatelessWidget {
   }
 
   String _getInitials(String? name) {
-    if (name == null || name.isEmpty) return 'U';
-    final parts = name.trim().split(' ');
-    if (parts.length >= 2) {
+    if (name == null || name.trim().isEmpty) return 'U';
+    final trimmedName = name.trim();
+    final parts = trimmedName.split(RegExp(r'\s+'));
+    if (parts.length >= 2 && parts[0].isNotEmpty && parts[1].isNotEmpty) {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
-    return parts[0][0].toUpperCase();
+    return trimmedName.isNotEmpty ? trimmedName[0].toUpperCase() : 'U';
   }
 }

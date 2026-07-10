@@ -4,7 +4,7 @@ import 'package:jumpup_app/domain/model/classroom_model.dart';
 class TeacherService {
   final TeacherRepository _repository = TeacherRepository();
 
-  Future<Classroom> createClassroom({
+  Future<ClassroomModel> createClassroom({
     required String name,
     required String description,
     required int courseId,

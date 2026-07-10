@@ -44,7 +44,6 @@ class _AITutorScreenState extends State<AITutorScreen> {
               final msg = data['message'];
               setState(() {
                 // Evitar duplicados si el mensaje ya fue añadido localmente
-                final body = msg['body']?.toString() ?? '';
                 final senderId = msg['sender_id'];
                 // Solo añadir si es respuesta de la IA (sender_id == 0)
                 if (senderId == 0) {
