@@ -211,7 +211,7 @@ class _ForumCreateDialogState extends State<ForumCreateDialog> {
             ),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
-              value: _languages.contains(languageController.text)
+              initialValue: _languages.contains(languageController.text)
                   ? languageController.text
                   : 'en',
               decoration: const InputDecoration(labelText: 'Idioma'),

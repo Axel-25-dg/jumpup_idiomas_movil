@@ -16,7 +16,7 @@ class _AITutorScreenState extends State<AITutorScreen> {
   final ChatWebSocketService _wsService = ChatWebSocketService();
   final TextEditingController _msgController = TextEditingController();
   
-  List<Map<String, dynamic>> _messages = [];
+  final List<Map<String, dynamic>> _messages = [];
   bool _isAITyping = false;
 
   @override
@@ -103,7 +103,7 @@ class _AITutorScreenState extends State<AITutorScreen> {
                       borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withValues(alpha: 0.05),
                           blurRadius: 5,
                           offset: const Offset(0, 2),
                         )

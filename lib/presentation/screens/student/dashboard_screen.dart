@@ -68,14 +68,14 @@ class _BottomNav extends StatelessWidget {
     return Container(
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surface,
-        border: Border(
+        border: const Border(
           top: BorderSide(color: AppColors.divider, width: 0.5),
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
             blurRadius: 12,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -356,7 +356,7 @@ class _HomeTab extends ConsumerWidget {
                           child: Center(
                             child: Column(
                               children: [
-                                Icon(Icons.history,
+                                const Icon(Icons.history,
                                     size: 40, color: AppColors.textHint),
                                 const SizedBox(height: 8),
                                 Text('Sin actividad reciente',
@@ -505,11 +505,11 @@ class _StatPill extends StatelessWidget {
           color: AppColors.white,
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: AppColors.divider),
-          boxShadow: [
+          boxShadow: const [
             BoxShadow(
                 color: AppColors.shadow,
                 blurRadius: 8,
-                offset: const Offset(0, 2)),
+                offset: Offset(0, 2)),
           ],
         ),
         child: Column(

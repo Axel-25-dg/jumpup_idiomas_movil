@@ -255,7 +255,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                           child: Center(
                             child: Column(
                               children: [
-                                Icon(Icons.school_outlined,
+                                const Icon(Icons.school_outlined,
                                     size: 48, color: AppColors.textHint),
                                 const SizedBox(height: 10),
                                 Text('Sin aulas creadas',
@@ -421,11 +421,11 @@ class _ClassroomTile extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.divider),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
               color: AppColors.shadow,
               blurRadius: 6,
-              offset: const Offset(0, 2)),
+              offset: Offset(0, 2)),
         ],
       ),
       child: ListTile(

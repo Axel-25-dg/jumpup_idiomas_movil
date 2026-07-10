@@ -81,7 +81,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     hintText: 'Correo electrónico',
                     prefixIcon: const Icon(Icons.email, color: AppTheme.celeste),
                     filled: true,
-                    fillColor: Colors.white.withOpacity(0.8),
+                    fillColor: Colors.white.withValues(alpha: 0.8),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                 ),

@@ -8,7 +8,7 @@ import 'package:jumpup_app/domain/model/auth_token_model.dart';
 void main() {
   group('auth models', () {
     test('LoginRequest serializa correctamente', () {
-      final request =
+      const request =
           LoginRequest(email: 'ana@example.com', password: '123456');
       final json = request.toJson();
 
@@ -17,7 +17,7 @@ void main() {
     });
 
     test('RegisterRequest serializa correctamente', () {
-      final request = RegisterRequest(
+      const request = RegisterRequest(
         firstName: 'Ana',
         lastName: 'García',
         username: 'ana_garcia',
@@ -33,14 +33,14 @@ void main() {
     });
 
     test('ForgotPasswordRequest serializa correctamente', () {
-      final request = ForgotPasswordRequest(email: 'ana@example.com');
+      const request = ForgotPasswordRequest(email: 'ana@example.com');
       final json = request.toJson();
 
       expect(json['email'], 'ana@example.com');
     });
 
     test('TwoFactorRequest serializa correctamente', () {
-      final request = TwoFactorRequest(code: '123456');
+      const request = TwoFactorRequest(code: '123456');
       final json = request.toJson();
 
       expect(json['code'], '123456');

@@ -30,15 +30,15 @@ class GamesScreen extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: AppTheme.celeste.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 6))],
+                boxShadow: [BoxShadow(color: AppTheme.celeste.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 6))],
               ),
-              child: Row(
+              child: const Row(
                 children: [
-                  const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 44),
-                  const SizedBox(width: 16),
+                  Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 44),
+                  SizedBox(width: 16),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
+                    children: [
                       Text('¡Gana XP jugando!', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       SizedBox(height: 4),
                       Text('Mejora tu inglés de forma divertida', style: TextStyle(color: Colors.white70, fontSize: 13)),
@@ -109,7 +109,7 @@ class _GameCard extends StatelessWidget {
       color: Colors.white,
       borderRadius: BorderRadius.circular(18),
       elevation: 2,
-      shadowColor: color.withOpacity(0.2),
+      shadowColor: color.withValues(alpha: 0.2),
       child: InkWell(
         borderRadius: BorderRadius.circular(18),
         onTap: onTap,
@@ -120,7 +120,7 @@ class _GameCard extends StatelessWidget {
               Container(
                 width: 56,
                 height: 56,
-                decoration: BoxDecoration(color: color.withOpacity(0.12), borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(14)),
                 child: Icon(icon, color: color, size: 30),
               ),
               const SizedBox(width: 14),
@@ -136,7 +136,7 @@ class _GameCard extends StatelessWidget {
               ),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                decoration: BoxDecoration(color: color.withOpacity(0.1), borderRadius: BorderRadius.circular(20)),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(20)),
                 child: Text('+$xp XP', style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 12)),
               ),
               const SizedBox(width: 6),
@@ -228,7 +228,7 @@ class _HangmanGameState extends State<HangmanGame> {
             // Hint
             Container(
               padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(color: AppTheme.celeste.withOpacity(0.1), borderRadius: BorderRadius.circular(12)),
+              decoration: BoxDecoration(color: AppTheme.celeste.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
               child: Text(_hint, style: const TextStyle(fontSize: 16, color: AppTheme.textoOscuro)),
             ),
             const SizedBox(height: 30),
@@ -377,7 +377,7 @@ class _QuizGameState extends State<QuizGame> {
             children: [
               const Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 80),
               const SizedBox(height: 16),
-              Text('¡Quiz completado!', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
+              const Text('¡Quiz completado!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
               const SizedBox(height: 10),
               Text('Puntaje: $_score/${_questions.length}', style: const TextStyle(fontSize: 20, color: AppTheme.celeste, fontWeight: FontWeight.bold)),
               const SizedBox(height: 24),
@@ -418,7 +418,7 @@ class _QuizGameState extends State<QuizGame> {
               decoration: BoxDecoration(
                 color: AppTheme.celeste,
                 borderRadius: BorderRadius.circular(20),
-                boxShadow: [BoxShadow(color: AppTheme.celeste.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 6))],
+                boxShadow: [BoxShadow(color: AppTheme.celeste.withValues(alpha: 0.3), blurRadius: 15, offset: const Offset(0, 6))],
               ),
               child: Text(q['q'] as String, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
             ),
@@ -553,7 +553,7 @@ class _MemoryGameState extends State<MemoryGame> {
                         color: _matched[i] ? Colors.green.shade100 : show ? Colors.white : AppTheme.celeste,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(color: _matched[i] ? Colors.green : show ? AppTheme.celeste : Colors.transparent, width: 2),
-                        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.07), blurRadius: 6)],
+                        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.07), blurRadius: 6)],
                       ),
                       child: Center(
                         child: show

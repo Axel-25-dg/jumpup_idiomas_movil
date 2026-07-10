@@ -81,7 +81,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: AppTheme.celeste.withOpacity(0.4),
+                        color: AppTheme.celeste.withValues(alpha: 0.4),
                         blurRadius: 20,
                         offset: const Offset(0, 8),
                       ),
@@ -112,7 +112,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           hintText: 'Correo electrónico',
                           prefixIcon: const Icon(Icons.email_outlined, color: AppTheme.celeste),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.8),
+                          fillColor: Colors.white.withValues(alpha: 0.8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         ),
                       ),
@@ -128,7 +128,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             onPressed: () => setState(() => _obscurePass = !_obscurePass),
                           ),
                           filled: true,
-                          fillColor: Colors.white.withOpacity(0.8),
+                          fillColor: Colors.white.withValues(alpha: 0.8),
                           border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                         ),
                       ),
@@ -156,14 +156,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 const SizedBox(height: 20),
 
                 // ── Divisor ───────────────────────────────────────────
-                Row(
+                const Row(
                   children: [
-                    const Expanded(child: Divider(color: AppTheme.textoClaro)),
+                    Expanded(child: Divider(color: AppTheme.textoClaro)),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: EdgeInsets.symmetric(horizontal: 12),
                       child: Text('o continúa con', style: TextStyle(color: AppTheme.textoClaro, fontSize: 13)),
                     ),
-                    const Expanded(child: Divider(color: AppTheme.textoClaro)),
+                    Expanded(child: Divider(color: AppTheme.textoClaro)),
                   ],
                 ),
                 const SizedBox(height: 20),

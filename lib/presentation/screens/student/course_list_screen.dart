@@ -135,7 +135,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                     const Icon(Icons.error_outline,
                         color: Colors.redAccent, size: 48),
                     const SizedBox(height: 12),
-                    Text(
+                    const Text(
                       'Error al cargar cursos',
                       style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
                     ),

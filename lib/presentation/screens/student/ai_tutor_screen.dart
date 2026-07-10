@@ -212,7 +212,7 @@ class _AITutorScreenState extends State<AITutorScreen>
                   Container(
                     width: 6,
                     height: 6,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppColors.warning,
                       shape: BoxShape.circle,
                     ),
@@ -300,11 +300,11 @@ class _AITutorScreenState extends State<AITutorScreen>
               style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13, height: 1.5),
             ),
             const SizedBox(height: 12),
-            _FeatureChip(icon: Icons.chat_bubble_outline_rounded, label: 'Chat en tiempo real'),
+            const _FeatureChip(icon: Icons.chat_bubble_outline_rounded, label: 'Chat en tiempo real'),
             const SizedBox(height: 8),
-            _FeatureChip(icon: Icons.mic_rounded, label: 'Dictado por voz'),
+            const _FeatureChip(icon: Icons.mic_rounded, label: 'Dictado por voz'),
             const SizedBox(height: 8),
-            _FeatureChip(icon: Icons.volume_up_rounded, label: 'Pronunciación de respuestas'),
+            const _FeatureChip(icon: Icons.volume_up_rounded, label: 'Pronunciación de respuestas'),
             const SizedBox(height: 24),
           ],
         ),
@@ -573,13 +573,13 @@ class _TypingIndicator extends StatelessWidget {
           border:
               Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             _Dot(delay: 0),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 200),
-            const SizedBox(width: 4),
+            SizedBox(width: 4),
             _Dot(delay: 400),
           ],
         ),

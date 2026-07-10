@@ -20,7 +20,7 @@ class NeonButton extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: glowColor.withOpacity(0.6),
+            color: glowColor.withValues(alpha: 0.6),
             blurRadius: 15,
             spreadRadius: 2,
             offset: const Offset(0, 4),

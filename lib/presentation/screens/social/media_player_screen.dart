@@ -75,7 +75,7 @@ class MediaPlayerScreen extends StatelessWidget {
               style: theme.textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               _ControlButton(
@@ -124,17 +124,17 @@ class MediaPlayerScreen extends StatelessWidget {
               style: theme.textTheme.titleSmall
                   ?.copyWith(fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          _MediaItem(
+          const _MediaItem(
             title: 'Introducción al curso',
             duration: '10:20',
             isActive: true,
           ),
-          _MediaItem(
+          const _MediaItem(
             title: 'Vocabulario básico',
             duration: '15:45',
             isActive: false,
           ),
-          _MediaItem(
+          const _MediaItem(
             title: 'Gramática esencial',
             duration: '12:30',
             isActive: false,

@@ -22,7 +22,8 @@ class NotificationService {
     const InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
     
     await _localNotifications.initialize(
-      initializationSettings: initSettings,
+      //initializationSettings: initSettings, Error local Ariel
+      settings: initSettings, 
     );
 
     // Escuchar mensajes en primer plano

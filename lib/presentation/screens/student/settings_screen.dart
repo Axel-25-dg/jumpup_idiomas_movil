@@ -20,7 +20,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
         children: [
-          _SectionHeader(label: 'PREFERENCIAS'),
+          const _SectionHeader(label: 'PREFERENCIAS'),
           SwitchListTile(
             title: const Text('Tema Oscuro'),
             subtitle: const Text('Mejora la lectura en la noche'),
@@ -43,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (_) {},
           ),
           const Divider(height: 32),
-          _SectionHeader(label: 'SOPORTE'),
+          const _SectionHeader(label: 'SOPORTE'),
           ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('Centro de Ayuda'),

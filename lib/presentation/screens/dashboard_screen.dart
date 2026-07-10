@@ -35,12 +35,12 @@ class DashboardScreen extends StatelessWidget {
             const SizedBox(height: 20),
             
             // Stats Row using Glassmorphism
-            Row(
+            const Row(
               children: [
                 Expanded(
                   child: GlassContainer(
                     child: Column(
-                      children: const [
+                      children: [
                         Icon(Icons.star, color: Colors.orange, size: 30),
                         SizedBox(height: 8),
                         Text('XP', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
@@ -49,11 +49,11 @@ class DashboardScreen extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 15),
+                SizedBox(width: 15),
                 Expanded(
                   child: GlassContainer(
                     child: Column(
-                      children: const [
+                      children: [
                         Icon(Icons.local_fire_department, color: Colors.redAccent, size: 30),
                         SizedBox(height: 8),
                         Text('Racha', style: TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
@@ -77,16 +77,16 @@ class DashboardScreen extends StatelessWidget {
                     width: 60,
                     height: 60,
                     decoration: BoxDecoration(
-                      color: AppTheme.celeste.withOpacity(0.2),
+                      color: AppTheme.celeste.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: const Icon(Icons.language, color: AppTheme.celeste, size: 35),
                   ),
                   const SizedBox(width: 15),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text('Inglés Avanzado', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
                         SizedBox(height: 5),
                         Text('Unidad 4: Tiempos verbales', style: TextStyle(color: AppTheme.textoClaro)),
@@ -105,7 +105,7 @@ class DashboardScreen extends StatelessWidget {
               text: 'Hablar con Tutor IA',
               onPressed: () {
                 // Thread ID should ideally come from backend/auth state
-                final threadId = 'default_thread_123';
+                const threadId = 'default_thread_123';
                 Navigator.push(context, MaterialPageRoute(builder: (_) => AITutorScreen(threadId: threadId)));
               },
             ),

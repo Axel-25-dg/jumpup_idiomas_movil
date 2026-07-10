@@ -7,7 +7,7 @@ import 'text_styles.dart';
 final ThemeData lightTheme = _buildLightTheme();
 
 ThemeData _buildLightTheme() {
-  final colorScheme = const ColorScheme(
+  const colorScheme = ColorScheme(
     brightness: Brightness.light,
     primary: AppColors.primary,
     onPrimary: AppColors.textOnPrimary,
@@ -19,18 +19,18 @@ ThemeData _buildLightTheme() {
     onSecondaryContainer: AppColors.primaryDark,
     tertiary: AppColors.accent,
     onTertiary: AppColors.white,
-    tertiaryContainer: const Color(0xFFB2EBF2),
+    tertiaryContainer: Color(0xFFB2EBF2),
     onTertiaryContainer: AppColors.primaryDark,
     error: AppColors.error,
     onError: AppColors.white,
-    errorContainer: const Color(0xFFFFCDD2),
-    onErrorContainer: const Color(0xFFB71C1C),
+    errorContainer: Color(0xFFFFCDD2),
+    onErrorContainer: Color(0xFFB71C1C),
     surface: AppColors.surface,
     onSurface: AppColors.textPrimary,
     surfaceContainerHighest: AppColors.background,
     onSurfaceVariant: AppColors.textSecondary,
     outline: AppColors.divider,
-    outlineVariant: const Color(0xFFCFD8E3),
+    outlineVariant: Color(0xFFCFD8E3),
     inverseSurface: AppColors.darkBackground,
     onInverseSurface: AppColors.white,
     inversePrimary: AppColors.secondaryLight,
@@ -170,7 +170,7 @@ ThemeData _buildLightTheme() {
         if (states.contains(WidgetState.selected)) {
           return const IconThemeData(color: AppColors.primary, size: 24);
         }
-        return IconThemeData(color: AppColors.textSecondary, size: 22);
+        return const IconThemeData(color: AppColors.textSecondary, size: 22);
       }),
       elevation: 8,
       shadowColor: AppColors.shadow,

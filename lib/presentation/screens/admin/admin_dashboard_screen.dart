@@ -364,11 +364,11 @@ class _ActionCard extends StatelessWidget {
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.divider),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
               color: AppColors.shadow,
               blurRadius: 8,
-              offset: const Offset(0, 2)),
+              offset: Offset(0, 2)),
         ],
       ),
       child: ListTile(

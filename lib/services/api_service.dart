@@ -124,7 +124,7 @@ class ApiService {
     try {
       final response = await _dio.get('notifications/');
       return response.data; 
-    } on DioException catch (e) {
+    } on DioException {
       throw Exception('Error al cargar notificaciones');
     }
   }

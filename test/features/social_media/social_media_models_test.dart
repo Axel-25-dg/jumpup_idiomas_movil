@@ -10,7 +10,7 @@ import 'package:jumpup_app/domain/model/social_post.dart';
 void main() {
   group('social media models', () {
     test('MessageThread crea un resumen útil', () {
-      final thread = MessageThread(
+      const thread = MessageThread(
         id: 'msg-1',
         title: 'Clase de conversación',
         participantName: 'María',
@@ -22,7 +22,7 @@ void main() {
     });
 
     test('ForumThread serializa y deserializa correctamente', () {
-      final thread = ForumThread(
+      const thread = ForumThread(
         id: 'f-1',
         title: 'Dudas de pronunciación',
         authorName: 'Luis',
