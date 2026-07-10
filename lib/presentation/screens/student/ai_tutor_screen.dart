@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 /// Pantalla del Tutor IA.
 ///
@@ -159,7 +158,7 @@ class _AITutorScreenState extends State<AITutorScreen>
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: AppColors.surface,
+      backgroundColor: AppColors.primary,
       elevation: 0,
       leadingWidth: 40,
       leading: IconButton(
@@ -177,7 +176,7 @@ class _AITutorScreenState extends State<AITutorScreen>
                 height: 40,
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
-                    colors: [AppColors.primary, Color(0xFF448AFF)],
+                    colors: [AppColors.primary, AppColors.primaryLight],
                   ),
                   borderRadius: BorderRadius.circular(12),
                 ),
@@ -188,7 +187,7 @@ class _AITutorScreenState extends State<AITutorScreen>
                 width: 12,
                 height: 12,
                 decoration: BoxDecoration(
-                  color: AppColors.warning,
+                  color: AppColors.success,
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.surface, width: 2),
                 ),
@@ -201,11 +200,8 @@ class _AITutorScreenState extends State<AITutorScreen>
             children: [
               Text(
                 'Tutor JumpUp AI',
-                style: GoogleFonts.poppins(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+                style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w700, fontSize: 15),
               ),
               Row(
                 children: [
@@ -213,17 +209,17 @@ class _AITutorScreenState extends State<AITutorScreen>
                     width: 6,
                     height: 6,
                     decoration: BoxDecoration(
-                      color: AppColors.warning,
+                      color: AppColors.success,
                       shape: BoxShape.circle,
                     ),
                   ),
                   const SizedBox(width: 4),
                   Text(
                     'Modo demo · Próximamente con IA real',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.warning,
-                      fontSize: 10,
-                    ),
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: AppColors.textSecondary,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w400),
                   ),
                 ],
               ),
@@ -233,7 +229,8 @@ class _AITutorScreenState extends State<AITutorScreen>
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.info_outline_rounded, color: AppColors.textSecondary),
+          icon: const Icon(Icons.info_outline_rounded,
+              color: AppColors.textSecondary),
           onPressed: _showInfoDialog,
         ),
       ],
@@ -250,12 +247,11 @@ class _AITutorScreenState extends State<AITutorScreen>
         content: Row(
           children: [
             const Icon(Icons.mic_off_rounded,
-                color: AppColors.warning, size: 18),
+                color: AppColors.textSecondary, size: 18),
             const SizedBox(width: 10),
             Text(
               'Reconocimiento de voz disponible próximamente',
-              style:
-                  GoogleFonts.poppins(color: AppColors.textPrimary, fontSize: 13),
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
             ),
           ],
         ),
@@ -279,32 +275,37 @@ class _AITutorScreenState extends State<AITutorScreen>
               height: 4,
               margin: const EdgeInsets.only(bottom: 24),
               decoration: BoxDecoration(
-                  color: Colors.white24,
+                  color: AppColors.textHint,
                   borderRadius: BorderRadius.circular(2)),
             ),
-            const Icon(Icons.construction_rounded,
-                color: AppColors.warning, size: 48),
+            const Icon(Icons.auto_awesome_rounded,
+                color: AppColors.primary, size: 48),
             const SizedBox(height: 16),
             Text(
               'Tutor IA · En construcción',
-              style: GoogleFonts.poppins(
-                color: AppColors.textPrimary,
-                fontSize: 18,
-                fontWeight: FontWeight.w700,
-              ),
+              style: AppTextStyles.titleLarge.copyWith(
+                  fontWeight: FontWeight.w700),
             ),
             const SizedBox(height: 12),
             Text(
               'Esta función utilizará la API de OpenAI (GPT-4) o Google Gemini para responder tus preguntas sobre idiomas en tiempo real.\n\nEl backend ya tiene la infraestructura de mensajería lista. Solo falta conectar el "cerebro" de IA.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13, height: 1.5),
+              style: AppTextStyles.bodyMedium.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.5),
             ),
             const SizedBox(height: 12),
-            _FeatureChip(icon: Icons.chat_bubble_outline_rounded, label: 'Chat en tiempo real'),
+            _FeatureChip(
+                icon: Icons.chat_bubble_outline_rounded,
+                label: 'Chat en tiempo real'),
             const SizedBox(height: 8),
-            _FeatureChip(icon: Icons.mic_rounded, label: 'Dictado por voz'),
+            _FeatureChip(
+                icon: Icons.mic_rounded, label: 'Dictado por voz'),
             const SizedBox(height: 8),
-            _FeatureChip(icon: Icons.volume_up_rounded, label: 'Pronunciación de respuestas'),
+            _FeatureChip(
+                icon: Icons.volume_up_rounded,
+                label: 'Pronunciación de respuestas'),
             const SizedBox(height: 24),
           ],
         ),
@@ -322,25 +323,22 @@ class _ConstructionBanner extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: AppColors.warning.withValues(alpha: 0.1),
+        color: AppColors.primaryLight.withValues(alpha: 0.1),
         border: Border(
           bottom: BorderSide(
-              color: AppColors.warning.withValues(alpha: 0.3), width: 1),
+              color: AppColors.primaryLight.withValues(alpha: 0.3), width: 1),
         ),
       ),
       child: Row(
         children: [
-          const Icon(Icons.construction_rounded,
-              color: AppColors.warning, size: 16),
+          const Icon(Icons.info_outline_rounded,
+              color: AppColors.primary, size: 16),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
-              'Función en construcción · Las respuestas son ejemplos estáticos',
-              style: GoogleFonts.poppins(
-                color: AppColors.warning,
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
+              'Función en desarrollo · Las respuestas son ejemplos',
+              style: AppTextStyles.labelSmall.copyWith(
+                  color: AppColors.primary),
             ),
           ),
         ],
@@ -359,29 +357,27 @@ class _FeatureChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(10),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
           Icon(icon, color: AppColors.secondary, size: 18),
           const SizedBox(width: 10),
           Text(label,
-              style: GoogleFonts.poppins(
-                  color: AppColors.textPrimary, fontSize: 13)),
+              style: AppTextStyles.bodyMedium.copyWith(fontSize: 13)),
           const Spacer(),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
             decoration: BoxDecoration(
-              color: AppColors.warning.withValues(alpha: 0.15),
+              color: AppColors.primaryLight.withValues(alpha: 0.15),
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
               'Próximo',
-              style: GoogleFonts.poppins(
-                  color: AppColors.warning, fontSize: 10),
+              style: AppTextStyles.labelSmall.copyWith(
+                  fontSize: 10, color: AppColors.primary),
             ),
           ),
         ],
@@ -433,7 +429,7 @@ class _ChatBubble extends StatelessWidget {
                       height: 20,
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
-                          colors: [AppColors.primary, Color(0xFF448AFF)],
+                          colors: [AppColors.primary, AppColors.primaryLight],
                         ),
                         borderRadius: BorderRadius.circular(6),
                       ),
@@ -443,11 +439,8 @@ class _ChatBubble extends StatelessWidget {
                     const SizedBox(width: 6),
                     Text(
                       'Tutor AI',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white38,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTextStyles.labelSmall.copyWith(
+                          fontWeight: FontWeight.w600),
                     ),
                   ],
                 ),
@@ -471,7 +464,7 @@ class _ChatBubble extends StatelessWidget {
                   bottomRight: Radius.circular(message.isBot ? 18 : 4),
                 ),
                 border: message.isBot
-                    ? Border.all(color: Colors.white.withValues(alpha: 0.08))
+                    ? Border.all(color: AppColors.divider)
                     : null,
                 boxShadow: [
                   BoxShadow(
@@ -486,20 +479,16 @@ class _ChatBubble extends StatelessWidget {
               child: Text(
                 // Renderiza **negrita** de forma simple
                 message.text.replaceAll('**', ''),
-                style: GoogleFonts.poppins(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
+                style: AppTextStyles.bodyMedium.copyWith(height: 1.5),
               ),
             ),
             const SizedBox(height: 4),
             Text(
               _formatTime(message.timestamp),
-              style: GoogleFonts.poppins(
-                color: Colors.white24,
-                fontSize: 10,
-              ),
+              style: AppTextStyles.labelSmall.copyWith(
+                  fontSize: 10,
+                  color: AppColors.textHint,
+                  fontWeight: FontWeight.w400),
             ),
           ],
         ),
@@ -534,17 +523,15 @@ class _QuickRepliesRow extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(
                         horizontal: 14, vertical: 8),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(20),
                       border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.4)),
+                          color:
+                              AppColors.primary.withValues(alpha: 0.4)),
                     ),
                     child: Text(
                       r,
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                      ),
+                      style: AppTextStyles.bodyMedium.copyWith(fontSize: 13),
                     ),
                   ),
                 ))
@@ -570,8 +557,7 @@ class _TypingIndicator extends StatelessWidget {
             bottomRight: Radius.circular(18),
             bottomLeft: Radius.circular(4),
           ),
-          border:
-              Border.all(color: Colors.white.withValues(alpha: 0.08)),
+          border: Border.all(color: AppColors.divider),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -653,8 +639,7 @@ class _ChatInput extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.surface,
         border: Border(
-            top: BorderSide(
-                color: Colors.white.withValues(alpha: 0.07))),
+            top: BorderSide(color: AppColors.surface)),
       ),
       child: SafeArea(
         top: false,
@@ -666,7 +651,7 @@ class _ChatInput extends StatelessWidget {
               height: 44,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
-                  colors: [AppColors.primary, Color(0xFF5B2EFF)],
+                  colors: [AppColors.primary, AppColors.primaryDark],
                 ),
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -682,18 +667,17 @@ class _ChatInput extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white12),
+                  border: Border.all(color: AppColors.divider),
                 ),
                 child: TextField(
                   controller: controller,
-                  style: GoogleFonts.poppins(
-                      color: AppColors.textPrimary, fontSize: 14),
+                  style: AppTextStyles.bodyMedium,
                   decoration: InputDecoration(
                     hintText: 'Escribe en inglés o español...',
-                    hintStyle: GoogleFonts.poppins(
-                        color: Colors.white38, fontSize: 13),
+                    hintStyle: AppTextStyles.bodyMedium.copyWith(
+                        fontSize: 13, color: AppColors.textSecondary),
                     border: InputBorder.none,
                     contentPadding: const EdgeInsets.symmetric(
                         horizontal: 18, vertical: 12),

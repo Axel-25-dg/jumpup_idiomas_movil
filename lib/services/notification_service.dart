@@ -22,7 +22,7 @@ class NotificationService {
     const InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
     
     await _localNotifications.initialize(
-      initializationSettings: initSettings,
+      initSettings,
     );
 
     // Escuchar mensajes en primer plano

@@ -18,6 +18,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _fadeAnim;
   late final Animation<double> _scaleAnim;
   late final Animation<Offset> _slideAnim;
+  bool _navigated = false;
 
   @override
   void initState() {
@@ -51,8 +52,6 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _ctrl.forward();
-
-    Future.delayed(const Duration(milliseconds: 2400), _navigate);
   }
 
   @override
@@ -61,25 +60,28 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.dispose();
   }
 
-  void _navigate() {
-    if (!mounted) return;
-    final authState = ref.read(authProvider);
+  void _navigate(AuthState authState) {
+    if (_navigated || !mounted) return;
     if (authState.status == AuthStatus.authenticated &&
         authState.user != null) {
+      _navigated = true;
       context.go(routeForRole(authState.user!.role));
-    } else {
+    } else if (authState.status == AuthStatus.unauthenticated) {
+      _navigated = true;
       context.go(AppRoutes.login);
     }
+    // Si status == loading o initial, esperar a que cambie
   }
 
   @override
   Widget build(BuildContext context) {
     ref.listen<AuthState>(authProvider, (prev, next) {
-      if (next.status == AuthStatus.authenticated &&
-          next.user != null &&
-          mounted) {
-        context.go(routeForRole(next.user!.role));
-      }
+      _navigate(next);
+    });
+
+    // También verificar el estado actual al construir
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _navigate(ref.read(authProvider));
     });
 
     return Scaffold(

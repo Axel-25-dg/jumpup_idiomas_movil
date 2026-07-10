@@ -154,7 +154,7 @@ class _SessionManagementCard extends ConsumerWidget {
                 width: double.infinity,
                 child: NeonButton(
                   text: isLive ? 'Finalizar Sesión' : 'Iniciar Sesión',
-                  color: isLive ? Colors.redAccent : const Color(0xFF7C4DFF),
+                  glowColor: isLive ? Colors.redAccent : const Color(0xFF7C4DFF),
                   onPressed: () => _handleSessionAction(context, ref, isLive),
                 ),
               ),

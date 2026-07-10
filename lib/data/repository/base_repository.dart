@@ -62,7 +62,38 @@ abstract class BaseRepository {
       return await request();
     } catch (error) {
       if (error is ApiException) rethrow;
+      // Extraer ApiException anidada dentro de DioException
+      if (error is DioException && error.error is ApiException) {
+        throw error.error as ApiException;
+      }
+      if (error is DioException) {
+        final statusCode = error.response?.statusCode;
+        final body = error.response?.data;
+        String msg = message ?? 'Ocurrió un error inesperado';
+        if (body is Map) {
+          msg = body['detail']?.toString() ??
+              body['non_field_errors']?.toString() ??
+              body['message']?.toString() ??
+              _extractFieldErrors(body) ??
+              msg;
+        }
+        throw ApiException(msg, statusCode, error);
+      }
       throw ApiException(message ?? 'Ocurrió un error inesperado', null, error);
     }
+  }
+
+  String? _extractFieldErrors(Map body) {
+    final errors = <String>[];
+    body.forEach((key, value) {
+      if (key != 'detail' && key != 'non_field_errors' && key != 'message') {
+        if (value is List) {
+          errors.addAll(value.map((e) => e.toString()));
+        } else if (value is String) {
+          errors.add(value);
+        }
+      }
+    });
+    return errors.isEmpty ? null : errors.join('\n');
   }
 }

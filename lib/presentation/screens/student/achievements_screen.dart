@@ -1,5 +1,8 @@
+import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
@@ -8,114 +11,167 @@ class AchievementsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final allAchievementsAsync = ref.watch(achievementsProvider);
-    final myAchievementsAsync = ref.watch(myAchievementsProvider);
+    final allAsync = ref.watch(achievementsProvider);
+    final myAsync = ref.watch(myAchievementsProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text('Logros 🏆',
-            style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
-      ),
-      body: allAchievementsAsync.when(
-        loading: () => const Center(
-            child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (_, __) => const Center(
-          child: Text('Error al cargar logros',
-              style: TextStyle(color: Colors.redAccent)),
-        ),
-        data: (allAchievements) => myAchievementsAsync.when(
-          loading: () => const Center(
-              child: CircularProgressIndicator(color: AppColors.primary)),
-          error: (_, __) => const SizedBox.shrink(),
-          data: (myAchievements) {
-            final unlockedIds =
-                myAchievements.map((a) => a.achievement.id).toSet();
-            final unlocked = allAchievements
-                .where((a) => unlockedIds.contains(a.id))
-                .toList();
-            final locked = allAchievements
-                .where((a) => !unlockedIds.contains(a.id))
-                .toList();
-
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFFFFD700).withValues(alpha: 0.2),
-                          const Color(0xFFFFD700).withValues(alpha: 0.05),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                          color:
-                              const Color(0xFFFFD700).withValues(alpha: 0.3)),
+      body: CustomScrollView(
+        slivers: [
+          SliverAppBar(
+            expandedHeight: 180,
+            pinned: true,
+            flexibleSpace: FlexibleSpaceBar(
+              title: Text(
+                'Mis Logros',
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w800,
+                  shadows: [
+                    const Shadow(
+                      offset: Offset(0, 1),
+                      blurRadius: 4,
+                      color: Colors.black26,
                     ),
-                    child: Row(
+                  ],
+                ),
+              ),
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                ),
+                child: Center(
+                  child: FadeInDown(
+                    duration: const Duration(milliseconds: 600),
+                    child: Icon(
+                      Icons.emoji_events_rounded,
+                      size: 80,
+                      color: Colors.white.withValues(alpha: 0.2),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+          allAsync.when(
+            loading: () => const SliverFillRemaining(
+              child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+            ),
+            error: (e, __) => SliverFillRemaining(
+              child: Center(
+                child: Text('Error al cargar logros',
+                    style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error)),
+              ),
+            ),
+            data: (allAchievements) => myAsync.when(
+              loading: () => const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
+              ),
+              error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
+              data: (myAchievements) {
+                final unlockedIds = myAchievements.map((a) => a.achievement.id).toSet();
+                final unlocked = allAchievements.where((a) => unlockedIds.contains(a.id)).toList();
+                final locked = allAchievements.where((a) => !unlockedIds.contains(a.id)).toList();
+
+                return SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('🏆', style: TextStyle(fontSize: 36)),
-                        const SizedBox(width: 16),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              '${unlocked.length} de ${allAchievements.length} logros',
-                              style: const TextStyle(
-                                  color: AppColors.textPrimary,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18),
+                        FadeIn(
+                          duration: const Duration(milliseconds: 800),
+                          child: Container(
+                            padding: const EdgeInsets.all(20),
+                            decoration: BoxDecoration(
+                              color: AppColors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.08),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                            Text(
-                              '${locked.length} logros por desbloquear',
-                              style: const TextStyle(
-                                  color: AppColors.textSecondary, fontSize: 13),
+                            child: Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(12),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(Icons.stars_rounded,
+                                      color: AppColors.primary, size: 32),
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Progreso de Colección',
+                                        style: AppTextStyles.labelMedium.copyWith(
+                                          color: AppColors.textSecondary,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        '${unlocked.length} de ${allAchievements.length} desbloqueados',
+                                        style: AppTextStyles.headlineSmall.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          color: AppColors.textPrimary,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      CustomProgressBar(
+                                        progress: allAchievements.isEmpty
+                                            ? 0
+                                            : unlocked.length / allAchievements.length,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                          ],
+                          ),
                         ),
+                        const SizedBox(height: 32),
+                        if (unlocked.isNotEmpty) ...[
+                          const SectionHeader(title: 'Desbloqueados'),
+                          ...unlocked.asMap().entries.map((entry) => FadeInLeft(
+                                delay: Duration(milliseconds: entry.key * 100),
+                                child: _AchievementCard(
+                                  achievement: entry.value,
+                                  isUnlocked: true,
+                                  unlockedAt: myAchievements
+                                      .firstWhere((ua) => ua.achievement.id == entry.value.id)
+                                      .unlockedAt,
+                                ),
+                              )),
+                          const SizedBox(height: 24),
+                        ],
+                        if (locked.isNotEmpty) ...[
+                          const SectionHeader(title: 'Pendientes'),
+                          ...locked.asMap().entries.map((entry) => FadeInUp(
+                                delay: Duration(milliseconds: entry.key * 50),
+                                child: _AchievementCard(
+                                  achievement: entry.value,
+                                  isUnlocked: false,
+                                ),
+                              )),
+                        ],
+                        const SizedBox(height: 40),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 20),
-                  if (unlocked.isNotEmpty) ...[
-                    const Text('Desbloqueados',
-                        style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16)),
-                    const SizedBox(height: 12),
-                    ...unlocked.map((a) => _AchievementCard(
-                          achievement: a,
-                          isUnlocked: true,
-                          unlockedAt: myAchievements
-                              .firstWhere((ua) => ua.achievement.id == a.id)
-                              .unlockedAt,
-                        )),
-                    const SizedBox(height: 20),
-                  ],
-                  if (locked.isNotEmpty) ...[
-                    const Text('Por desbloquear',
-                        style: TextStyle(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16)),
-                    const SizedBox(height: 12),
-                    ...locked.map((a) => _AchievementCard(
-                          achievement: a,
-                          isUnlocked: false,
-                        )),
-                  ],
-                ],
-              ),
-            );
-          },
-        ),
+                );
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -134,90 +190,118 @@ class _AchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: isUnlocked
-            ? const Color(0xFFFFD700).withValues(alpha: 0.05)
-            : AppColors.surface,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: isUnlocked
-              ? const Color(0xFFFFD700).withValues(alpha: 0.4)
-              : Colors.white12,
-        ),
-      ),
-      child: Row(
+    return StudentCard(
+      padding: EdgeInsets.zero,
+      color: isUnlocked ? AppColors.white : AppColors.white.withValues(alpha: 0.6),
+      child: Stack(
         children: [
-          Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: isUnlocked
-                  ? const Color(0xFFFFD700).withValues(alpha: 0.15)
-                  : Colors.white12,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Center(
-              child: Text(
-                isUnlocked ? '🏆' : '🔒',
-                style: const TextStyle(fontSize: 26),
-              ),
-            ),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
               children: [
-                Text(
-                  achievement.name,
-                  style: TextStyle(
-                    color: isUnlocked ? Colors.white : AppColors.textSecondary,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    gradient: isUnlocked
+                        ? AppColors.primaryGradient
+                        : LinearGradient(colors: [
+                            AppColors.textHint.withValues(alpha: 0.2),
+                            AppColors.textHint.withValues(alpha: 0.1),
+                          ]),
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(
+                    isUnlocked ? Icons.emoji_events_rounded : Icons.lock_rounded,
+                    color: isUnlocked ? Colors.white : AppColors.textHint,
+                    size: 30,
                   ),
                 ),
-                const SizedBox(height: 3),
-                Text(
-                  achievement.description,
-                  style: const TextStyle(color: Colors.white38, fontSize: 12),
-                ),
-                if (isUnlocked && unlockedAt != null) ...[
-                  const SizedBox(height: 4),
-                  Text(
-                    'Desbloqueado el ${_formatDate(unlockedAt!)}',
-                    style:
-                        const TextStyle(color: Color(0xFFFFD700), fontSize: 11),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        achievement.name,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: isUnlocked ? AppColors.textPrimary : AppColors.textSecondary,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        achievement.description,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                      if (isUnlocked && unlockedAt != null) ...[
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_rounded,
+                                color: AppColors.success, size: 14),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Conseguido el ${_formatDate(unlockedAt!)}',
+                              style: AppTextStyles.labelSmall.copyWith(
+                                color: AppColors.success,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                  decoration: BoxDecoration(
+                    color: isUnlocked
+                        ? AppColors.primary.withValues(alpha: 0.1)
+                        : AppColors.divider.withValues(alpha: 0.5),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Column(
+                    children: [
+                      Text(
+                        '${achievement.requiredXp}',
+                        style: AppTextStyles.labelLarge.copyWith(
+                          color: isUnlocked ? AppColors.primary : AppColors.textHint,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                      Text(
+                        'XP',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: isUnlocked ? AppColors.primary : AppColors.textHint,
+                          fontSize: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: isUnlocked
-                  ? const Color(0xFFFFD700).withValues(alpha: 0.2)
-                  : Colors.white12,
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Text(
-              '⚡ ${achievement.requiredXp}',
-              style: TextStyle(
-                color: isUnlocked ? const Color(0xFFFFD700) : Colors.white38,
-                fontWeight: FontWeight.bold,
-                fontSize: 12,
+          if (!isUnlocked)
+            Positioned.fill(
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(16),
+                ),
               ),
             ),
-          ),
         ],
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
-    return '${date.day}/${date.month}/${date.year}';
-  }
+  String _formatDate(DateTime date) =>
+      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 }
+

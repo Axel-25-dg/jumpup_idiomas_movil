@@ -15,6 +15,8 @@ class UserProfileModel {
     this.bio,
     required this.joinedAt,
     this.timezone,
+    this.level = 1,
+    this.currentStreak = 0,
   });
 
   final int id;
@@ -27,6 +29,8 @@ class UserProfileModel {
   final String? bio;
   final DateTime joinedAt;
   final String? timezone;
+  final int level;
+  final int currentStreak;
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
     // /auth/me/ puede devolver el perfil directamente o anidado en 'profile'
@@ -61,6 +65,8 @@ class UserProfileModel {
               '') ??
           DateTime.now(),
       timezone: profile['timezone']?.toString() ?? json['timezone']?.toString(),
+      level: profile['level'] as int? ?? json['level'] as int? ?? 1,
+      currentStreak: profile['current_streak'] as int? ?? json['current_streak'] as int? ?? 0,
     );
   }
 

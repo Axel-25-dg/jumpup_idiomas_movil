@@ -13,6 +13,7 @@ import 'package:jumpup_app/data/remote/dio_client.dart';
 ///   POST /api/auth/password-reset-confirm/ → confirma el PIN y cambia password
 ///   GET  /api/auth/me/                     → perfil del usuario autenticado
 ///   POST /api/auth/token/refresh/          → renueva el access token
+///   POST /api/auth/2fa/verify/             → verifica código 2FA
 ///   POST /api/auth/biometric/login/        → login por huella dactilar
 class AuthService {
   AuthService() : _dio = DioClient.instance.dio;
@@ -22,6 +23,8 @@ class AuthService {
 
   // ── Login ──────────────────────────────────────────────────────────────────
 
+  /// Inicia sesión. Si el backend requiere 2FA devuelve [AuthTokenModel] con
+  /// [requires2FA] = true y sin tokens. Si va directo, incluye tokens + user.
   Future<AuthTokenModel> login(LoginRequest request) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -29,12 +32,20 @@ class AuthService {
         data: request.toJson(),
       );
       final data = response.data!;
-      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
-      await _client.saveTokens(
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      );
-      return tokens;
+
+      // Caso 2FA: el backend devuelve { requires_2fa: true, message: "..." }
+      if (data['requires_2fa'] == true) {
+        return AuthTokenModel.fromJson(data);
+      }
+
+      final token = AuthTokenModel.fromJson(data);
+      if (token.accessToken.isNotEmpty) {
+        await _client.saveTokens(
+          accessToken: token.accessToken,
+          refreshToken: token.refreshToken,
+        );
+      }
+      return token;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo iniciar sesión');
     }
@@ -42,8 +53,6 @@ class AuthService {
 
   // ── Login con Google ───────────────────────────────────────────────────────
 
-  /// Envía el ID token de Google al backend para autenticación.
-  /// El backend valida con Google y devuelve los JWT propios.
   Future<AuthTokenModel> loginWithGoogle(String googleIdToken) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -51,12 +60,12 @@ class AuthService {
         data: {'id_token': googleIdToken},
       );
       final data = response.data!;
-      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
+      final token = AuthTokenModel.fromJson(data);
       await _client.saveTokens(
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
       );
-      return tokens;
+      return token;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo iniciar sesión con Google');
     }
@@ -64,7 +73,6 @@ class AuthService {
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
-  /// Login por huella dactilar usando el biometric_token guardado en el dispositivo.
   Future<AuthTokenModel> biometricLogin({
     required String deviceId,
     required String biometricToken,
@@ -78,12 +86,12 @@ class AuthService {
         },
       );
       final data = response.data!;
-      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
+      final token = AuthTokenModel.fromJson(data);
       await _client.saveTokens(
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
       );
-      return tokens;
+      return token;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo autenticar con huella dactilar');
     }
@@ -111,12 +119,14 @@ class AuthService {
         data: request.toJson(),
       );
       final data = response.data!;
-      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
-      await _client.saveTokens(
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
-      );
-      return tokens;
+      final token = AuthTokenModel.fromJson(data);
+      if (token.accessToken.isNotEmpty) {
+        await _client.saveTokens(
+          accessToken: token.accessToken,
+          refreshToken: token.refreshToken,
+        );
+      }
+      return token;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo completar el registro');
     }
@@ -147,8 +157,8 @@ class AuthService {
         'auth/password-reset-confirm/',
         data: {
           'email': email,
-          'pin': pin,
-          'new_password': newPassword,
+          'code': pin,        // el backend espera "code"
+          'password': newPassword, // el backend espera "password"
         },
       );
     } on DioException catch (e) {
@@ -176,12 +186,12 @@ class AuthService {
         data: {'refresh': refreshToken},
       );
       final data = response.data!;
-      final tokens = AuthTokenModel.fromJson(_normalizeTokenResponse(data));
+      final token = AuthTokenModel.fromJson(data);
       await _client.saveTokens(
-        accessToken: tokens.accessToken,
-        refreshToken: tokens.refreshToken,
+        accessToken: token.accessToken,
+        refreshToken: token.refreshToken,
       );
-      return tokens;
+      return token;
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo renovar la sesión');
     }
@@ -195,16 +205,6 @@ class AuthService {
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
-  /// Normaliza la respuesta del backend al formato esperado por AuthTokenModel.
-  Map<String, dynamic> _normalizeTokenResponse(Map<String, dynamic> data) {
-    return {
-      'accessToken':
-          data['access'] ?? data['accessToken'] ?? data['token'] ?? '',
-      'refreshToken': data['refresh'] ?? data['refreshToken'] ?? '',
-      'expiresAt': data['expiresAt'],
-    };
-  }
-
   ApiException _handle(DioException e, String fallback) {
     final inner = e.error;
     if (inner is ApiException) return inner;
@@ -214,8 +214,25 @@ class AuthService {
       msg = body['detail']?.toString() ??
           body['non_field_errors']?.toString() ??
           body['message']?.toString() ??
+          _extractFieldErrors(body) ??
           fallback;
     }
     return ApiException(msg, e.response?.statusCode, e);
+  }
+
+  String? _extractFieldErrors(Map body) {
+    final errors = <String>[];
+    body.forEach((key, value) {
+      if (key != 'detail' && key != 'non_field_errors' && key != 'message') {
+        if (value is List) {
+          for (final e in value) {
+            errors.add(e.toString());
+          }
+        } else if (value is String) {
+          errors.add(value);
+        }
+      }
+    });
+    return errors.isEmpty ? null : errors.join('\n');
   }
 }

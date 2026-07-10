@@ -19,6 +19,7 @@ import 'package:jumpup_app/presentation/screens/student/ranking_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/achievements_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/certificates_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/virtual_class_list_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dart'
@@ -39,6 +40,11 @@ import 'package:jumpup_app/presentation/screens/admin/users_list_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/report_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/resource_library_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/create_module_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/create_lesson_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart'
     as admin_subs;
 
@@ -71,6 +77,7 @@ abstract final class AppRoutes {
   static const studentSubscriptions = '/student/subscriptions';
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
+  static const studentGames = '/student/games';
 
   // Teacher
   static const teacherDashboard = '/teacher';
@@ -78,6 +85,11 @@ abstract final class AppRoutes {
   static const teacherManageClassroom = '/teacher/classroom/:id';
   static const teacherCreateExercise = '/teacher/create-exercise';
   static const teacherUploadResource = '/teacher/upload-resource';
+  static const teacherResources = '/teacher/resources';
+  static const teacherCreateModule = '/teacher/create-module';
+  static const teacherCreateLesson = '/teacher/create-lesson';
+  static const teacherInbox = '/teacher/inbox';
+  static const teacherLiveSessions = '/teacher/live-sessions';
   static const teacherProfile = '/teacher/profile';
   static const teacherUserStats = '/teacher/user-stats/:studentId';
 
@@ -215,6 +227,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentSettings,
           name: 'studentSettings',
           builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+          path: AppRoutes.studentGames,
+          name: 'studentGames',
+          builder: (_, __) => const GamesScreen()),
 
       // Teacher
       GoRoute(
@@ -238,6 +254,26 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.teacherUploadResource,
           name: 'teacherUploadResource',
           builder: (_, __) => const UploadResourceScreen()),
+      GoRoute(
+          path: AppRoutes.teacherResources,
+          name: 'teacherResources',
+          builder: (_, __) => const ResourceLibraryScreen()),
+      GoRoute(
+          path: AppRoutes.teacherCreateModule,
+          name: 'teacherCreateModule',
+          builder: (_, __) => const CreateModuleScreen()),
+      GoRoute(
+          path: AppRoutes.teacherCreateLesson,
+          name: 'teacherCreateLesson',
+          builder: (_, __) => const CreateLessonScreen()),
+      GoRoute(
+          path: AppRoutes.teacherInbox,
+          name: 'teacherInbox',
+          builder: (_, __) => const TeacherInboxScreen()),
+      GoRoute(
+          path: AppRoutes.teacherLiveSessions,
+          name: 'teacherLiveSessions',
+          builder: (_, __) => const ManageLiveSessionsScreen()),
       GoRoute(
           path: AppRoutes.teacherProfile,
           name: 'teacherProfile',
@@ -287,7 +323,7 @@ String routeForRole(UserRole role) {
     case UserRole.student:
       return AppRoutes.studentDashboard;
     case UserRole.unknown:
-      return AppRoutes.login;
+      return AppRoutes.studentDashboard;
   }
 }
 

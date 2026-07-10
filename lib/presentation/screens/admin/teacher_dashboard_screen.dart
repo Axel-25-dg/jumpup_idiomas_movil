@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
@@ -144,9 +145,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                           const SizedBox(height: 12),
                           NeonButton(
                             text: 'Ver Videotutorías',
-                            onPressed: () {
-                              Navigator.of(context).push(MaterialPageRoute(builder: (_) => const ManageLiveSessionsScreen()));
-                            },
+                            onPressed: () => context.push(AppRoutes.teacherLiveSessions),
                           ),
                         ],
                       ),
@@ -220,48 +219,42 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         icon: Icons.add_business_rounded,
                         label: 'Nueva Aula',
                         color: const Color(0xFF00E676),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateClassroomScreen())),
+                        onTap: () => context.push(AppRoutes.teacherCreateClassroom),
                       ),
                       const SizedBox(width: 12),
                       _TeacherQuickBtn(
                         icon: Icons.quiz_rounded,
                         label: 'Ejercicio',
                         color: const Color(0xFFFFD54F),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateExerciseScreen())),
+                        onTap: () => context.push(AppRoutes.teacherCreateExercise),
                       ),
                       const SizedBox(width: 12),
                       _TeacherQuickBtn(
                         icon: Icons.view_module_rounded,
                         label: 'Módulo',
                         color: const Color(0xFF4FC3F7),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateModuleScreen())),
+                        onTap: () => context.push(AppRoutes.teacherCreateModule),
                       ),
                       const SizedBox(width: 12),
                       _TeacherQuickBtn(
                         icon: Icons.play_lesson_rounded,
                         label: 'Lección',
                         color: const Color(0xFFFF8A65),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateLessonScreen())),
+                        onTap: () => context.push(AppRoutes.teacherCreateLesson),
                       ),
                       const SizedBox(width: 12),
                       _TeacherQuickBtn(
                         icon: Icons.folder_open_rounded,
                         label: 'Recursos',
                         color: const Color(0xFFAB47BC),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const ResourceLibraryScreen())),
+                        onTap: () => context.push(AppRoutes.teacherResources),
                       ),
                       const SizedBox(width: 12),
                       _TeacherQuickBtn(
                         icon: Icons.chat_rounded,
                         label: 'Mensajes',
                         color: const Color(0xFF66BB6A),
-                        onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const TeacherInboxScreen())),
+                        onTap: () => context.push(AppRoutes.teacherInbox),
                       ),
                     ],
                   ),
@@ -283,8 +276,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       const Text('Gestión de Aulas',
                           style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
                       TextButton.icon(
-                        onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(builder: (_) => const CreateClassroomScreen())),
+                        onPressed: () => context.push(AppRoutes.teacherCreateClassroom),
                         icon: const Icon(Icons.add, size: 18, color: Color(0xFF7C4DFF)),
                         label: const Text('Crear', style: TextStyle(color: Color(0xFF7C4DFF))),
                       ),
@@ -315,8 +307,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                                 const SizedBox(height: 16),
                                 NeonButton(
                                   text: 'Crear Aula',
-                                  onPressed: () => Navigator.of(context).push(
-                                      MaterialPageRoute(builder: (_) => const CreateClassroomScreen())),
+                                  onPressed: () => context.push(AppRoutes.teacherCreateClassroom),
                                 ),
                               ],
                             ),
@@ -327,10 +318,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         children: classrooms
                             .map((c) => _ClassroomTile(
                                 classroom: c,
-                                onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (_) => ManageClassroomScreen(
-                                            classroomId: c.id)))))
+                                onTap: () => context.push(AppRoutes.teacherManageClassroom.replaceAll(':id', c.id.toString()))))
                             .toList(),
                       );
                     },
@@ -457,7 +445,7 @@ class _TeacherQuickBtn extends StatelessWidget {
 
 class _ClassroomTile extends StatelessWidget {
   const _ClassroomTile({required this.classroom, required this.onTap});
-  final dynamic classroom;
+  final ClassroomModel classroom;
   final VoidCallback onTap;
 
   @override
@@ -490,7 +478,7 @@ class _ClassroomTile extends StatelessWidget {
                     Text(classroom.name,
                         style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 4),
-                    Text('${classroom.totalStudents} estudiantes',
+                    Text('${classroom.studentsCount} estudiantes',
                         style: const TextStyle(color: Colors.white54, fontSize: 13)),
                   ],
                 ),

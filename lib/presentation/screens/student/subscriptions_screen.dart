@@ -16,7 +16,7 @@ class SubscriptionsScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.primary,
         title: const Text('Suscripciones',
             style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
@@ -90,22 +90,22 @@ class _ActiveSubscriptionCard extends StatelessWidget {
               children: [
                 Text(subscription.subscription.name,
                     style: const TextStyle(
-                        color: AppColors.textPrimary,
+                        color: Colors.white,
                         fontWeight: FontWeight.bold,
                         fontSize: 16)),
                 Text('${subscription.daysRemaining} días restantes',
                     style:
-                        const TextStyle(color: AppColors.textPrimary, fontSize: 13)),
+                        const TextStyle(color: Colors.white, fontSize: 13)),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-                color: Colors.white24, borderRadius: BorderRadius.circular(8)),
+                color: AppColors.divider, borderRadius: BorderRadius.circular(8)),
             child: const Text('Activo',
                 style: TextStyle(
-                    color: AppColors.textPrimary,
+                    color: Colors.white,
                     fontSize: 12,
                     fontWeight: FontWeight.bold)),
           ),
@@ -129,10 +129,10 @@ class _PlanCard extends ConsumerWidget {
         Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            color: AppColors.white,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(
-              color: isPopular ? AppColors.primary : Colors.white12,
+              color: isPopular ? AppColors.primary : AppColors.divider,
               width: isPopular ? 2 : 1,
             ),
           ),
@@ -175,7 +175,7 @@ class _PlanCard extends ConsumerWidget {
                       child: Row(
                         children: [
                           const Icon(Icons.check_circle,
-                              color: Color(0xFF4CAF50), size: 16),
+                              color: AppColors.success, size: 16),
                           const SizedBox(width: 8),
                           Text(f,
                               style: const TextStyle(
@@ -193,7 +193,7 @@ class _PlanCard extends ConsumerWidget {
                             : () => _showPaymentDialog(context, ref, plan),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: plan.isFree
-                          ? Colors.white12
+                          ? AppColors.divider
                           : AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
@@ -222,7 +222,7 @@ class _PlanCard extends ConsumerWidget {
               ),
               child: const Text('Popular',
                   style: TextStyle(
-                      color: AppColors.textPrimary,
+                      color: Colors.white,
                       fontSize: 11,
                       fontWeight: FontWeight.bold)),
             ),
@@ -236,7 +236,7 @@ class _PlanCard extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('Suscribirse a ${plan.name}',
             style: const TextStyle(color: AppColors.textPrimary)),
@@ -247,7 +247,7 @@ class _PlanCard extends ConsumerWidget {
                 style: const TextStyle(color: AppColors.textPrimary)),
             const SizedBox(height: 16),
             const Text('Método de pago:',
-                style: TextStyle(color: Colors.white60, fontSize: 13)),
+                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
             const SizedBox(height: 8),
             ...['Tarjeta de crédito', 'PayPal'].map((method) => ListTile(
                   leading: Icon(
