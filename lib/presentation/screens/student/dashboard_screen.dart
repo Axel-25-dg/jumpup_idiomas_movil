@@ -10,6 +10,8 @@ import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
+import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
+import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 
 // Screens for bottom nav tabs
@@ -31,8 +33,8 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   final List<Widget> _tabs = [
     const _HomeTab(),
     const CourseListScreen(),
-    const ProgressScreen(),
     const SocialMediaShell(),
+    const ProgressScreen(),
     const ProfileScreen(),
   ];
 
@@ -58,9 +60,9 @@ class _BottomNav extends StatelessWidget {
 
   static const _items = [
     (Icons.home_rounded, Icons.home_outlined, 'Inicio'),
-    (Icons.menu_book_rounded, Icons.menu_book_outlined, 'Cursos'),
-    (Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Progreso'),
+    (Icons.school_rounded, Icons.school_outlined, 'Aulas'),
     (Icons.forum_rounded, Icons.forum_outlined, 'Social'),
+    (Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Progreso'),
     (Icons.person_rounded, Icons.person_outlined, 'Perfil'),
   ];
 
@@ -193,28 +195,10 @@ class _SliverHeader extends ConsumerWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          width: 60,
-                          height: 60,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
-                          ),
-                          child: ClipOval(
-                            child: Builder(
-                              builder: (context) {
-                                final avatarUrl = _resolveAvatarUrl(user.avatarUrl);
-                                if (avatarUrl != null) {
-                                  return Image.network(
-                                    avatarUrl,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (context, error, stackTrace) => _buildPlaceholder(user.username),
-                                  );
-                                }
-                                return _buildPlaceholder(user.username);
-                              },
-                            ),
-                          ),
+                        UserAvatar(
+                          imageUrl: _resolveAvatarUrl(user.avatarUrl),
+                          fullName: user.username,
+                          radius: 30,
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -399,8 +383,8 @@ class _QuickActionsGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     final actions = [
       (Icons.school_rounded, 'Aulas', AppColors.primary, AppRoutes.studentClassrooms),
-      (Icons.emoji_events_rounded, 'Logros', AppColors.secondary, AppRoutes.studentAchievements),
-      (Icons.workspace_premium_rounded, 'Certificados', AppColors.success, AppRoutes.studentCertificates),
+      (Icons.shopping_bag_rounded, 'Tienda', AppColors.success, '/student/catalog'),
+      (Icons.videogame_asset_rounded, 'Juegos', AppColors.secondary, '/student/games'),
       (Icons.leaderboard_rounded, 'Ranking', AppColors.secondary, AppRoutes.studentRanking),
     ];
 
@@ -499,21 +483,13 @@ class _RecentCourseCard extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (course.imageUrl != null)
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                  child: Image.network(
-                    course.imageUrl!,
-                    height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 120,
-                      color: AppColors.primary.withValues(alpha: 0.1),
-                      child: const Icon(Icons.image_not_supported_rounded, color: AppColors.primary),
-                    ),
-                  ),
+              ClipRRect(
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                child: ProductImage(
+                  imageUrl: course.imageUrl,
+                  height: 120,
                 ),
+              ),
               Padding(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(

@@ -25,6 +25,7 @@ dependencies:
   # Peticiones HTTP
   # ─────────────────────────────────────────────
   dio: ^5.10.0
+  http: ^1.2.2
 
   # ─────────────────────────────────────────────
   # WebSocket (chat en vivo + notificaciones)

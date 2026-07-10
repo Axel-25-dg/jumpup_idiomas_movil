@@ -19,7 +19,8 @@ import 'package:jumpup_app/presentation/screens/student/ranking_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/achievements_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/certificates_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/virtual_class_list_screen.dart';
-import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
+import 'package:jumpup_app/presentation/screens/catalog/catalog_screen.dart';
+import 'package:jumpup_app/presentation/screens/games/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dart'
@@ -80,6 +81,7 @@ abstract final class AppRoutes {
   static const studentSettings = '/student/settings';
   static const studentGames = '/student/games';
   static const studentCart = '/cart';
+  static const studentCatalog = '/student/catalog';
 
   // Teacher
   static const teacherDashboard = '/teacher';
@@ -237,6 +239,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentCart,
           name: 'studentCart',
           builder: (_, __) => const CartScreen()),
+      GoRoute(
+          path: AppRoutes.studentCatalog,
+          name: 'studentCatalog',
+          builder: (_, __) => const CatalogScreen()),
 
       // Teacher
       GoRoute(
