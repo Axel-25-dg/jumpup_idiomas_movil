@@ -1,21 +1,38 @@
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 class MediaPlayerScreen extends StatelessWidget {
   const MediaPlayerScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Multimedia'),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: Text('Multimedia',
+            style: AppTextStyles.titleLarge
+                .copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
           // Featured media
-          Card(
+          Container(
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.divider),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.shadow,
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -24,17 +41,16 @@ class MediaPlayerScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        theme.colorScheme.primaryContainer,
-                        theme.colorScheme.secondaryContainer,
+                        AppColors.primary,
+                        AppColors.primaryDark,
                       ],
                     ),
                     borderRadius: const BorderRadius.vertical(
-                        top: Radius.circular(16)),
+                        top: Radius.circular(15)),
                   ),
-                  child: Center(
-                    child: Icon(Icons.play_circle_fill,
-                        size: 72,
-                        color: theme.colorScheme.primary),
+                  child: const Center(
+                    child: Icon(Icons.play_circle_fill_rounded,
+                        size: 72, color: Colors.white),
                   ),
                 ),
                 Padding(
@@ -43,25 +59,26 @@ class MediaPlayerScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('Reproductor Multimedia',
-                          style: theme.textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w600)),
+                          style: AppTextStyles.titleMedium
+                              .copyWith(fontWeight: FontWeight.w700)),
                       const SizedBox(height: 4),
                       Text('Accede a tus lecciones en video y audio',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.colorScheme.onSurfaceVariant)),
+                          style: AppTextStyles.bodySmall
+                              .copyWith(color: AppColors.textSecondary)),
                       const SizedBox(height: 12),
                       LinearProgressIndicator(
                         value: 0.35,
                         borderRadius: BorderRadius.circular(4),
+                        backgroundColor: AppColors.divider,
+                        valueColor: const AlwaysStoppedAnimation<Color>(
+                            AppColors.primary),
                       ),
                       const SizedBox(height: 8),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text('15:30',
-                              style: theme.textTheme.bodySmall),
-                          Text('42:10',
-                              style: theme.textTheme.bodySmall),
+                          Text('15:30', style: AppTextStyles.bodySmall),
+                          Text('42:10', style: AppTextStyles.bodySmall),
                         ],
                       ),
                     ],
@@ -72,9 +89,9 @@ class MediaPlayerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Controles',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+              style: AppTextStyles.titleSmall
+                  .copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -90,40 +107,24 @@ class MediaPlayerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Opciones',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+              style: AppTextStyles.titleSmall
+                  .copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
           Wrap(
             spacing: 8,
             runSpacing: 8,
             children: [
-              FilterChip(
-                label: const Text('Subtítulos'),
-                onSelected: (_) {},
-                selected: true,
-              ),
-              FilterChip(
-                label: const Text('1.0x'),
-                onSelected: (_) {},
-                selected: false,
-              ),
-              FilterChip(
-                label: const Text('Loop'),
-                onSelected: (_) {},
-                selected: false,
-              ),
-              FilterChip(
-                label: const Text('Calidad HD'),
-                onSelected: (_) {},
-                selected: true,
-              ),
+              _OptionChip(label: 'Subtítulos', isSelected: true),
+              _OptionChip(label: '1.0x', isSelected: false),
+              _OptionChip(label: 'Loop', isSelected: false),
+              _OptionChip(label: 'Calidad HD', isSelected: true),
             ],
           ),
           const SizedBox(height: 24),
           Text('Lista de Reproducción',
-              style: theme.textTheme.titleSmall
-                  ?.copyWith(fontWeight: FontWeight.w600)),
-          const SizedBox(height: 8),
+              style: AppTextStyles.titleSmall
+                  .copyWith(fontWeight: FontWeight.w700)),
+          const SizedBox(height: 12),
           _MediaItem(
             title: 'Introducción al curso',
             duration: '10:20',
@@ -158,29 +159,50 @@ class _ControlButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: isPrimary
-                ? theme.colorScheme.primary
-                : theme.colorScheme.surfaceContainerHighest,
+            color: isPrimary ? AppColors.primary : AppColors.surface,
             shape: BoxShape.circle,
+            border: isPrimary ? null : Border.all(color: AppColors.divider),
           ),
           child: Icon(
             icon,
-            color: isPrimary
-                ? theme.colorScheme.onPrimary
-                : theme.colorScheme.onSurface,
+            color: isPrimary ? Colors.white : AppColors.textPrimary,
             size: isPrimary ? 36 : 24,
           ),
         ),
-        const SizedBox(height: 4),
-        Text(label, style: theme.textTheme.labelSmall),
+        const SizedBox(height: 6),
+        Text(label, style: AppTextStyles.labelSmall),
       ],
+    );
+  }
+}
+
+class _OptionChip extends StatelessWidget {
+  const _OptionChip({required this.label, required this.isSelected});
+
+  final String label;
+  final bool isSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilterChip(
+      label: Text(label,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: isSelected ? AppColors.primary : AppColors.textSecondary,
+          )),
+      selected: isSelected,
+      onSelected: (_) {},
+      backgroundColor: AppColors.white,
+      selectedColor: AppColors.primary.withValues(alpha: 0.1),
+      side: BorderSide(
+        color: isSelected ? AppColors.primary : AppColors.divider,
+      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
     );
   }
 }
@@ -198,24 +220,33 @@ class _MediaItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Card(
-      margin: const EdgeInsets.only(bottom: 6),
-      color: isActive
-          ? theme.colorScheme.primaryContainer.withValues(alpha: 0.3)
-          : null,
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      decoration: BoxDecoration(
+        color: isActive
+            ? AppColors.primary.withValues(alpha: 0.06)
+            : AppColors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isActive ? AppColors.primary.withValues(alpha: 0.3) : AppColors.divider,
+        ),
+      ),
       child: ListTile(
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 14, vertical: 2),
         leading: Icon(
-          isActive ? Icons.play_circle_filled : Icons.play_circle_outline,
-          color: isActive
-              ? theme.colorScheme.primary
-              : theme.colorScheme.onSurfaceVariant,
+          isActive ? Icons.play_circle_filled_rounded : Icons.play_circle_outline_rounded,
+          color: isActive ? AppColors.primary : AppColors.textSecondary,
         ),
         title: Text(title,
-            style: theme.textTheme.titleSmall?.copyWith(
+            style: AppTextStyles.labelLarge.copyWith(
               fontWeight: isActive ? FontWeight.w600 : FontWeight.normal,
+              color: AppColors.textPrimary,
             )),
-        trailing: Text(duration, style: theme.textTheme.bodySmall),
+        trailing: Text(duration,
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            )),
         onTap: () {},
       ),
     );

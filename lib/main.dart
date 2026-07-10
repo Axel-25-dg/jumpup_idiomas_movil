@@ -42,7 +42,7 @@ class JumpUpApp extends ConsumerWidget {
       // ── Tema azul/celeste/blanco ─────────────────────────────────────────
       theme: lightTheme,
       darkTheme: darkTheme,
-      themeMode: ThemeMode.system, // respeta la preferencia del SO
+      themeMode: ThemeMode.light, // forzado: app solo usa tema claro
 
       // ── go_router ────────────────────────────────────────────────────────
       routerConfig: buildAppRouter(ref),

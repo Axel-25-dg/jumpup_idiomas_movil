@@ -70,7 +70,9 @@ class TeacherInboxScreen extends ConsumerWidget {
                       CircleAvatar(
                         backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
                         child: Text(
-                          thread.participants.first.name[0].toUpperCase(),
+                          thread.participantName.isNotEmpty
+                              ? thread.participantName[0].toUpperCase()
+                              : '?',
                           style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
                         ),
                       ),
@@ -79,11 +81,11 @@ class TeacherInboxScreen extends ConsumerWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(thread.participants.map((p) => p.name).join(', '),
+                            Text(thread.participantName,
                                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Text(
-                              thread.lastMessage?.content ?? 'Sin mensajes',
+                              thread.lastMessage ?? 'Sin mensajes',
                               style: const TextStyle(color: Colors.white70, fontSize: 14),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -91,9 +93,9 @@ class TeacherInboxScreen extends ConsumerWidget {
                           ],
                         ),
                       ),
-                      if (thread.lastMessage != null)
+                      if (thread.lastMessageAt != null)
                         Text(
-                          DateFormat('HH:mm').format(thread.lastMessage!.createdAt),
+                          DateFormat('HH:mm').format(thread.lastMessageAt!),
                           style: const TextStyle(color: Colors.white30, fontSize: 12),
                         ),
                     ],

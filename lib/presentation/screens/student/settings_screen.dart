@@ -10,12 +10,11 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configuración'),
+        backgroundColor: AppColors.primary,
+        title: const Text('Configuración',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
       ),
       body: ListView(
         padding: const EdgeInsets.symmetric(vertical: 16),
@@ -70,8 +69,8 @@ class SettingsScreen extends ConsumerWidget {
               icon: const Icon(Icons.logout),
               label: const Text('Cerrar Sesión'),
               style: OutlinedButton.styleFrom(
-                foregroundColor: colors.error,
-                side: BorderSide(color: colors.error),
+                foregroundColor: AppColors.error,
+                side: BorderSide(color: AppColors.error),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -83,8 +82,8 @@ class SettingsScreen extends ConsumerWidget {
           Center(
             child: Text(
               'JumpUp Idiomas v1.0.0',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: colors.outline,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.divider,
               ),
             ),
           ),
@@ -115,7 +114,7 @@ class SettingsScreen extends ConsumerWidget {
               }
             },
             style: FilledButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.error,
+              backgroundColor: AppColors.error,
             ),
             child: const Text('Cerrar Sesión'),
           ),
@@ -131,13 +130,12 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
       child: Text(
         label,
-        style: theme.textTheme.labelSmall?.copyWith(
-          color: theme.colorScheme.outline,
+        style: Theme.of(context).textTheme.labelSmall?.copyWith(
+          color: AppColors.divider,
           letterSpacing: 1,
         ),
       ),

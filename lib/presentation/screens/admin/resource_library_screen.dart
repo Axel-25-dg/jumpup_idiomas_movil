@@ -90,7 +90,7 @@ class ResourceLibraryScreen extends ConsumerWidget {
                           children: [
                             Text(res.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
-                            Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.courseId}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                            Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.course}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                           ],
                         ),
                       ),

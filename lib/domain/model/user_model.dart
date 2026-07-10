@@ -46,23 +46,20 @@ class UserModel {
         ? (raw['name'] ?? raw['code'] ?? raw['slug'] ?? raw['role'])
         : raw;
 
-    switch (value?.toString().toLowerCase()) {
-      case 'admin':
-      case 'administrator':
-      case 'administrador':
-        return UserRole.admin;
-      case 'teacher':
-      case 'profesor':
-      case 'instructor':
-      case 'assistant_teacher':
-        return UserRole.teacher;
-      case 'student':
-      case 'estudiante':
-      case 'learner':
-      case 'premium_student':
-        return UserRole.student;
-      default:
-        return UserRole.unknown;
+    final str = value?.toString().toLowerCase().trim() ?? '';
+    if (str.isEmpty) return UserRole.student;
+
+    if (str.contains('admin') || str.contains('administrador') || str.contains('superuser')) {
+      return UserRole.admin;
     }
+    if (str.contains('teacher') || str.contains('profesor') || str.contains('instructor') ||
+        str.contains('assistant') || str.contains('staff')) {
+      return UserRole.teacher;
+    }
+    if (str.contains('student') || str.contains('estudiante') || str.contains('learner') ||
+        str.contains('premium') || str.contains('user')) {
+      return UserRole.student;
+    }
+    return UserRole.student;
   }
 }

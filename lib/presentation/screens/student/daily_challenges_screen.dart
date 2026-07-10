@@ -26,12 +26,12 @@ class DailyChallengesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
-        title: const Text('Misiones y Retos',
+        backgroundColor: AppColors.primary,
+        title: const Text('Juegos y Retos',
             style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.offline_bolt, color: Color(0xFFFFD700)),
+            icon: const Icon(Icons.offline_bolt, color: AppColors.primary),
             tooltip: 'Modo Offline',
             onPressed: () {
               ScaffoldMessenger.of(context).showSnackBar(
@@ -51,15 +51,15 @@ class DailyChallengesScreen extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.surface,
+                color: AppColors.white,
                 borderRadius: BorderRadius.circular(16),
                 border: Border.all(
-                    color: const Color(0xFF03A9F4).withValues(alpha: 0.5)),
+                    color: AppColors.secondary.withValues(alpha: 0.5)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.cloud_download,
-                      color: Color(0xFF03A9F4), size: 36),
+                      color: AppColors.secondary, size: 36),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -88,7 +88,7 @@ class DailyChallengesScreen extends ConsumerWidget {
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: const Text('Gestionar descargas',
-                              style: TextStyle(color: Color(0xFF03A9F4))),
+                              style: TextStyle(color: AppColors.secondary)),
                         ),
                       ],
                     ),
@@ -107,8 +107,25 @@ class DailyChallengesScreen extends ConsumerWidget {
               loading: () => const Center(
                   child: CircularProgressIndicator(color: AppColors.primary)),
               error: (err, _) => Center(
-                  child: Text('Error: $err',
-                      style: const TextStyle(color: Colors.redAccent))),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+                    const SizedBox(height: 12),
+                    const Text(
+                      'No se pudieron cargar los retos',
+                      style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.w500),
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 16),
+                    ElevatedButton.icon(
+                      onPressed: () => ref.invalidate(dailyChallengesProvider),
+                      icon: const Icon(Icons.refresh),
+                      label: const Text('Reintentar'),
+                    ),
+                  ],
+                ),
+              ),
               data: (challenges) {
                 return ListView.separated(
                   shrinkWrap: true,
@@ -206,13 +223,13 @@ class _ChallengeCard extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: isCompleted
-            ? const Color(0xFF4CAF50).withValues(alpha: 0.1)
-            : AppColors.surface,
+            ? AppColors.success.withValues(alpha: 0.1)
+            : AppColors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isCompleted
-              ? const Color(0xFF4CAF50).withValues(alpha: 0.5)
-              : Colors.white12,
+              ? AppColors.success.withValues(alpha: 0.5)
+              : AppColors.divider,
         ),
       ),
       child: Row(
@@ -221,13 +238,13 @@ class _ChallengeCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: isCompleted
-                  ? const Color(0xFF4CAF50).withValues(alpha: 0.2)
-                  : Colors.white12,
+                  ? AppColors.success.withValues(alpha: 0.2)
+                  : AppColors.divider,
               shape: BoxShape.circle,
             ),
             child: Icon(
               isCompleted ? Icons.check : icon,
-              color: isCompleted ? const Color(0xFF4CAF50) : Colors.white,
+              color: isCompleted ? AppColors.success : AppColors.primary,
               size: 24,
             ),
           ),
@@ -239,7 +256,7 @@ class _ChallengeCard extends StatelessWidget {
                 Text(
                   title,
                   style: TextStyle(
-                    color: isCompleted ? const Color(0xFF4CAF50) : Colors.white,
+                    color: isCompleted ? AppColors.success : AppColors.textPrimary,
                     fontWeight: FontWeight.bold,
                     fontSize: 15,
                   ),
@@ -252,10 +269,10 @@ class _ChallengeCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(8),
                         child: LinearProgressIndicator(
                           value: progress,
-                          backgroundColor: Colors.white12,
+                          backgroundColor: AppColors.divider,
                           color: isCompleted
-                              ? const Color(0xFF4CAF50)
-                              : const Color(0xFFFFD700),
+                              ? AppColors.success
+                              : AppColors.primary,
                           minHeight: 8,
                         ),
                       ),
@@ -277,13 +294,13 @@ class _ChallengeCard extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: const Color(0xFFFFD700).withValues(alpha: 0.2),
+              color: AppColors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
               '+$xpReward XP',
               style: const TextStyle(
-                  color: Color(0xFFFFD700),
+                  color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                   fontSize: 12),
             ),

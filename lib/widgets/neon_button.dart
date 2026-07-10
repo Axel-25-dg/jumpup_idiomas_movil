@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 
 class NeonButton extends StatelessWidget {
   final String text;
@@ -10,7 +10,7 @@ class NeonButton extends StatelessWidget {
     super.key,
     required this.text,
     required this.onPressed,
-    this.glowColor = AppTheme.celeste,
+    this.glowColor = AppColors.secondary,
   });
 
   @override

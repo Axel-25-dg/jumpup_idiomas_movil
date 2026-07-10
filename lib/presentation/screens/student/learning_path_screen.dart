@@ -39,7 +39,7 @@ class LearningPathScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.primary,
         elevation: 0,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -104,7 +104,7 @@ class _NodeWidget extends StatelessWidget {
     Color getBgColor() {
       switch (node.status) {
         case NodeStatus.completed:
-          return const Color(0xFFFFD700);
+          return AppColors.primary;
         case NodeStatus.unlocked:
           return AppColors.primary;
         case NodeStatus.locked:
@@ -119,7 +119,7 @@ class _NodeWidget extends StatelessWidget {
         case NodeStatus.unlocked:
           return const Color(0xFF512DA8);
         case NodeStatus.locked:
-          return Colors.white12;
+          return AppColors.textSecondary;
       }
     }
 
@@ -136,7 +136,7 @@ class _NodeWidget extends StatelessWidget {
               color: getBgColor(),
               shape: BoxShape.circle,
               border: node.status == NodeStatus.locked
-                  ? Border.all(color: Colors.white24, width: 3)
+                  ? Border.all(color: AppColors.divider, width: 3)
                   : Border.all(
                       color: Colors.white.withValues(alpha: 0.5), width: 3),
               boxShadow: [
@@ -147,7 +147,7 @@ class _NodeWidget extends StatelessWidget {
               child: Icon(
                 node.status == NodeStatus.locked ? Icons.lock : node.icon,
                 color: node.status == NodeStatus.locked
-                    ? Colors.white38
+                    ? AppColors.textSecondary
                     : Colors.white,
                 size: 36,
               ),
@@ -159,7 +159,7 @@ class _NodeWidget extends StatelessWidget {
           node.title,
           style: TextStyle(
             color: node.status == NodeStatus.locked
-                ? Colors.white38
+                ? AppColors.textSecondary
                 : Colors.white,
             fontWeight: FontWeight.bold,
             fontSize: 16,
@@ -187,7 +187,7 @@ class _PathLine extends StatelessWidget {
       child: CustomPaint(
         painter: _LinePainter(
           isEven: isEven,
-          color: isCompleted ? const Color(0xFFFFD700) : Colors.white24,
+          color: isCompleted ? AppColors.primary : AppColors.divider,
         ),
       ),
     );

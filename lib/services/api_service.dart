@@ -1,38 +1,63 @@
 import 'package:dio/dio.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 
+/// Wrapper de compatibilidad sobre DioClient.
+/// Todas las pantallas que aún usen ApiService() ahora usan
+/// el mismo Dio y el mismo TokenStorage que DioClient.
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  late Dio _dio;
-  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  final TokenStorage _tokenStorage = TokenStorage();
+  late final Dio _dio;
 
-  factory ApiService() {
-    return _instance;
-  }
+  factory ApiService() => _instance;
 
   ApiService._internal() {
     _dio = Dio(BaseOptions(
-      baseUrl: 'https://guaman-idiomas-ute.online/api/',
+      baseUrl: AppConfig.baseUrl,
       connectTimeout: const Duration(seconds: 10),
       receiveTimeout: const Duration(seconds: 10),
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      },
     ));
 
     _dio.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
-        final token = await _storage.read(key: 'access_token');
-        if (token != null) {
+        if (options.path.startsWith('/')) {
+          options.path = options.path.substring(1);
+        }
+        final token = await _tokenStorage.getAccessToken();
+        if (token != null && token.isNotEmpty) {
           options.headers['Authorization'] = 'Bearer $token';
         }
         return handler.next(options);
       },
       onError: (DioException e, handler) async {
         if (e.response?.statusCode == 401) {
-          bool refreshed = await _refreshToken();
-          if (refreshed) {
-            final token = await _storage.read(key: 'access_token');
-            e.requestOptions.headers['Authorization'] = 'Bearer $token';
-            final cloneReq = await _dio.fetch(e.requestOptions);
-            return handler.resolve(cloneReq);
+          final refresh = await _tokenStorage.getRefreshToken();
+          if (refresh != null && refresh.isNotEmpty) {
+            try {
+              final resp = await Dio(BaseOptions(baseUrl: AppConfig.baseUrl))
+                  .post<Map<String, dynamic>>(
+                'auth/token/refresh/',
+                data: {'refresh': refresh},
+              );
+              final newAccess = resp.data?['access'] as String?;
+              final newRefresh = resp.data?['refresh'] as String?;
+              if (newAccess != null) {
+                await _tokenStorage.saveTokens(
+                  accessToken: newAccess,
+                  refreshToken: newRefresh ?? refresh,
+                );
+                e.requestOptions.headers['Authorization'] = 'Bearer $newAccess';
+                final retry = await _dio.fetch<dynamic>(e.requestOptions);
+                return handler.resolve(retry);
+              }
+            } catch (_) {
+              // No limpiar tokens aquí — solo propagar el error 401
+            }
           }
         }
         return handler.next(e);
@@ -42,65 +67,20 @@ class ApiService {
 
   Dio get dio => _dio;
 
-  Future<bool> _refreshToken() async {
-    try {
-      final refreshToken = await _storage.read(key: 'refresh_token');
-      if (refreshToken == null) return false;
-
-      final response = await Dio().post(
-        'https://guaman-idiomas-ute.online/api/auth/refresh/',
-        data: {'refresh': refreshToken},
-      );
-
-      if (response.statusCode == 200) {
-        await _storage.write(key: 'access_token', value: response.data['access']);
-        return true;
-      }
-    } catch (e) {
-      // Clear storage on failure
-      await _storage.delete(key: 'access_token');
-      await _storage.delete(key: 'refresh_token');
-    }
-    return false;
-  }
-
-  // ==========================================
-  // 1. REGISTRO (Envía correo de bienvenida/verificación)
-  // ==========================================
-  Future<void> registerUser({
-    required String firstName,
-    required String lastName,
-    required String email,
-    required String password,
-  }) async {
-    try {
-      await _dio.post('auth/register/', data: {
-        'first_name': firstName,
-        'last_name': lastName,
-        'email': email,
-        'password': password,
-      });
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['detail'] ?? 'Error al registrar usuario');
-    }
-  }
-
-  // ==========================================
-  // 2. SOLICITAR PIN DE RECUPERACIÓN (Envía correo con el PIN)
-  // ==========================================
+  // ── Solicitar PIN de recuperación ──────────────────────────────────────────
   Future<void> requestPasswordReset(String email) async {
     try {
-      await _dio.post('auth/password-reset/', data: {
-        'email': email,
-      });
+      await _dio.post('auth/password-reset/', data: {'email': email});
     } on DioException catch (e) {
-      throw Exception(e.response?.data['detail'] ?? 'Error al solicitar el código');
+      final detail = e.response?.data;
+      final msg = detail is Map
+          ? (detail['detail']?.toString() ?? 'Error al solicitar el código')
+          : 'Error al solicitar el código';
+      throw Exception(msg);
     }
   }
 
-  // ==========================================
-  // 3. CONFIRMAR NUEVA CONTRASEÑA (Valida el PIN)
-  // ==========================================
+  // ── Confirmar PIN y nueva contraseña ───────────────────────────────────────
   Future<void> confirmPasswordReset({
     required String email,
     required String pin,
@@ -109,23 +89,15 @@ class ApiService {
     try {
       await _dio.post('auth/password-reset-confirm/', data: {
         'email': email,
-        'pin': pin,
-        'new_password': newPassword,
+        'code': pin,         // El backend usa "code" según la documentación
+        'password': newPassword,
       });
     } on DioException catch (e) {
-      throw Exception(e.response?.data['detail'] ?? 'PIN incorrecto o expirado');
-    }
-  }
-
-  // ==========================================
-  // 4. HISTORIAL DE NOTIFICACIONES
-  // ==========================================
-  Future<List<dynamic>> getNotifications() async {
-    try {
-      final response = await _dio.get('notifications/');
-      return response.data; 
-    } on DioException catch (e) {
-      throw Exception('Error al cargar notificaciones');
+      final detail = e.response?.data;
+      final msg = detail is Map
+          ? (detail['detail']?.toString() ?? 'PIN incorrecto o expirado')
+          : 'PIN incorrecto o expirado';
+      throw Exception(msg);
     }
   }
 }
