@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
-import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/course_providers.dart';
 
 class TeacherProfileScreen extends ConsumerStatefulWidget {
   const TeacherProfileScreen({super.key});
@@ -82,7 +82,6 @@ class _TeacherProfileScreenState
                 final profile = profileAsync.valueOrNull;
                 if (profile != null) {
                   _usernameCtrl.text = profile.username;
-                  _bioCtrl.text = profile.bio ?? '';
                 }
                 setState(() => _isEditing = true);
               },
@@ -224,16 +223,10 @@ class _TeacherProfileScreenState
                                   icon: Icons.email_rounded,
                                   label: 'Email',
                                   value: profile.email),
-                              if (profile.bio != null && profile.bio!.isNotEmpty)
-                                _InfoRow(
-                                    icon: Icons.info_outline_rounded,
-                                    label: 'Bio',
-                                    value: profile.bio!),
                               _InfoRow(
                                   icon: Icons.calendar_month_rounded,
                                   label: 'Miembro desde',
-                                  value:
-                                      '${profile.joinedAt.day}/${profile.joinedAt.month}/${profile.joinedAt.year}'),
+                                  value: 'Reciente'),
                             ]),
 
                       const SizedBox(height: 24),
