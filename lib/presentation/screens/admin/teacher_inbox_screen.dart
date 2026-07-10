@@ -85,7 +85,7 @@ class TeacherInboxScreen extends ConsumerWidget {
                                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
                             Text(
-                              thread.lastMessage ?? 'Sin mensajes',
+                              thread.lastMessageBody ?? 'Sin mensajes',
                               style: const TextStyle(color: Colors.white70, fontSize: 14),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,

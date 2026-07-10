@@ -145,7 +145,7 @@ class _SessionManagementCard extends ConsumerWidget {
               children: [
                 const Icon(Icons.calendar_today_rounded, color: Colors.white54, size: 14),
                 const SizedBox(width: 6),
-                Text(DateFormat('dd MMM yyyy, HH:mm').format(session.startsAt), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                Text(DateFormat('dd MMM yyyy, HH:mm').format(session.startsAt ?? DateTime.now()), style: const TextStyle(color: Colors.white70, fontSize: 12)),
               ],
             ),
             const SizedBox(height: 16),

@@ -1,9 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/data/repository/auth/virtual_class_service.dart';
+import 'package:jumpup_app/data/repository/auth/classroom_service.dart';
 
 final virtualClassServiceProvider = Provider<VirtualClassService>((ref) {
   return const VirtualClassService();
+});
+
+final classroomServiceProvider = Provider<ClassroomService>((ref) {
+  return const ClassroomService();
 });
 
 final virtualClassesProvider =
@@ -46,23 +52,23 @@ final joinClassNotifierProvider =
   return JoinClassNotifier(ref.watch(virtualClassServiceProvider));
 });
 
-final classroomEnrollmentsProvider =
-    FutureProvider<List<VirtualClassModel>>((ref) async {
-  return ref.watch(virtualClassServiceProvider).getClassroomEnrollments();
+final myClassroomsProvider =
+    FutureProvider<List<ClassroomModel>>((ref) async {
+  return ref.watch(classroomServiceProvider).getMyClassrooms();
 });
 
 enum ClassroomEnrollStatus { idle, loading, success, failure }
 
 class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
   ClassroomEnrollNotifier(this._service) : super(ClassroomEnrollStatus.idle);
-  final VirtualClassService _service;
+  final ClassroomService _service;
   String? errorMessage;
 
   Future<bool> enrollByCode(String code) async {
     state = ClassroomEnrollStatus.loading;
     errorMessage = null;
     try {
-      await _service.enrollInClassroom(code);
+      await _service.joinByCode(code);
       state = ClassroomEnrollStatus.success;
       return true;
     } catch (e) {
@@ -81,5 +87,5 @@ class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
 final classroomEnrollNotifierProvider =
     StateNotifierProvider<ClassroomEnrollNotifier, ClassroomEnrollStatus>(
         (ref) {
-  return ClassroomEnrollNotifier(ref.watch(virtualClassServiceProvider));
+  return ClassroomEnrollNotifier(ref.watch(classroomServiceProvider));
 });

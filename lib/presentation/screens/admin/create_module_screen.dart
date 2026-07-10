@@ -27,7 +27,7 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(coursesProvider.notifier).addModule({
+      await ref.read(adminCoursesProvider.notifier).addModule({
         'title': _titleCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
         'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
@@ -51,7 +51,7 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final coursesAsync = ref.watch(coursesProvider);
+    final coursesAsync = ref.watch(adminCoursesProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),

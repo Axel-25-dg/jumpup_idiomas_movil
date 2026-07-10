@@ -3,25 +3,25 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
-import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/notification_item.dart';
+import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
 
 class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  ConsumerState<NotificationsScreen> createState() =>
-      _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
 class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
-  final _repository = SocialMediaRepository();
   final _ws = WebSocketService(path: 'notifications');
+  StreamSubscription<Map<String, dynamic>>? _wsSub;
 
   List<NotificationItem> _notifications = [];
   bool _loading = true;
   String? _error;
-  StreamSubscription<Map<String, dynamic>>? _wsSub;
 
   @override
   void initState() {
@@ -48,7 +48,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       _error = null;
     });
     try {
-      final result = await _repository.fetchNotifications();
+      final result = await ref.read(socialRepositoryProvider).fetchNotifications();
       if (mounted) {
         setState(() {
           _notifications = result;
@@ -68,8 +68,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _connectWebSocket() async {
     await _ws.connect();
     _wsSub = _ws.messages.listen((data) {
-      if (data['type'] == 'notification' &&
-          data['notification'] != null) {
+      if (data['type'] == 'notification' && data['notification'] != null) {
         final newNotif = NotificationItem.fromJson(
           data['notification'] as Map<String, dynamic>,
         );
@@ -77,7 +76,9 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           setState(() {
             _notifications = [newNotif, ..._notifications];
           });
-          _showSnackBar(newNotif.title);
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(newNotif.title), duration: const Duration(seconds: 3)),
+          );
         }
       }
     });
@@ -86,7 +87,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   Future<void> _markRead(NotificationItem notif) async {
     if (notif.isRead) return;
     try {
-      await _repository.markNotificationRead(notif.id);
+      await ref.read(socialRepositoryProvider).markNotificationRead(notif.id);
       if (mounted) {
         setState(() {
           _notifications = _notifications.map((n) {
@@ -94,54 +95,53 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             return n;
           }).toList();
         });
+        ref.invalidate(unreadNotificationsProvider);
       }
     } catch (_) {}
   }
 
   Future<void> _markAllRead() async {
-    for (final n in _notifications.where((n) => !n.isRead)) {
-      await _markRead(n);
-    }
-  }
-
-  void _showSnackBar(String text) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(text),
-        duration: const Duration(seconds: 3),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    try {
+      await ref.read(socialRepositoryProvider).markAllNotificationsRead();
+      if (mounted) {
+        setState(() {
+          _notifications = _notifications.map((n) => n.copyWith(isRead: true)).toList();
+        });
+        ref.invalidate(unreadNotificationsProvider);
+      }
+    } catch (_) {}
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final hasUnread = _notifications.any((n) => !n.isRead);
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Notificaciones'),
+        backgroundColor: AppColors.primary,
+        elevation: 0,
+        title: Text('Notificaciones',
+            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
         actions: [
           if (hasUnread)
             TextButton(
               onPressed: _markAllRead,
-              child: const Text('Leer todo',
-                  style: TextStyle(color: Colors.white)),
+              child: const Text('Marcar todo leído', style: TextStyle(color: Colors.white)),
             ),
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh_rounded, color: Colors.white),
             onPressed: _fetchNotifications,
           ),
         ],
       ),
-      body: _buildBody(theme),
+      body: _buildBody(),
     );
   }
 
-  Widget _buildBody(ThemeData theme) {
+  Widget _buildBody() {
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (_error != null) {
@@ -151,21 +151,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.wifi_off, size: 48, color: Colors.grey),
+              const Icon(Icons.wifi_off_rounded, size: 48, color: AppColors.error),
               const SizedBox(height: 12),
               Text('No se pudieron cargar las notificaciones',
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium),
+                  textAlign: TextAlign.center, style: AppTextStyles.titleMedium),
               const SizedBox(height: 8),
-              Text(_error!,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodySmall
-                      ?.copyWith(color: Colors.grey)),
+              Text(_error!, textAlign: TextAlign.center,
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
               const SizedBox(height: 20),
               FilledButton.icon(
                 onPressed: _loadAndConnect,
                 icon: const Icon(Icons.refresh),
                 label: const Text('Reintentar'),
+                style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
               ),
             ],
           ),
@@ -178,13 +176,18 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.notifications_none,
-                size: 64,
-                color: theme.colorScheme.primary
-                    .withValues(alpha: 0.4)),
-            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(28),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.08),
+              ),
+              child: Icon(Icons.notifications_none_rounded, size: 56,
+                  color: AppColors.primary.withValues(alpha: 0.4)),
+            ),
+            const SizedBox(height: 16),
             Text('Sin notificaciones por ahora',
-                style: theme.textTheme.titleMedium),
+                style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
           ],
         ),
       );
@@ -194,24 +197,22 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
       children: [
         if (_ws.isConnected)
           Container(
-            color: Colors.green.shade50,
+            color: AppColors.success.withValues(alpha: 0.08),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
             child: Row(
               children: [
-                const Icon(Icons.circle, size: 10, color: Colors.green),
+                const Icon(Icons.circle, size: 10, color: AppColors.success),
                 const SizedBox(width: 6),
-                Text(
-                  'Recibiendo notificaciones en tiempo real',
-                  style: theme.textTheme.labelSmall
-                      ?.copyWith(color: Colors.green.shade800),
-                ),
+                Text('Recibiendo notificaciones en tiempo real',
+                    style: AppTextStyles.labelSmall.copyWith(color: AppColors.success)),
               ],
             ),
           ),
         Expanded(
-          child: ListView.builder(
+          child: ListView.separated(
             padding: const EdgeInsets.symmetric(vertical: 4),
             itemCount: _notifications.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 2),
             itemBuilder: (context, index) {
               final notif = _notifications[index];
               return _NotificationCard(
@@ -227,81 +228,66 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 }
 
 class _NotificationCard extends StatelessWidget {
-  const _NotificationCard({
-    required this.notification,
-    required this.onTap,
-  });
-
+  const _NotificationCard({required this.notification, required this.onTap});
   final NotificationItem notification;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isUnread = !notification.isRead;
 
-    return Card(
+    return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 3),
-      elevation: isUnread ? 2 : 0,
-      color: isUnread
-          ? theme.colorScheme.primaryContainer
-              .withValues(alpha: 0.2)
-          : null,
+      decoration: BoxDecoration(
+        color: isUnread ? AppColors.primary.withValues(alpha: 0.04) : AppColors.white,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isUnread ? AppColors.primary.withValues(alpha: 0.2) : AppColors.divider,
+        ),
+      ),
       child: ListTile(
         onTap: onTap,
         leading: CircleAvatar(
-          backgroundColor: _colorForType(notification.type, theme),
-          child: Icon(
-            _iconForType(notification.type),
-            color: Colors.white,
-            size: 20,
-          ),
+          backgroundColor: _colorForType(notification.type),
+          radius: 20,
+          child: Icon(_iconForType(notification.type), color: Colors.white, size: 18),
         ),
-        title: Text(
-          notification.title,
-          style: theme.textTheme.titleSmall?.copyWith(
-            fontWeight: isUnread ? FontWeight.w600 : FontWeight.normal,
-          ),
-        ),
+        title: Text(notification.title,
+            style: AppTextStyles.labelLarge.copyWith(
+              fontWeight: isUnread ? FontWeight.w700 : FontWeight.w500,
+            )),
         subtitle: Text(notification.message,
-            maxLines: 2, overflow: TextOverflow.ellipsis),
+            maxLines: 2, overflow: TextOverflow.ellipsis,
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary)),
         trailing: isUnread
             ? Container(
-                width: 10,
-                height: 10,
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.primary,
-                  shape: BoxShape.circle,
-                ),
+                width: 10, height: 10,
+                decoration: const BoxDecoration(color: AppColors.primary, shape: BoxShape.circle),
               )
             : null,
       ),
     );
   }
 
-  Color _colorForType(String type, ThemeData theme) {
+  Color _colorForType(String type) {
     switch (type) {
-      case 'community':
-        return Colors.indigo;
-      case 'teacher':
-        return Colors.teal;
-      case 'system':
-        return Colors.grey.shade700;
-      default:
-        return theme.colorScheme.primary;
+      case 'community': return Colors.indigo;
+      case 'teacher': return AppColors.success;
+      case 'system': return AppColors.textSecondary;
+      case 'forum': return AppColors.warning;
+      case 'chat': return AppColors.secondary;
+      default: return AppColors.primary;
     }
   }
 
   IconData _iconForType(String type) {
     switch (type) {
-      case 'community':
-        return Icons.group;
-      case 'teacher':
-        return Icons.school;
-      case 'system':
-        return Icons.info_outline;
-      default:
-        return Icons.notifications;
+      case 'community': return Icons.group_rounded;
+      case 'teacher': return Icons.school_rounded;
+      case 'system': return Icons.info_outline_rounded;
+      case 'forum': return Icons.forum_rounded;
+      case 'chat': return Icons.chat_rounded;
+      default: return Icons.notifications_rounded;
     }
   }
 }

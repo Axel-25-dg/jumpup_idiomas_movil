@@ -3,8 +3,10 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
 
 abstract class BaseRepository {
-  const BaseRepository();
-  Dio get dio => DioClient.instance.dio;
+  final Dio? _dio;
+  const BaseRepository([this._dio]);
+  
+  Dio get dio => _dio ?? DioClient.instance.dio;
 
   List<dynamic> _listFrom(dynamic raw) {
     if (raw is List) return raw;

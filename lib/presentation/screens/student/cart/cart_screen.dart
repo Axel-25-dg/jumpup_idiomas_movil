@@ -177,6 +177,7 @@ class _CartSummary extends ConsumerWidget {
     
     await ref.read(paymentNotifierProvider.notifier).processPayment(
       subscriptionId: subscription.id,
+      totalAmount: subscription.price,
       paymentMethod: 'credit_card', // Placeholder
     );
 

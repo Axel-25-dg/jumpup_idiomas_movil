@@ -265,6 +265,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
       _isCorrect = correct;
       if (correct) _correctCount++;
     });
+
+    // Submit to backend for XP tracking (fire and forget)
+    if (_selectedAnswer != null) {
+      ref.read(exerciseSubmitNotifierProvider.notifier).submitExercise(
+            exerciseId: exercise.id,
+            answer: _selectedAnswer!,
+          );
+    }
   }
 
   void _nextExercise(int total) {

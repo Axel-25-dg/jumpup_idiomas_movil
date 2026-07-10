@@ -6,6 +6,7 @@ import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/core/services/biometric_service.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -19,6 +20,20 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _passCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePass = true;
+  bool _biometricAvailable = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkBiometric();
+  }
+
+  Future<void> _checkBiometric() async {
+    final available = await BiometricService.instance.isAvailable();
+    if (mounted) {
+      setState(() => _biometricAvailable = available);
+    }
+  }
 
   @override
   void dispose() {
@@ -32,6 +47,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text;
     await ref.read(authProvider.notifier).login(email, pass);
+  }
+
+  Future<void> _loginWithBiometric() async {
+    final authenticated = await BiometricService.instance.authenticate();
+    if (!authenticated) return;
+
+    final deviceId = 'flutter_device_${DateTime.now().millisecondsSinceEpoch}';
+    await ref.read(authProvider.notifier).loginWithBiometric(deviceId: deviceId, biometricToken: '');
   }
 
   @override
@@ -289,6 +312,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         },
                       ),
                     ),
+                    const SizedBox(height: 12),
+
+                    // ── Botón Biométrico ──────────────────────────────────
+                    if (_biometricAvailable)
+                      SizedBox(
+                        width: double.infinity,
+                        height: 52,
+                        child: OutlinedButton.icon(
+                          icon: const Icon(Icons.fingerprint_rounded,
+                              color: AppColors.primary, size: 24),
+                          label: Text(
+                            'Iniciar con huella dactilar',
+                            style: AppTextStyles.labelLarge.copyWith(
+                              color: AppColors.primary,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: AppColors.primary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            backgroundColor: AppColors.primary.withValues(alpha: 0.05),
+                          ),
+                          onPressed: isLoading ? null : _loginWithBiometric,
+                        ),
+                      ),
                     const SizedBox(height: 28),
 
                     // ── Crear cuenta ──────────────────────────────────────

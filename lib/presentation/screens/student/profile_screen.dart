@@ -12,7 +12,6 @@ import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -202,99 +201,46 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ? AppConfig.resolveImageUrl(displayAvatarRaw)
             : '';
 
+    final isUploading = ref.watch(imageUploadProvider);
+    final isSaving = updateState.isLoading;
+
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Mi Perfil'),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: Icon(_isEditing ? Icons.check_rounded : Icons.edit_rounded),
-            onPressed: updateState.isLoading
-                ? null
-                : () {
-                    if (_isEditing) {
-                      _saveProfile();
-                    } else {
-                      _startEditing(displayFirstName, displayLastName);
-                    }
-                  },
-          ),
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push('/student/settings'),
-          ),
-        ],
-      ),
       body: ListView(
         padding: EdgeInsets.zero,
         children: [
-          _buildHeader(displayFullName, displayEmail, displayAvatar),
+          _ProfileHeader(
+            fullName: displayFullName,
+            email: displayEmail,
+            avatarUrl: displayAvatar,
+            isUploading: isUploading,
+            isEditing: _isEditing,
+            onAvatarTap: isUploading ? null : _pickAndUploadAvatar,
+            onEditTap: () {
+              if (_isEditing) {
+                _saveProfile();
+              } else {
+                _startEditing(displayFirstName, displayLastName);
+              }
+            },
+            onSettingsTap: () => context.push('/student/settings'),
+            isSaving: isSaving,
+          ),
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 40),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const SectionHeader(title: 'Información Personal'),
-                _buildInfoCard(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Nombre',
-                  value: displayFirstName.isNotEmpty
-                      ? displayFirstName
-                      : 'Sin nombre',
-                  controller: _firstNameController,
+                _ProfileInfoSection(
                   isEditing: _isEditing,
+                  firstName: displayFirstName,
+                  lastName: displayLastName,
+                  username: displayUsername,
+                  email: displayEmail,
+                  firstNameController: _firstNameController,
+                  lastNameController: _lastNameController,
                 ),
-                const SizedBox(height: 14),
-                _buildInfoCard(
-                  icon: Icons.person_outline_rounded,
-                  label: 'Apellido',
-                  value: displayLastName.isNotEmpty
-                      ? displayLastName
-                      : 'Sin apellido',
-                  controller: _lastNameController,
-                  isEditing: _isEditing,
-                ),
-                const SizedBox(height: 14),
-                _buildInfoCard(
-                  icon: Icons.alternate_email_rounded,
-                  label: 'Nombre de usuario',
-                  value: displayUsername.isNotEmpty
-                      ? displayUsername
-                      : 'Sin usuario',
-                  readOnly: true,
-                ),
-                const SizedBox(height: 14),
-                _buildInfoCard(
-                  icon: Icons.email_outlined,
-                  label: 'Correo electrónico',
-                  value: displayEmail.isNotEmpty ? displayEmail : 'Sin correo',
-                  readOnly: true,
-                ),
-                const SizedBox(height: 36),
-                SizedBox(
-                  width: double.infinity,
-                  height: 56,
-                  child: OutlinedButton.icon(
-                    onPressed: _confirmLogout,
-                    icon: const Icon(Icons.logout_rounded),
-                    label: const Text('Cerrar Sesión'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: AppColors.error,
-                      side: const BorderSide(
-                          color: AppColors.error, width: 1.5),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      textStyle: AppTextStyles.buttonText.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
+                const SizedBox(height: 24),
+                _DangerZone(onLogout: _confirmLogout),
               ],
             ),
           ),
@@ -302,177 +248,545 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
+}
 
-  Widget _buildHeader(String name, String email, String avatarUrl) {
+// ─── Header con avatar, nombre y acciones ─────────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  final String fullName;
+  final String email;
+  final String avatarUrl;
+  final bool isUploading;
+  final bool isEditing;
+  final bool isSaving;
+  final VoidCallback? onAvatarTap;
+  final VoidCallback onEditTap;
+  final VoidCallback onSettingsTap;
+
+  const _ProfileHeader({
+    required this.fullName,
+    required this.email,
+    required this.avatarUrl,
+    required this.isUploading,
+    required this.isEditing,
+    this.onAvatarTap,
+    required this.onEditTap,
+    required this.onSettingsTap,
+    required this.isSaving,
+  });
+
+  @override
+  Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
         gradient: AppColors.primaryGradient,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
       ),
       child: SafeArea(
         bottom: false,
         child: Column(
           children: [
-            const SizedBox(height: 16),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  IconButton(
+                    onPressed: onSettingsTap,
+                    icon: const Icon(Icons.settings_outlined,
+                        color: Colors.white, size: 22),
+                    tooltip: 'Configuración',
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Avatar con glow
             Stack(
               alignment: Alignment.bottomRight,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(4),
+                  padding: const EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withValues(alpha: 0.25),
-                    border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.6),
-                      width: 3,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.white.withValues(alpha: 0.4),
+                        Colors.white.withValues(alpha: 0.1),
+                      ],
                     ),
-                    boxShadow: const [
+                    boxShadow: [
                       BoxShadow(
-                        color: Colors.black26,
-                        blurRadius: 16,
-                        offset: Offset(0, 6),
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  child: UserAvatar(
-                    imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
-                    fullName: name,
-                    radius: 52,
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withValues(alpha: 0.9),
+                    ),
+                    child: UserAvatar(
+                      imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+                      fullName: fullName,
+                      radius: 48,
+                    ),
                   ),
                 ),
                 GestureDetector(
-                  onTap: ref.watch(imageUploadProvider)
-                      ? null
-                      : _pickAndUploadAvatar,
+                  onTap: onAvatarTap,
                   child: Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: AppColors.secondary,
+                      gradient: AppColors.secondaryGradient,
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.white, width: 2.5),
-                      boxShadow: const [
+                      boxShadow: [
                         BoxShadow(
-                          color: Colors.black26,
+                          color: AppColors.secondary.withValues(alpha: 0.4),
                           blurRadius: 8,
-                          offset: Offset(0, 2),
+                          offset: const Offset(0, 2),
                         ),
                       ],
                     ),
-                    child: ref.watch(imageUploadProvider)
+                    child: isUploading
                         ? const SizedBox(
-                            width: 18,
-                            height: 18,
+                            width: 16,
+                            height: 16,
                             child: CircularProgressIndicator(
                               color: Colors.white,
                               strokeWidth: 2,
                             ),
                           )
                         : const Icon(Icons.camera_alt_rounded,
-                            color: Colors.white, size: 18),
+                            color: Colors.white, size: 16),
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
+            // Nombre
             Text(
-              name,
-              style: AppTextStyles.headlineSmall.copyWith(
+              fullName,
+              style: AppTextStyles.headlineMedium.copyWith(
                 color: Colors.white,
                 fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
               ),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: 6),
+            // Email badge
             if (email.isNotEmpty)
               Container(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.18),
+                  color: Colors.white.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  email,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: Colors.white.withValues(alpha: 0.95),
-                    fontWeight: FontWeight.w500,
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    width: 1,
                   ),
                 ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.email_outlined,
+                        size: 14,
+                        color: Colors.white.withValues(alpha: 0.8)),
+                    const SizedBox(width: 6),
+                    Text(
+                      email,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white.withValues(alpha: 0.95),
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
+            // Botones de acción
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: isEditing ? Icons.check_rounded : Icons.edit_rounded,
+                      label: isEditing ? 'Guardar' : 'Editar perfil',
+                      onTap: isSaving ? null : onEditTap,
+                      isPrimary: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.share_outlined,
+                      label: 'Compartir',
+                      onTap: () {},
+                      isPrimary: false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
           ],
         ),
       ),
     );
   }
+}
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    TextEditingController? controller,
-    bool isEditing = false,
-    bool readOnly = false,
-    int maxLines = 1,
-  }) {
-    if (isEditing && !readOnly && controller != null) {
-      return TextFormField(
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool isPrimary;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    this.onTap,
+    required this.isPrimary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: isPrimary ? Colors.white : Colors.white.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(14),
+          border: isPrimary
+              ? null
+              : Border.all(
+                  color: Colors.white.withValues(alpha: 0.3), width: 1),
+          boxShadow: isPrimary
+              ? [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isPrimary
+                  ? AppColors.primary
+                  : Colors.white.withValues(alpha: 0.9),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                color: isPrimary
+                    ? AppColors.primary
+                    : Colors.white.withValues(alpha: 0.9),
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                letterSpacing: 0.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ─── Sección de información del perfil ─────────────────────────────────────────
+
+class _ProfileInfoSection extends StatelessWidget {
+  final bool isEditing;
+  final String firstName;
+  final String lastName;
+  final String username;
+  final String email;
+  final TextEditingController firstNameController;
+  final TextEditingController lastNameController;
+
+  const _ProfileInfoSection({
+    required this.isEditing,
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.email,
+    required this.firstNameController,
+    required this.lastNameController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Text(
+              'Información Personal',
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+          _isEditing
+              ? _EditableField(
+                  controller: firstNameController,
+                  label: 'Nombre',
+                  icon: Icons.badge_outlined,
+                )
+              : _InfoTile(
+                  icon: Icons.badge_outlined,
+                  label: 'Nombre',
+                  value: firstName.isNotEmpty ? firstName : 'Sin nombre',
+                  iconColor: AppColors.primary,
+                ),
+          _divider(),
+          _isEditing
+              ? _EditableField(
+                  controller: lastNameController,
+                  label: 'Apellido',
+                  icon: Icons.badge_outlined,
+                )
+              : _InfoTile(
+                  icon: Icons.badge_outlined,
+                  label: 'Apellido',
+                  value: lastName.isNotEmpty ? lastName : 'Sin apellido',
+                  iconColor: AppColors.primary,
+                ),
+          _divider(),
+          _InfoTile(
+            icon: Icons.alternate_email_rounded,
+            label: 'Usuario',
+            value: username.isNotEmpty ? username : 'Sin usuario',
+            iconColor: AppColors.secondary,
+          ),
+          _divider(),
+          _InfoTile(
+            icon: Icons.email_outlined,
+            label: 'Correo electrónico',
+            value: email.isNotEmpty ? email : 'Sin correo',
+            iconColor: AppColors.success,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  bool get _isEditing => isEditing;
+
+  Widget _divider() {
+    return Divider(
+      height: 1,
+      indent: 56,
+      endIndent: 20,
+      color: AppColors.divider.withValues(alpha: 0.6),
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color iconColor;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: Icon(icon, size: 18, color: iconColor),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: AppColors.textSecondary,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: AppColors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _EditableField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+
+  const _EditableField({
+    required this.controller,
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: TextFormField(
         controller: controller,
-        maxLines: maxLines,
-        style: AppTextStyles.bodyMedium,
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           labelText: label,
           labelStyle: AppTextStyles.inputLabel,
           prefixIcon: Icon(icon, size: 20, color: AppColors.primary),
           filled: true,
-          fillColor: AppColors.white,
+          fillColor: AppColors.surface,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.divider),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide:
-                const BorderSide(color: AppColors.primary, width: 2),
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
           ),
         ),
-      );
-    }
-    return StudentCard(
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        crossAxisAlignment: maxLines > 1
-            ? CrossAxisAlignment.start
-            : CrossAxisAlignment.center,
+      ),
+    );
+  }
+}
+
+// ─── Zona de peligro (cerrar sesión) ──────────────────────────────────────────
+
+class _DangerZone extends StatelessWidget {
+  final VoidCallback onLogout;
+
+  const _DangerZone({required this.onLogout});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.shadow.withValues(alpha: 0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label,
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(value,
-                    style: AppTextStyles.bodyLarge.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w500)),
-              ],
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Cuenta',
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+              ),
             ),
           ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            leading: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.logout_rounded,
+                  size: 18, color: AppColors.error),
+            ),
+            title: Text(
+              'Cerrar Sesión',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: Text(
+              'Volver a la pantalla de inicio',
+              style: AppTextStyles.labelSmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
+            trailing: Icon(Icons.chevron_right_rounded,
+                color: AppColors.error.withValues(alpha: 0.6)),
+            onTap: onLogout,
+          ),
+          const SizedBox(height: 4),
         ],
       ),
     );

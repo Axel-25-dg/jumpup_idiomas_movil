@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/feedback_providers.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -42,7 +43,28 @@ class SettingsScreen extends ConsumerWidget {
             onChanged: (_) {},
           ),
           const Divider(height: 32),
+          _SectionHeader(label: 'CUENTA'),
+          ListTile(
+            leading: const Icon(Icons.language),
+            title: const Text('Idiomas de aprendizaje'),
+            subtitle: const Text('Gestiona los idiomas que estás aprendiendo'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push('/student/profile'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.lock_outline),
+            title: const Text('Cambiar contraseña'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => context.push(AppRoutes.forgotPassword),
+          ),
+          const Divider(height: 32),
           _SectionHeader(label: 'SOPORTE'),
+          ListTile(
+            leading: const Icon(Icons.feedback_outlined),
+            title: const Text('Enviar sugerencia'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () => _showFeedbackDialog(context, ref),
+          ),
           ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('Centro de Ayuda'),
@@ -70,7 +92,7 @@ class SettingsScreen extends ConsumerWidget {
               label: const Text('Cerrar Sesión'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: AppColors.error,
-                side: BorderSide(color: AppColors.error),
+                side: const BorderSide(color: AppColors.error),
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(12),
@@ -119,6 +141,78 @@ class SettingsScreen extends ConsumerWidget {
             child: const Text('Cerrar Sesión'),
           ),
         ],
+      ),
+    );
+  }
+
+  void _showFeedbackDialog(BuildContext context, WidgetRef ref) {
+    final controller = TextEditingController();
+    String? selectedCategory;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: const Text('Enviar sugerencia'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedCategory,
+                hint: const Text('Categoría'),
+                items: const [
+                  DropdownMenuItem(value: 'bug', child: Text('Error')),
+                  DropdownMenuItem(value: 'feature', child: Text('Nueva función')),
+                  DropdownMenuItem(value: 'improvement', child: Text('Mejora')),
+                  DropdownMenuItem(value: 'other', child: Text('Otro')),
+                ],
+                onChanged: (v) => setDialogState(() => selectedCategory = v),
+                decoration: InputDecoration(
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: controller,
+                maxLines: 4,
+                decoration: InputDecoration(
+                  hintText: 'Describe tu sugerencia...',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Cancelar'),
+            ),
+            FilledButton(
+              onPressed: () async {
+                if (controller.text.trim().isEmpty) return;
+                await ref.read(feedbackNotifierProvider.notifier).sendSuggestion(
+                      message: controller.text.trim(),
+                      category: selectedCategory,
+                    );
+                if (ctx.mounted) Navigator.pop(ctx);
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('¡Gracias por tu sugerencia!'),
+                      backgroundColor: AppColors.success,
+                    ),
+                  );
+                }
+              },
+              child: const Text('Enviar'),
+            ),
+          ],
+        ),
       ),
     );
   }

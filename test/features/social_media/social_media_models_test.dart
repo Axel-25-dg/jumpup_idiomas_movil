@@ -11,42 +11,42 @@ void main() {
   group('social media models', () {
     test('MessageThread crea un resumen útil', () {
       final thread = MessageThread(
-        id: 'msg-1',
+        id: 1,
         title: 'Clase de conversación',
         participantName: 'María',
         unreadCount: 2,
       );
 
-      expect(thread.summary, contains('Clase de conversación'));
+      expect(thread.title, contains('Clase de conversación'));
       expect(thread.unreadCount, 2);
     });
 
     test('ForumThread serializa y deserializa correctamente', () {
       final thread = ForumThread(
-        id: 'f-1',
+        id: 1,
         title: 'Dudas de pronunciación',
         authorName: 'Luis',
-        language: 'Inglés',
-        replies: 4,
+        body: '¿Cómo pronuncio esta palabra?',
+        postCount: 4,
       );
 
       final json = thread.toJson();
       final decoded = ForumThread.fromJson(json);
 
       expect(decoded.title, 'Dudas de pronunciación');
-      expect(decoded.replies, 4);
+      expect(decoded.postCount, 4);
     });
 
     test('LiveSession expone estado y horario', () {
       final session = LiveSession(
-        id: 'live-1',
+        id: 1,
         title: 'Tutoría de speaking',
         hostName: 'Ana',
         startsAt: DateTime(2026, 7, 7, 20, 0),
         status: 'scheduled',
       );
 
-      expect(session.statusLabel, 'Programada');
+      expect(session.status, 'scheduled');
       expect(session.title, contains('speaking'));
     });
   });

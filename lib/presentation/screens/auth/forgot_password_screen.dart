@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
-import 'package:jumpup_app/theme/colors.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/data/remote/dio_client.dart';
-import 'confirm_pin_screen.dart';
+import '../../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
@@ -13,168 +9,96 @@ class ForgotPasswordScreen extends StatefulWidget {
 }
 
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+  final _authService = AuthService();
   final _emailCtrl = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
+  final _codeCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _pass2Ctrl = TextEditingController();
+  int _step = 1; // 1=enviar email, 2=ingresar PIN, 3=nueva contraseña
+  String _email = '';
 
-  Future<void> _sendEmail() async {
-    if (!_formKey.currentState!.validate()) return;
-    final email = _emailCtrl.text.trim();
-
-    setState(() => _isLoading = true);
-
-    try {
-      await DioClient.instance.dio
-          .post('auth/password-reset/', data: {'email': email});
-
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('¡Código enviado a tu correo!'),
-          backgroundColor: AppColors.success,
-        ),
-      );
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => ConfirmPinScreen(email: email),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      String msg = 'Error al enviar el código';
-      if (e is DioException) {
-        final body = e.response?.data;
-        if (body is Map) {
-          msg = body['detail']?.toString() ??
-              body['non_field_errors']?.toString() ??
-              msg;
-        }
-      }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: AppColors.error),
-      );
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
+  Future<void> _requestPin() async {
+    final ok = await _authService.requestPasswordReset(_emailCtrl.text);
+    if (ok) {
+      setState(() { _email = _emailCtrl.text; _step = 2; });
     }
   }
 
-  @override
-  void dispose() {
-    _emailCtrl.dispose();
-    super.dispose();
+  Future<void> _confirmPin() async {
+    final ok = await _authService.confirmPasswordReset(
+      email: _email, 
+      code: _codeCtrl.text,
+      password: _passCtrl.text, 
+      password2: _pass2Ctrl.text,
+    );
+    if (ok) {
+      setState(() => _step = 3);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text('Recuperar Contraseña',
-            style: AppTextStyles.titleLarge.copyWith(color: Colors.white)),
-        backgroundColor: AppColors.primary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  width: 88,
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.lock_reset_rounded,
-                      size: 44, color: AppColors.primary),
-                ),
-                const SizedBox(height: 20),
-                Text('Restablece tu acceso',
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      color: AppColors.textPrimary,
-                      fontWeight: FontWeight.w700,
-                    )),
-                const SizedBox(height: 10),
-                Text(
-                  'Ingresa tu correo electrónico y te enviaremos las instrucciones.',
-                  textAlign: TextAlign.center,
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(color: AppColors.textSecondary),
-                ),
-                const SizedBox(height: 40),
-                TextFormField(
-                  controller: _emailCtrl,
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (v) {
-                    if (v == null || v.trim().isEmpty) {
-                      return 'Ingresa tu correo';
-                    }
-                    if (!v.contains('@')) return 'Correo inválido';
-                    return null;
-                  },
-                  decoration: InputDecoration(
-                    hintText: 'Correo electrónico',
-                    prefixIcon: const Icon(Icons.email_outlined,
-                        color: AppColors.textSecondary),
-                    filled: true,
-                    fillColor: AppColors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.divider),
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.divider),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(
-                          color: AppColors.primary, width: 2),
-                    ),
-                    errorBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(14),
-                      borderSide: const BorderSide(color: AppColors.error),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: FilledButton(
-                    onPressed: _isLoading ? null : _sendEmail,
-                    style: FilledButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      elevation: 2,
-                      shadowColor: AppColors.shadow,
-                    ),
-                    child: _isLoading
-                        ? const SizedBox(
-                            width: 22,
-                            height: 22,
-                            child: CircularProgressIndicator(
-                                color: Colors.white, strokeWidth: 2.5),
-                          )
-                        : Text(
-                            'Enviar Instrucciones',
-                            style: AppTextStyles.buttonText
-                                .copyWith(color: Colors.white),
-                          ),
-                  ),
-                ),
-              ],
-            ),
-          ),
+      appBar: AppBar(title: const Text('Restablecer contraseña')),
+      body: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            if (_step == 1) ...[
+              const Icon(Icons.lock_reset, size: 60, color: Colors.blue),
+              const SizedBox(height: 16),
+              const Text('Ingresa tu email para recibir un PIN de 6 dígitos'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _emailCtrl,
+                keyboardType: TextInputType.emailAddress,
+                decoration: const InputDecoration(labelText: 'Email', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(width: double.infinity, child: ElevatedButton(
+                onPressed: _requestPin, child: const Text('Enviar PIN'),
+              )),
+            ],
+            if (_step == 2) ...[
+              const Icon(Icons.pin, size: 60, color: Colors.orange),
+              const SizedBox(height: 16),
+              const Text('Ingresa el PIN de 6 dígitos enviado a tu email'),
+              const SizedBox(height: 16),
+              TextField(
+                controller: _codeCtrl,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                decoration: const InputDecoration(labelText: 'PIN', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _passCtrl,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Nueva contraseña', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: _pass2Ctrl,
+                obscureText: true,
+                decoration: const InputDecoration(labelText: 'Confirmar contraseña', border: OutlineInputBorder()),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(width: double.infinity, child: ElevatedButton(
+                onPressed: _confirmPin, child: const Text('Restablecer'),
+              )),
+            ],
+            if (_step == 3) ...[
+              const Icon(Icons.check_circle, size: 60, color: Colors.green),
+              const SizedBox(height: 16),
+              const Text('Contraseña restablecida exitosamente', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Iniciar sesión'),
+              ),
+            ],
+          ],
         ),
       ),
     );

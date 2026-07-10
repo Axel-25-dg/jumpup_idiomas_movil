@@ -24,7 +24,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final languagesAsync = ref.watch(languagesProvider);
+    final languagesAsync = ref.watch(adminLanguagesProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Nuevo Curso')),
@@ -60,7 +60,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                   : () async {
                       setState(() => _isSaving = true);
                       try {
-                        await ref.read(coursesProvider.notifier).addCourse({
+                        await ref.read(adminCoursesProvider.notifier).addCourse({
                           'title': _titleCtrl.text,
                           'description': _descCtrl.text,
                           'language': _selectedLanguageId,

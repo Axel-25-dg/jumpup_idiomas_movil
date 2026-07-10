@@ -3,23 +3,24 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
-import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/chat_message.dart';
 import 'package:jumpup_app/domain/model/message_thread.dart';
+import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/colors.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class MessageDetailScreen extends StatefulWidget {
+class MessageDetailScreen extends ConsumerStatefulWidget {
   const MessageDetailScreen({super.key, required this.thread});
 
   final MessageThread thread;
 
   @override
-  State<MessageDetailScreen> createState() => _MessageDetailScreenState();
+  ConsumerState<MessageDetailScreen> createState() => _MessageDetailScreenState();
 }
 
-class _MessageDetailScreenState extends State<MessageDetailScreen> {
-  final _repository = SocialMediaRepository();
+class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
   late final WebSocketService _ws;
-
   final _scrollController = ScrollController();
   final _inputController = TextEditingController();
   final _focusNode = FocusNode();
@@ -35,7 +36,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   @override
   void initState() {
     super.initState();
-    _ws = WebSocketService(path: 'chat', roomId: widget.thread.id);
+    _ws = WebSocketService(path: 'chat', roomId: widget.thread.id.toString());
     _loadHistory();
   }
 
@@ -55,7 +56,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       _error = null;
     });
     try {
-      final msgs = await _repository.fetchChatMessages(widget.thread.id);
+      final msgs = await ref.read(socialRepositoryProvider).fetchChatMessages(widget.thread.id);
       if (mounted) {
         setState(() {
           _messages = msgs;
@@ -92,7 +93,6 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             });
             _scrollToBottom();
           }
-
         case 'typing':
           setState(() => _isTyping = true);
           Future.delayed(const Duration(seconds: 3), () {
@@ -107,10 +107,10 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
     if (text.isEmpty || _sending) return;
 
     final optimistic = ChatMessage(
-      id: 'opt-${DateTime.now().millisecondsSinceEpoch}',
-      senderId: 'me',
+      id: -DateTime.now().millisecondsSinceEpoch,
+      senderId: -1,
       senderName: 'Tú',
-      content: text,
+      body: text,
       createdAt: DateTime.now(),
     );
 
@@ -123,12 +123,12 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
     try {
       if (_ws.isConnected) {
-        _ws.send({'type': 'chat_message', 'content': text});
+        _ws.send({'type': 'chat_message', 'body': text});
       }
-      await _repository.sendMessage(
-        threadId: widget.thread.id,
-        content: text,
-      );
+      await ref.read(socialRepositoryProvider).sendMessage(
+            threadId: widget.thread.id,
+            body: text,
+          );
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -160,25 +160,27 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: AppColors.primary,
+        elevation: 0,
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(widget.thread.title),
-            Text(
-              widget.thread.participantName,
-              style: theme.textTheme.labelSmall
-                  ?.copyWith(color: theme.colorScheme.onPrimary.withValues(alpha: 0.7)),
-            ),
+            Text(widget.thread.subject.isNotEmpty
+                ? widget.thread.subject
+                : widget.thread.participantName,
+                style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+            Text(widget.thread.participantName,
+                style: AppTextStyles.labelSmall.copyWith(color: Colors.white70)),
           ],
         ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Icon(
-              _ws.isConnected ? Icons.wifi : Icons.wifi_off,
+              _ws.isConnected ? Icons.wifi_rounded : Icons.wifi_off_rounded,
               color: _ws.isConnected ? Colors.greenAccent : Colors.white38,
               size: 18,
             ),
@@ -196,10 +198,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
   }
 
   Widget _buildMessageList() {
-    final theme = Theme.of(context);
-
     if (_loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: CircularProgressIndicator(color: AppColors.primary));
     }
 
     if (_error != null) {
@@ -207,12 +207,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.wifi_off, size: 40, color: Colors.grey),
+            const Icon(Icons.wifi_off_rounded, size: 40, color: AppColors.error),
             const SizedBox(height: 8),
             Text(_error!, textAlign: TextAlign.center),
             const SizedBox(height: 12),
             FilledButton(
               onPressed: _loadHistory,
+              style: FilledButton.styleFrom(backgroundColor: AppColors.primary, foregroundColor: Colors.white),
               child: const Text('Reintentar'),
             ),
           ],
@@ -225,13 +226,20 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.chat_bubble_outline,
-                size: 48,
-                color: theme.colorScheme.onSurfaceVariant),
-            const SizedBox(height: 8),
-            Text('Sin mensajes aún. ¡Di algo primero!',
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant)),
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.08),
+              ),
+              child: Icon(Icons.chat_bubble_outline_rounded, size: 48,
+                  color: AppColors.primary.withValues(alpha: 0.4)),
+            ),
+            const SizedBox(height: 12),
+            Text('Sin mensajes aún', style: AppTextStyles.titleMedium.copyWith(color: AppColors.textPrimary)),
+            const SizedBox(height: 4),
+            Text('¡Di algo primero!',
+                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary)),
           ],
         ),
       );
@@ -243,7 +251,7 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       itemCount: _messages.length,
       itemBuilder: (context, index) {
         final msg = _messages[index];
-        final isMe = msg.senderId == 'me';
+        final isMe = msg.senderId == -1 || msg.senderName == 'Tú';
         return _MessageBubble(message: msg, isMe: isMe);
       },
     );
@@ -254,13 +262,8 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
       child: Row(
         children: [
-          Text(
-            '${widget.thread.participantName} está escribiendo...',
-            style: Theme.of(context)
-                .textTheme
-                .labelSmall
-                ?.copyWith(color: Colors.grey),
-          ),
+          Text('${widget.thread.participantName} está escribiendo...',
+              style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary)),
         ],
       ),
     );
@@ -268,8 +271,12 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
   Widget _buildInputBar() {
     return SafeArea(
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          border: Border(top: BorderSide(color: AppColors.divider)),
+        ),
         child: Row(
           children: [
             Expanded(
@@ -277,17 +284,17 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
                 controller: _inputController,
                 focusNode: _focusNode,
                 textCapitalization: TextCapitalization.sentences,
+                style: AppTextStyles.bodyMedium,
                 decoration: InputDecoration(
                   hintText: 'Escribe un mensaje...',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
                   filled: true,
+                  fillColor: AppColors.surface,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                 ),
                 onSubmitted: (_) => _sendMessage(),
               ),
@@ -296,12 +303,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
             IconButton.filled(
               onPressed: _sending ? null : _sendMessage,
               icon: _sending
-                  ? const SizedBox(
-                      width: 18,
-                      height: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : const Icon(Icons.send),
+                  ? const SizedBox(width: 18, height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Icon(Icons.send, size: 20),
+              style: IconButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+              ),
             ),
           ],
         ),
@@ -312,15 +320,13 @@ class _MessageDetailScreenState extends State<MessageDetailScreen> {
 
 class _MessageBubble extends StatelessWidget {
   const _MessageBubble({required this.message, required this.isMe});
-
   final ChatMessage message;
   final bool isMe;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final bgColor = isMe ? scheme.primary : scheme.surfaceContainerHighest;
-    final textColor = isMe ? scheme.onPrimary : scheme.onSurface;
+    final bgColor = isMe ? AppColors.primary : AppColors.white;
+    final textColor = isMe ? Colors.white : AppColors.textPrimary;
     final align = isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start;
     final radius = BorderRadius.only(
       topLeft: const Radius.circular(16),
@@ -337,25 +343,21 @@ class _MessageBubble extends StatelessWidget {
           if (!isMe)
             Padding(
               padding: const EdgeInsets.only(left: 4, bottom: 2),
-              child: Text(
-                message.senderName,
-                style: Theme.of(context)
-                    .textTheme
-                    .labelSmall
-                    ?.copyWith(color: Colors.grey),
-              ),
+              child: Text(message.senderName,
+                  style: AppTextStyles.labelSmall.copyWith(color: AppColors.textSecondary)),
             ),
           Container(
-            constraints: BoxConstraints(
-              maxWidth: MediaQuery.of(context).size.width * 0.72,
-            ),
+            constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.72),
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            decoration: BoxDecoration(color: bgColor, borderRadius: radius),
+            decoration: BoxDecoration(
+              color: bgColor,
+              borderRadius: radius,
+              border: isMe ? null : Border.all(color: AppColors.divider),
+            ),
             child: Column(
-              crossAxisAlignment:
-                  isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+              crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
               children: [
-                Text(message.content, style: TextStyle(color: textColor)),
+                Text(message.body, style: TextStyle(color: textColor, fontSize: 14)),
                 const SizedBox(height: 4),
                 Text(
                   DateFormat('HH:mm').format(message.createdAt.toLocal()),

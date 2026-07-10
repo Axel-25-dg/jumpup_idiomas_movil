@@ -4,20 +4,22 @@ class SocialPost {
     required this.authorName,
     required this.content,
     required this.createdAt,
-    this.likes = 0,
-    this.comments = 0,
+    this.reactionCount = 0,
+    this.commentCount = 0,
     this.isLiked = false,
+    this.postType = 'general',
     this.imageUrl,
     this.authorAvatar,
   });
 
-  final String id;
+  final int id;
   final String authorName;
   final String content;
   final DateTime createdAt;
-  final int likes;
-  final int comments;
+  final int reactionCount;
+  final int commentCount;
   final bool isLiked;
+  final String postType;
   final String? imageUrl;
   final String? authorAvatar;
 
@@ -35,23 +37,27 @@ class SocialPost {
           author['profile_picture']?.toString();
     }
     return SocialPost(
-      id: json['id']?.toString() ?? '',
+      id: json['id'] as int? ?? 0,
       authorName: authorName.isNotEmpty
           ? authorName
           : json['author_name']?.toString() ??
+              json['author_username']?.toString() ??
               json['authorName']?.toString() ??
               'Usuario',
       content: json['content']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.tryParse(json['createdAt']?.toString() ?? '') ??
           DateTime.now(),
-      likes: int.tryParse(json['likes_count']?.toString() ?? '') ??
+      reactionCount: json['reaction_count'] as int? ??
+          int.tryParse(json['likes_count']?.toString() ?? '') ??
           int.tryParse(json['likes']?.toString() ?? '0') ??
           0,
-      comments: int.tryParse(json['comments_count']?.toString() ?? '') ??
+      commentCount: json['comment_count'] as int? ??
+          int.tryParse(json['comments_count']?.toString() ?? '') ??
           int.tryParse(json['comments']?.toString() ?? '0') ??
           0,
       isLiked: json['is_liked'] == true || json['isLiked'] == true,
+      postType: json['post_type']?.toString() ?? 'general',
       imageUrl: json['image_url']?.toString() ??
           json['imageUrl']?.toString() ??
           json['image']?.toString(),
@@ -65,22 +71,24 @@ class SocialPost {
       'authorName': authorName,
       'content': content,
       'createdAt': createdAt.toIso8601String(),
-      'likes': likes,
-      'comments': comments,
-      'isLiked': isLiked,
-      'imageUrl': imageUrl,
+      'reaction_count': reactionCount,
+      'comment_count': commentCount,
+      'is_liked': isLiked,
+      'post_type': postType,
+      'image_url': imageUrl,
       'authorAvatar': authorAvatar,
     };
   }
 
   SocialPost copyWith({
-    String? id,
+    int? id,
     String? authorName,
     String? content,
     DateTime? createdAt,
-    int? likes,
-    int? comments,
+    int? reactionCount,
+    int? commentCount,
     bool? isLiked,
+    String? postType,
     String? imageUrl,
     String? authorAvatar,
   }) {
@@ -89,9 +97,10 @@ class SocialPost {
       authorName: authorName ?? this.authorName,
       content: content ?? this.content,
       createdAt: createdAt ?? this.createdAt,
-      likes: likes ?? this.likes,
-      comments: comments ?? this.comments,
+      reactionCount: reactionCount ?? this.reactionCount,
+      commentCount: commentCount ?? this.commentCount,
       isLiked: isLiked ?? this.isLiked,
+      postType: postType ?? this.postType,
       imageUrl: imageUrl ?? this.imageUrl,
       authorAvatar: authorAvatar ?? this.authorAvatar,
     );

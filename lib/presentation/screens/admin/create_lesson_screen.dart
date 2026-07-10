@@ -27,7 +27,7 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(coursesProvider.notifier).addLesson({
+      await ref.read(adminCoursesProvider.notifier).addLesson({
         'title': _titleCtrl.text.trim(),
         'description': _descriptionCtrl.text.trim(),
         'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,

@@ -48,7 +48,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
             const Text('Idiomas que enseñas (Teaching)', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            ref.watch(languagesProvider).when(
+            ref.watch(adminLanguagesProvider).when(
               loading: () => const CircularProgressIndicator(),
               error: (e, _) => Text('Error: $e'),
               data: (languages) {

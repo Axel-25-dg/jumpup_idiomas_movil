@@ -62,7 +62,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
       final repo = ref.read(socialRepositoryProvider);
       await repo.createLiveSession(
         title: _titleCtrl.text.trim(),
-        courseId: _selectedCourseId!,
+        courseId: int.parse(_selectedCourseId!),
         startsAt: startsAt,
       );
       ref.invalidate(liveSessionsProvider);
@@ -83,7 +83,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
 
   @override
   Widget build(BuildContext context) {
-    final coursesAsync = ref.watch(coursesProvider);
+    final coursesAsync = ref.watch(adminCoursesProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
