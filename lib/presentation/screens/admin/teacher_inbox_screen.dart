@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/widgets/glass_container.dart';
 
 class TeacherInboxScreen extends ConsumerWidget {
   const TeacherInboxScreen({super.key});
@@ -12,29 +12,46 @@ class TeacherInboxScreen extends ConsumerWidget {
     final threadsAsync = ref.watch(chatThreadsProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        title: const Text('Mensajes de Alumnos'),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        title: const Text('Mensajes de Alumnos', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        surfaceTintColor: Colors.white,
+        automaticallyImplyLeading: false,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () => ref.invalidate(chatThreadsProvider),
           ),
         ],
       ),
       body: threadsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-              const SizedBox(height: 12),
-              Text('Error: $e', style: const TextStyle(color: Colors.redAccent)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 48, color: AppColors.error),
+                const SizedBox(height: 12),
+                Text('Error: $e',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textSecondary)),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary),
+                  onPressed: () => ref.invalidate(chatThreadsProvider),
+                  child: const Text('Reintentar',
+                      style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
           ),
         ),
         data: (threads) {
@@ -43,11 +60,17 @@ class TeacherInboxScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.inbox_rounded, size: 64, color: Colors.white30),
+                  Icon(Icons.chat_bubble_outline_rounded,
+                      size: 64, color: AppColors.textHint),
                   const SizedBox(height: 12),
-                  const Text('Bandeja vacía', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  const Text('Bandeja vacía',
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text('No tienes mensajes de tus alumnos aún.', style: TextStyle(color: Colors.white54)),
+                  const Text('No tienes mensajes de alumnos aún.',
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             );
@@ -58,46 +81,53 @@ class TeacherInboxScreen extends ConsumerWidget {
             itemCount: threads.length,
             itemBuilder: (context, index) {
               final thread = threads[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GlassContainer(
-                  opacity: 0.1,
-                  blur: 10,
-                  padding: const EdgeInsets.all(16),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
-                        child: Text(
-                          thread.participants.first.name[0].toUpperCase(),
-                          style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(thread.participants.map((p) => p.name).join(', '),
-                                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text(
-                              thread.lastMessage?.content ?? 'Sin mensajes',
-                              style: const TextStyle(color: Colors.white70, fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (thread.lastMessage != null)
-                        Text(
-                          DateFormat('HH:mm').format(thread.lastMessage!.createdAt),
-                          style: const TextStyle(color: Colors.white30, fontSize: 12),
-                        ),
-                    ],
+              final otherName = thread.participants.isNotEmpty
+                  ? thread.participants.first.name
+                  : 'Alumno';
+              final lastMsg = thread.lastMessage?.content ?? 'Sin mensajes';
+              final lastTime = thread.lastMessage != null
+                  ? DateFormat('HH:mm').format(thread.lastMessage!.createdAt)
+                  : '';
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: AppColors.divider),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 16, vertical: 8),
+                  leading: CircleAvatar(
+                    backgroundColor: AppColors.primary.withOpacity(0.15),
+                    child: Text(
+                      otherName.isNotEmpty
+                          ? otherName[0].toUpperCase()
+                          : 'A',
+                      style: const TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.bold),
+                    ),
                   ),
+                  title: Text(otherName,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
+                  subtitle: Text(
+                    lastMsg,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        const TextStyle(color: AppColors.textSecondary),
+                  ),
+                  trailing: Text(lastTime,
+                      style: const TextStyle(
+                          fontSize: 11, color: AppColors.textSecondary)),
+                  onTap: () {
+                    // TODO: Navegar a hilo de chat
+                  },
                 ),
               );
             },

@@ -2,6 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/domain/model/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin_language_model.dart';
+import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+
+// Re-export del teacherRepositoryProvider para que otros providers lo puedan usar
+export 'package:jumpup_app/presentation/providers/resource_provider.dart'
+    show teacherRepositoryProvider;
+
 
 // 1. Provider para cargar la lista de idiomas
 final languagesProvider = FutureProvider<List<Language>>((ref) async {

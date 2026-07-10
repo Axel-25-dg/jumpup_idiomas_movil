@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
-import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/screens/admin/upload_resource_screen.dart';
 
 class ResourceLibraryScreen extends ConsumerWidget {
@@ -12,37 +12,46 @@ class ResourceLibraryScreen extends ConsumerWidget {
     final resourcesAsync = ref.watch(resourcesListProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F0E1A),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        title: const Text('Biblioteca de Recursos'),
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.textPrimary,
         elevation: 0,
-        title: const Text('Biblioteca de Recursos', style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
+        surfaceTintColor: Colors.white,
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh, color: AppColors.primary),
             onPressed: () => ref.invalidate(resourcesListProvider),
           ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
-        backgroundColor: const Color(0xFFFF8A65),
+        backgroundColor: AppColors.primary,
         child: const Icon(Icons.upload_file, color: Colors.white),
         onPressed: () async {
-          await Navigator.of(context).push(MaterialPageRoute(builder: (_) => const UploadResourceScreen()));
+          await Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const UploadResourceScreen()));
           ref.invalidate(resourcesListProvider);
         },
       ),
       body: resourcesAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFFFF8A65))),
+        loading: () => const Center(
+            child: CircularProgressIndicator(color: AppColors.primary)),
         error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-              const SizedBox(height: 12),
-              Text('Error: $e', style: const TextStyle(color: Colors.redAccent)),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline,
+                    size: 48, color: AppColors.error),
+                const SizedBox(height: 12),
+                Text('Error: $e',
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(color: AppColors.textSecondary)),
+              ],
+            ),
           ),
         ),
         data: (resources) {
@@ -51,11 +60,17 @@ class ResourceLibraryScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.folder_open_rounded, size: 64, color: Colors.white30),
+                  Icon(Icons.folder_open_rounded,
+                      size: 64, color: AppColors.textHint),
                   const SizedBox(height: 12),
-                  const Text('No has subido recursos', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  const Text('No has subido recursos aún',
+                      style: TextStyle(
+                          color: AppColors.textPrimary,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold)),
                   const SizedBox(height: 8),
-                  const Text('Sube PDFs, Audios o Videos para tus alumnos.', style: TextStyle(color: Colors.white54)),
+                  const Text('Toca + para subir PDFs, audios o videos.',
+                      style: TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
             );
@@ -66,41 +81,51 @@ class ResourceLibraryScreen extends ConsumerWidget {
             itemCount: resources.length,
             itemBuilder: (context, index) {
               final res = resources[index];
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GlassContainer(
-                  opacity: 0.1,
-                  blur: 10,
-                  padding: const EdgeInsets.all(16),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFFF8A65).withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(Icons.insert_drive_file, color: Color(0xFFFF8A65), size: 24),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(res.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                            const SizedBox(height: 4),
-                            Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.courseId}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                          ],
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.download_rounded, color: Colors.white54),
-                        onPressed: () {
-                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Descarga iniciada...')));
-                        },
-                      ),
-                    ],
+              final iconData = res.resourceType == 'video'
+                  ? Icons.videocam_rounded
+                  : res.resourceType == 'audio'
+                      ? Icons.headphones_rounded
+                      : Icons.picture_as_pdf_rounded;
+              final iconColor = res.resourceType == 'video'
+                  ? AppColors.error
+                  : res.resourceType == 'audio'
+                      ? const Color(0xFF8E24AA)
+                      : const Color(0xFFFB8C00);
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 10),
+                elevation: 0,
+                color: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                  side: BorderSide(color: AppColors.divider),
+                ),
+                child: ListTile(
+                  contentPadding: const EdgeInsets.all(12),
+                  leading: Container(
+                    padding: const EdgeInsets.all(10),
+                    decoration: BoxDecoration(
+                      color: iconColor.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Icon(iconData, color: iconColor, size: 24),
+                  ),
+                  title: Text(res.title,
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.textPrimary)),
+                  subtitle: Text(
+                    '${res.resourceType.toUpperCase()} • Curso ${res.courseId}',
+                    style: const TextStyle(
+                        color: AppColors.textSecondary, fontSize: 12),
+                  ),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.download_rounded,
+                        color: AppColors.primary),
+                    onPressed: () {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                          content: Text('Descargando recurso...')));
+                    },
                   ),
                 ),
               );

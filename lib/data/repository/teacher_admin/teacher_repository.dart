@@ -218,6 +218,25 @@ class TeacherRepository {
 
   Future<void> deleteCourse(int id) async => await _dio.delete('courses/$id/');
 
+  Future<List<Map<String, dynamic>>> fetchModulesForCourse(int courseId) async {
+    try {
+      final res = await _dio.get<dynamic>(
+        'modules/',
+        queryParameters: {'course': courseId},
+      );
+      return _listFrom(res.data)
+          .map((m) => {
+                'id': m['id'],
+                'title': m['title']?.toString() ?? 'Módulo',
+              })
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(
+          'Error al cargar módulos', e.response?.statusCode, e);
+    }
+  }
+
+
 //informes globales
 // obtener la lista de reportes
   Future<List<Report>> fetchReports() async {
