@@ -3,6 +3,8 @@ import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
+import 'package:go_router/go_router.dart';
 
 /// Pantalla de planes de suscripción.
 class SubscriptionsScreen extends ConsumerWidget {
@@ -187,22 +189,23 @@ class _PlanCard extends ConsumerWidget {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed:
-                        plan.isFree || paymentStatus == PaymentStatus.loading
-                            ? null
-                            : () => _showPaymentDialog(context, ref, plan),
+                    onPressed: plan.isFree
+                        ? null
+                        : () {
+                            ref.read(cartProvider.notifier).addItem(plan);
+                            context.push('/cart');
+                          },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: plan.isFree
-                          ? AppColors.divider
-                          : AppColors.primary,
+                      backgroundColor:
+                          plan.isFree ? AppColors.divider : AppColors.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12)),
                     ),
                     child: Text(
-                      plan.isFree ? 'Plan actual' : 'Suscribirse',
+                      plan.isFree ? 'Plan actual' : 'Agregar al carrito',
                       style: const TextStyle(
-                          color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+                          color: AppColors.white, fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
@@ -233,43 +236,6 @@ class _PlanCard extends ConsumerWidget {
 
   void _showPaymentDialog(
       BuildContext context, WidgetRef ref, SubscriptionModel plan) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('Suscribirse a ${plan.name}',
-            style: const TextStyle(color: AppColors.textPrimary)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Total: ${plan.formattedPrice} / ${plan.durationLabel}',
-                style: const TextStyle(color: AppColors.textPrimary)),
-            const SizedBox(height: 16),
-            const Text('Método de pago:',
-                style: TextStyle(color: AppColors.textSecondary, fontSize: 13)),
-            const SizedBox(height: 8),
-            ...['Tarjeta de crédito', 'PayPal'].map((method) => ListTile(
-                  leading: Icon(
-                    method.contains('Tarjeta')
-                        ? Icons.credit_card
-                        : Icons.account_balance_wallet,
-                    color: AppColors.primary,
-                  ),
-                  title:
-                      Text(method, style: const TextStyle(color: AppColors.textPrimary)),
-                  onTap: () {
-                    Navigator.pop(context);
-                    ref.read(paymentNotifierProvider.notifier).processPayment(
-                          subscriptionId: plan.id,
-                          paymentMethod:
-                              method.toLowerCase().replaceAll(' ', '_'),
-                        );
-                  },
-                )),
-          ],
-        ),
-      ),
-    );
+    // Deprecated in favor of Cart
   }
 }

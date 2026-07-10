@@ -204,6 +204,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           alignment: Alignment.bottomRight,
                           children: [
                             Container(
+                              width: 120,
+                              height: 120,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
                                 border: Border.all(color: Colors.white, width: 4),
@@ -215,29 +217,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                                   ),
                                 ],
                               ),
-                              child: Builder(
-                                builder: (context) {
-                                  final avatarUrl = _resolveAvatarUrl(profile.avatarUrl);
-                                  return CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                                    backgroundImage: avatarUrl != null
-                                        ? NetworkImage(avatarUrl)
-                                        : null,
-                                    child: avatarUrl == null
-                                        ? Text(
-                                            profile.username.isNotEmpty
-                                                ? profile.username[0].toUpperCase()
-                                                : '?',
-                                            style: AppTextStyles.displayMedium.copyWith(
+                              child: ClipOval(
+                                child: Builder(
+                                  builder: (context) {
+                                    final avatarUrl = _resolveAvatarUrl(profile.avatarUrl);
+                                    if (avatarUrl != null) {
+                                      return Image.network(
+                                        avatarUrl,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => _buildPlaceholder(profile.username),
+                                        loadingBuilder: (context, child, loadingProgress) {
+                                          if (loadingProgress == null) return child;
+                                          return Center(
+                                            child: CircularProgressIndicator(
+                                              value: loadingProgress.expectedTotalBytes != null
+                                                  ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
+                                                  : null,
                                               color: Colors.white,
-                                              fontSize: 48,
-                                              fontWeight: FontWeight.w800,
+                                              strokeWidth: 2,
                                             ),
-                                          )
-                                        : null,
-                                  );
-                                },
+                                          );
+                                        },
+                                      );
+                                    }
+                                    return _buildPlaceholder(profile.username);
+                                  },
+                                ),
                               ),
                             ),
                             GestureDetector(
@@ -350,6 +355,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                           ),
                         ],
                       ),
+                    ),
+                    const SizedBox(height: 24),
+                    FadeInUp(
+                      delay: const Duration(milliseconds: 350),
+                      child: const _AchievementBadges(),
                     ),
                     const SizedBox(height: 24),
                     FadeInUp(
@@ -543,6 +553,24 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
+  Widget _buildPlaceholder(String name) {
+    return Container(
+      width: double.infinity,
+      height: double.infinity,
+      color: AppColors.primary.withValues(alpha: 0.1),
+      child: Center(
+        child: Text(
+          name.isNotEmpty ? name[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: AppColors.primary,
+            fontSize: 40,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
+      ),
+    );
+  }
+
   String _formatDate(DateTime d) =>
       '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
 
@@ -554,6 +582,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final cleanBase = apiFreeBase.endsWith('/') ? apiFreeBase.substring(0, apiFreeBase.length - 1) : apiFreeBase;
     final cleanPath = url.startsWith('/') ? url : '/$url';
     return '$cleanBase$cleanPath';
+  }
+}
+
+class _AchievementBadges extends StatelessWidget {
+  const _AchievementBadges();
+
+  @override
+  Widget build(BuildContext context) {
+    final achievements = [
+      (Icons.auto_awesome_rounded, 'Primer Paso', AppColors.primary),
+      (Icons.local_fire_department_rounded, 'En Racha', AppColors.warning),
+      (Icons.psychology_rounded, 'Mente Maestra', AppColors.secondary),
+      (Icons.emoji_events_rounded, 'Campeón', AppColors.success),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SectionHeader(title: 'Pines de Logro'),
+        StudentCard(
+          padding: const EdgeInsets.all(16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: achievements.map((a) => Tooltip(
+              message: a.$2,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: a.$3.withValues(alpha: 0.1),
+                ),
+                child: Icon(a.$1, color: a.$3, size: 28),
+              ),
+            )).toList(),
+          ),
+        ),
+      ],
+    );
   }
 }
 

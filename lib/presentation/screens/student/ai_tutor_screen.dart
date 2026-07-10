@@ -195,35 +195,26 @@ class _AITutorScreenState extends State<AITutorScreen>
             ],
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Tutor JumpUp AI',
-                style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700, fontSize: 15),
-              ),
-              Row(
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: AppColors.success,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Modo demo · Próximamente con IA real',
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w400),
-                  ),
-                ],
-              ),
-            ],
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Tutor JumpUp AI',
+                  style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700, fontSize: 15),
+                ),
+                Text(
+                  'Modo demo · Próximamente con IA real',
+                  style: AppTextStyles.labelSmall.copyWith(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w400),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -27,6 +27,7 @@ import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dar
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/cart/cart_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 import 'package:jumpup_app/presentation/screens/admin/admin_dashboard_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/teacher_dashboard_screen.dart';
@@ -78,6 +79,7 @@ abstract final class AppRoutes {
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
   static const studentGames = '/student/games';
+  static const studentCart = '/cart';
 
   // Teacher
   static const teacherDashboard = '/teacher';
@@ -231,6 +233,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentGames,
           name: 'studentGames',
           builder: (_, __) => const GamesScreen()),
+      GoRoute(
+          path: AppRoutes.studentCart,
+          name: 'studentCart',
+          builder: (_, __) => const CartScreen()),
 
       // Teacher
       GoRoute(

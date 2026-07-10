@@ -193,13 +193,28 @@ class _SliverHeader extends ConsumerWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        CircleAvatar(
-                          radius: 30,
-                          backgroundColor: Colors.white.withValues(alpha: 0.2),
-                          backgroundImage: _resolveAvatarUrl(user.avatarUrl) != null ? NetworkImage(_resolveAvatarUrl(user.avatarUrl)!) : null,
-                          child: _resolveAvatarUrl(user.avatarUrl) == null
-                              ? Text(user.username.isNotEmpty ? user.username[0].toUpperCase() : '?', style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold))
-                              : null,
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: Colors.white, width: 2),
+                          ),
+                          child: ClipOval(
+                            child: Builder(
+                              builder: (context) {
+                                final avatarUrl = _resolveAvatarUrl(user.avatarUrl);
+                                if (avatarUrl != null) {
+                                  return Image.network(
+                                    avatarUrl,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) => _buildPlaceholder(user.username),
+                                  );
+                                }
+                                return _buildPlaceholder(user.username);
+                              },
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 16),
                         Expanded(
@@ -217,6 +232,10 @@ class _SliverHeader extends ConsumerWidget {
                             ],
                           ),
                         ),
+                        IconButton(
+                          icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
+                          onPressed: () => context.push('/cart'),
+                        ),
                         _StreakBadge(statsAsync: statsAsync),
                       ],
                     ),
@@ -230,6 +249,17 @@ class _SliverHeader extends ConsumerWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(String name) {
+    return Container(
+      color: Colors.white.withValues(alpha: 0.2),
+      alignment: Alignment.center,
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
       ),
     );
   }

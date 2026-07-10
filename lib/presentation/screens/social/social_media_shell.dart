@@ -14,8 +14,20 @@ class SocialMediaShell extends StatefulWidget {
   State<SocialMediaShell> createState() => _SocialMediaShellState();
 }
 
-class _SocialMediaShellState extends State<SocialMediaShell> {
-  int _index = 0;
+class _SocialMediaShellState extends State<SocialMediaShell> with TickerProviderStateMixin {
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -29,70 +41,32 @@ class _SocialMediaShellState extends State<SocialMediaShell> {
 
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: IndexedStack(
-        index: _index,
-        children: screens,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          border: Border(
-            top: BorderSide(color: AppColors.divider, width: 0.5),
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 12,
-              offset: const Offset(0, -2),
-            ),
+      appBar: AppBar(
+        backgroundColor: AppColors.white,
+        elevation: 0,
+        toolbarHeight: 0, // Ocultamos el toolbar para que solo se vea el TabBar
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          labelColor: AppColors.primary,
+          unselectedLabelColor: AppColors.textSecondary,
+          indicatorColor: AppColors.primary,
+          indicatorWeight: 3,
+          indicatorSize: TabBarIndicatorSize.label,
+          labelStyle: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700),
+          unselectedLabelStyle: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w500),
+          tabs: const [
+            Tab(text: 'Muro', icon: Icon(Icons.auto_awesome_mosaic_rounded, size: 20)),
+            Tab(text: 'Chats', icon: Icon(Icons.chat_bubble_rounded, size: 20)),
+            Tab(text: 'Descubrir', icon: Icon(Icons.explore_rounded, size: 20)),
+            Tab(text: 'Foros', icon: Icon(Icons.forum_rounded, size: 20)),
+            Tab(text: 'Media', icon: Icon(Icons.play_circle_fill_rounded, size: 20)),
           ],
         ),
-        child: SafeArea(
-          top: false,
-          child: SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavTab(
-                  icon: Icons.explore_outlined,
-                  activeIcon: Icons.explore_rounded,
-                  label: 'Feed',
-                  isSelected: _index == 0,
-                  onTap: () => setState(() => _index = 0),
-                ),
-                _NavTab(
-                  icon: Icons.chat_bubble_outline_rounded,
-                  activeIcon: Icons.chat_bubble_rounded,
-                  label: 'Mensajes',
-                  isSelected: _index == 1,
-                  onTap: () => setState(() => _index = 1),
-                ),
-                _NavTab(
-                  icon: Icons.search_outlined,
-                  activeIcon: Icons.search_rounded,
-                  label: 'Buscar',
-                  isSelected: _index == 2,
-                  onTap: () => setState(() => _index = 2),
-                ),
-                _NavTab(
-                  icon: Icons.forum_outlined,
-                  activeIcon: Icons.forum_rounded,
-                  label: 'Foro',
-                  isSelected: _index == 3,
-                  onTap: () => setState(() => _index = 3),
-                ),
-                _NavTab(
-                  icon: Icons.play_circle_outline_rounded,
-                  activeIcon: Icons.play_circle_rounded,
-                  label: 'Media',
-                  isSelected: _index == 4,
-                  onTap: () => setState(() => _index = 4),
-                ),
-              ],
-            ),
-          ),
-        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: screens,
       ),
     );
   }
