@@ -63,8 +63,8 @@ class CartScreen extends ConsumerWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.15), blurRadius: 100)],
+          color: color.withValues(alpha: 0.1),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.15), blurRadius: 100)],
         ),
       );
 }
@@ -130,7 +130,7 @@ class _CartItemCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(color: Colors.greenAccent.withOpacity(0.15), borderRadius: BorderRadius.circular(8)),
+                  decoration: BoxDecoration(color: Colors.greenAccent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(8)),
                   child: const Text('✅ Incluye Tutor IA', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.w600)),
                 ),
               ],
@@ -171,7 +171,7 @@ class _CartSummaryPanel extends ConsumerWidget {
       decoration: BoxDecoration(
         color: const Color(0xFF1E1E2E),
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, -8))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, -8))],
       ),
       child: SafeArea(
         top: false,

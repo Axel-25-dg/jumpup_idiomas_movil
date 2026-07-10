@@ -12,9 +12,8 @@ void main() {
     test('MessageThread crea un resumen útil', () {
       const thread = MessageThread(
         id: 1,
-        title: 'Clase de conversación',
-        participantName: 'María',
-        unreadCount: 2, subject: '',
+        subject: 'Clase de conversación',
+        unreadCount: 2,
       );
 
       expect(thread.title, contains('Clase de conversación'));

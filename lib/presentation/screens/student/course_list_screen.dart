@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -103,8 +102,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
     height: size,
     decoration: BoxDecoration(
       shape: BoxShape.circle,
-      color: color.withOpacity(0.08),
-      boxShadow: [BoxShadow(color: color.withOpacity(0.12), blurRadius: 100)],
+      color: color.withValues(alpha: 0.08),
+      boxShadow: [BoxShadow(color: color.withValues(alpha: 0.12), blurRadius: 100)],
     ),
   );
 
@@ -160,7 +159,7 @@ class _SliverAppBar extends StatelessWidget {
             Positioned(
               right: -20,
               top: -20,
-              child: Icon(Icons.explore_rounded, size: 140, color: Colors.blueAccent.withOpacity(0.1)),
+              child: Icon(Icons.explore_rounded, size: 140, color: Colors.blueAccent.withValues(alpha: 0.1)),
             ),
           ],
         ),
@@ -296,7 +295,7 @@ class _CourseListItem extends StatelessWidget {
                   Positioned(
                     right: -20,
                     bottom: -20,
-                    child: Icon(Icons.language_rounded, size: 140, color: Colors.white.withOpacity(0.1)),
+                    child: Icon(Icons.language_rounded, size: 140, color: Colors.white.withValues(alpha: 0.1)),
                   ),
                   Padding(
                     padding: const EdgeInsets.all(16),
@@ -339,7 +338,7 @@ class _CourseListItem extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.blueAccent.withOpacity(0.1),
+                          color: Colors.blueAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Text(
@@ -462,10 +461,10 @@ class _EmptyCoursesState extends StatelessWidget {
   const _EmptyCoursesState();
   @override
   Widget build(BuildContext context) {
-    return Center(
+    return const Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
-        children: const [
+        children: [
           Icon(Icons.search_off_rounded, size: 80, color: Colors.white24),
           SizedBox(height: 16),
           Text('No encontramos cursos', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),

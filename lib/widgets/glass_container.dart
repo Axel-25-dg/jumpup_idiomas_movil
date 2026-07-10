@@ -10,6 +10,7 @@ class GlassContainer extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
   final double? height;
   final double? width;
+  final VoidCallback? onTap;
 
   const GlassContainer({
     super.key,
@@ -21,29 +22,40 @@ class GlassContainer extends StatelessWidget {
     this.margin,
     this.height,
     this.width,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
+    Widget content = Container(
+      padding: padding,
+      margin: margin,
+      height: height,
+      width: width,
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: opacity),
+        borderRadius: borderRadius,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.5,
+        ),
+      ),
+      child: child,
+    );
+
+    if (onTap != null) {
+      content = GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: content,
+      );
+    }
+
     return ClipRRect(
       borderRadius: borderRadius,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
-        child: Container(
-          padding: padding,
-          margin: margin,
-          height: height,
-          width: width,
-          decoration: BoxDecoration(
-            color: Colors.white.withOpacity(opacity),
-            borderRadius: borderRadius,
-            border: Border.all(
-              color: Colors.white.withOpacity(0.15),
-              width: 1.5,
-            ),
-          ),
-          child: child,
-        ),
+        child: content,
       ),
     );
   }

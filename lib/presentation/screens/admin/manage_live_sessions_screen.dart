@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/domain/model/live_session.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/widgets/neon_button.dart';
@@ -56,7 +55,7 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -97,7 +96,7 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                          color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(Icons.videocam_off_rounded, size: 64, color: Colors.white24),
@@ -155,9 +154,9 @@ class _SessionManagementCard extends ConsumerWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
+                  color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: statusColor.withOpacity(0.3)),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [

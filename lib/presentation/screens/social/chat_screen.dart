@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/presentation/screens/social/message_detail_screen.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -66,7 +65,7 @@ class ChatScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withOpacity(0.1),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
             ),
             child: const Icon(Icons.chat_bubble_outline_rounded,
                 size: 56, color: Color(0xFF7C4DFF)),
@@ -103,7 +102,7 @@ class _ThreadTile extends StatelessWidget {
           children: [
             CircleAvatar(
               radius: 26,
-              backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.15),
+              backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
               backgroundImage: thread.participantAvatar != null
                   ? NetworkImage(thread.participantAvatar!)
                   : null,
@@ -143,7 +142,7 @@ class _ThreadTile extends StatelessWidget {
                   color: const Color(0xFF7C4DFF),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.4), blurRadius: 8)
+                    BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.4), blurRadius: 8)
                   ],
                 ),
                 child: Text('${thread.unreadCount}',

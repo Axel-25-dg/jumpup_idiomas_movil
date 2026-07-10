@@ -1,9 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 
 class RegisterScreen extends ConsumerStatefulWidget {

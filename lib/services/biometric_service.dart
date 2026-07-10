@@ -64,13 +64,8 @@ class BiometricService {
     return null;
   }
 
-  // Guardar/recuperar token biométrico localmente
-  static Future<void> _storeBiometricToken(String token) async {
-    // Usar SharedPreferences o flutter_secure_storage
-  }
-
+  // Recuperar de SharedPreferences o flutter_secure_storage
   static Future<String?> _getStoredBiometricToken() async {
-    // Recuperar de SharedPreferences o flutter_secure_storage
     return null;
   }
 }

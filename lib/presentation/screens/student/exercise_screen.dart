@@ -27,8 +27,6 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   int _correctCount = 0;
   
   // Variables de estado adicionales
-  String? _selectedLeftMatch;
-  String? _selectedRightMatch;
   final Map<String, String> _completedMatches = {};
   final List<String> _leftMatchItems = [];
   final List<String> _rightMatchItems = [];
@@ -291,8 +289,6 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _selectedAnswer = null;
         _hasAnswered = false;
         _isCorrect = false;
-        _selectedLeftMatch = null;
-        _selectedRightMatch = null;
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();

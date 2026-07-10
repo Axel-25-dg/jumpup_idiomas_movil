@@ -273,7 +273,7 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
     return SafeArea(
       child: Container(
         padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.white,
           border: Border(top: BorderSide(color: AppColors.divider)),
         ),

@@ -7,15 +7,6 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_teacher_provider.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_exercise_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_module_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_lesson_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/manage_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/resource_library_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/widgets/neon_button.dart';
@@ -42,8 +33,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.1),
-                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.1), blurRadius: 100)],
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.1), blurRadius: 100)],
               ),
             ),
           ),
@@ -55,8 +46,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withOpacity(0.1),
-                boxShadow: [BoxShadow(color: const Color(0xFF00B4DB).withOpacity(0.1), blurRadius: 100)],
+                color: const Color(0xFF00B4DB).withValues(alpha: 0.1),
+                boxShadow: [BoxShadow(color: const Color(0xFF00B4DB).withValues(alpha: 0.1), blurRadius: 100)],
               ),
             ),
           ),
@@ -166,7 +157,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                              color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                               shape: BoxShape.circle,
                             ),
                             child: const Icon(Icons.videocam_rounded, color: Color(0xFF7C4DFF), size: 32),
@@ -207,9 +198,9 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       error: (e, _) => Container(
                         padding: const EdgeInsets.all(14),
                         decoration: BoxDecoration(
-                          color: Colors.redAccent.withOpacity(0.1),
+                          color: Colors.redAccent.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.redAccent.withOpacity(0.3)),
+                          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
                         ),
                         child: Text('Error al cargar métricas: $e',
                             style: const TextStyle(color: Colors.redAccent)),
@@ -449,7 +440,7 @@ class _TeacherStatBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: gradient.colors.first.withOpacity(0.4),
+              color: gradient.colors.first.withValues(alpha: 0.4),
               blurRadius: 12,
               offset: const Offset(0, 6),
             ),
@@ -530,7 +521,7 @@ class _ClassroomTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: const Color(0xFF7C4DFF).withOpacity(0.2),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Icon(Icons.school_rounded, color: Color(0xFF7C4DFF), size: 24),
@@ -552,11 +543,11 @@ class _ClassroomTile extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: classroom.isActive
-                    ? const Color(0xFF00E676).withOpacity(0.15)
+                    ? const Color(0xFF00E676).withValues(alpha: 0.15)
                     : Colors.white10,
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: classroom.isActive ? const Color(0xFF00E676).withOpacity(0.3) : Colors.white10,
+                  color: classroom.isActive ? const Color(0xFF00E676).withValues(alpha: 0.3) : Colors.white10,
                 ),
               ),
               child: Text(

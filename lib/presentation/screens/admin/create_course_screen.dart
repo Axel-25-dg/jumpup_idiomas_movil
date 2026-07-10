@@ -66,11 +66,13 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                           'language': _selectedLanguageId,
                           'difficulty_level': 'A1',
                         });
-                        if (mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       } catch (e) {
                         setState(() => _isSaving = false);
-                        ScaffoldMessenger.of(context)
-                            .showSnackBar(SnackBar(content: Text('Error: $e')));
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(SnackBar(content: Text('Error: $e')));
+                        }
                       }
                     },
               child: _isSaving

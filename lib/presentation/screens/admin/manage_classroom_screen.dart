@@ -73,7 +73,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -83,7 +83,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
               Padding(
                 padding: const EdgeInsets.fromLTRB(20, 10, 20, 20),
                 child: Text('Lista de Estudiantes Inscritos', 
-                  style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 14, fontWeight: FontWeight.w600)),
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14, fontWeight: FontWeight.w600)),
               ),
               Expanded(
                 child: enrollments.when(
@@ -95,7 +95,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.people_outline_rounded, size: 64, color: Colors.white.withOpacity(0.1)),
+                            Icon(Icons.people_outline_rounded, size: 64, color: Colors.white.withValues(alpha: 0.1)),
                             const SizedBox(height: 16),
                             const Text('No hay estudiantes en esta aula', style: TextStyle(color: Colors.white30)),
                           ],
@@ -114,7 +114,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                           borderRadius: BorderRadius.circular(16),
                           child: ListTile(
                             leading: CircleAvatar(
-                              backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
+                              backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                               child: Text(student.studentUsername[0].toUpperCase(), 
                                 style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
                             ),

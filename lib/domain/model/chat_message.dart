@@ -46,12 +46,6 @@ class ChatMessage {
     );
   }
 
-  get title => null;
-
-  get participantName => null;
-
-  get unreadCount => null;
-
   Map<String, dynamic> toJson() {
     return {
       'id': id,

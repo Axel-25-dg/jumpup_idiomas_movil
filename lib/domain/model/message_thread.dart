@@ -6,7 +6,7 @@ class MessageThread {
     this.lastMessageBody,
     this.lastMessageAt,
     this.participantNames = const [],
-    this.participantAvatar, required String title, required String participantName,
+    this.participantAvatar,
   });
 
   final int id;
@@ -57,13 +57,13 @@ class MessageThread {
 
     return MessageThread(
       id: json['id'] as int? ?? 0,
-      subject: json['subject']?.toString() ?? '',
+      subject: json['subject']?.toString() ?? json['title']?.toString() ?? '',
       unreadCount: json['unread_count'] as int? ?? 0,
       lastMessageBody: lastMessageBody,
       lastMessageAt: DateTime.tryParse(json['last_message_at']?.toString() ?? '') ??
           DateTime.tryParse(json['lastMessageAt']?.toString() ?? ''),
       participantNames: participantNames,
-      participantAvatar: participantAvatar, title: '', participantName: '',
+      participantAvatar: participantAvatar,
     );
   }
 }

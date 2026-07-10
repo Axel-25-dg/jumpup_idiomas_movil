@@ -109,8 +109,12 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> {
 
   @override
   void dispose() {
-    for (final c in _pinControllers) c.dispose();
-    for (final f in _focusNodes) f.dispose();
+    for (final c in _pinControllers) {
+      c.dispose();
+    }
+    for (final f in _focusNodes) {
+      f.dispose();
+    }
     _newPasswordCtrl.dispose();
     _confirmPasswordCtrl.dispose();
     super.dispose();

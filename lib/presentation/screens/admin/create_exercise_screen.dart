@@ -62,8 +62,8 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFFFD54F).withOpacity(0.05),
-                boxShadow: [BoxShadow(color: const Color(0xFFFFD54F).withOpacity(0.05), blurRadius: 90)],
+                color: const Color(0xFFFFD54F).withValues(alpha: 0.05),
+                boxShadow: [BoxShadow(color: const Color(0xFFFFD54F).withValues(alpha: 0.05), blurRadius: 90)],
               ),
             ),
           ),
@@ -94,11 +94,11 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           dropdownColor: const Color(0xFF1A1828),
-                          value: _selectedType,
+                          initialValue: _selectedType,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             filled: true,
-                            fillColor: Colors.white.withOpacity(0.05),
+                            fillColor: Colors.white.withValues(alpha: 0.05),
                             contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                             border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                           ),

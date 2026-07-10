@@ -68,7 +68,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFAB47BC).withOpacity(0.05),
+                color: const Color(0xFFAB47BC).withValues(alpha: 0.05),
               ),
             ),
           ),

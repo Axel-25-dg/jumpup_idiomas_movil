@@ -2,7 +2,7 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:lottie/lottie.dart';
@@ -80,7 +80,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                     Positioned(
                       right: -20,
                       top: -20,
-                      child: Icon(Icons.auto_stories_rounded, size: 140, color: Colors.blueAccent.withOpacity(0.1)),
+                      child: Icon(Icons.auto_stories_rounded, size: 140, color: Colors.blueAccent.withValues(alpha: 0.1)),
                     ),
                   ],
                 ),
@@ -127,7 +127,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
+                color: Colors.black.withValues(alpha: 0.3),
                 blurRadius: 20,
                 offset: const Offset(0, -5),
               ),
@@ -143,7 +143,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF2575FC).withOpacity(0.3),
+                      color: const Color(0xFF2575FC).withValues(alpha: 0.3),
                       blurRadius: 12,
                       offset: const Offset(0, 6),
                     ),
@@ -202,9 +202,9 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.blueAccent.withOpacity(0.15),
+                    color: Colors.blueAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                    border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -224,9 +224,9 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
-                    color: Colors.purpleAccent.withOpacity(0.15),
+                    color: Colors.purpleAccent.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: Colors.purpleAccent.withOpacity(0.3)),
+                    border: Border.all(color: Colors.purpleAccent.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     children: [
@@ -269,7 +269,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                     'Consejo: Recuerda practicar la entonación y repasar el vocabulario en voz alta para afianzar tu racha de aprendizaje diaria.',
                     style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.8,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 0.9),
                     ),
                   ),
                 ],
@@ -298,8 +298,8 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                     height: 220,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.blueAccent.withOpacity(0.05),
-                      border: Border.all(color: Colors.blueAccent.withOpacity(0.1)),
+                      color: Colors.blueAccent.withValues(alpha: 0.05),
+                      border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.1)),
                     ),
                   ),
                   if (_isPlayingAudio)
@@ -320,7 +320,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.blueAccent.withOpacity(0.4),
+                            color: Colors.blueAccent.withValues(alpha: 0.4),
                             blurRadius: 30,
                             offset: const Offset(0, 10),
                           ),
@@ -355,7 +355,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 child: FilledButton(
                   onPressed: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
                   style: FilledButton.styleFrom(
-                    backgroundColor: _isPlayingAudio ? Colors.redAccent.withOpacity(0.2) : Colors.transparent,
+                    backgroundColor: _isPlayingAudio ? Colors.redAccent.withValues(alpha: 0.2) : Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
                   ),
@@ -403,7 +403,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 leading: Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: Colors.redAccent.withOpacity(0.1),
+                    color: Colors.redAccent.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 24),

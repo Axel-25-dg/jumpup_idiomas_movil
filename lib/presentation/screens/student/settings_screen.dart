@@ -33,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
-          _SectionHeader(label: 'PREFERENCIAS'),
+          const _SectionHeader(label: 'PREFERENCIAS'),
           const SizedBox(height: 12),
           _buildGlassTile(
             context: context,
@@ -43,7 +43,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: true,
               onChanged: (v) {},
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           const SizedBox(height: 12),
@@ -55,7 +55,7 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: true,
               onChanged: (v) {},
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           const SizedBox(height: 12),
@@ -67,12 +67,12 @@ class SettingsScreen extends ConsumerWidget {
             trailing: Switch(
               value: true,
               onChanged: (v) {},
-              activeColor: Colors.blueAccent,
+              activeThumbColor: Colors.blueAccent,
             ),
           ),
           
           const SizedBox(height: 32),
-          _SectionHeader(label: 'CUENTA'),
+          const _SectionHeader(label: 'CUENTA'),
           const SizedBox(height: 12),
           _buildGlassTile(
             context: context,
@@ -91,7 +91,7 @@ class SettingsScreen extends ConsumerWidget {
           ),
 
           const SizedBox(height: 32),
-          _SectionHeader(label: 'SOPORTE'),
+          const _SectionHeader(label: 'SOPORTE'),
           const SizedBox(height: 12),
           _buildGlassTile(
             context: context,
@@ -223,7 +223,7 @@ class SettingsScreen extends ConsumerWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               DropdownButtonFormField<String>(
-                value: selectedCategory,
+                initialValue: selectedCategory,
                 hint: const Text('Categoría'),
                 items: const [
                   DropdownMenuItem(value: 'bug', child: Text('Error')),

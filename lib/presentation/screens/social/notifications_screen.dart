@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
 import 'package:jumpup_app/domain/model/notification_item.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -154,7 +153,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -166,7 +165,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withOpacity(0.05),
+                color: const Color(0xFF00B4DB).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -229,7 +228,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
               child: const Icon(Icons.notifications_none_rounded, size: 64, color: Colors.white24),
             ),
@@ -316,7 +315,7 @@ class _NotificationCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: _colorForType(notification.type).withOpacity(0.15),
+                    color: _colorForType(notification.type).withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(_iconForType(notification.type),

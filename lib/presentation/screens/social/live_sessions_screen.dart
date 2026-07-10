@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -37,17 +36,17 @@ class LiveSessionsScreen extends ConsumerWidget {
               physics: const BouncingScrollPhysics(),
               children: [
                 if (live.isNotEmpty) ...[
-                  _SectionHeader(label: 'EN VIVO AHORA', color: const Color(0xFFFF5252)),
+                  const _SectionHeader(label: 'EN VIVO AHORA', color: Color(0xFFFF5252)),
                   ...live.map((s) => _SessionCard(session: s)),
                   const SizedBox(height: 16),
                 ],
                 if (upcoming.isNotEmpty) ...[
-                  _SectionHeader(label: 'PRÓXIMAS SESIONES', color: const Color(0xFF7C4DFF)),
+                  const _SectionHeader(label: 'PRÓXIMAS SESIONES', color: Color(0xFF7C4DFF)),
                   ...upcoming.map((s) => _SessionCard(session: s)),
                   const SizedBox(height: 16),
                 ],
                 if (ended.isNotEmpty) ...[
-                  _SectionHeader(label: 'SESIONES PASADAS', color: Colors.white24),
+                  const _SectionHeader(label: 'SESIONES PASADAS', color: Colors.white24),
                   ...ended.map((s) => _SessionCard(session: s)),
                 ],
               ],
@@ -90,7 +89,7 @@ class LiveSessionsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(32),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withOpacity(0.05),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
             ),
             child: const Icon(Icons.videocam_off_rounded, size: 64, color: Colors.white24),
           ),
@@ -113,6 +112,7 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final shadowColor = color.withValues(alpha: 0.5);
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 12, top: 8),
       child: Row(
@@ -124,7 +124,7 @@ class _SectionHeader extends StatelessWidget {
               color: color,
               borderRadius: BorderRadius.circular(2),
               boxShadow: [
-                BoxShadow(color: color.withOpacity(0.5), blurRadius: 8, spreadRadius: 0),
+                BoxShadow(color: shadowColor, blurRadius: 8, spreadRadius: 0),
               ],
             ),
           ),
@@ -179,9 +179,9 @@ class _SessionCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withOpacity(0.15),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: statusColor.withOpacity(0.3)),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
@@ -206,7 +206,7 @@ class _SessionCard extends StatelessWidget {
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.people_alt_rounded, size: 14, color: Colors.white38),
+                const Icon(Icons.people_alt_rounded, size: 14, color: Colors.white38),
                 const SizedBox(width: 6),
                 Text(
                   '${session.participantCount}${session.maxStudents > 0 ? "/${session.maxStudents}" : ""}',
@@ -233,7 +233,7 @@ class _SessionCard extends StatelessWidget {
               children: [
                 CircleAvatar(
                   radius: 12,
-                  backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.2),
+                  backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                   child: Text(
                     session.hostName.isNotEmpty ? session.hostName[0].toUpperCase() : '?',
                     style: const TextStyle(color: Color(0xFF7C4DFF), fontSize: 10, fontWeight: FontWeight.bold),

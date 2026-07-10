@@ -152,7 +152,7 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -164,7 +164,7 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
               height: 250,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withOpacity(0.05),
+                color: const Color(0xFF00B4DB).withValues(alpha: 0.05),
               ),
             ),
           ),

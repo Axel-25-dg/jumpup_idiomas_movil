@@ -17,14 +17,12 @@ class ProgressScreen extends ConsumerWidget {
       body: Stack(
         children: [
           Positioned(top: -80, right: -80, child: _blob(Colors.purpleAccent, 250)),
-          Positioned(bottom: 100, left: -60, child: _blob(Colors.blueAccent, 200)),
+          Positioned(bottom: 100, left: -60, child: _blob(const Color(0xFF448AFF), 200)),
           RefreshIndicator(
             color: Colors.blueAccent,
             backgroundColor: const Color(0xFF1E1E2E),
             onRefresh: () async {
-              ref.invalidate(progressSummaryProvider);
-              ref.invalidate(userStatsProvider);
-              ref.invalidate(myAchievementsProvider);
+              return ref.refresh(progressSummaryProvider.future);
             },
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),

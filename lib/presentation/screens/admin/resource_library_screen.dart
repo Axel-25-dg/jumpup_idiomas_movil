@@ -45,7 +45,7 @@ class ResourceLibraryScreen extends ConsumerWidget {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFFAB47BC).withOpacity(0.05),
+                color: const Color(0xFFAB47BC).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -70,10 +70,10 @@ class ResourceLibraryScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(28),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.03),
+                          color: Colors.white.withValues(alpha: 0.03),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.folder_copy_rounded, size: 64, color: Colors.white.withOpacity(0.1)),
+                        child: Icon(Icons.folder_copy_rounded, size: 64, color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       const SizedBox(height: 24),
                       const Text('Biblioteca vacía', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -101,7 +101,7 @@ class ResourceLibraryScreen extends ConsumerWidget {
                         Container(
                           padding: const EdgeInsets.all(12),
                           decoration: BoxDecoration(
-                            color: _getResourceColor(res.resourceType).withOpacity(0.15),
+                            color: _getResourceColor(res.resourceType).withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(15),
                           ),
                           child: Icon(_getResourceIcon(res.resourceType), color: _getResourceColor(res.resourceType), size: 24),

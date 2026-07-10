@@ -1,16 +1,9 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
-import 'package:jumpup_app/theme/colors.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/services/ai_chat_service.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
-import 'package:jumpup_app/domain/model/chat_message.dart';
 
 class AITutorScreen extends ConsumerStatefulWidget {
   const AITutorScreen({super.key});
@@ -78,9 +71,9 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.blueAccent.withOpacity(0.15),
+                color: Colors.blueAccent.withValues(alpha: 0.15),
                 boxShadow: [
-                  BoxShadow(color: Colors.blueAccent.withOpacity(0.3), blurRadius: 100),
+                  BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.3), blurRadius: 100),
                 ],
               ),
             ),
@@ -91,7 +84,7 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  color: chatState.isConnecting ? Colors.orange.withOpacity(0.2) : Colors.redAccent.withOpacity(0.2),
+                  color: chatState.isConnecting ? Colors.orange.withValues(alpha: 0.2) : Colors.redAccent.withValues(alpha: 0.2),
                   child: Row(
                     children: [
                       Icon(
@@ -172,7 +165,7 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
 
   AppBar _buildAppBar() {
     return AppBar(
-      backgroundColor: const Color(0xFF0D0D15).withOpacity(0.8),
+      backgroundColor: const Color(0xFF0D0D15).withValues(alpha: 0.8),
       elevation: 0,
       centerTitle: false,
       iconTheme: const IconThemeData(color: Colors.white),
@@ -243,7 +236,7 @@ class _ChatBubble extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: isBot ? Colors.black26 : Colors.blueAccent.withOpacity(0.3),
+                    color: isBot ? Colors.black26 : Colors.blueAccent.withValues(alpha: 0.3),
                     blurRadius: 10,
                     offset: const Offset(0, 4),
                   ),
@@ -378,7 +371,7 @@ class _ChatInput extends StatelessWidget {
         color: const Color(0xFF1E1E2A),
         borderRadius: const BorderRadius.only(topLeft: Radius.circular(30), topRight: Radius.circular(30)),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 20, offset: const Offset(0, -5)),
+          BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, -5)),
         ],
       ),
       child: Row(
@@ -413,7 +406,7 @@ class _ChatInput extends StatelessWidget {
                 gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
                 shape: BoxShape.circle,
                 boxShadow: [
-                  BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 10, offset: const Offset(0, 4)),
+                  BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4)),
                 ],
               ),
               child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),

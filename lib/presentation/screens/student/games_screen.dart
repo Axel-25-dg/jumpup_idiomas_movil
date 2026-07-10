@@ -40,7 +40,7 @@ class GamesScreen extends StatelessWidget {
                       children: [
                         const Text('🎮 Arena de Juegos', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
                         const SizedBox(height: 4),
-                        Text('Aprende idiomas jugando • Gana XP', style: TextStyle(color: Colors.white.withOpacity(0.7), fontSize: 13)),
+                        Text('Aprende idiomas jugando • Gana XP', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
                       ],
                     ),
                   ),
@@ -59,7 +59,7 @@ class GamesScreen extends StatelessWidget {
                       title: '🪢 Ahorcado',
                       subtitle: 'Adivina palabras en inglés',
                       description: 'Pon a prueba tu vocabulario antes de agotar tus intentos',
-                      gradient: [const Color(0xFF1565C0), const Color(0xFF42A5F5)],
+                      gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
                       xp: 50,
                       difficulty: 'Fácil',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HangmanGame())),
@@ -69,7 +69,7 @@ class GamesScreen extends StatelessWidget {
                       title: '🃏 Flashcards',
                       subtitle: 'Memoriza vocabulario con tarjetas',
                       description: 'Voltea las tarjetas y refuerza tu memoria visual',
-                      gradient: [const Color(0xFF6A11CB), const Color(0xFFAB47BC)],
+                      gradient: const [Color(0xFF6A11CB), Color(0xFFAB47BC)],
                       xp: 30,
                       difficulty: 'Fácil',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlashcardGame())),
@@ -79,7 +79,7 @@ class GamesScreen extends StatelessWidget {
                       title: '🔗 Emparejar',
                       subtitle: 'Relaciona palabras con su traducción',
                       description: 'Encuentra todos los pares antes que se acabe el tiempo',
-                      gradient: [const Color(0xFFE65100), const Color(0xFFFFA726)],
+                      gradient: const [Color(0xFFE65100), Color(0xFFFFA726)],
                       xp: 60,
                       difficulty: 'Medio',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchingGame())),
@@ -89,7 +89,7 @@ class GamesScreen extends StatelessWidget {
                       title: '❓ Trivia',
                       subtitle: 'Quiz de gramática y vocabulario',
                       description: 'Demuestra tus conocimientos respondiendo preguntas',
-                      gradient: [const Color(0xFF1B5E20), const Color(0xFF66BB6A)],
+                      gradient: const [Color(0xFF1B5E20), Color(0xFF66BB6A)],
                       xp: 80,
                       difficulty: 'Difícil',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TriviaGame())),
@@ -109,8 +109,8 @@ class GamesScreen extends StatelessWidget {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.12),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.2), blurRadius: 80)],
+          color: color.withValues(alpha: 0.12),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 80)],
         ),
       );
 }
@@ -121,9 +121,9 @@ class _StatsBanner extends StatelessWidget {
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(20),
-      child: Row(
+      child: const Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: const [
+        children: [
           _MiniStat(icon: '🔥', value: '7', label: 'Racha'),
           _MiniStat(icon: '⭐', value: '1,250', label: 'XP Total'),
           _MiniStat(icon: '🏆', value: '#12', label: 'Ranking'),
@@ -176,7 +176,7 @@ class _GameCard extends StatelessWidget {
           gradient: LinearGradient(colors: gradient, begin: Alignment.topLeft, end: Alignment.bottomRight),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(color: gradient.last.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8)),
+            BoxShadow(color: gradient.last.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
           ],
         ),
         padding: const EdgeInsets.all(24),
@@ -317,7 +317,7 @@ class _HangmanGameState extends State<HangmanGame> {
               child: Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: _won ? Colors.green.withOpacity(0.2) : Colors.red.withOpacity(0.2),
+                  color: _won ? Colors.green.withValues(alpha: 0.2) : Colors.red.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(16),
                 ),
                 child: Column(
@@ -351,7 +351,7 @@ class _HangmanGameState extends State<HangmanGame> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: wrong ? Colors.red.withOpacity(0.3) : guessed ? Colors.green.withOpacity(0.3) : const Color(0xFF2A2A3D),
+                      color: wrong ? Colors.red.withValues(alpha: 0.3) : guessed ? Colors.green.withValues(alpha: 0.3) : const Color(0xFF2A2A3D),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
@@ -442,7 +442,11 @@ class _FlashcardGameState extends State<FlashcardGame> with SingleTickerProvider
 
   void _flip() {
     HapticFeedback.lightImpact();
-    if (_ctrl.isCompleted) _ctrl.reverse(); else _ctrl.forward();
+    if (_ctrl.isCompleted) {
+      _ctrl.reverse();
+    } else {
+      _ctrl.forward();
+    }
     setState(() => _flipped = !_flipped);
   }
 
@@ -529,7 +533,7 @@ class _FlashcardGameState extends State<FlashcardGame> with SingleTickerProvider
                           ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)])
                           : const LinearGradient(colors: [Color(0xFF1565C0), Color(0xFF42A5F5)]),
                       borderRadius: BorderRadius.circular(24),
-                      boxShadow: [BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 8))],
+                      boxShadow: [BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))],
                     ),
                     child: Center(
                       child: Text(
@@ -551,14 +555,14 @@ class _FlashcardGameState extends State<FlashcardGame> with SingleTickerProvider
               children: [
                 ElevatedButton.icon(
                   onPressed: () => _next(false),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withOpacity(0.3)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red.withValues(alpha: 0.3)),
                   icon: const Icon(Icons.close, color: Colors.redAccent),
                   label: const Text('No sabía', style: TextStyle(color: Colors.white)),
                 ),
                 const SizedBox(width: 20),
                 ElevatedButton.icon(
                   onPressed: () => _next(true),
-                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green.withOpacity(0.3)),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.green.withValues(alpha: 0.3)),
                   icon: const Icon(Icons.check, color: Colors.greenAccent),
                   label: const Text('¡Lo sé!', style: TextStyle(color: Colors.white)),
                 ),
@@ -580,7 +584,7 @@ class _MatchingGameState extends State<MatchingGame> {
   final _pairs = {'Dog': 'Perro', 'House': 'Casa', 'Tree': 'Árbol', 'Sun': 'Sol'};
   List<String> _en = [], _es = [];
   String? _selEn, _selEs;
-  Set<String> _matched = {};
+  final Set<String> _matched = {};
   int _xp = 0;
 
   @override
@@ -648,7 +652,7 @@ class _MatchingGameState extends State<MatchingGame> {
             Container(
               margin: const EdgeInsets.all(20),
               padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(color: Colors.green.withOpacity(0.2), borderRadius: BorderRadius.circular(16)),
+              decoration: BoxDecoration(color: Colors.green.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(16)),
               child: Text('¡Perfecto! +$_xp XP ganados', style: const TextStyle(color: Colors.greenAccent, fontSize: 18, fontWeight: FontWeight.bold)),
             )
           else
@@ -692,7 +696,7 @@ class _WordColumn extends StatelessWidget {
             margin: const EdgeInsets.only(bottom: 12),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
             decoration: BoxDecoration(
-              color: isMatched ? Colors.green.withOpacity(0.3) : isSel ? Colors.blueAccent.withOpacity(0.4) : const Color(0xFF2A2A3D),
+              color: isMatched ? Colors.green.withValues(alpha: 0.3) : isSel ? Colors.blueAccent.withValues(alpha: 0.4) : const Color(0xFF2A2A3D),
               borderRadius: BorderRadius.circular(14),
               border: Border.all(color: isSel ? Colors.blueAccent : Colors.transparent, width: 2),
             ),
@@ -752,13 +756,19 @@ class _TriviaGameState extends State<TriviaGame> {
       }
     });
     Future.delayed(const Duration(milliseconds: 1000), () {
-      if (mounted) setState(() {
-        _selected = null;
-        if (_current < _questions.length - 1) _current++; else {
-          _done = true;
-          if (_score > 0) HapticFeedback.heavyImpact();
-        }
-      });
+      if (mounted) {
+        setState(() {
+          _selected = null;
+          if (_current < _questions.length - 1) {
+            _current++;
+          } else {
+            _done = true;
+            if (_score > 0) {
+              HapticFeedback.heavyImpact();
+            }
+          }
+        });
+      }
     });
   }
 
@@ -799,8 +809,8 @@ class _TriviaGameState extends State<TriviaGame> {
             ...List.generate(options.length, (i) {
               Color bg = const Color(0xFF2A2A3D);
               if (_selected != null) {
-                if (i == correct) bg = Colors.green.withOpacity(0.4);
-                else if (i == _selected) bg = Colors.red.withOpacity(0.4);
+                if (i == correct) bg = Colors.green.withValues(alpha: 0.4);
+                else if (i == _selected) bg = Colors.red.withValues(alpha: 0.4);
               }
               return GestureDetector(
                 onTap: () => _answer(i),
@@ -813,7 +823,7 @@ class _TriviaGameState extends State<TriviaGame> {
                     children: [
                       Container(
                         width: 28, height: 28,
-                        decoration: BoxDecoration(color: Colors.white12, shape: BoxShape.circle),
+                        decoration: const BoxDecoration(color: Colors.white12, shape: BoxShape.circle),
                         child: Center(child: Text('ABCD'[i], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
                       ),
                       const SizedBox(width: 14),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/domain/model/dashboard_models.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
@@ -12,7 +11,6 @@ import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
 import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 // Screens for bottom nav tabs
@@ -75,7 +73,7 @@ class _BottomNav extends StatelessWidget {
         color: const Color(0xFF1E1E2E),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             offset: const Offset(0, -5),
           ),
@@ -152,8 +150,8 @@ class _HomeTab extends ConsumerWidget {
             height: 250,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.purpleAccent.withOpacity(0.15),
-              boxShadow: [BoxShadow(color: Colors.purpleAccent.withOpacity(0.2), blurRadius: 100)],
+              color: Colors.purpleAccent.withValues(alpha: 0.15),
+              boxShadow: [BoxShadow(color: Colors.purpleAccent.withValues(alpha: 0.2), blurRadius: 100)],
             ),
           ),
         ),
@@ -165,8 +163,8 @@ class _HomeTab extends ConsumerWidget {
             height: 200,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.blueAccent.withOpacity(0.15),
-              boxShadow: [BoxShadow(color: Colors.blueAccent.withOpacity(0.2), blurRadius: 100)],
+              color: Colors.blueAccent.withValues(alpha: 0.15),
+              boxShadow: [BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.2), blurRadius: 100)],
             ),
           ),
         ),
@@ -406,7 +404,7 @@ class _QuickActionCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: color.withOpacity(0.2),
+                color: color.withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(icon, color: color, size: 24),
@@ -460,7 +458,7 @@ class _RecentCourseCard extends ConsumerWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(color: Colors.blueAccent.withOpacity(0.2), borderRadius: BorderRadius.circular(8)),
+                            decoration: BoxDecoration(color: Colors.blueAccent.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(8)),
                             child: Text(course.difficultyLevel.toUpperCase(), style: const TextStyle(color: Colors.blueAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                           ),
                           Text(course.languageName, style: const TextStyle(color: Colors.white54, fontSize: 12)),
@@ -505,7 +503,7 @@ class _TutorIABanner extends StatelessWidget {
           gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
           borderRadius: BorderRadius.circular(24),
           boxShadow: [
-            BoxShadow(color: Colors.blueAccent.withOpacity(0.4), blurRadius: 20, offset: const Offset(0, 10)),
+            BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 10)),
           ],
         ),
         child: Row(

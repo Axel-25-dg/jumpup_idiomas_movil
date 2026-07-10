@@ -86,8 +86,8 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
               height: 200,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
-                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.05), blurRadius: 80)],
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.05), blurRadius: 80)],
               ),
             ),
           ),
@@ -124,14 +124,14 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white.withOpacity(0.05),
+                              fillColor: Colors.white.withValues(alpha: 0.05),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               border: OutlineInputBorder(
                                 borderRadius: BorderRadius.circular(16), 
                                 borderSide: BorderSide.none
                               ),
                             ),
-                            value: _selectedCourseId,
+                            initialValue: _selectedCourseId,
                             hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                             items: courses.map((c) => DropdownMenuItem(value: c.id.toString(), child: Text(c.title))).toList(),
                             onChanged: (val) => setState(() => _selectedCourseId = val),

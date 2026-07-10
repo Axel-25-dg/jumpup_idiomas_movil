@@ -55,10 +55,10 @@ class CertificatesScreen extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.all(30),
                       decoration: BoxDecoration(
-                        color: Colors.blueAccent.withOpacity(0.05),
+                        color: Colors.blueAccent.withValues(alpha: 0.05),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.workspace_premium_outlined, color: Colors.blueAccent.withOpacity(0.5), size: 100),
+                      child: Icon(Icons.workspace_premium_outlined, color: Colors.blueAccent.withValues(alpha: 0.5), size: 100),
                     ),
                     const SizedBox(height: 24),
                     Text('Aún no tienes certificados', style: AppTextStyles.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
@@ -118,7 +118,7 @@ class _CertificateCard extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blueAccent.withOpacity(0.2), Colors.purpleAccent.withOpacity(0.05)],
+                colors: [Colors.blueAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.05)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -129,7 +129,7 @@ class _CertificateCard extends StatelessWidget {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.amber.withOpacity(0.1),
+                    color: Colors.amber.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(Icons.workspace_premium_rounded, color: Colors.amber, size: 32),
@@ -185,7 +185,7 @@ class _CertificateCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.blueAccent.withOpacity(0.2),
+                          color: Colors.blueAccent.withValues(alpha: 0.2),
                           blurRadius: 20,
                           spreadRadius: -5,
                         )

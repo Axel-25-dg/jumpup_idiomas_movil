@@ -78,7 +78,7 @@ class CatalogScreen extends ConsumerWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.school_outlined,
+                  const Icon(Icons.school_outlined,
                       size: 64, color: AppColors.textHint),
                   const SizedBox(height: 16),
                   Text('No hay cursos disponibles',
@@ -155,7 +155,7 @@ class _CourseCard extends StatelessWidget {
                 const SizedBox(height: 6),
                 Row(
                   children: [
-                    Icon(Icons.signal_cellular_alt_rounded,
+                    const Icon(Icons.signal_cellular_alt_rounded,
                         size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(

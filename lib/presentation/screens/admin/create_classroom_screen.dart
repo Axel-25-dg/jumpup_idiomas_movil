@@ -89,8 +89,8 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
-                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withOpacity(0.05), blurRadius: 60)],
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.05), blurRadius: 60)],
               ),
             ),
           ),

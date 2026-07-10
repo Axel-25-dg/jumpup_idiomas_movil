@@ -56,7 +56,7 @@ class RankingScreen extends ConsumerWidget {
                         const SizedBox(height: 12),
                         const Text('🏆 Ranking Global', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
                         const SizedBox(height: 4),
-                        Text('Los estudiantes más dedicados', style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13)),
+                        Text('Los estudiantes más dedicados', style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
                         const SizedBox(height: 32),
                         if (ranking.length >= 3) _PodiumWidget(ranking: ranking) else const SizedBox(height: 40),
                       ],
@@ -129,7 +129,7 @@ class _PodiumItem extends StatelessWidget {
         const SizedBox(height: 4),
         CircleAvatar(
           radius: 22,
-          backgroundColor: color.withOpacity(0.3),
+          backgroundColor: color.withValues(alpha: 0.3),
           child: Text(
             (entry.username ?? entry.fullName ?? '?')[0].toUpperCase(),
             style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 18),
@@ -148,7 +148,7 @@ class _PodiumItem extends StatelessWidget {
           height: height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
-              colors: [color.withOpacity(0.8), color.withOpacity(0.4)],
+              colors: [color.withValues(alpha: 0.8), color.withValues(alpha: 0.4)],
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
@@ -193,7 +193,7 @@ class _RankingRow extends StatelessWidget {
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
-                colors: [Colors.blueAccent.withOpacity(0.5), Colors.purpleAccent.withOpacity(0.5)],
+                colors: [Colors.blueAccent.withValues(alpha: 0.5), Colors.purpleAccent.withValues(alpha: 0.5)],
               ),
             ),
             child: CircleAvatar(
@@ -224,9 +224,9 @@ class _RankingRow extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.blueAccent.withOpacity(0.1),
+              color: Colors.blueAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: Colors.blueAccent.withOpacity(0.2)),
+              border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.2)),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,

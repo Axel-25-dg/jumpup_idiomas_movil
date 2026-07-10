@@ -36,7 +36,7 @@ class TeacherInboxScreen extends ConsumerWidget {
               height: 150,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF66BB6A).withOpacity(0.05),
+                color: const Color(0xFF66BB6A).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -61,10 +61,10 @@ class TeacherInboxScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.03),
+                          color: Colors.white.withValues(alpha: 0.03),
                           shape: BoxShape.circle,
                         ),
-                        child: Icon(Icons.forum_rounded, size: 64, color: Colors.white.withOpacity(0.1)),
+                        child: Icon(Icons.forum_rounded, size: 64, color: Colors.white.withValues(alpha: 0.1)),
                       ),
                       const SizedBox(height: 20),
                       const Text('Bandeja vacía', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
@@ -96,11 +96,11 @@ class TeacherInboxScreen extends ConsumerWidget {
                           Container(
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              border: Border.all(color: const Color(0xFF7C4DFF).withOpacity(0.3), width: 2),
+                              border: Border.all(color: const Color(0xFF7C4DFF).withValues(alpha: 0.3), width: 2),
                             ),
                             child: CircleAvatar(
                               radius: 26,
-                              backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.1),
+                              backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
                               child: Text(
                                 thread.participantName.isNotEmpty ? thread.participantName[0].toUpperCase() : '?',
                                 style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold, fontSize: 18),

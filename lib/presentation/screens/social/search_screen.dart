@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -98,7 +97,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withOpacity(0.1),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
             ),
             child: const Icon(Icons.search_rounded, size: 56, color: Color(0xFF7C4DFF)),
           ),
@@ -151,7 +150,7 @@ class _SearchResultTile extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
           radius: 24,
-          backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.15),
+          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
           child: Icon(icon, color: const Color(0xFF7C4DFF), size: 24),
         ),
         title: Text(result.title,
@@ -166,7 +165,7 @@ class _SearchResultTile extends StatelessWidget {
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: const Color(0xFF7C4DFF).withOpacity(0.2),
+            color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Text(

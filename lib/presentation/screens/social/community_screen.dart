@@ -58,8 +58,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                             )),
                         selected: _selectedCategoryId == null,
                         onSelected: (_) => setState(() => _selectedCategoryId = null),
-                        backgroundColor: Colors.white.withOpacity(0.05),
-                        selectedColor: const Color(0xFF7C4DFF).withOpacity(0.3),
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        selectedColor: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
                         checkmarkColor: Colors.white,
                         side: BorderSide(
                           color: _selectedCategoryId == null
@@ -82,8 +82,8 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
                         selected: _selectedCategoryId == cat.id,
                         onSelected: (_) => setState(() =>
                             _selectedCategoryId = _selectedCategoryId == cat.id ? null : cat.id),
-                        backgroundColor: Colors.white.withOpacity(0.05),
-                        selectedColor: const Color(0xFF7C4DFF).withOpacity(0.3),
+                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        selectedColor: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
                         checkmarkColor: Colors.white,
                         side: BorderSide(
                           color: _selectedCategoryId == cat.id
@@ -152,7 +152,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withOpacity(0.1),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
             ),
             child: const Icon(Icons.forum_outlined, size: 56, color: Color(0xFF7C4DFF)),
           ),
@@ -205,8 +205,8 @@ class _ForumThreadCard extends StatelessWidget {
         leading: CircleAvatar(
           radius: 24,
           backgroundColor: thread.isPinned
-              ? const Color(0xFF00B4DB).withOpacity(0.15)
-              : const Color(0xFF7C4DFF).withOpacity(0.15),
+              ? const Color(0xFF00B4DB).withValues(alpha: 0.15)
+              : const Color(0xFF7C4DFF).withValues(alpha: 0.15),
           child: Icon(
             thread.isPinned ? Icons.push_pin_rounded : Icons.forum_outlined,
             size: 22,
@@ -239,7 +239,7 @@ class _ForumThreadCard extends StatelessWidget {
             ? Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF00B4DB).withOpacity(0.15),
+                  color: const Color(0xFF00B4DB).withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text('Fijado', style: AppTextStyles.labelSmall.copyWith(color: const Color(0xFF00B4DB), fontWeight: FontWeight.bold, fontSize: 10)),
@@ -298,7 +298,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
             loading: () => const SizedBox.shrink(),
             error: (_, __) => const SizedBox.shrink(),
             data: (categories) => DropdownButtonFormField<int>(
-              value: _categoryId,
+              initialValue: _categoryId,
               hint: const Text('Seleccionar categoría'),
               decoration: InputDecoration(
                 filled: true,
@@ -353,15 +353,15 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                               body: _bodyCtrl.text.trim(),
                             );
                         widget.onCreated?.call();
-                        if (mounted) Navigator.pop(context);
+                        if (context.mounted) Navigator.pop(context);
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
                           );
                         }
                       } finally {
-                        if (mounted) setState(() => _loading = false);
+                        if (context.mounted) setState(() => _loading = false);
                       }
                     },
               style: FilledButton.styleFrom(
@@ -425,12 +425,12 @@ class _ForumThreadDetailScreenState extends ConsumerState<_ForumThreadDetailScre
                 const SizedBox(height: 8),
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 14, color: AppColors.textSecondary),
+                    const Icon(Icons.person_outline, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text(widget.thread.authorName,
                         style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w500)),
                     const SizedBox(width: 12),
-                    Icon(Icons.remove_red_eye_outlined, size: 14, color: AppColors.textSecondary),
+                    const Icon(Icons.remove_red_eye_outlined, size: 14, color: AppColors.textSecondary),
                     const SizedBox(width: 4),
                     Text('${widget.thread.views} vistas', style: AppTextStyles.bodySmall),
                   ],
@@ -465,7 +465,7 @@ class _ForumThreadDetailScreenState extends ConsumerState<_ForumThreadDetailScre
           // Reply input
           Container(
             padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               color: AppColors.white,
               border: Border(top: BorderSide(color: AppColors.divider)),
             ),
@@ -501,7 +501,7 @@ class _ForumThreadDetailScreenState extends ConsumerState<_ForumThreadDetailScre
                         _replyCtrl.clear();
                         ref.invalidate(forumPostsProvider(widget.thread.id));
                       } catch (e) {
-                        if (mounted) {
+                        if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(content: Text('Error: $e'), backgroundColor: AppColors.error),
                           );

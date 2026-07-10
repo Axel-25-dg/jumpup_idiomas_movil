@@ -10,6 +10,7 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 
@@ -129,7 +130,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         icon: Container(
           padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
-            color: AppColors.error.withOpacity(0.1),
+            color: AppColors.error.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.logout_rounded,
@@ -260,8 +261,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         height: size,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: color.withOpacity(0.1),
-          boxShadow: [BoxShadow(color: color.withOpacity(0.1), blurRadius: 100)],
+          color: color.withValues(alpha: 0.1),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 100)],
         ),
       );
 }
@@ -337,13 +338,13 @@ class _ProfileHeader extends StatelessWidget {
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [
-                        Colors.purpleAccent.withOpacity(0.4),
-                        Colors.blueAccent.withOpacity(0.1),
+                        Colors.purpleAccent.withValues(alpha: 0.4),
+                        Colors.blueAccent.withValues(alpha: 0.1),
                       ],
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.15),
+                        color: Colors.black.withValues(alpha: 0.15),
                         blurRadius: 24,
                         offset: const Offset(0, 8),
                       ),
@@ -372,7 +373,7 @@ class _ProfileHeader extends StatelessWidget {
                       border: Border.all(color: const Color(0xFF0F111A), width: 2.5),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.purpleAccent.withOpacity(0.4),
+                          color: Colors.purpleAccent.withValues(alpha: 0.4),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -410,10 +411,10 @@ class _ProfileHeader extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.05),
+                  color: Colors.white.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withOpacity(0.1),
+                    color: Colors.white.withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -422,12 +423,12 @@ class _ProfileHeader extends StatelessWidget {
                   children: [
                     Icon(Icons.email_outlined,
                         size: 14,
-                        color: Colors.white.withOpacity(0.6)),
+                        color: Colors.white.withValues(alpha: 0.6)),
                     const SizedBox(width: 6),
                     Text(
                       email,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withOpacity(0.8),
+                        color: Colors.white.withValues(alpha: 0.8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -489,16 +490,16 @@ class _ActionButton extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           gradient: isPrimary ? const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]) : null,
-          color: isPrimary ? null : Colors.white.withOpacity(0.05),
+          color: isPrimary ? null : Colors.white.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
           border: isPrimary
               ? null
               : Border.all(
-                  color: Colors.white.withOpacity(0.1), width: 1),
+                  color: Colors.white.withValues(alpha: 0.1), width: 1),
           boxShadow: isPrimary
               ? [
                   BoxShadow(
-                    color: Colors.blueAccent.withOpacity(0.2),
+                    color: Colors.blueAccent.withValues(alpha: 0.2),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -647,7 +648,7 @@ class _InfoTile extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: iconColor.withOpacity(0.1),
+              color: iconColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, size: 18, color: iconColor),
@@ -706,7 +707,7 @@ class _EditableField extends StatelessWidget {
           labelStyle: const TextStyle(color: Colors.white54),
           prefixIcon: Icon(icon, size: 20, color: Colors.blueAccent),
           filled: true,
-          fillColor: Colors.white.withOpacity(0.05),
+          fillColor: Colors.white.withValues(alpha: 0.05),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
@@ -760,7 +761,7 @@ class _DangerZone extends StatelessWidget {
               width: 36,
               height: 36,
               decoration: BoxDecoration(
-                color: AppColors.error.withOpacity(0.1),
+                color: AppColors.error.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: const Icon(Icons.logout_rounded,
@@ -778,7 +779,7 @@ class _DangerZone extends StatelessWidget {
               style: TextStyle(color: Colors.white54, fontSize: 11),
             ),
             trailing: Icon(Icons.chevron_right_rounded,
-                color: AppColors.error.withOpacity(0.6)),
+                color: AppColors.error.withValues(alpha: 0.6)),
             onTap: onLogout,
           ),
           const SizedBox(height: 4),

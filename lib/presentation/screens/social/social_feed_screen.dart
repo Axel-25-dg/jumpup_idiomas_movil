@@ -187,7 +187,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withOpacity(0.1),
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
             ),
             child: const Icon(Icons.explore_rounded, size: 56, color: Color(0xFF7C4DFF)),
           ),
@@ -229,7 +229,7 @@ class _PostCard extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 22,
-                    backgroundColor: const Color(0xFF7C4DFF).withOpacity(0.15),
+                    backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
                     backgroundImage: post.authorAvatar != null ? NetworkImage(post.authorAvatar!) : null,
                     child: post.authorAvatar == null
                         ? Text(initial,
@@ -251,9 +251,9 @@ class _PostCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _colorForType(post.postType).withOpacity(0.2),
+                      color: _colorForType(post.postType).withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: _colorForType(post.postType).withOpacity(0.5)),
+                      border: Border.all(color: _colorForType(post.postType).withValues(alpha: 0.5)),
                     ),
                     child: Text(
                       _labelForType(post.postType),
@@ -267,7 +267,7 @@ class _PostCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Text(post.content, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withOpacity(0.9), height: 1.5)),
+              child: Text(post.content, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.9), height: 1.5)),
             ),
             if (post.imageUrl != null)
               Padding(

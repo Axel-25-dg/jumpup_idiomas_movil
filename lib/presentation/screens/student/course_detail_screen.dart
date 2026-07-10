@@ -110,7 +110,7 @@ class _SliverHeader extends StatelessWidget {
             Positioned(
               right: -50,
               top: -50,
-              child: Icon(Icons.language_rounded, size: 300, color: Colors.purpleAccent.withOpacity(0.1)),
+              child: Icon(Icons.language_rounded, size: 300, color: Colors.purpleAccent.withValues(alpha: 0.1)),
             ),
             SafeArea(
               child: Padding(
@@ -188,9 +188,9 @@ class _ModuleItem extends ConsumerWidget {
               width: 44,
               height: 44,
               decoration: BoxDecoration(
-                color: Colors.blueAccent.withOpacity(0.1),
+                color: Colors.blueAccent.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.blueAccent.withOpacity(0.3)),
+                border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
               ),
               child: Center(
                 child: Text(
@@ -229,7 +229,7 @@ class _LessonTile extends StatelessWidget {
       leading: Container(
         padding: const EdgeInsets.all(8),
         decoration: BoxDecoration(
-          color: Colors.blueAccent.withOpacity(0.1),
+          color: Colors.blueAccent.withValues(alpha: 0.1),
           shape: BoxShape.circle,
         ),
         child: Icon(_getIcon(lesson.contentType), color: Colors.blueAccent, size: 18),
@@ -241,7 +241,7 @@ class _LessonTile extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             decoration: BoxDecoration(
-              color: Colors.blueAccent.withOpacity(0.1),
+              color: Colors.blueAccent.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(

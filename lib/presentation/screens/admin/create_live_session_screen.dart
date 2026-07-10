@@ -36,7 +36,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
               surface: Color(0xFF1A1828),
               onSurface: Colors.white,
             ),
-            dialogBackgroundColor: const Color(0xFF0F111A),
+            dialogTheme: const DialogThemeData(backgroundColor: Color(0xFF0F111A)),
           ),
           child: child!,
         );
@@ -138,7 +138,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
               height: 180,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withOpacity(0.05),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
             ),
           ),
@@ -181,11 +181,11 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
                             style: const TextStyle(color: Colors.white),
                             decoration: InputDecoration(
                               filled: true,
-                              fillColor: Colors.white.withOpacity(0.05),
+                              fillColor: Colors.white.withValues(alpha: 0.05),
                               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                             ),
-                            value: _selectedCourseId,
+                            initialValue: _selectedCourseId,
                             hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                             items: courses.map((c) => DropdownMenuItem(value: c.id.toString(), child: Text(c.title))).toList(),
                             onChanged: (val) => setState(() => _selectedCourseId = val),
@@ -205,7 +205,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.05), 
+                                  color: Colors.white.withValues(alpha: 0.05), 
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: Colors.white10)
                                 ),
@@ -231,7 +231,7 @@ class _CreateLiveSessionScreenState extends ConsumerState<CreateLiveSessionScree
                               child: Container(
                                 padding: const EdgeInsets.symmetric(vertical: 16),
                                 decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.05), 
+                                  color: Colors.white.withValues(alpha: 0.05), 
                                   borderRadius: BorderRadius.circular(16),
                                   border: Border.all(color: Colors.white10)
                                 ),
