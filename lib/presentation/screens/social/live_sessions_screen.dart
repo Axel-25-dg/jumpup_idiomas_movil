@@ -1,122 +1,143 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
+import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class LiveSessionsScreen extends ConsumerWidget {
   const LiveSessionsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final theme = Theme.of(context);
     final liveAsync = ref.watch(liveSessionsProvider);
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sesiones en Vivo'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(liveSessionsProvider),
-          ),
-        ],
-      ),
+      backgroundColor: Colors.transparent,
       body: liveAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (e, _) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.wifi_off, size: 48,
-                    color: theme.colorScheme.error),
-                const SizedBox(height: 12),
-                Text('Error al cargar sesiones',
-                    style: theme.textTheme.titleMedium),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: () => ref.invalidate(liveSessionsProvider),
-                  child: const Text('Reintentar'),
-                ),
-              ],
-            ),
-          ),
-        ),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        error: (e, _) => _buildError(ref),
         data: (sessions) {
+          if (sessions.isEmpty) return _buildEmpty();
+
           final live = sessions.where((s) => s.isLive).toList();
           final upcoming = sessions.where((s) => s.isScheduled).toList();
           final ended = sessions.where((s) => s.isEnded).toList();
 
-          if (sessions.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.videocam_outlined,
-                      size: 64,
-                      color: theme.colorScheme.primary
-                          .withValues(alpha: 0.4)),
-                  const SizedBox(height: 12),
-                  Text('No hay sesiones',
-                      style: theme.textTheme.titleMedium),
-                  const SizedBox(height: 4),
-                  Text('Próximamente encontrarás clases en vivo aquí',
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant)),
+          return RefreshIndicator(
+            onRefresh: () => ref.refresh(liveSessionsProvider.future),
+            color: const Color(0xFF7C4DFF),
+            backgroundColor: const Color(0xFF1A1D2E),
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
+              physics: const BouncingScrollPhysics(),
+              children: [
+                if (live.isNotEmpty) ...[
+                  const _SectionHeader(label: 'EN VIVO AHORA', color: Color(0xFFFF5252)),
+                  ...live.map((s) => _SessionCard(session: s)),
+                  const SizedBox(height: 16),
                 ],
-              ),
-            );
-          }
-
-          return ListView(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-            children: [
-              if (live.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 10,
-                        height: 10,
-                        decoration: const BoxDecoration(
-                          color: Colors.red,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text('En vivo',
-                          style: theme.textTheme.titleSmall
-                              ?.copyWith(fontWeight: FontWeight.w600)),
-                    ],
-                  ),
-                ),
-                ...live.map((s) => _SessionCard(session: s)),
-                const SizedBox(height: 16),
+                if (upcoming.isNotEmpty) ...[
+                  const _SectionHeader(label: 'PRÓXIMAS SESIONES', color: Color(0xFF7C4DFF)),
+                  ...upcoming.map((s) => _SessionCard(session: s)),
+                  const SizedBox(height: 16),
+                ],
+                if (ended.isNotEmpty) ...[
+                  const _SectionHeader(label: 'SESIONES PASADAS', color: Colors.white24),
+                  ...ended.map((s) => _SessionCard(session: s)),
+                ],
               ],
-              if (upcoming.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text('Programadas',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                ),
-                ...upcoming.map((s) => _SessionCard(session: s)),
-                const SizedBox(height: 16),
-              ],
-              if (ended.isNotEmpty) ...[
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: Text('Finalizadas',
-                      style: theme.textTheme.titleSmall
-                          ?.copyWith(fontWeight: FontWeight.w600)),
-                ),
-                ...ended.map((s) => _SessionCard(session: s)),
-              ],
-            ],
+            ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildError(WidgetRef ref) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.wifi_off_rounded, size: 60, color: Colors.white24),
+          const SizedBox(height: 12),
+          Text('Error al cargar clases', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+          const SizedBox(height: 16),
+          FilledButton.icon(
+            onPressed: () => ref.invalidate(liveSessionsProvider),
+            icon: const Icon(Icons.refresh_rounded, size: 18),
+            label: const Text('Reintentar'),
+            style: FilledButton.styleFrom(
+              backgroundColor: const Color(0xFF7C4DFF),
+              foregroundColor: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmpty() {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
+            ),
+            child: const Icon(Icons.videocam_off_rounded, size: 64, color: Colors.white24),
+          ),
+          const SizedBox(height: 24),
+          Text('No hay clases programadas',
+              style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          Text('Vuelve más tarde para unirte a sesiones en vivo',
+              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+        ],
+      ),
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({required this.label, required this.color});
+  final String label;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final shadowColor = color.withValues(alpha: 0.5);
+    return Padding(
+      padding: const EdgeInsets.only(left: 4, bottom: 12, top: 8),
+      child: Row(
+        children: [
+          Container(
+            width: 4,
+            height: 16,
+            decoration: BoxDecoration(
+              color: color,
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: [
+                BoxShadow(color: shadowColor, blurRadius: 8, spreadRadius: 0),
+              ],
+            ),
+          ),
+          const SizedBox(width: 10),
+          Text(
+            label,
+            style: AppTextStyles.labelSmall.copyWith(
+              color: Colors.white60,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -124,102 +145,145 @@ class LiveSessionsScreen extends ConsumerWidget {
 
 class _SessionCard extends StatelessWidget {
   const _SessionCard({required this.session});
-  final dynamic session;
+  final LiveSession session;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isLive = session.isLive;
-    final isScheduled = session.isScheduled;
-
     final Color statusColor;
     final String statusText;
+    final bool isLive = session.isLive;
+
     if (isLive) {
-      statusColor = Colors.red;
-      statusText = 'En vivo';
-    } else if (isScheduled) {
-      statusColor = Colors.orange;
-      statusText = 'Programada';
+      statusColor = const Color(0xFFFF5252);
+      statusText = 'EN VIVO';
+    } else if (session.isScheduled) {
+      statusColor = const Color(0xFF7C4DFF);
+      statusText = 'PROGRAMADA';
     } else {
-      statusColor = Colors.grey;
-      statusText = 'Finalizada';
+      statusColor = Colors.white24;
+      statusText = 'FINALIZADA';
     }
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        opacity: isLive ? 0.12 : 0.05,
+        blur: 15,
+        borderRadius: BorderRadius.circular(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
               children: [
                 Container(
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: statusColor.withValues(alpha: 0.1),
+                    color: statusColor.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.3)),
                   ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (isLive)
+                      if (isLive) ...[
                         Container(
-                          width: 8,
-                          height: 8,
-                          decoration: const BoxDecoration(
-                            color: Colors.red,
-                            shape: BoxShape.circle,
-                          ),
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(color: Color(0xFFFF5252), shape: BoxShape.circle),
                         ),
-                      if (isLive) const SizedBox(width: 6),
-                      Text(statusText,
-                          style: theme.textTheme.labelSmall
-                              ?.copyWith(color: statusColor)),
+                        const SizedBox(width: 6),
+                      ],
+                      Text(
+                        statusText,
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: isLive ? const Color(0xFFFF5252) : statusColor,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 10,
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 const Spacer(),
-                Icon(Icons.people_outline,
-                    size: 16, color: theme.colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text('${session.participantCount}',
-                    style: theme.textTheme.bodySmall),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Text(session.title,
-                style: theme.textTheme.titleSmall
-                    ?.copyWith(fontWeight: FontWeight.w600)),
-            if (session.description != null) ...[
-              const SizedBox(height: 4),
-              Text(session.description!,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant)),
-            ],
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Icon(Icons.person, size: 16,
-                    color: theme.colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
-                Text(session.hostName,
-                    style: theme.textTheme.bodySmall
-                        ?.copyWith(fontWeight: FontWeight.w500)),
-                const Spacer(),
-                Icon(Icons.schedule, size: 16,
-                    color: theme.colorScheme.onSurfaceVariant),
-                const SizedBox(width: 4),
+                const Icon(Icons.people_alt_rounded, size: 14, color: Colors.white38),
+                const SizedBox(width: 6),
                 Text(
-                  DateFormat('dd MMM · HH:mm')
-                      .format(session.startsAt.toLocal()),
-                  style: theme.textTheme.bodySmall,
+                  '${session.participantCount}${session.maxStudents > 0 ? "/${session.maxStudents}" : ""}',
+                  style: AppTextStyles.labelSmall.copyWith(color: Colors.white54, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
+            const SizedBox(height: 16),
+            Text(
+              session.title,
+              style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+            ),
+            if (session.description != null && session.description!.isNotEmpty) ...[
+              const SizedBox(height: 6),
+              Text(
+                session.description!,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodySmall.copyWith(color: Colors.white54, height: 1.4),
+              ),
+            ],
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                CircleAvatar(
+                  radius: 12,
+                  backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+                  child: Text(
+                    session.hostName.isNotEmpty ? session.hostName[0].toUpperCase() : '?',
+                    style: const TextStyle(color: Color(0xFF7C4DFF), fontSize: 10, fontWeight: FontWeight.bold),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  session.hostName,
+                  style: AppTextStyles.labelSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold),
+                ),
+                const Spacer(),
+                if (session.startsAt != null) ...[
+                  const Icon(Icons.calendar_today_rounded, size: 12, color: Colors.white38),
+                  const SizedBox(width: 6),
+                  Text(
+                    DateFormat('dd MMM, HH:mm').format(session.startsAt!.toLocal()),
+                    style: AppTextStyles.labelSmall.copyWith(color: Colors.white38, fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ],
+            ),
+            if (session.isScheduled || isLive) ...[
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 44,
+                child: FilledButton(
+                  onPressed: () async {
+                    try {
+                      // Usar ref para obtener el repositorio si es posible, o una instancia directa
+                      // En un ConsumerWidget usamos el repositorio inyectado si existe
+                      await const SocialMediaRepository().joinLiveSession(session.id);
+                      if (session.meetingUrl != null && session.meetingUrl!.isNotEmpty) {
+                        launchUrl(Uri.parse(session.meetingUrl!));
+                      }
+                    } catch (_) {}
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isLive ? const Color(0xFFFF5252) : const Color(0xFF7C4DFF),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                    elevation: 0,
+                  ),
+                  child: Text(
+                    isLive ? 'UNIRSE AHORA' : 'RESERVAR LUGAR',
+                    style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

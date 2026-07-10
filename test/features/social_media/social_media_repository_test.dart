@@ -2,39 +2,6 @@ import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 
-/// Crea un Dio con un HttpClientAdapter que devuelve respuestas falsas,
-/// sin tocar dotenv ni la red real.
-Dio _fakeDio({required String path, required dynamic responseData}) {
-  final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-  dio.httpClientAdapter = _FakeAdapter(path: path, data: responseData);
-  return dio;
-}
-
-class _FakeAdapter implements HttpClientAdapter {
-  _FakeAdapter({required this.path, required this.data});
-
-  final String path;
-  final dynamic data;
-
-  @override
-  Future<ResponseBody> fetch(
-    RequestOptions options,
-    Stream<List<int>>? requestStream,
-    Future<void>? cancelFuture,
-  ) async {
-    return ResponseBody.fromString(
-      '[]', // devuelve lista vacía por defecto para rutas no configuradas
-      200,
-      headers: {
-        Headers.contentTypeHeader: ['application/json']
-      },
-    );
-  }
-
-  @override
-  void close({bool force = false}) {}
-}
-
 /// Adapter que devuelve una respuesta JSON configurable por ruta.
 class _JsonAdapter implements HttpClientAdapter {
   _JsonAdapter(this._responses);
@@ -62,13 +29,13 @@ class _JsonAdapter implements HttpClientAdapter {
 }
 
 void main() {
-  group('SocialMediaRepository — fetchMessages', () {
+  group('SocialMediaRepository — fetchThreads', () {
     test('retorna lista vacía cuando el servidor devuelve []', () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
-      dio.httpClientAdapter = _JsonAdapter({'/threads/': '[]'});
+      dio.httpClientAdapter = _JsonAdapter({'threads/': '[]'});
 
       final repo = SocialMediaRepository(dio: dio);
-      final result = await repo.fetchMessages();
+      final result = await repo.fetchThreads();
 
       expect(result, isEmpty);
     });
@@ -76,11 +43,11 @@ void main() {
     test('parsea MessageThread correctamente', () async {
       const json = '''
       [{
-        "id": "1",
-        "title": "Clase de conversación",
-        "participantName": "María",
-        "unreadCount": 2,
-        "lastMessage": "¿Listas para la práctica?"
+        "id": 1,
+        "subject": "Clase de conversación",
+        "participants": [{"id": 2, "username": "María"}],
+        "unread_count": 2,
+        "last_message": "¿Listas para la práctica?"
       }]
       ''';
 
@@ -88,7 +55,7 @@ void main() {
       dio.httpClientAdapter = _JsonAdapter({'threads/': json});
 
       final repo = SocialMediaRepository(dio: dio);
-      final result = await repo.fetchMessages();
+      final result = await repo.fetchThreads();
 
       expect(result.length, 1);
       expect(result.first.title, 'Clase de conversación');
@@ -101,11 +68,11 @@ void main() {
     test('parsea NotificationItem desde lista directa', () async {
       const json = '''
       [{
-        "id": "n1",
+        "id": 1,
         "title": "Nueva respuesta",
         "message": "Alguien respondió tu hilo.",
         "type": "community",
-        "isRead": false
+        "is_read": false
       }]
       ''';
 
@@ -125,11 +92,11 @@ void main() {
       {
         "count": 1,
         "results": [{
-          "id": "n2",
+          "id": 2,
           "title": "Clase en vivo",
           "message": "Tu tutoría comienza en 15 minutos.",
           "type": "teacher",
-          "isRead": true
+          "is_read": true
         }]
       }
       ''';
@@ -150,12 +117,12 @@ void main() {
     test('parsea SocialPost correctamente', () async {
       const json = '''
       [{
-        "id": "p1",
-        "authorName": "Paula",
+        "id": 1,
+        "author": {"id": 3, "username": "Paula"},
         "content": "¡Completé mi racha de 7 días!",
-        "createdAt": "2026-07-07T18:30:00.000Z",
-        "likes": 12,
-        "comments": 3
+        "created_at": "2026-07-07T18:30:00.000Z",
+        "likes_count": 12,
+        "comments_count": 3
       }]
       ''';
 
@@ -167,7 +134,7 @@ void main() {
 
       expect(result.length, 1);
       expect(result.first.authorName, 'Paula');
-      expect(result.first.likes, 12);
+      expect(result.first.reactionCount, 12);
     });
   });
 
@@ -187,7 +154,7 @@ void main() {
       const json = '''
       {
         "results": [{
-          "id": "s1",
+          "id": 1,
           "title": "Curso de inglés B1",
           "type": "course",
           "subtitle": "Inglés · Intermedio"

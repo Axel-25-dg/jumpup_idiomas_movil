@@ -25,6 +25,8 @@ dependencies:
   # Peticiones HTTP
   # ─────────────────────────────────────────────
   dio: ^5.10.0
+  http: ^1.2.2
+  http_parser: ^4.1.0
 
   # ─────────────────────────────────────────────
   # WebSocket (chat en vivo + notificaciones)
@@ -35,6 +37,7 @@ dependencies:
   # Almacenamiento seguro (JWT)
   # ─────────────────────────────────────────────
   flutter_secure_storage: ^10.3.1
+  shared_preferences: ^2.5.2
 
   # ─────────────────────────────────────────────
   # Caché de imágenes
@@ -97,7 +100,9 @@ dependencies:
   # ─────────────────────────────────────────────
   animate_do: ^5.1.0
   lottie: ^3.5.1
-  firebase_messaging: ^16.4.1
+  firebase_core: ^3.10.1
+  firebase_messaging: ^15.2.10
+  device_info_plus: ^13.2.0
 
 dev_dependencies:
   flutter_test:

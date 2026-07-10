@@ -1,301 +1,249 @@
 import 'package:dio/dio.dart';
-import 'package:jumpup_app/core/error/api_exception.dart';
-import 'package:jumpup_app/data/remote/dio_client.dart';
+import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 
-class SocialMediaRepository {
-  SocialMediaRepository({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
-
-  final Dio _dio;
-
-  List<dynamic> _listFrom(dynamic raw) {
-    if (raw is List) return raw;
-    if (raw is Map && raw['results'] is List) return raw['results'] as List;
-    return const [];
-  }
+class SocialMediaRepository extends BaseRepository {
+  const SocialMediaRepository({Dio? dio}) : super(dio);
 
   // ── Social Feed ─────────────────────────────────────────────────────────────
 
-  Future<List<SocialPost>> fetchSocialFeed() async {
-    try {
-      final response = await _dio.get<dynamic>('social-posts/');
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => SocialPost.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar el feed social');
-    }
+  Future<List<SocialPost>> fetchSocialFeed({String? postType}) async {
+    return getList('social-posts/', SocialPost.fromJson,
+        queryParameters: postType != null ? {'post_type': postType} : null,
+        message: 'No se pudo cargar el feed social');
   }
 
   Future<SocialPost> createSocialPost({
     required String content,
     String? imageUrl,
+    String postType = 'general',
+    bool isPublic = true,
   }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        'social-posts/',
-        data: {'content': content, if (imageUrl != null) 'image_url': imageUrl},
-      );
-      return SocialPost.fromJson(response.data!);
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo crear la publicación');
-    }
+    return createOne('social-posts/', SocialPost.fromJson,
+        data: {
+          'content': content,
+          'post_type': postType,
+          if (imageUrl != null) 'image_url': imageUrl,
+          'is_public': isPublic,
+        },
+        message: 'No se pudo crear la publicación');
   }
 
-  Future<void> likePost(String postId) async {
-    try {
-      await _dio.post<void>('social-reactions/', data: {
+  Future<void> reactToPost(int postId, {String reaction = 'like'}) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('social-reactions/', data: {
         'post': postId,
-        'reaction_type': 'like',
+        'reaction': reaction,
       });
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo dar like');
-    }
+    }, message: 'No se pudo reaccionar');
   }
 
-  Future<void> unlikePost(String postId) async {
-    try {
-      // Buscar la reacción y eliminarla
-      final resp = await _dio.get<dynamic>('social-reactions/',
+  Future<void> removeReaction(int postId) async {
+    await handleRequest<void>(() async {
+      final resp = await dio.get<dynamic>('social-reactions/',
           queryParameters: {'post': postId});
-      final list = _listFrom(resp.data);
+      final list = resp.data is List
+          ? resp.data as List
+          : (resp.data is Map && resp.data['results'] is List)
+              ? resp.data['results'] as List
+              : [];
       if (list.isNotEmpty) {
         final reactionId = list.first['id'];
-        await _dio.delete<void>('social-reactions/$reactionId/');
+        await dio.delete<dynamic>('social-reactions/$reactionId/');
       }
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo quitar el like');
-    }
+    }, message: 'No se pudo quitar la reacción');
   }
 
-  Future<List<SocialComment>> fetchComments(String postId) async {
-    try {
-      final response = await _dio.get<dynamic>('social-comments/',
-          queryParameters: {'post': postId});
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => SocialComment.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudieron cargar los comentarios');
-    }
+  Future<List<SocialComment>> fetchComments(int postId) async {
+    return getList('social-comments/', SocialComment.fromJson,
+        queryParameters: {'post': postId},
+        message: 'No se pudieron cargar los comentarios');
   }
 
   Future<SocialComment> createComment({
-    required String postId,
-    required String content,
+    required int postId,
+    required String body,
   }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        'social-comments/',
-        data: {'post': postId, 'content': content},
-      );
-      return SocialComment.fromJson(response.data!);
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo crear el comentario');
-    }
+    return createOne('social-comments/', SocialComment.fromJson,
+        data: {'post': postId, 'body': body},
+        message: 'No se pudo crear el comentario');
   }
 
   // ── Mensajería ───────────────────────────────────────────────────────────────
 
-  Future<List<MessageThread>> fetchMessages() async {
-    try {
-      final response = await _dio.get<dynamic>('threads/');
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => MessageThread.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar los mensajes');
-    }
+  Future<List<MessageThread>> fetchThreads() async {
+    return getList('threads/', MessageThread.fromJson,
+        message: 'No se pudieron cargar los hilos');
   }
 
-  Future<List<ChatMessage>> fetchChatMessages(String threadId) async {
-    try {
-      final response =
-          await _dio.get<dynamic>('threads/$threadId/messages/');
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => ChatMessage.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar el historial del chat');
-    }
+  Future<MessageThread> createThread({
+    required String subject,
+    required List<int> participants,
+  }) async {
+    return createOne('threads/', MessageThread.fromJson,
+        data: {'subject': subject, 'participants': participants},
+        message: 'No se pudo crear el hilo');
+  }
+
+  Future<List<ChatMessage>> fetchChatMessages(int threadId) async {
+    return getList('threads/$threadId/messages/', ChatMessage.fromJson,
+        message: 'No se pudo cargar el historial del chat');
   }
 
   Future<ChatMessage> sendMessage({
-    required String threadId,
-    required String content,
+    required int threadId,
+    required String body,
   }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        'threads/$threadId/messages/',
-        data: {'content': content},
-      );
-      return ChatMessage.fromJson(response.data!);
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo enviar el mensaje');
-    }
+    return createOne('threads/$threadId/messages/', ChatMessage.fromJson,
+        data: {'body': body},
+        message: 'No se pudo enviar el mensaje');
   }
 
   // ── Foro / Comunidad ─────────────────────────────────────────────────────────
 
-  Future<List<ForumThread>> fetchForumThreads() async {
-    try {
-      final response = await _dio.get<dynamic>('forum-threads/');
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => ForumThread.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar el foro');
-    }
+  Future<List<ForumCategory>> fetchForumCategories() async {
+    return getList('forum-categories/', ForumCategory.fromJson,
+        message: 'No se pudieron cargar las categorías');
+  }
+
+  Future<List<ForumThread>> fetchForumThreads({int? categoryId}) async {
+    return getList('forum-threads/', ForumThread.fromJson,
+        queryParameters: categoryId != null ? {'category': categoryId} : null,
+        message: 'No se pudo cargar el foro');
   }
 
   Future<ForumThread> createForumThread({
+    required int categoryId,
     required String title,
     required String body,
-    required String language,
   }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        'forum-threads/',
-        data: {'title': title, 'body': body, 'language': language},
-      );
-      return ForumThread.fromJson(response.data!);
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo crear el hilo');
-    }
+    return createOne('forum-threads/', ForumThread.fromJson,
+        data: {'category': categoryId, 'title': title, 'body': body},
+        message: 'No se pudo crear el hilo');
+  }
+
+  Future<List<ForumPost>> fetchForumPosts(int threadId) async {
+    return getList('forum-posts/', ForumPost.fromJson,
+        queryParameters: {'thread': threadId},
+        message: 'No se pudieron cargar las respuestas');
+  }
+
+  Future<ForumPost> createForumPost({
+    required int threadId,
+    required String body,
+    int? parentId,
+  }) async {
+    return createOne('forum-posts/', ForumPost.fromJson,
+        data: {
+          'thread': threadId,
+          'body': body,
+          if (parentId != null) 'parent': parentId,
+        },
+        message: 'No se pudo publicar la respuesta');
   }
 
   // ── Sesiones en Vivo ─────────────────────────────────────────────────────────
 
-  Future<List<LiveSession>> fetchLiveSessions() async {
-    try {
-      final response = await _dio.get<dynamic>('live-sessions/');
-      final list = _listFrom(response.data);
-      return list
-          .map((json) => LiveSession.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar las sesiones en vivo');
-    }
+  Future<List<LiveSession>> fetchLiveSessions({String? status}) async {
+    return getList('live-sessions/', LiveSession.fromJson,
+        queryParameters: status != null ? {'status': status} : null,
+        message: 'No se pudieron cargar las sesiones en vivo');
   }
 
   Future<LiveSession> createLiveSession({
     required String title,
-    required String courseId,
+    required int courseId,
     required DateTime startsAt,
   }) async {
-    try {
-      final response = await _dio.post<Map<String, dynamic>>(
-        '/live-sessions/',
+    return createOne('live-sessions/', LiveSession.fromJson,
         data: {
           'title': title,
           'course': courseId,
           'starts_at': startsAt.toIso8601String(),
         },
-      );
-      return LiveSession.fromJson(response.data!);
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo crear la sesión en vivo');
-    }
+        message: 'No se pudo crear la sesión en vivo');
   }
 
-  Future<void> startLiveSession(String id) async {
-    try {
-      await _dio.post<void>('/live-sessions/$id/start/');
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo iniciar la sesión');
-    }
+  Future<void> joinLiveSession(int sessionId) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('live-sessions/$sessionId/join/');
+    }, message: 'No se pudo unir a la sesión');
   }
 
-  Future<void> endLiveSession(String id) async {
-    try {
-      await _dio.post<void>('/live-sessions/$id/end/');
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo finalizar la sesión');
-    }
+  Future<void> startLiveSession(int id) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('live-sessions/$id/start/');
+    }, message: 'No se pudo iniciar la sesión');
+  }
+
+  Future<void> endLiveSession(int id) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('live-sessions/$id/end/');
+    }, message: 'No se pudo finalizar la sesión');
   }
 
   // ── Notificaciones ───────────────────────────────────────────────────────────
 
-  Future<List<NotificationItem>> fetchNotifications() async {
-    try {
-      final response = await _dio.get<dynamic>('notifications/');
-      final list = _listFrom(response.data);
-      return list
-          .map(
-              (json) => NotificationItem.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo cargar las notificaciones');
-    }
+  Future<List<NotificationItem>> fetchNotifications({bool? unreadOnly}) async {
+    return getList('notifications/', NotificationItem.fromJson,
+        queryParameters: unreadOnly == true ? {'is_read': 'false'} : null,
+        message: 'No se pudieron cargar las notificaciones');
   }
 
-  Future<void> markNotificationRead(String notificationId) async {
-    try {
-      await _dio.post<void>('notifications/$notificationId/read/');
-    } on DioException catch (e) {
-      throw _handleDio(e, 'No se pudo marcar la notificación como leída');
-    }
+  Future<int> fetchUnreadCount() async {
+    return handleRequest<int>(() async {
+      final response = await dio.get<dynamic>('notifications/unread-count/');
+      final data = response.data;
+      if (data is Map) return data['unread_count'] as int? ?? 0;
+      return 0;
+    }, message: 'No se pudo obtener el conteo');
+  }
+
+  Future<void> markNotificationRead(int notificationId) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('notifications/$notificationId/read/');
+    }, message: 'No se pudo marcar como leída');
+  }
+
+  Future<void> markAllNotificationsRead() async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('notifications/read-all/');
+    }, message: 'No se pudieron marcar todas como leídas');
+  }
+
+  // ── Favoritos ────────────────────────────────────────────────────────────────
+
+  Future<List<dynamic>> fetchFavorites() async {
+    return getList('favorites/', (json) => json,
+        message: 'No se pudieron cargar los favoritos');
+  }
+
+  Future<dynamic> addFavorite({int? courseId, int? lessonId}) async {
+    return createOne('favorites/', (json) => json,
+        data: {
+          if (courseId != null) 'course': courseId,
+          if (lessonId != null) 'lesson': lessonId,
+        },
+        message: 'No se pudo agregar a favoritos');
+  }
+
+  Future<void> removeFavorite(int favoriteId) async {
+    await handleRequest<void>(() async {
+      await dio.delete<dynamic>('favorites/$favoriteId/');
+    }, message: 'No se pudo eliminar el favorito');
   }
 
   // ── Búsqueda ─────────────────────────────────────────────────────────────────
 
-  Future<List<SearchResult>> search(String query) async {
+  Future<List<SearchResult>> search(String query, {String type = 'all'}) async {
     if (query.trim().isEmpty) return [];
-    try {
-      final response = await _dio.get<dynamic>(
-        'search/',
-        queryParameters: {
-          'q': query.trim(),
-          'type': 'all',
-          'limit': 20,
-        },
-      );
-      final data = response.data;
-      // El endpoint de búsqueda puede devolver { courses: [...], users: [...], ... }
-      if (data is Map) {
-        final results = <SearchResult>[];
-        data.forEach((type, items) {
-          if (items is List) {
-            for (final item in items) {
-              if (item is Map<String, dynamic>) {
-                results.add(SearchResult.fromJson({...item, 'type': type.toString()}));
-              }
-            }
-          }
-        });
-        return results;
-      }
-      final list = _listFrom(data);
-      return list
-          .map((json) => SearchResult.fromJson(json as Map<String, dynamic>))
-          .toList();
-    } on DioException catch (e) {
-      throw _handleDio(e, 'Error en la búsqueda');
-    }
+    return getList('search/', SearchResult.fromJson,
+        queryParameters: {'q': query.trim(), 'type': type},
+        message: 'Error en la búsqueda');
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────────────
-
-  ApiException _handleDio(DioException e, String fallback) {
-    final inner = e.error;
-    if (inner is ApiException) return inner;
-    final body = e.response?.data;
-    String msg = fallback;
-    if (body is Map) {
-      msg = body['detail']?.toString() ??
-          body['non_field_errors']?.toString() ??
-          body['message']?.toString() ??
-          fallback;
-    }
-    return ApiException(
-      msg,
-      e.response?.statusCode,
-      e,
-    );
+  Future<List<ChatMessage>> fetchMessages() async {
+    return getList('messages/', ChatMessage.fromJson,
+        message: 'No se pudieron cargar los mensajes');
   }
 }

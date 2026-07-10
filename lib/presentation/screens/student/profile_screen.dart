@@ -1,18 +1,17 @@
 import 'dart:io';
-import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:dio/dio.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
+import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
+import 'package:jumpup_app/presentation/providers/images/image_upload_provider.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/domain/model/dashboard_models.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/data/remote/dio_client.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
+import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -24,88 +23,99 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isEditing = false;
-  bool _uploadingAvatar = false;
-  final _usernameController = TextEditingController();
-  final _bioController = TextEditingController();
-  final _nativeLangController = TextEditingController();
+  final _firstNameController = TextEditingController();
+  final _lastNameController = TextEditingController();
   final _imagePicker = ImagePicker();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.invalidate(userProfileProvider);
+    });
+  }
+
+  @override
+  void dispose() {
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    super.dispose();
+  }
 
   Future<void> _pickAndUploadAvatar() async {
     final picked = await _imagePicker.pickImage(
       source: ImageSource.gallery,
-      imageQuality: 80,
-      maxWidth: 512,
+      maxWidth: 1024,
+      maxHeight: 1024,
+      imageQuality: 85,
     );
     if (picked == null) return;
 
-    setState(() => _uploadingAvatar = true);
+    final token = await TokenStorage().getAccessToken();
+    if (token == null) return;
+
+    final uploadUrl = '${AppConfig.baseUrl}auth/me/';
+
     try {
-      final file = File(picked.path);
-      final formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(
-          file.path,
-          filename: 'avatar.jpg',
-        ),
-      });
-      await DioClient.instance.dio.patch('auth/me/', data: formData);
-      if (mounted) {
+      final uploadedUrl =
+          await ref.read(imageUploadProvider.notifier).uploadUserAvatar(
+                File(picked.path),
+                uploadUrl,
+                token,
+              );
+
+      if (uploadedUrl != null && mounted) {
         ref.invalidate(userProfileProvider);
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Foto actualizada'),
+            content: Text('Foto de perfil actualizada'),
             backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No se pudo subir la foto.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        String msg = 'No se pudo subir la foto.';
-        if (e is DioException) {
-          final code = e.response?.statusCode;
-          if (code == 413) msg = 'Imagen demasiado grande (max 2 MB).';
-          else if (code == 401) msg = 'Sesion expirada. Inicia sesion de nuevo.';
-          else if (code == 400) {
-            final detail = e.response?.data?['avatar'];
-            msg = detail?.toString() ?? 'Formato de imagen no valido.';
-          }
-        }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(msg), backgroundColor: AppColors.error),
+          const SnackBar(
+            content: Text('No se pudo subir la foto.'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
         );
       }
-    } finally {
-      if (mounted) setState(() => _uploadingAvatar = false);
     }
   }
 
-  @override
-  void dispose() {
-    _usernameController.dispose();
-    _bioController.dispose();
-    _nativeLangController.dispose();
-    super.dispose();
-  }
-
-  void _startEditing(UserProfileModel profile) {
-    _usernameController.text = profile.username;
-    _bioController.text = profile.bio ?? '';
-    _nativeLangController.text = profile.nativeLanguage;
+  void _startEditing(String firstName, String lastName) {
+    _firstNameController.text = firstName;
+    _lastNameController.text = lastName;
     setState(() => _isEditing = true);
   }
 
   Future<void> _saveProfile() async {
+    final data = <String, dynamic>{
+      'first_name': _firstNameController.text.trim(),
+      'last_name': _lastNameController.text.trim(),
+    };
+
     final notifier = ref.read(profileUpdateNotifierProvider.notifier);
-    await notifier.updateProfile({
-      'username': _usernameController.text.trim(),
-      'bio': _bioController.text.trim(),
-      'native_language': _nativeLangController.text.trim(),
-    });
+    await notifier.updateProfile(data);
     if (mounted) {
       setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Perfil actualizado'),
           backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
         ),
       );
     }
@@ -115,29 +125,44 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.white,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: const Color(0xFF1E1E2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        icon: Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(
+            color: AppColors.error.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(Icons.logout_rounded,
+              color: AppColors.error, size: 28),
+        ),
         title: Text('Cerrar sesión',
+            textAlign: TextAlign.center,
             style: AppTextStyles.titleLarge.copyWith(
-              color: AppColors.textPrimary,
+              color: Colors.white,
               fontWeight: FontWeight.w700,
             )),
-        content: Text('¿Seguro que quieres salir?',
+        content: Text('¿Seguro que quieres salir de tu cuenta?',
+            textAlign: TextAlign.center,
             style: AppTextStyles.bodyMedium.copyWith(
-              color: AppColors.textSecondary,
+              color: Colors.white70,
             )),
+        actionsAlignment: MainAxisAlignment.center,
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text('Cancelar',
                 style: AppTextStyles.labelLarge
-                    .copyWith(color: AppColors.textSecondary)),
+                    .copyWith(color: Colors.white54)),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.error,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14)),
             ),
             onPressed: () async {
               Navigator.pop(ctx);
@@ -153,318 +178,350 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final authState = ref.watch(authProvider);
+    final authUser = authState.user;
     final profileAsync = ref.watch(userProfileProvider);
     final updateState = ref.watch(profileUpdateNotifierProvider);
 
+    final profileData = profileAsync.valueOrNull;
+
+    final displayFirstName =
+        profileData?.firstName ?? (authUser?.name ?? '');
+    final displayLastName = profileData?.lastName ?? '';
+    final authName = authUser?.name;
+    final authEmail = authUser?.email;
+    final displayFullName = profileData?.fullName ??
+        (authName != null && authName.isNotEmpty ? authName : 'Usuario');
+    final displayUsername = profileData?.username ?? '';
+    final displayEmail = profileData?.email ??
+        (authEmail != null && authEmail.isNotEmpty ? authEmail : '');
+
+    final displayAvatarRaw = profileData?.avatarUrl ?? authUser?.avatarUrl;
+    final displayAvatar =
+        (displayAvatarRaw != null && displayAvatarRaw.isNotEmpty)
+            ? AppConfig.resolveImageUrl(displayAvatarRaw)
+            : '';
+
+    final isUploading = ref.watch(imageUploadProvider);
+    final isSaving = updateState.isLoading;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: profileAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: AppColors.primary)),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+      backgroundColor: const Color(0xFF0F111A),
+      body: Stack(
+        children: [
+          Positioned(top: -50, left: -50, child: _blob(Colors.purpleAccent, 250)),
+          Positioned(bottom: 100, right: -50, child: _blob(Colors.blueAccent, 200)),
+          ListView(
+            padding: EdgeInsets.zero,
             children: [
-              const Icon(Icons.error_outline_rounded,
-                  size: 48, color: AppColors.error),
-              const SizedBox(height: 12),
-              Text('No se pudo cargar el perfil',
-                  style: AppTextStyles.bodyMedium
-                      .copyWith(color: AppColors.textSecondary)),
-              const SizedBox(height: 12),
-              FilledButton.icon(
-                onPressed: () => ref.invalidate(userProfileProvider),
-                icon: const Icon(Icons.refresh, size: 18),
-                label: const Text('Reintentar'),
-                style: FilledButton.styleFrom(
-                  backgroundColor: AppColors.primary,
-                  foregroundColor: Colors.white,
+              _ProfileHeader(
+                fullName: displayFullName,
+                email: displayEmail,
+                avatarUrl: displayAvatar,
+                isUploading: isUploading,
+                isEditing: _isEditing,
+                onAvatarTap: isUploading ? null : _pickAndUploadAvatar,
+                onEditTap: () {
+                  if (_isEditing) {
+                    _saveProfile();
+                  } else {
+                    _startEditing(displayFirstName, displayLastName);
+                  }
+                },
+                onSettingsTap: () => context.push('/student/settings'),
+                isSaving: isSaving,
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                child: Column(
+                  children: [
+                    _ProfileInfoSection(
+                      isEditing: _isEditing,
+                      firstName: displayFirstName,
+                      lastName: displayLastName,
+                      username: displayUsername,
+                      email: displayEmail,
+                      firstNameController: _firstNameController,
+                      lastNameController: _lastNameController,
+                    ),
+                    const SizedBox(height: 24),
+                    _DangerZone(onLogout: _confirmLogout),
+                  ],
                 ),
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: 0.1),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 100)],
         ),
-        data: (profile) => CustomScrollView(
-          physics: const BouncingScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 240,
-              pinned: true,
-              backgroundColor: AppColors.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+      );
+}
+
+// ─── Header con avatar, nombre y acciones ─────────────────────────────────────
+
+class _ProfileHeader extends StatelessWidget {
+  final String fullName;
+  final String email;
+  final String avatarUrl;
+  final bool isUploading;
+  final bool isEditing;
+  final bool isSaving;
+  final VoidCallback? onAvatarTap;
+  final VoidCallback onEditTap;
+  final VoidCallback onSettingsTap;
+
+  const _ProfileHeader({
+    required this.fullName,
+    required this.email,
+    required this.avatarUrl,
+    required this.isUploading,
+    required this.isEditing,
+    this.onAvatarTap,
+    required this.onEditTap,
+    required this.onSettingsTap,
+    required this.isSaving,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Color(0xFF1A0533), Color(0xFF0F111A)],
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+        ),
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(32),
+          bottomRight: Radius.circular(32),
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              child: Row(
+                children: [
+                  const Spacer(),
+                  IconButton(
+                    onPressed: onSettingsTap,
+                    icon: const Icon(Icons.settings_outlined,
+                        color: Colors.white, size: 22),
+                    tooltip: 'Configuración',
                   ),
-                  child: Center(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: 40),
-                      child: FadeInDown(
-                        child: Stack(
-                          alignment: Alignment.bottomRight,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 4),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.2),
-                                    blurRadius: 20,
-                                    offset: const Offset(0, 10),
-                                  ),
-                                ],
-                              ),
-                              child: Builder(
-                                builder: (context) {
-                                  final avatarUrl = _resolveAvatarUrl(profile.avatarUrl);
-                                  return CircleAvatar(
-                                    radius: 60,
-                                    backgroundColor: AppColors.primary.withValues(alpha: 0.2),
-                                    backgroundImage: avatarUrl != null
-                                        ? NetworkImage(avatarUrl)
-                                        : null,
-                                    child: avatarUrl == null
-                                        ? Text(
-                                            profile.username.isNotEmpty
-                                                ? profile.username[0].toUpperCase()
-                                                : '?',
-                                            style: AppTextStyles.displayMedium.copyWith(
-                                              color: Colors.white,
-                                              fontSize: 48,
-                                              fontWeight: FontWeight.w800,
-                                            ),
-                                          )
-                                        : null,
-                                  );
-                                },
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
-                              child: Container(
-                                padding: const EdgeInsets.all(10),
-                                decoration: const BoxDecoration(
-                                  color: AppColors.secondary,
-                                  shape: BoxShape.circle,
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black26,
-                                      blurRadius: 8,
-                                      offset: Offset(0, 2),
-                                    ),
-                                  ],
-                                ),
-                                child: _uploadingAvatar
-                                    ? const SizedBox(
-                                        width: 20,
-                                        height: 20,
-                                        child: CircularProgressIndicator(
-                                          color: Colors.white,
-                                          strokeWidth: 2,
-                                        ),
-                                      )
-                                    : const Icon(Icons.camera_alt_rounded,
-                                        color: Colors.white, size: 20),
-                              ),
-                            ),
-                          ],
-                        ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            // Avatar con glow
+            Stack(
+              alignment: Alignment.bottomRight,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        Colors.purpleAccent.withValues(alpha: 0.4),
+                        Colors.blueAccent.withValues(alpha: 0.1),
+                      ],
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.15),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
                       ),
+                    ],
+                  ),
+                  child: Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: const BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Color(0xFF1E1E2E),
+                    ),
+                    child: UserAvatar(
+                      imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+                      fullName: fullName,
+                      radius: 48,
                     ),
                   ),
                 ),
-              ),
-              actions: [
-                IconButton(
-                  icon: Icon(
-                    _isEditing ? Icons.check_rounded : Icons.edit_rounded,
-                    color: Colors.white,
+                GestureDetector(
+                  onTap: onAvatarTap,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF0F111A), width: 2.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.purpleAccent.withValues(alpha: 0.4),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: isUploading
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
+                        : const Icon(Icons.camera_alt_rounded,
+                            color: Colors.white, size: 16),
                   ),
-                  onPressed: updateState.isLoading
-                      ? null
-                      : () {
-                          if (_isEditing) {
-                            _saveProfile();
-                          } else {
-                            _startEditing(profile);
-                          }
-                        },
-                ),
-                IconButton(
-                  icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                  onPressed: () => context.push('/student/settings'),
                 ),
               ],
             ),
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
+            const SizedBox(height: 16),
+            // Nombre
+            Text(
+              fullName,
+              style: AppTextStyles.headlineMedium.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w800,
+                letterSpacing: -0.3,
+              ),
+            ),
+            const SizedBox(height: 6),
+            // Email badge
+            if (email.isNotEmpty)
+              Container(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.1),
+                    width: 1,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    FadeIn(
-                      delay: const Duration(milliseconds: 200),
-                      child: Column(
-                        children: [
-                          Text(profile.username,
-                              style: AppTextStyles.headlineSmall.copyWith(
-                                color: AppColors.textPrimary,
-                                fontWeight: FontWeight.w800,
-                              )),
-                          const SizedBox(height: 4),
-                          Text(profile.email,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: AppColors.textSecondary,
-                                fontWeight: FontWeight.w500,
-                              )),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 300),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: StudentCard(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: StatBadge(
-                                icon: Icons.bolt_rounded,
-                                value: '${profile.currentStreak}',
-                                label: 'Racha',
-                                color: AppColors.warning,
-                              ),
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: StudentCard(
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                              child: StatBadge(
-                                icon: Icons.workspace_premium_rounded,
-                                value: '${profile.level}',
-                                label: 'Nivel',
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 400),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const SectionHeader(title: 'Información Personal'),
-                          _buildInfoCard(
-                            icon: Icons.person_outline_rounded,
-                            label: 'Nombre de usuario',
-                            value: profile.username,
-                            controller: _usernameController,
-                            isEditing: _isEditing,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInfoCard(
-                            icon: Icons.language_rounded,
-                            label: 'Idioma nativo',
-                            value: profile.nativeLanguage,
-                            controller: _nativeLangController,
-                            isEditing: _isEditing,
-                          ),
-                          const SizedBox(height: 16),
-                          _buildInfoCard(
-                            icon: Icons.info_outline_rounded,
-                            label: 'Biografía',
-                            value: profile.bio?.isNotEmpty == true
-                                ? profile.bio!
-                                : 'Sin biografía',
-                            controller: _bioController,
-                            isEditing: _isEditing,
-                            maxLines: 3,
-                          ),
-                        ],
-                      ),
-                    ),
-                    if (profile.learningLanguages.isNotEmpty) ...[
-                      const SizedBox(height: 32),
-                      FadeInUp(
-                        delay: const Duration(milliseconds: 500),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SectionHeader(title: 'Idiomas en Curso'),
-                            StudentCard(
-                              padding: const EdgeInsets.all(20),
-                              child: Wrap(
-                                spacing: 12,
-                                runSpacing: 12,
-                                children: profile.learningLanguages.map((lang) {
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16, vertical: 8),
-                                    decoration: BoxDecoration(
-                                      color: AppColors.primary.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                          color: AppColors.primary.withValues(alpha: 0.2)),
-                                    ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        const Icon(Icons.language_rounded,
-                                            size: 16, color: AppColors.primary),
-                                        const SizedBox(width: 8),
-                                        Text(lang,
-                                            style: AppTextStyles.labelLarge.copyWith(
-                                              color: AppColors.primary,
-                                              fontWeight: FontWeight.w700,
-                                            )),
-                                      ],
-                                    ),
-                                  );
-                                }).toList(),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 40),
-                    FadeInUp(
-                      delay: const Duration(milliseconds: 600),
-                      child: SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: OutlinedButton.icon(
-                          onPressed: _confirmLogout,
-                          icon: const Icon(Icons.logout_rounded),
-                          label: const Text('Cerrar Sesión'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: AppColors.error,
-                            side: const BorderSide(color: AppColors.error, width: 1.5),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            textStyle: AppTextStyles.buttonText.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
+                    Icon(Icons.email_outlined,
+                        size: 14,
+                        color: Colors.white.withValues(alpha: 0.6)),
+                    const SizedBox(width: 6),
                     Text(
-                      'Miembro desde ${_formatDate(profile.joinedAt)}',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: AppColors.textSecondary,
-                        letterSpacing: 0.5,
+                      email,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white.withValues(alpha: 0.8),
+                        fontWeight: FontWeight.w500,
                       ),
                     ),
-                    const SizedBox(height: 40),
                   ],
                 ),
+              ),
+            const SizedBox(height: 24),
+            // Botones de acción
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 32),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: _ActionButton(
+                      icon: isEditing ? Icons.check_rounded : Icons.edit_rounded,
+                      label: isEditing ? 'Guardar' : 'Editar perfil',
+                      onTap: isSaving ? null : onEditTap,
+                      isPrimary: true,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: _ActionButton(
+                      icon: Icons.share_outlined,
+                      label: 'Compartir',
+                      onTap: () {},
+                      isPrimary: false,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ActionButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback? onTap;
+  final bool isPrimary;
+
+  const _ActionButton({
+    required this.icon,
+    required this.label,
+    this.onTap,
+    required this.isPrimary,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          gradient: isPrimary ? const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]) : null,
+          color: isPrimary ? null : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(14),
+          border: isPrimary
+              ? null
+              : Border.all(
+                  color: Colors.white.withValues(alpha: 0.1), width: 1),
+          boxShadow: isPrimary
+              ? [
+                  BoxShadow(
+                    color: Colors.blueAccent.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: Colors.white,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w700,
+                fontSize: 13,
+                letterSpacing: 0.2,
               ),
             ),
           ],
@@ -472,69 +529,152 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
+}
 
-  Widget _buildInfoCard({
-    required IconData icon,
-    required String label,
-    required String value,
-    required TextEditingController controller,
-    required bool isEditing,
-    int maxLines = 1,
-  }) {
-    if (isEditing) {
-      return FadeIn(
-        child: TextFormField(
-          controller: controller,
-          maxLines: maxLines,
-          style: AppTextStyles.bodyMedium,
-          decoration: InputDecoration(
-            labelText: label,
-            labelStyle: AppTextStyles.inputLabel,
-            prefixIcon: Icon(icon, size: 20, color: AppColors.primary),
-            filled: true,
-            fillColor: AppColors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.divider),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.divider),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: const BorderSide(color: AppColors.primary, width: 2),
+// ─── Sección de información del perfil ─────────────────────────────────────────
+
+class _ProfileInfoSection extends StatelessWidget {
+  final bool isEditing;
+  final String firstName;
+  final String lastName;
+  final String username;
+  final String email;
+  final TextEditingController firstNameController;
+  final TextEditingController lastNameController;
+
+  const _ProfileInfoSection({
+    required this.isEditing,
+    required this.firstName,
+    required this.lastName,
+    required this.username,
+    required this.email,
+    required this.firstNameController,
+    required this.lastNameController,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Text(
+              'Información Personal',
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
             ),
           ),
-        ),
-      );
-    }
-    return StudentCard(
-      padding: const EdgeInsets.all(16),
+          isEditing
+              ? _EditableField(
+                  controller: firstNameController,
+                  label: 'Nombre',
+                  icon: Icons.badge_outlined,
+                )
+              : _InfoTile(
+                  icon: Icons.badge_outlined,
+                  label: 'Nombre',
+                  value: firstName.isNotEmpty ? firstName : 'Sin nombre',
+                  iconColor: Colors.blueAccent,
+                ),
+          _divider(),
+          isEditing
+              ? _EditableField(
+                  controller: lastNameController,
+                  label: 'Apellido',
+                  icon: Icons.badge_outlined,
+                )
+              : _InfoTile(
+                  icon: Icons.badge_outlined,
+                  label: 'Apellido',
+                  value: lastName.isNotEmpty ? lastName : 'Sin apellido',
+                  iconColor: Colors.blueAccent,
+                ),
+          _divider(),
+          _InfoTile(
+            icon: Icons.alternate_email_rounded,
+            label: 'Usuario',
+            value: username.isNotEmpty ? username : 'Sin usuario',
+            iconColor: Colors.purpleAccent,
+          ),
+          _divider(),
+          _InfoTile(
+            icon: Icons.email_outlined,
+            label: 'Correo electrónico',
+            value: email.isNotEmpty ? email : 'Sin correo',
+            iconColor: Colors.greenAccent,
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
+  Widget _divider() {
+    return const Divider(
+      height: 1,
+      indent: 56,
+      endIndent: 20,
+      color: Colors.white10,
+    );
+  }
+}
+
+class _InfoTile extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final String value;
+  final Color iconColor;
+
+  const _InfoTile({
+    required this.icon,
+    required this.label,
+    required this.value,
+    required this.iconColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
-        crossAxisAlignment:
-            maxLines > 1 ? CrossAxisAlignment.start : CrossAxisAlignment.center,
         children: [
           Container(
-            padding: const EdgeInsets.all(10),
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: AppColors.background,
-              borderRadius: BorderRadius.circular(12),
+              color: iconColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
+            child: Icon(icon, size: 18, color: iconColor),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label,
-                    style: AppTextStyles.labelSmall
-                        .copyWith(color: AppColors.textSecondary, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(value,
-                    style: AppTextStyles.bodyLarge
-                        .copyWith(color: AppColors.textPrimary, fontWeight: FontWeight.w500)),
+                Text(
+                  label,
+                  style: AppTextStyles.labelSmall.copyWith(
+                    color: Colors.white54,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  value,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -542,18 +682,109 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
       ),
     );
   }
+}
 
-  String _formatDate(DateTime d) =>
-      '${d.day.toString().padLeft(2, '0')}/${d.month.toString().padLeft(2, '0')}/${d.year}';
+class _EditableField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
 
-  String? _resolveAvatarUrl(String? url) {
-    if (url == null || url.isEmpty) return null;
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    final base = AppConfig.baseUrl;
-    final apiFreeBase = base.replaceFirst(RegExp(r'/?api/?$'), '');
-    final cleanBase = apiFreeBase.endsWith('/') ? apiFreeBase.substring(0, apiFreeBase.length - 1) : apiFreeBase;
-    final cleanPath = url.startsWith('/') ? url : '/$url';
-    return '$cleanBase$cleanPath';
+  const _EditableField({
+    required this.controller,
+    required this.label,
+    required this.icon,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: TextFormField(
+        controller: controller,
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500, color: Colors.white),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white54),
+          prefixIcon: Icon(icon, size: 20, color: Colors.blueAccent),
+          filled: true,
+          fillColor: Colors.white.withValues(alpha: 0.05),
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: BorderSide.none,
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(14),
+            borderSide: const BorderSide(color: Colors.blueAccent, width: 1.5),
+          ),
+        ),
+      ),
+    );
   }
 }
 
+// ─── Zona de peligro (cerrar sesión) ──────────────────────────────────────────
+
+class _DangerZone extends StatelessWidget {
+  final VoidCallback onLogout;
+
+  const _DangerZone({required this.onLogout});
+
+  @override
+  Widget build(BuildContext context) {
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                'Cuenta',
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+          ),
+          ListTile(
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20),
+            leading: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: AppColors.error.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: const Icon(Icons.logout_rounded,
+                  size: 18, color: AppColors.error),
+            ),
+            title: Text(
+              'Cerrar Sesión',
+              style: AppTextStyles.bodyMedium.copyWith(
+                color: AppColors.error,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            subtitle: const Text(
+              'Volver a la pantalla de inicio',
+              style: TextStyle(color: Colors.white54, fontSize: 11),
+            ),
+            trailing: Icon(Icons.chevron_right_rounded,
+                color: AppColors.error.withValues(alpha: 0.6)),
+            onTap: onLogout,
+          ),
+          const SizedBox(height: 4),
+        ],
+      ),
+    );
+  }
+}

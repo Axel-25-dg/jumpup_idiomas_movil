@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:local_auth/local_auth.dart';
 import 'api_service.dart';
@@ -71,5 +72,62 @@ class AuthService {
 
   Future<void> logout() async {
     await _storage.deleteAll();
+  }
+
+  // Solicitar PIN de restablecimiento de contraseña
+  Future<bool> requestPasswordReset(String email) async {
+    try {
+      final response = await _api.dio.post('auth/password-reset/', data: {'email': email});
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Confirmar PIN
+  Future<bool> confirmPasswordReset({
+    required String email,
+    required String code,
+    required String password,
+    required String password2,
+  }) async {
+    try {
+      final response = await _api.dio.post('auth/password-reset-confirm/', data: {
+        'email': email,
+        'code': code,
+        'password': password,
+        'password2': password2,
+      });
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  // Refresh token
+  Future<String?> refreshToken(String refresh) async {
+    try {
+      final response = await _api.dio.post('auth/token/refresh/', data: {'refresh': refresh});
+      if (response.statusCode == 200) {
+        return response.data['access'];
+      }
+    } catch (e) {
+      return null;
+    }
+    return null;
+  }
+
+  // Actualizar idiomas de aprendizaje
+  Future<bool> updateLearningLanguages(String token, List<int> languageIds) async {
+    try {
+      final response = await _api.dio.patch(
+        'auth/profile/update-languages/',
+        options: Options(headers: {'Authorization': 'Bearer $token'}),
+        data: {'languages_learning': languageIds},
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      return false;
+    }
   }
 }

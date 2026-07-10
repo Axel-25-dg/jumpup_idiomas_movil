@@ -32,13 +32,21 @@ class PaymentNotifier extends StateNotifier<PaymentStatus> {
 
   Future<void> processPayment({
     required int subscriptionId,
+    required double totalAmount,
     required String paymentMethod,
   }) async {
     state = PaymentStatus.loading;
     try {
-      final order = await _service.createOrder(subscriptionId);
+      final order = await _service.createOrder(
+        subscriptionId: subscriptionId,
+        totalAmount: totalAmount,
+        paymentMethod: paymentMethod,
+      );
       await _service.registerPayment(
-          amount: order.totalAmount, method: paymentMethod);
+        orderId: order.id,
+        amount: order.totalAmount,
+        paymentMethod: paymentMethod,
+      );
       state = PaymentStatus.success;
     } catch (_) {
       state = PaymentStatus.failure;

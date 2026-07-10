@@ -113,6 +113,19 @@ class ProgressService extends BaseRepository {
     }, message: 'No se pudieron obtener los retos diarios');
   }
 
+  Future<Map<String, dynamic>> submitExercise({
+    required int exerciseId,
+    required String answer,
+  }) async {
+    return handleRequest<Map<String, dynamic>>(() async {
+      final response = await dio.post<Map<String, dynamic>>(
+        'exercises/$exerciseId/submit/',
+        data: {'answer': answer},
+      );
+      return response.data!;
+    }, message: 'No se pudo enviar la respuesta');
+  }
+
   Future<List<int>> getOfflinePack(List<int> lessonIds) async {
     return handleRequest<List<int>>(() async {
       final response = await dio.get<dynamic>(

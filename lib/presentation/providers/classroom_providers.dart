@@ -15,7 +15,7 @@ final myClassroomsProvider = FutureProvider<List<ClassroomModel>>((ref) async {
 
 // ── Sesiones en vivo ────────────────────────────────────────────────────────
 
-final liveSessionsProvider =
+final classroomLiveSessionsProvider =
     FutureProvider<List<VirtualClassModel>>((ref) async {
   return ref.watch(classroomServiceProvider).getLiveSessions();
 });

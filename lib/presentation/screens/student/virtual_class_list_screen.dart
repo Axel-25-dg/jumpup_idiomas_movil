@@ -1,22 +1,46 @@
+import 'dart:ui';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+/// Tokens de diseño centralizados para el módulo de clases virtuales.
+class _ClassTokens {
+  const _ClassTokens._();
+
+  static const Color background = Color(0xFF0F111A);
+  static const Color surface = Color(0xFF1E1E2E);
+  static const Color primary = Colors.blueAccent;
+
+  static const LinearGradient brandGradient = LinearGradient(
+    colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+  );
+
+  static const Color brandGlow = Color(0xFF2575FC);
+}
 
 class VirtualClassListScreen extends ConsumerWidget {
   const VirtualClassListScreen({super.key});
 
-  void _showJoinDialog(BuildContext context, WidgetRef ref) {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return const _VirtualClassListBody();
+  }
+}
+
+class _VirtualClassListBody extends ConsumerWidget {
+  const _VirtualClassListBody();
+
+  void _showJoinDialog(BuildContext context) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => const _JoinClassSheet(),
+      builder: (_) => const _JoinClassSheet(),
     );
   }
 
@@ -25,156 +49,214 @@ class VirtualClassListScreen extends ConsumerWidget {
     final classesAsync = ref.watch(virtualClassesProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: RefreshIndicator(
-        onRefresh: () => ref.refresh(virtualClassesProvider.future),
-        child: CustomScrollView(
-          physics: const AlwaysScrollableScrollPhysics(),
-          slivers: [
-            SliverAppBar(
-              expandedHeight: 120.0,
-              floating: false,
-              pinned: true,
-              elevation: 0,
-              stretch: true,
-              backgroundColor: AppColors.primary,
-              flexibleSpace: FlexibleSpaceBar(
-                centerTitle: false,
-                titlePadding: const EdgeInsetsDirectional.only(start: 16, bottom: 16),
-                title: Text(
-                  'Clases Virtuales',
-                  style: AppTextStyles.titleLarge.copyWith(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                  ),
+      backgroundColor: _ClassTokens.background,
+      body: Stack(
+        children: [
+          // Efectos visuales de fondo
+          const Positioned(
+            top: -100,
+            right: -50,
+            child: _BlurBlob(color: Colors.blueAccent, opacity: 0.1, size: 300),
+          ),
+          const Positioned(
+            bottom: -50,
+            left: -50,
+            child: _BlurBlob(
+              color: Colors.purpleAccent,
+              opacity: 0.05,
+              size: 250,
+            ),
+          ),
+          RefreshIndicator(
+            onRefresh: () => ref.refresh(virtualClassesProvider.future),
+            backgroundColor: _ClassTokens.surface,
+            color: _ClassTokens.primary,
+            child: CustomScrollView(
+              physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics(),
+              ),
+              slivers: [
+                _ClassesSliverAppBar(
+                  onAdd: () => _showJoinDialog(context),
                 ),
-                background: Container(
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
+                classesAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        color: _ClassTokens.primary,
+                      ),
+                    ),
                   ),
-                  child: Stack(
-                    children: [
-                      Positioned(
-                        right: -20,
-                        top: -20,
-                        child: Icon(
-                          Icons.video_camera_front_rounded,
-                          size: 140,
-                          color: Colors.white.withValues(alpha: 0.1),
+                  error: (err, stack) => SliverFillRemaining(
+                    child: _ErrorState(
+                      onRetry: () => ref.invalidate(virtualClassesProvider),
+                    ),
+                  ),
+                  data: (classes) {
+                    if (classes.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: _EmptyState(
+                          onJoin: () => _showJoinDialog(context),
+                        ),
+                      );
+                    }
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final vClass = classes[index];
+                            return FadeInUp(
+                              duration:
+                                  Duration(milliseconds: 400 + (index * 100)),
+                              child: _VirtualClassCard(vClass: vClass),
+                            );
+                          },
+                          childCount: classes.length,
                         ),
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              actions: [
-                Padding(
-                  padding: const EdgeInsets.only(right: 8.0),
-                  child: IconButton(
-                    onPressed: () => _showJoinDialog(context, ref),
-                    icon: Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.add_rounded, color: Colors.white),
-                    ),
-                    tooltip: 'Unirse a clase',
-                  ),
+                    );
+                  },
                 ),
               ],
             ),
-            classesAsync.when(
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator(color: AppColors.primary)),
-              ),
-              error: (err, stack) => SliverFillRemaining(
-                child: _ErrorState(onRetry: () => ref.refresh(virtualClassesProvider)),
-              ),
-              data: (classes) {
-                if (classes.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: _EmptyState(onJoin: () => _showJoinDialog(context, ref)),
-                  );
-                }
-                return SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 80),
-                  sliver: SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final vClass = classes[index];
-                        return FadeInUp(
-                          duration: Duration(milliseconds: 400 + (index * 100)),
-                          child: _VirtualClassCard(vClass: vClass),
-                        );
-                      },
-                      childCount: classes.length,
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showJoinDialog(context, ref),
-        backgroundColor: AppColors.primary,
+        onPressed: () => _showJoinDialog(context),
+        backgroundColor: _ClassTokens.primary,
+        elevation: 4,
         icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white),
-        label: Text('Unirse con código', 
-          style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w600)),
+        label: Text(
+          'Unirse con código',
+          style: AppTextStyles.labelLarge
+              .copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
       ),
     );
   }
 }
 
+class _ClassesSliverAppBar extends StatelessWidget {
+  const _ClassesSliverAppBar({required this.onAdd});
+
+  final VoidCallback onAdd;
+
+  @override
+  Widget build(BuildContext context) {
+    return SliverAppBar(
+      expandedHeight: 140,
+      floating: false,
+      pinned: true,
+      elevation: 0,
+      stretch: true,
+      backgroundColor: _ClassTokens.background.withValues(alpha: 0.8),
+      flexibleSpace: FlexibleSpaceBar(
+        centerTitle: false,
+        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
+        title: Text(
+          'Clases Virtuales',
+          style: AppTextStyles.titleLarge.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.5,
+          ),
+        ),
+        background: Stack(
+          children: [
+            Positioned(
+              right: -10,
+              bottom: -10,
+              child: Icon(
+                Icons.video_camera_front_rounded,
+                size: 120,
+                color: Colors.white.withValues(alpha: 0.05),
+              ),
+            ),
+          ],
+        ),
+      ),
+      actions: [
+        Padding(
+          padding: const EdgeInsets.only(right: 12),
+          child: IconButton(
+            onPressed: onAdd,
+            icon: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+                border:
+                    Border.all(color: Colors.white.withValues(alpha: 0.1)),
+              ),
+              child: const Icon(Icons.add_rounded,
+                  color: Colors.white, size: 20),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 class _EmptyState extends StatelessWidget {
-  final VoidCallback onJoin;
   const _EmptyState({required this.onJoin});
+  final VoidCallback onJoin;
 
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(32.0),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
               padding: const EdgeInsets.all(32),
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.05),
+                color: Colors.white.withValues(alpha: 0.03),
                 shape: BoxShape.circle,
+                border:
+                    Border.all(color: Colors.white.withValues(alpha: 0.05)),
               ),
               child: Icon(
                 Icons.school_rounded,
-                size: 80,
-                color: AppColors.primary.withValues(alpha: 0.2),
+                size: 64,
+                color: Colors.white.withValues(alpha: 0.1),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             Text(
               'No hay clases activas',
-              style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.w700),
+              style: AppTextStyles.titleLarge
+                  .copyWith(color: Colors.white, fontWeight: FontWeight.w800),
             ),
             const SizedBox(height: 12),
             Text(
-              'Aquí verás las clases programadas y en vivo. Únete a una clase para comenzar a aprender.',
+              'Aquí verás tus clases programadas. Únete a una nueva clase para empezar.',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
+              style: AppTextStyles.bodyMedium
+                  .copyWith(color: Colors.white.withValues(alpha: 0.4)),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             ElevatedButton(
               onPressed: onJoin,
               style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                backgroundColor: _ClassTokens.primary.withValues(alpha: 0.1),
+                foregroundColor: _ClassTokens.primary,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: const BorderSide(color: _ClassTokens.primary, width: 1),
+                ),
               ),
-              child: const Text('Unirse a mi primera clase'),
+              child: const Text(
+                'Unirse a una clase',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
             ),
           ],
         ),
@@ -184,8 +266,8 @@ class _EmptyState extends StatelessWidget {
 }
 
 class _ErrorState extends StatelessWidget {
-  final VoidCallback onRetry;
   const _ErrorState({required this.onRetry});
+  final VoidCallback onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -193,16 +275,24 @@ class _ErrorState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded, size: 64, color: AppColors.error),
+          const Icon(Icons.error_outline_rounded,
+              size: 64, color: Colors.redAccent),
           const SizedBox(height: 16),
-          Text('¡Ups! Algo salió mal', style: AppTextStyles.titleMedium),
-          TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+          Text(
+            '¡Ups! Algo salió mal',
+            style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
+          ),
+          const SizedBox(height: 8),
+          TextButton(
+            onPressed: onRetry,
+            child: const Text('Reintentar',
+                style: TextStyle(color: _ClassTokens.primary)),
+          ),
         ],
       ),
     );
   }
 }
-
 
 class _VirtualClassCard extends ConsumerWidget {
   const _VirtualClassCard({required this.vClass});
@@ -215,144 +305,202 @@ class _VirtualClassCard extends ConsumerWidget {
     final isOngoing = vClass.isOngoing;
     final canJoin = vClass.canJoin;
 
-    return StudentCard(
-      onTap: (isFull && !canJoin) ? null : () => _handleJoin(context, ref),
-      padding: EdgeInsets.zero,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header with status and participants
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                _StatusBadge(isOngoing: isOngoing, isScheduled: vClass.isScheduled),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.background,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(Icons.people_outline_rounded,
-                          color: isFull ? AppColors.error : AppColors.textSecondary, 
-                          size: 14),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${vClass.currentParticipants}/${vClass.maxParticipants}',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: isFull ? AppColors.error : AppColors.textSecondary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          
-          // Class Content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  vClass.title,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: AppColors.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  vClass.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 16),
-          const Divider(height: 1, color: AppColors.divider),
-          
-          // Footer with Instructor and Action
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 14,
-                  backgroundColor: AppColors.primary.withValues(alpha: 0.1),
-                  child: const Icon(Icons.person_rounded, size: 16, color: AppColors.primary),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    vClass.instructorName,
-                    style: AppTextStyles.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                ),
-                _ActionButton(
-                  canJoin: canJoin,
-                  isFull: isFull,
-                  isLoading: joinStatus == JoinClassStatus.loading,
-                  onPressed: () => _handleJoin(context, ref),
-                ),
-              ],
-            ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: _ClassTokens.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.2),
+            blurRadius: 10,
+            offset: const Offset(0, 5),
           ),
         ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(24),
+          onTap: (isFull && !canJoin) ? null : () => _handleJoin(context, ref),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Badge de estado y contador de participantes
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    _StatusBadge(
+                      isOngoing: isOngoing,
+                      isScheduled: vClass.isScheduled,
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.people_outline_rounded,
+                            color: isFull
+                                ? Colors.redAccent
+                                : Colors.white.withValues(alpha: 0.5),
+                            size: 14,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            '${vClass.currentParticipants}/${vClass.maxParticipants}',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: isFull
+                                  ? Colors.redAccent
+                                  : Colors.white.withValues(alpha: 0.5),
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Detalles de la clase
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      vClass.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleMedium.copyWith(
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    ),
+                    const SizedBox(height: 6),
+                    Text(
+                      vClass.description,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.bodySmall.copyWith(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+              Divider(height: 1, color: Colors.white.withValues(alpha: 0.05)),
+              // Instructor y botón de acción
+              Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    CircleAvatar(
+                      radius: 16,
+                      backgroundColor:
+                          _ClassTokens.primary.withValues(alpha: 0.1),
+                      child: const Icon(Icons.person_rounded,
+                          size: 18, color: _ClassTokens.primary),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Text(
+                        vClass.instructorName,
+                        style: AppTextStyles.labelMedium.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    _ActionButton(
+                      canJoin: canJoin,
+                      isFull: isFull,
+                      isLoading: joinStatus == JoinClassStatus.loading,
+                      onPressed: () => _handleJoin(context, ref),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
 
-  void _handleJoin(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleJoin(BuildContext context, WidgetRef ref) async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    
+
     if (vClass.canJoin) {
       scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Redirigiendo a la sala...'),
-          backgroundColor: AppColors.info,
+          backgroundColor: _ClassTokens.primary,
           behavior: SnackBarBehavior.floating,
         ),
       );
-      await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
+      final result =
+          await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
+      if (result != null && result.virtualClass.meetingUrl != null) {
+        final uri = Uri.tryParse(result.virtualClass.meetingUrl!);
+        if (uri != null && await canLaunchUrl(uri)) {
+          await launchUrl(uri, mode: LaunchMode.externalApplication);
+        } else {
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(content: Text('No se pudo abrir el enlace de la clase')),
+          );
+        }
+      }
     } else {
-      await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('Inscripción exitosa. Te notificaremos antes de empezar.'),
-          backgroundColor: AppColors.success,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      final result =
+          await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
+      if (result != null) {
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('Inscripción exitosa. Te notificaremos.'),
+            backgroundColor: Colors.greenAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        final error = ref.read(joinClassNotifierProvider.notifier).errorMessage;
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(error ?? 'No se pudo reservar la clase'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
     }
   }
 }
 
 class _StatusBadge extends StatelessWidget {
+  const _StatusBadge({required this.isOngoing, required this.isScheduled});
+
   final bool isOngoing;
   final bool isScheduled;
 
-  const _StatusBadge({required this.isOngoing, required this.isScheduled});
-
   @override
   Widget build(BuildContext context) {
-    final color = isOngoing ? AppColors.success : (isScheduled ? AppColors.primary : AppColors.textSecondary);
-    final text = isOngoing ? 'EN VIVO' : (isScheduled ? 'PROGRAMADA' : 'FINALIZADA');
+    final color = isOngoing
+        ? Colors.greenAccent
+        : (isScheduled
+            ? _ClassTokens.primary
+            : Colors.white.withValues(alpha: 0.3));
+    final text = isOngoing
+        ? 'EN VIVO'
+        : (isScheduled ? 'PROGRAMADA' : 'FINALIZADA');
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -365,16 +513,18 @@ class _StatusBadge extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           if (isOngoing)
-            Padding(
-              padding: const EdgeInsets.only(right: 6),
+            const Padding(
+              padding: EdgeInsets.only(right: 6),
               child: ZoomIn(
-                duration: const Duration(seconds: 1),
-                child: Container(
+                duration: Duration(seconds: 1),
+                child: SizedBox(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: AppColors.success,
-                    shape: BoxShape.circle,
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      color: Colors.greenAccent,
+                      shape: BoxShape.circle,
+                    ),
                   ),
                 ),
               ),
@@ -394,11 +544,6 @@ class _StatusBadge extends StatelessWidget {
 }
 
 class _ActionButton extends StatelessWidget {
-  final bool canJoin;
-  final bool isFull;
-  final bool isLoading;
-  final VoidCallback onPressed;
-
   const _ActionButton({
     required this.canJoin,
     required this.isFull,
@@ -406,36 +551,45 @@ class _ActionButton extends StatelessWidget {
     required this.onPressed,
   });
 
+  final bool canJoin;
+  final bool isFull;
+  final bool isLoading;
+  final VoidCallback onPressed;
+
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
       return const SizedBox(
         width: 24,
         height: 24,
-        child: CircularProgressIndicator(strokeWidth: 2, color: AppColors.primary),
+        child: CircularProgressIndicator(
+            strokeWidth: 2, color: _ClassTokens.primary),
       );
     }
 
     if (isFull && !canJoin) {
       return Text(
         'Llena',
-        style: AppTextStyles.labelLarge.copyWith(color: AppColors.textHint, fontWeight: FontWeight.bold),
+        style: AppTextStyles.labelLarge.copyWith(
+          color: Colors.white.withValues(alpha: 0.3),
+          fontWeight: FontWeight.bold,
+        ),
       );
     }
 
+    final color = canJoin ? Colors.greenAccent : _ClassTokens.primary;
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
-        foregroundColor: canJoin ? AppColors.success : AppColors.primary,
+        foregroundColor: color,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: (canJoin ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        backgroundColor: color.withValues(alpha: 0.1),
       ),
       child: Text(
         canJoin ? 'ENTRAR' : 'RESERVAR',
-        style: AppTextStyles.labelLarge.copyWith(
-          fontWeight: FontWeight.w800,
-        ),
+        style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w800),
       ),
     );
   }
@@ -458,154 +612,209 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
     super.dispose();
   }
 
-  void _scanQR() async {
-    Navigator.pop(context);
-    final result = await Navigator.push<String>(
-      context,
+  Future<void> _scanQR() async {
+    final result = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => const _QRScannerScreen()),
     );
+    
+    if (!mounted) return;
+
     if (result != null && result.isNotEmpty) {
-      _codeCtrl.text = result;
-      _enroll();
+      setState(() {
+        _codeCtrl.text = result;
+      });
+      await _enroll();
     }
   }
 
   Future<void> _enroll() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) return;
+    final navigator = Navigator.of(context);
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     final code = _codeCtrl.text.trim();
-    final success = await ref
-        .read(classroomEnrollNotifierProvider.notifier)
-        .enrollByCode(code);
-    if (mounted) {
-      if (success) {
-        ref.invalidate(virtualClassesProvider);
-        Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('¡Inscrito al aula virtual con éxito!'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else {
-        final err = ref.read(classroomEnrollNotifierProvider.notifier).errorMessage;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(err ?? 'Inscripción fallida'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+
+    final notifier = ref.read(classroomEnrollNotifierProvider.notifier);
+    final success = await notifier.enrollByCode(code);
+
+    if (!mounted) return;
+
+    if (success) {
+      ref.invalidate(virtualClassesProvider);
+      navigator.pop();
+      scaffoldMessenger.showSnackBar(
+        const SnackBar(
+          content: Text('¡Inscrito al aula virtual con éxito!'),
+          backgroundColor: Colors.greenAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else {
+      scaffoldMessenger.showSnackBar(
+        SnackBar(
+          content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.fromLTRB(
-        24,
-        24,
-        24,
-        MediaQuery.of(context).viewInsets.bottom + 32,
-      ),
-      decoration: const BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
-      ),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Container(
-                width: 40,
-                height: 5,
-                decoration: BoxDecoration(
-                  color: AppColors.divider.withValues(alpha: 0.5),
-                  borderRadius: BorderRadius.circular(10),
-                ),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'Unirse a un Aula',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.headlineSmall.copyWith(fontWeight: FontWeight.w900),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Ingresa el código de 6 caracteres proporcionado por tu profesor o escanea el código QR.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(color: AppColors.textSecondary),
-            ),
-            const SizedBox(height: 32),
-            TextFormField(
-              controller: _codeCtrl,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              textCapitalization: TextCapitalization.characters,
-              style: AppTextStyles.headlineMedium.copyWith(
-                letterSpacing: 12,
-                fontWeight: FontWeight.w900,
-                color: AppColors.primary,
-              ),
-              validator: (val) {
-                if (val == null || val.trim().length != 6) {
-                  return 'El código debe tener 6 caracteres';
-                }
-                return null;
-              },
-              decoration: InputDecoration(
-                hintText: '000000',
-                hintStyle: AppTextStyles.headlineMedium.copyWith(
-                  color: AppColors.divider,
-                  letterSpacing: 12,
-                ),
-                counterText: '',
-                filled: true,
-                fillColor: AppColors.background,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 20),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _scanQR,
-                    icon: const Icon(Icons.qr_code_scanner_rounded),
-                    label: const Text('ESCANEAR'),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      side: const BorderSide(color: AppColors.primary, width: 2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(
+            28,
+            16,
+            28,
+            MediaQuery.of(context).viewInsets.bottom + 40,
+          ),
+          decoration: BoxDecoration(
+            color: _ClassTokens.surface.withValues(alpha: 0.9),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+          ),
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: ElevatedButton(
-                    onPressed: _enroll,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
+                  const SizedBox(height: 32),
+                  Text(
+                    'Unirse a un Aula',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.headlineSmall.copyWith(
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
                     ),
-                    child: const Text('UNIRSE'),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 12),
+                  Text(
+                    'Ingresa el código de 6 caracteres o escanea el código QR de tu profesor.',
+                    textAlign: TextAlign.center,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: Colors.white.withValues(alpha: 0.5),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+                  TextFormField(
+                    controller: _codeCtrl,
+                    maxLength: 6,
+                    textAlign: TextAlign.center,
+                    textCapitalization: TextCapitalization.characters,
+                    style: AppTextStyles.headlineMedium.copyWith(
+                      letterSpacing: 12,
+                      fontWeight: FontWeight.w900,
+                      color: _ClassTokens.primary,
+                    ),
+                    validator: (val) {
+                      if (val == null || val.trim().length != 6) {
+                        return 'Código inválido (6 caracteres)';
+                      }
+                      return null;
+                    },
+                    decoration: InputDecoration(
+                      hintText: '000000',
+                      hintStyle: AppTextStyles.headlineMedium.copyWith(
+                        color: Colors.white.withValues(alpha: 0.05),
+                        letterSpacing: 12,
+                      ),
+                      counterText: '',
+                      filled: true,
+                      fillColor: Colors.black.withValues(alpha: 0.2),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: BorderSide(
+                            color: Colors.white.withValues(alpha: 0.05)),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        borderSide: const BorderSide(
+                            color: _ClassTokens.primary, width: 2),
+                      ),
+                      contentPadding:
+                          const EdgeInsets.symmetric(vertical: 24),
+                    ),
+                  ),
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: _scanQR,
+                          icon: const Icon(Icons.qr_code_scanner_rounded,
+                              size: 20),
+                          label: const Text('ESCANEAR'),
+                          style: OutlinedButton.styleFrom(
+                            padding:
+                                const EdgeInsets.symmetric(vertical: 18),
+                            foregroundColor: Colors.white,
+                            side: BorderSide(
+                                color: Colors.white.withValues(alpha: 0.1)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: DecoratedBox(
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(16),
+                            gradient: _ClassTokens.brandGradient,
+                            boxShadow: [
+                              BoxShadow(
+                                color: _ClassTokens.brandGlow
+                                    .withValues(alpha: 0.3),
+                                blurRadius: 12,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: _enroll,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.transparent,
+                              padding:
+                                  const EdgeInsets.symmetric(vertical: 18),
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              elevation: 0,
+                            ),
+                            child: const Text('UNIRSE',
+                                style:
+                                    TextStyle(fontWeight: FontWeight.bold)),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
-          ],
+          ),
         ),
       ),
     );
@@ -620,8 +829,9 @@ class _QRScannerScreen extends StatefulWidget {
 }
 
 class _QRScannerScreenState extends State<_QRScannerScreen> {
-  MobileScannerController? _controller;
+  late final MobileScannerController _controller;
   bool _isTorchOn = false;
+  bool _handled = false;
 
   @override
   void initState() {
@@ -634,8 +844,18 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
 
   @override
   void dispose() {
-    _controller?.dispose();
+    _controller.dispose();
     super.dispose();
+  }
+
+  void _onDetect(BarcodeCapture capture) {
+    if (_handled) return;
+    final barcodes = capture.barcodes;
+    if (barcodes.isEmpty) return;
+    final code = barcodes.first.rawValue;
+    if (code == null || code.isEmpty) return;
+    _handled = true;
+    Navigator.pop(context, code);
   }
 
   @override
@@ -656,8 +876,8 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
               color: Colors.white,
             ),
             onPressed: () async {
-              await _controller?.toggleTorch();
-              setState(() => _isTorchOn = !_isTorchOn);
+              await _controller.toggleTorch();
+              if (mounted) setState(() => _isTorchOn = !_isTorchOn);
             },
           ),
         ],
@@ -666,36 +886,45 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
       body: Stack(
         children: [
           MobileScanner(
-            controller: _controller!,
-            onDetect: (capture) {
-              final barcodes = capture.barcodes;
-              if (barcodes.isNotEmpty) {
-                final code = barcodes.first.rawValue;
-                if (code != null) {
-                  Navigator.pop(context, code);
-                }
-              }
-            },
+            key: const ValueKey('virtual_class_scanner'),
+            controller: _controller,
+            onDetect: _onDetect,
           ),
-          // Custom Scanner Overlay
           Center(
             child: Container(
               width: 250,
               height: 250,
               decoration: BoxDecoration(
-                border: Border.all(color: AppColors.secondary, width: 4),
+                border: Border.all(color: _ClassTokens.primary, width: 2),
                 borderRadius: BorderRadius.circular(24),
+              ),
+              child: const Stack(
+                children: [
+                  _ScannerCorner(top: 0, left: 0),
+                  _ScannerCorner(top: 0, right: 0),
+                  _ScannerCorner(bottom: 0, left: 0),
+                  _ScannerCorner(bottom: 0, right: 0),
+                ],
               ),
             ),
           ),
           Positioned(
-            bottom: 100,
-            left: 0,
-            right: 0,
-            child: Text(
-              'Encuadra el código QR del aula',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+            bottom: 120,
+            left: 40,
+            right: 40,
+            child: Container(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              decoration: BoxDecoration(
+                color: Colors.black.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                'Encuadra el código QR del aula',
+                textAlign: TextAlign.center,
+                style: AppTextStyles.bodyMedium.copyWith(
+                    color: Colors.white, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],
@@ -704,3 +933,65 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
   }
 }
 
+class _ScannerCorner extends StatelessWidget {
+  const _ScannerCorner({this.top, this.bottom, this.left, this.right});
+
+  final double? top, bottom, left, right;
+
+  @override
+  Widget build(BuildContext context) {
+    const side = BorderSide(color: _ClassTokens.primary, width: 4);
+    return Positioned(
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
+      child: Container(
+        width: 30,
+        height: 30,
+        decoration: BoxDecoration(
+          border: Border(
+            top: top != null ? side : BorderSide.none,
+            bottom: bottom != null ? side : BorderSide.none,
+            left: left != null ? side : BorderSide.none,
+            right: right != null ? side : BorderSide.none,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _BlurBlob extends StatelessWidget {
+  const _BlurBlob({
+    required this.color,
+    required this.size,
+    this.opacity = 1.0,
+  });
+
+  final Color color;
+  final double size;
+  final double opacity;
+
+  @override
+  Widget build(BuildContext context) {
+    final base = color.withValues(alpha: opacity);
+    return IgnorePointer(
+      child: Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: base,
+          boxShadow: [
+            BoxShadow(
+              color: base.withValues(alpha: 0.5),
+              blurRadius: 100,
+              spreadRadius: 50,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

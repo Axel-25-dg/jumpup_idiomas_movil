@@ -170,7 +170,7 @@ class _OrderTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order.subscription.name,
+                Text(order.subscriptionDetail?.name ?? 'Suscripción #${order.subscriptionId}',
                     style: const TextStyle(
                         color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                 Text('\$${order.totalAmount.toStringAsFixed(2)}',
