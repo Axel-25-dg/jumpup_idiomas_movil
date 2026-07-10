@@ -35,3 +35,8 @@ final resourceUploadProvider =
 
 final resourceLoadingProvider =
     Provider<bool>((ref) => ref.watch(resourceUploadProvider).isLoading);
+
+final resourcesListProvider = FutureProvider<List<TeacherResource>>((ref) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  return repo.fetchResources();
+});

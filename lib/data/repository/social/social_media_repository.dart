@@ -172,6 +172,42 @@ class SocialMediaRepository {
     }
   }
 
+  Future<LiveSession> createLiveSession({
+    required String title,
+    required String courseId,
+    required DateTime startsAt,
+  }) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        '/live-sessions/',
+        data: {
+          'title': title,
+          'course': courseId,
+          'starts_at': startsAt.toIso8601String(),
+        },
+      );
+      return LiveSession.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo crear la sesión en vivo');
+    }
+  }
+
+  Future<void> startLiveSession(String id) async {
+    try {
+      await _dio.post<void>('/live-sessions/$id/start/');
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo iniciar la sesión');
+    }
+  }
+
+  Future<void> endLiveSession(String id) async {
+    try {
+      await _dio.post<void>('/live-sessions/$id/end/');
+    } on DioException catch (e) {
+      throw _handleDio(e, 'No se pudo finalizar la sesión');
+    }
+  }
+
   // ── Notificaciones ───────────────────────────────────────────────────────────
 
   Future<List<NotificationItem>> fetchNotifications() async {

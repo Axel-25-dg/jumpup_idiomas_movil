@@ -108,6 +108,18 @@ class TeacherRepository {
     }
   }
 
+  Future<List<TeacherResource>> fetchResources() async {
+    try {
+      final response = await _dio.get<dynamic>('resources/');
+      return _listFrom(response.data)
+          .map((json) => TeacherResource.fromJson(json as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException(
+          'Error al cargar los recursos', e.response?.statusCode, e);
+    }
+  }
+
   /// Obtiene todas las aulas del profesor
   Future<List<Classroom>> fetchAllClassrooms() async {
     try {
@@ -197,6 +209,13 @@ class TeacherRepository {
 
   Future<void> createCourse(Map<String, dynamic> data) async =>
       await _dio.post('courses/', data: data);
+      
+  Future<void> createModule(Map<String, dynamic> data) async =>
+      await _dio.post('modules/', data: data);
+      
+  Future<void> createLesson(Map<String, dynamic> data) async =>
+      await _dio.post('lessons/', data: data);
+
   Future<void> deleteCourse(int id) async => await _dio.delete('courses/$id/');
 
 //informes globales

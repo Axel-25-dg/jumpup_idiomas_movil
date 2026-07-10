@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/presentation/providers/profile_provider.dart';
+import 'package:jumpup_app/presentation/providers/course_provider.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -45,12 +46,32 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             BrandedTextField(controller: _lastNameCtrl, label: 'Apellido'),
             const SizedBox(height: 24),
 
-            // TODO: Integrar aquí el widget de selección de idiomas cuando el
-            // provider de idiomas (#27) esté listo.
-            const ListTile(
-              title: Text("Idiomas"),
-              subtitle: Text("Configuración pendiente de sincronización"),
-              leading: Icon(Icons.language),
+            const Text('Idiomas que enseñas (Teaching)', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            ref.watch(languagesProvider).when(
+              loading: () => const CircularProgressIndicator(),
+              error: (e, _) => Text('Error: $e'),
+              data: (languages) {
+                return Wrap(
+                  spacing: 8,
+                  children: languages.map((lang) {
+                    final isSelected = _selectedTeaching.contains(lang.id);
+                    return FilterChip(
+                      label: Text(lang.name),
+                      selected: isSelected,
+                      onSelected: (selected) {
+                        setState(() {
+                          if (selected) {
+                            _selectedTeaching.add(lang.id);
+                          } else {
+                            _selectedTeaching.remove(lang.id);
+                          }
+                        });
+                      },
+                    );
+                  }).toList(),
+                );
+              },
             ),
 
             const SizedBox(height: 24),
