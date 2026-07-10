@@ -92,9 +92,9 @@ class MediaPlayerScreen extends StatelessWidget {
               style: AppTextStyles.titleSmall
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          Row(
+          const Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: const [
+            children: [
               _ControlButton(
                   icon: Icons.skip_previous_rounded, label: 'Anterior'),
               _ControlButton(
@@ -110,10 +110,10 @@ class MediaPlayerScreen extends StatelessWidget {
               style: AppTextStyles.titleSmall
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
-          Wrap(
+          const Wrap(
             spacing: 8,
             runSpacing: 8,
-            children: const [
+            children: [
               _OptionChip(label: 'Subtítulos', isSelected: true),
               _OptionChip(label: '1.0x', isSelected: false),
               _OptionChip(label: 'Loop', isSelected: false),

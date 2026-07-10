@@ -1,12 +1,9 @@
-import 'dart:ui';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
-import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:lottie/lottie.dart';
@@ -525,11 +522,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         onChanged: (val) => setState(() => _selectedAnswer = val),
         enabled: !_hasAnswered,
         style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: 'Escribe tu respuesta...',
-          hintStyle: const TextStyle(color: Colors.white38),
+          hintStyle: TextStyle(color: Colors.white38),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.all(24),
+          contentPadding: EdgeInsets.all(24),
         ),
       ),
     );

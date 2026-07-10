@@ -126,7 +126,7 @@ class _TeacherProfileScreenState
                         children: [
                           CircleAvatar(
                             radius: 48,
-                            backgroundColor: Colors.white.withOpacity(0.3),
+                            backgroundColor: Colors.white.withValues(alpha: 0.3),
                             backgroundImage: profile.avatarUrl != null
                                 ? NetworkImage(profile.avatarUrl!)
                                 : null,
@@ -173,10 +173,10 @@ class _TeacherProfileScreenState
                       Container(
                         padding: const EdgeInsets.symmetric(
                             horizontal: 12, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.25),
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                         child: const Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -201,7 +201,7 @@ class _TeacherProfileScreenState
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // ── Info Personal ──────────────────────────────────
-                      _SectionTitle('Información Personal'),
+                      const _SectionTitle(text: 'Información Personal'),
                       const SizedBox(height: 12),
                       _isEditing
                           ? Column(children: [
@@ -223,7 +223,7 @@ class _TeacherProfileScreenState
                                   icon: Icons.email_rounded,
                                   label: 'Email',
                                   value: profile.email),
-                              _InfoRow(
+                              const _InfoRow(
                                   icon: Icons.calendar_month_rounded,
                                   label: 'Miembro desde',
                                   value: 'Reciente'),
@@ -232,15 +232,15 @@ class _TeacherProfileScreenState
                       const SizedBox(height: 24),
 
                       // ── Idiomas que Enseña ─────────────────────────────
-                      _SectionTitle('Idiomas que Enseñas'),
+                      const _SectionTitle(text: 'Idiomas que Enseñas'),
                       const SizedBox(height: 12),
                       langsAsync.when(
                         loading: () => const Center(
                             child: CircularProgressIndicator(
                                 color: AppColors.primary)),
-                        error: (e, _) => Text('Error cargando idiomas',
+                        error: (e, _) => const Text('Error cargando idiomas',
                             style:
-                                const TextStyle(color: AppColors.error)),
+                                TextStyle(color: AppColors.error)),
                         data: (languages) => Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(16),
@@ -259,7 +259,7 @@ class _TeacherProfileScreenState
                                 label: Text(lang.name),
                                 selected: selected,
                                 selectedColor:
-                                    AppColors.primary.withOpacity(0.15),
+                                    AppColors.primary.withValues(alpha: 0.15),
                                 checkmarkColor: AppColors.primary,
                                 labelStyle: TextStyle(
                                     color: selected
@@ -319,7 +319,7 @@ class _TeacherProfileScreenState
 // ── Componentes ────────────────────────────────────────────────────────────────
 
 class _SectionTitle extends StatelessWidget {
-  const _SectionTitle(this.text);
+  const _SectionTitle({required this.text});
   final String text;
   @override
   Widget build(BuildContext context) => Text(text,
@@ -361,7 +361,7 @@ class _InfoRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: AppColors.primary.withOpacity(0.1),
+                color: AppColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Icon(icon, size: 18, color: AppColors.primary),
@@ -411,10 +411,10 @@ class _EditField extends StatelessWidget {
                   const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
               border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.divider)),
+                  borderSide: const BorderSide(color: AppColors.divider)),
               enabledBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide(color: AppColors.divider)),
+                  borderSide: const BorderSide(color: AppColors.divider)),
               focusedBorder: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide:

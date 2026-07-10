@@ -10,7 +10,7 @@ class _TestRepository extends BaseRepository {
 void main() {
   group('UserModel', () {
     test('serializa y deserializa correctamente', () {
-      final user = const UserModel(
+      const user = UserModel(
         id: '1',
         name: 'Ana',
         email: 'ana@example.com',
@@ -45,7 +45,7 @@ void main() {
   });
 
   test('BaseRepository convierte los errores en ApiException', () async {
-    final repository = const _TestRepository();
+    const repository = _TestRepository();
 
     await expectLater(
       repository.handleRequest<String>(() async => throw Exception('boom')),

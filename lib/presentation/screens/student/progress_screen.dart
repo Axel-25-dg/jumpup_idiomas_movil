@@ -27,15 +27,15 @@ class ProgressScreen extends ConsumerWidget {
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
               slivers: [
-                SliverAppBar(
+                const SliverAppBar(
                   pinned: true,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   expandedHeight: 80,
                   flexibleSpace: FlexibleSpaceBar(
                     centerTitle: false,
-                    titlePadding: const EdgeInsets.fromLTRB(24, 0, 0, 16),
-                    title: const Text('Mi Progreso', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
+                    titlePadding: EdgeInsets.fromLTRB(24, 0, 0, 16),
+                    title: Text('Mi Progreso', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
                   ),
                 ),
                 SliverPadding(
@@ -63,8 +63,8 @@ class ProgressScreen extends ConsumerWidget {
                         data: (s) => _CourseStatsCard(summary: s),
                       ),
                       const SizedBox(height: 24),
-                      Row(
-                        children: const [
+                      const Row(
+                        children: [
                           Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
                           SizedBox(width: 8),
                           Text('Mis Logros', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
@@ -200,7 +200,7 @@ class _XPCard extends StatelessWidget {
             children: [
               _SmallStat(icon: Icons.star_rounded, label: 'XP Total', value: '${stats.totalXp}', color: Colors.purpleAccent),
               _SmallStat(icon: Icons.local_fire_department_rounded, label: 'Racha', value: '${stats.currentStreak} días', color: Colors.orangeAccent),
-              _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '12', color: Colors.amberAccent),
+              const _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '12', color: Colors.amberAccent),
             ],
           ),
         ],
@@ -291,8 +291,8 @@ class _CourseStatsCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(Icons.auto_stories_rounded, color: Colors.blueAccent),
               SizedBox(width: 8),
               Text('Estadísticas de Aprendizaje', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),

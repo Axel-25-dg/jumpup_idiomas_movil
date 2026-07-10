@@ -205,7 +205,7 @@ class _GameCard extends StatelessWidget {
             const SizedBox(width: 16),
             Container(
               padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
+              decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
               child: const Icon(Icons.play_arrow_rounded, color: Colors.white, size: 28),
             ),
           ],
@@ -267,7 +267,9 @@ class _HangmanGameState extends State<HangmanGame> {
   }
 
   void _guess(String letter) {
-    if (_guessed.contains(letter) || _won || _errors >= 6) return;
+    if (_guessed.contains(letter) || _won || _errors >= 6) {
+      return;
+    }
     HapticFeedback.selectionClick();
     setState(() {
       _guessed.add(letter);
@@ -605,7 +607,9 @@ class _MatchingGameState extends State<MatchingGame> {
   }
 
   void _checkMatch() {
-    if (_selEn == null || _selEs == null) return;
+    if (_selEn == null || _selEs == null) {
+      return;
+    }
     if (_pairs[_selEn] == _selEs) {
       HapticFeedback.heavyImpact();
       setState(() {
@@ -620,7 +624,12 @@ class _MatchingGameState extends State<MatchingGame> {
     } else {
       HapticFeedback.vibrate();
       Future.delayed(const Duration(milliseconds: 600), () {
-        if (mounted) setState(() { _selEn = null; _selEs = null; });
+        if (mounted) {
+          setState(() {
+            _selEn = null;
+            _selEs = null;
+          });
+        }
       });
     }
   }
@@ -744,7 +753,9 @@ class _TriviaGameState extends State<TriviaGame> {
   bool _done = false;
 
   void _answer(int idx) {
-    if (_selected != null) return;
+    if (_selected != null) {
+      return;
+    }
     final correct = _questions[_current]['correct'] as int;
     setState(() {
       _selected = idx;
@@ -809,8 +820,11 @@ class _TriviaGameState extends State<TriviaGame> {
             ...List.generate(options.length, (i) {
               Color bg = const Color(0xFF2A2A3D);
               if (_selected != null) {
-                if (i == correct) bg = Colors.green.withValues(alpha: 0.4);
-                else if (i == _selected) bg = Colors.red.withValues(alpha: 0.4);
+                if (i == correct) {
+                  bg = Colors.green.withValues(alpha: 0.4);
+                } else if (i == _selected) {
+                  bg = Colors.red.withValues(alpha: 0.4);
+                }
               }
               return GestureDetector(
                 onTap: () => _answer(i),

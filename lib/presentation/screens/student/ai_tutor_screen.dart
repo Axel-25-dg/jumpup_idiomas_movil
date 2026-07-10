@@ -340,9 +340,9 @@ class _TypingIndicator extends StatelessWidget {
             bottomLeft: Radius.circular(4),
           ),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             _Dot(delay: 0),
             SizedBox(width: 4),
             _Dot(delay: 200),

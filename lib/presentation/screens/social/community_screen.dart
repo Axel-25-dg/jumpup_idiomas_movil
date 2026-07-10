@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -341,7 +340,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => const Text('Error cargando categorías', style: TextStyle(color: Colors.redAccent)),
                 data: (categories) => DropdownButtonFormField<int>(
-                  value: _categoryId,
+                  initialValue: _categoryId,
                   dropdownColor: const Color(0xFF2A2D3E),
                   style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
                   decoration: _inputDecoration('Seleccionar categoría', Icons.category_outlined),

@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/data/repository/auth/auth_service.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -138,9 +137,9 @@ class _LoadingScreenState extends State<LoadingScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: LinearProgressIndicator(
+                          child: const LinearProgressIndicator(
                             backgroundColor: Colors.white10,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
                             minHeight: 4,
                           ),
                         ),
