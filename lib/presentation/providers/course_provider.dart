@@ -2,6 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/domain/model/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin_language_model.dart';
+import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+
+// Re-export del teacherRepositoryProvider para que otros providers lo puedan usar
+export 'package:jumpup_app/presentation/providers/resource_provider.dart'
+    show teacherRepositoryProvider;
+
 
 // Providers de admin — nombres con prefijo para evitar colisión con course_providers.dart
 final adminLanguagesProvider = FutureProvider<List<Language>>((ref) async {
@@ -43,3 +49,15 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
     await fetchCourses(); // Refresca la lista tras eliminar
   }
 }
+
+// Provider para módulos de un curso (usado en CreateLessonScreen)
+final modulesForCourseProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, int>(
+        (ref, courseId) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  try {
+    return await repo.fetchModulesForCourse(courseId);
+  } catch (_) {
+    return [];
+  }
+});
