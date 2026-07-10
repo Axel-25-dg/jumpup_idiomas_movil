@@ -50,3 +50,15 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
     await fetchCourses(); // Refresca la lista tras eliminar
   }
 }
+
+// Provider para módulos de un curso (usado en CreateLessonScreen)
+final modulesForCourseProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, int>(
+        (ref, courseId) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  try {
+    return await repo.fetchModulesForCourse(courseId);
+  } catch (_) {
+    return [];
+  }
+});

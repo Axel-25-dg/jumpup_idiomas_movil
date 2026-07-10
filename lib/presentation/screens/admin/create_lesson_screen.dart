@@ -3,19 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 
-// Provider para cargar módulos de un curso
-final modulesForCourseProvider =
-    FutureProvider.family<List<Map<String, dynamic>>, int>(
-        (ref, courseId) async {
-  // Llamamos directamente al repo para listar módulos del curso
-  final repo = ref.read(teacherRepositoryProvider);
-  try {
-    final res = await repo.fetchModulesForCourse(courseId);
-    return res;
-  } catch (_) {
-    return [];
-  }
-});
 
 class CreateLessonScreen extends ConsumerStatefulWidget {
   const CreateLessonScreen({super.key});

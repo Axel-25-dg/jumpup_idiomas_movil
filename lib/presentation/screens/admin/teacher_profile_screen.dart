@@ -58,7 +58,7 @@ class _TeacherProfileScreenState
       ),
     );
     if (confirmed == true && mounted) {
-      await ref.read(authNotifierProvider.notifier).logout();
+      await ref.read(authProvider.notifier).logout();
     }
   }
 
