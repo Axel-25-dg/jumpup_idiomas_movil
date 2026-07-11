@@ -4,23 +4,34 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
+<<<<<<< HEAD
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_teacher_provider.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/widgets/neon_button.dart';
+=======
+import 'package:jumpup_app/presentation/providers/correcciones/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
+import 'package:jumpup_app/presentation/widgets/empty_state.dart';
+import 'package:jumpup_app/presentation/widgets/primary_button.dart';
+import 'package:jumpup_app/theme/app_theme.dart';
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
 
 class TeacherDashboardScreen extends ConsumerWidget {
   const TeacherDashboardScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(statsProvider);
-    final classroomsAsync = ref.watch(classroomsListProvider);
-    final profileAsync = ref.watch(userProfileProvider);
+    final statsAsync = ref.watch(teacherStatsProvider);
+    final classroomsAsync = ref.watch(classroomsProvider);
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
+<<<<<<< HEAD
       backgroundColor: const Color(0xFF0F111A), // Dark premium background
       body: Stack(
         children: [
@@ -52,6 +63,46 @@ class TeacherDashboardScreen extends ConsumerWidget {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                           colors: [Color(0xFF1A1828), Colors.transparent],
+=======
+      backgroundColor: AppColors.background,
+      body: CustomScrollView(
+        slivers: [
+          // ── Header ───────────────────────────────────────────────────
+          SliverAppBar(
+            expandedHeight: 150,
+            pinned: true,
+            backgroundColor: AppColors.primary,
+            flexibleSpace: FlexibleSpaceBar(
+              background: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF00695C), Color(0xFF0288D1)],
+                  ),
+                ),
+                padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.white24,
+                          child: Text(
+                            authState.user?.name.isNotEmpty ==
+                                    true // ✅ Quitar '?'
+                                ? authState.user!.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
                         ),
                       ),
                       padding: const EdgeInsets.fromLTRB(20, 56, 20, 16),
@@ -61,6 +112,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         children: [
                           Row(
                             children: [
+<<<<<<< HEAD
                               Container(
                                 padding: const EdgeInsets.all(2),
                                 decoration: const BoxDecoration(
@@ -184,6 +236,230 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         ],
                       ),
                     ),
+=======
+                              const Text(
+                                'Panel del Profesor',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                authState.user?.email ?? 'profesor@jumpup.com',
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.white70,
+                          ),
+                          tooltip: 'Cerrar sesión',
+                          onPressed: () => _confirmLogout(context, ref),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Stats ────────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
+              child: statsAsync.when(
+                loading: () => const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+                error: (e, _) => Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Text(
+                    'Error: $e',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
+                ),
+                data: (stats) => Row(
+                  children: [
+                    _TeacherStatBadge(
+                      icon: Icons.class_rounded,
+                      label: 'Mis Aulas',
+                      value: '${stats.totalAulas}',
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    _TeacherStatBadge(
+                      icon: Icons.people_rounded,
+                      label: 'Estudiantes',
+                      value: '${stats.totalAlumnos}',
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF00695C), Color(0xFF26A69A)],
+                      ),
+                    ),
+                    if (stats.totalCursos > 0) ...[
+                      const SizedBox(width: 12),
+                      _TeacherStatBadge(
+                        icon: Icons.menu_book_rounded,
+                        label: 'Cursos',
+                        value: '${stats.totalCursos}',
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6A1B9A), Color(0xFFAB47BC)],
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+          ),
+
+          // ── Acciones rápidas ─────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Acciones rápidas',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      _TeacherQuickBtn(
+                        icon: Icons.add_rounded,
+                        label: 'Nueva Aula',
+                        color: AppColors.primary,
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _TeacherQuickBtn(
+                        icon: Icons.quiz_rounded,
+                        label: 'Ejercicios',
+                        color: const Color(0xFF2E7D32),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ExercisesScreen(),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      _TeacherQuickBtn(
+                        icon: Icons.school_rounded,
+                        label: 'Mis Aulas',
+                        color: const Color(0xFFE65100),
+                        onTap: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+
+          // ── Mis aulas ────────────────────────────────────────────────
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 32),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Text(
+                        'Mis Aulas',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const Spacer(),
+                      TextButton.icon(
+                        onPressed: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
+                        icon: const Icon(Icons.add, size: 18),
+                        label: const Text('Nueva'),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  classroomsAsync.when(
+                    loading: () => const Center(
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                    error: (e, _) => Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text('Error al cargar aulas: $e'),
+                    ),
+                    data: (classrooms) {
+                      if (classrooms.isEmpty) {
+                        return EmptyState(
+                          title: 'Sin aulas creadas',
+                          subtitle: 'Crea tu primera aula para comenzar',
+                          icon: Icons.class_rounded,
+                          buttonText: 'Crear aula',
+                          onButtonPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ClassroomsScreen(),
+                            ),
+                          ),
+                        );
+                      }
+                      return Column(
+                        children: classrooms.map((c) {
+                          return _ClassroomTile(
+                            classroom: c,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ClassroomsScreen(),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      );
+                    },
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
                   ),
                 ),
 
@@ -387,6 +663,7 @@ class TeacherDashboardScreen extends ConsumerWidget {
   void _confirmLogout(BuildContext context, WidgetRef ref) {
     showGeneralDialog(
       context: context,
+<<<<<<< HEAD
       barrierDismissible: true,
       barrierLabel: '',
       pageBuilder: (ctx, a1, a2) => Container(),
@@ -411,6 +688,23 @@ class TeacherDashboardScreen extends ConsumerWidget {
                 child: const Text('Salir'),
               ),
             ],
+=======
+      builder: (ctx) => AlertDialog(
+        title: const Text('Cerrar sesión'),
+        content: const Text('¿Seguro que quieres salir del panel?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          PrimaryButton(
+            label: 'Cerrar sesión',
+            onPressed: () async {
+              Navigator.pop(ctx);
+              await ref.read(authProvider.notifier).logout();
+              if (context.mounted) context.go(AppRoutes.login);
+            },
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
           ),
         ),
       ),
@@ -440,6 +734,7 @@ class _TeacherStatBadge extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: Column(
           children: [
+<<<<<<< HEAD
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
@@ -452,6 +747,22 @@ class _TeacherStatBadge extends StatelessWidget {
                     fontWeight: FontWeight.w900)),
             Text(label,
                 style: AppTextStyles.labelSmall.copyWith(color: Colors.white54, fontWeight: FontWeight.bold)),
+=======
+            Icon(icon, color: Colors.white, size: 24),
+            const SizedBox(height: 6),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ),
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
           ],
         ),
       ),
@@ -483,12 +794,25 @@ class _TeacherQuickBtn extends StatelessWidget {
           borderRadius: BorderRadius.circular(20),
           child: Column(
             children: [
+<<<<<<< HEAD
               Icon(icon, color: color, size: 28),
               const SizedBox(height: 8),
               Text(label,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.labelSmall.copyWith(
                       color: color, fontWeight: FontWeight.w900)),
+=======
+              Icon(icon, color: color, size: 26),
+              const SizedBox(height: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
             ],
           ),
         ),
@@ -498,8 +822,16 @@ class _TeacherQuickBtn extends StatelessWidget {
 }
 
 class _ClassroomTile extends StatelessWidget {
+<<<<<<< HEAD
   const _ClassroomTile({required this.classroom, required this.onTap});
   final ClassroomModel classroom;
+=======
+  const _ClassroomTile({
+    required this.classroom,
+    required this.onTap,
+  });
+  final dynamic classroom;
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
   final VoidCallback onTap;
 
   @override
@@ -516,9 +848,10 @@ class _ClassroomTile extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: const [
           BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 6,
-              offset: Offset(0, 2)),
+            color: AppColors.shadow,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: ListTile(
@@ -529,14 +862,22 @@ class _ClassroomTile extends StatelessWidget {
             color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.class_rounded,
-              color: AppColors.primary, size: 22),
+          child: const Icon(
+            Icons.class_rounded,
+            color: AppColors.primary,
+            size: 22,
+          ),
         ),
-        title: Text(classroom.name,
-            style:
-                AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.w700)),
-        subtitle: Text('${classroom.totalStudents} estudiantes',
-            style: AppTextStyles.bodySmall),
+        title: Text(
+          classroom.name,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Text(
+          '${classroom.totalStudents} estudiantes',
+          style: AppTextStyles.bodySmall,
+        ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(

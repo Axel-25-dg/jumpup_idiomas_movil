@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+/*import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/profile_provider.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
@@ -180,3 +180,4 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     ),
   );
 }
+*/

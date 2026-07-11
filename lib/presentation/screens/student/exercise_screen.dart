@@ -1,7 +1,7 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';

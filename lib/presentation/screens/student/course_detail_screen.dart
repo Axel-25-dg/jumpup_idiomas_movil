@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+<<<<<<< HEAD
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/domain/model/course_models.dart';
+=======
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';

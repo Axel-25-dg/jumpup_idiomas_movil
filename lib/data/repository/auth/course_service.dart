@@ -1,4 +1,4 @@
-import 'package:jumpup_app/domain/model/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
 class CourseService extends BaseRepository {
