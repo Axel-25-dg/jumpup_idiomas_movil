@@ -13,6 +13,7 @@ class ClassroomModel {
     required this.createdAt,
     this.studentsCount = 0,
     this.courseName,
+    this.courseId,
   });
 
   final int id;
@@ -24,6 +25,7 @@ class ClassroomModel {
   final DateTime createdAt;
   final int studentsCount;
   final String? courseName;
+  final int? courseId;
 
   factory ClassroomModel.fromJson(Map<String, dynamic> json) {
     // Soporte para respuesta plana o con enrollment anidado
@@ -46,6 +48,14 @@ class ClassroomModel {
       teacherName = classroom['teacher_name']?.toString() ?? 'Docente';
     }
 
+    int? courseId;
+    final courseVal = classroom['course'];
+    if (courseVal is int) {
+      courseId = courseVal;
+    } else if (courseVal != null) {
+      courseId = int.tryParse(courseVal.toString());
+    }
+
     return ClassroomModel(
       id: (classroom['id'] ?? 0) as int,
       name: classroom['name']?.toString() ?? '',
@@ -63,6 +73,7 @@ class ClassroomModel {
           0,
       courseName: classroom['course_name']?.toString() ??
           classroom['course']?.toString(),
+      courseId: courseId,
     );
   }
 
@@ -76,5 +87,6 @@ class ClassroomModel {
         'created_at': createdAt.toIso8601String(),
         'students_count': studentsCount,
         'course_name': courseName,
+        'course': courseId,
       };
 }

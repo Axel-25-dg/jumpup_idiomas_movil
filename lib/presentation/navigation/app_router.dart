@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/login_screen.dart';
@@ -264,7 +265,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
           path: AppRoutes.teacherCreateClassroom,
           name: 'teacherCreateClassroom',
-          builder: (_, __) => const CreateClassroomScreen()),
+          builder: (_, state) {
+            final classroom = state.extra as ClassroomModel?;
+            return CreateClassroomScreen(classroom: classroom);
+          }),
       GoRoute(
           path: AppRoutes.teacherManageClassroom,
           name: 'teacherManageClassroom',

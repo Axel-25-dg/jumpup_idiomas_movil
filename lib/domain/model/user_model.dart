@@ -17,12 +17,22 @@ class UserModel {
   final UserRole role;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Build full name: prefer full_name field, then first+last, then name/username
+    final firstName = json['first_name']?.toString().trim() ?? '';
+    final lastName = json['last_name']?.toString().trim() ?? '';
+    final fullNameFromParts = [firstName, lastName].where((s) => s.isNotEmpty).join(' ');
+
+    final name = json['full_name']?.toString().trim().isNotEmpty == true
+        ? json['full_name'].toString().trim()
+        : fullNameFromParts.isNotEmpty
+            ? fullNameFromParts
+            : json['name']?.toString().trim().isNotEmpty == true
+                ? json['name'].toString().trim()
+                : json['username']?.toString() ?? '';
+
     return UserModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ??
-          json['full_name']?.toString() ??
-          json['username']?.toString() ??
-          '',
+      name: name,
       email: json['email']?.toString() ?? '',
       avatarUrl: json['avatarUrl']?.toString() ??
           json['avatar']?.toString() ??

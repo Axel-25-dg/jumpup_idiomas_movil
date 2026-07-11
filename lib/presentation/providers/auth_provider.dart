@@ -165,10 +165,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String firstName,
     required String lastName,
     required String username,
+    String role = 'student',
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      final result = await _authService.register(
+      await _authService.register(
         RegisterRequest(
           email: email,
           password: password,
@@ -176,9 +177,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
           lastName: lastName,
           username: username,
           confirmPassword: password,
+          role: role,
         ),
       );
-      final user = result.user ?? await _authService.getProfile();
+      // Forzar la obtención del perfil real del usuario con su token recién emitido
+      final user = await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
