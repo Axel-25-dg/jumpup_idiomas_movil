@@ -17,7 +17,7 @@ class PaymentHistoryScreen extends ConsumerWidget {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          backgroundColor: AppColors.surface,
+          backgroundColor: AppColors.primary,
           title: const Text('Historial de Pagos',
               style:
                   TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
@@ -85,14 +85,14 @@ class _PaymentTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final statusColor =
-        payment.isCompleted ? const Color(0xFF4CAF50) : const Color(0xFFFF9800);
+        payment.isCompleted ? AppColors.success : AppColors.warning;
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
@@ -119,7 +119,7 @@ class _PaymentTile extends StatelessWidget {
                 if (payment.transactionId != null)
                   Text(payment.transactionId!,
                       style:
-                          const TextStyle(color: Colors.white38, fontSize: 11)),
+                          const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
               ],
             ),
           ),
@@ -139,7 +139,7 @@ class _PaymentTile extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(_formatDate(payment.createdAt),
-                  style: const TextStyle(color: Colors.white38, fontSize: 11)),
+                  style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
             ],
           ),
         ],
@@ -158,9 +158,9 @@ class _OrderTile extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Row(
         children: [
@@ -170,7 +170,7 @@ class _OrderTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(order.subscription.name,
+                Text(order.subscriptionDetail?.name ?? 'Suscripción #${order.subscriptionId}',
                     style: const TextStyle(
                         color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
                 Text('\$${order.totalAmount.toStringAsFixed(2)}',
@@ -180,7 +180,7 @@ class _OrderTile extends StatelessWidget {
             ),
           ),
           Text(_formatDate(order.createdAt),
-              style: const TextStyle(color: Colors.white38, fontSize: 12)),
+              style: const TextStyle(color: AppColors.textSecondary, fontSize: 12)),
         ],
       ),
     );
@@ -197,7 +197,7 @@ class _EmptyState extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.receipt_outlined, color: Colors.white24, size: 60),
+          const Icon(Icons.receipt_outlined, color: AppColors.textHint, size: 60),
           const SizedBox(height: 12),
           Text(message,
               style: const TextStyle(color: AppColors.textSecondary, fontSize: 15)),

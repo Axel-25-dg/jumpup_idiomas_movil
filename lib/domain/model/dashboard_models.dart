@@ -6,75 +6,70 @@
 class UserProfileModel {
   const UserProfileModel({
     required this.id,
-    required this.userId,
     required this.username,
     required this.email,
+    this.firstName = '',
+    this.lastName = '',
     this.avatarUrl,
-    required this.nativeLanguage,
-    this.learningLanguages = const [],
-    this.bio,
-    required this.joinedAt,
-    this.timezone,
+    this.nativeLanguageId,
+    this.languagesLearning = const [],
+    this.languagesTeaching = const [],
   });
 
   final int id;
-  final int userId;
   final String username;
   final String email;
+  final String firstName;
+  final String lastName;
   final String? avatarUrl;
-  final String nativeLanguage;
-  final List<String> learningLanguages;
-  final String? bio;
-  final DateTime joinedAt;
-  final String? timezone;
+  final int? nativeLanguageId;
+  final List<int> languagesLearning;
+  final List<int> languagesTeaching;
+
+  String get fullName {
+    final parts = [firstName, lastName].where((s) => s.isNotEmpty).toList();
+    return parts.isNotEmpty ? parts.join(' ') : username;
+  }
 
   factory UserProfileModel.fromJson(Map<String, dynamic> json) {
-    // /auth/me/ puede devolver el perfil directamente o anidado en 'profile'
     final profile = json['profile'] is Map<String, dynamic>
         ? json['profile'] as Map<String, dynamic>
-        : json;
+        : <String, dynamic>{};
 
     return UserProfileModel(
-      id: (profile['id'] ?? json['id'] ?? 0) as int,
-      userId: (json['id'] ?? profile['user_id'] ?? profile['user'] ?? 0) as int,
-      username:
-          json['username']?.toString() ?? profile['username']?.toString() ?? '',
-      email: json['email']?.toString() ?? profile['email']?.toString() ?? '',
-      avatarUrl: profile['avatar_url']?.toString() ??
-          profile['avatar']?.toString() ??
-          json['avatar_url']?.toString(),
-      nativeLanguage: profile['native_language']?.toString() ??
-          json['native_language']?.toString() ??
-          'ES',
-      learningLanguages: (profile['languages_learning'] as List?)
-              ?.map((e) => e.toString())
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      username: (json['username'] ?? 'Usuario').toString(),
+      email: (json['email'] ?? '').toString(),
+      firstName: (json['first_name'] ?? '').toString(),
+      lastName: (json['last_name'] ?? '').toString(),
+      avatarUrl: (profile['avatar_url'] ?? profile['avatar'])?.toString(),
+      nativeLanguageId: profile['native_language'] is int
+          ? profile['native_language'] as int
+          : int.tryParse(profile['native_language']?.toString() ?? ''),
+      languagesLearning: (profile['languages_learning'] as List?)
+              ?.map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0)
+              .where((e) => e > 0)
               .toList() ??
-          (json['languages_learning'] as List?)
-              ?.map((e) => e.toString())
+          const [],
+      languagesTeaching: (profile['languages_teaching'] as List?)
+              ?.map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0)
+              .where((e) => e > 0)
               .toList() ??
-          [],
-      bio: profile['bio']?.toString() ?? json['bio']?.toString(),
-      joinedAt: DateTime.tryParse(profile['date_joined']?.toString() ??
-              json['date_joined']?.toString() ??
-              profile['joined_at']?.toString() ??
-              json['joined_at']?.toString() ??
-              '') ??
-          DateTime.now(),
-      timezone: profile['timezone']?.toString() ?? json['timezone']?.toString(),
+          const [],
     );
   }
 
   Map<String, dynamic> toJson() => {
         'id': id,
-        'user_id': userId,
         'username': username,
         'email': email,
-        'avatar_url': avatarUrl,
-        'native_language': nativeLanguage,
-        'learning_languages': learningLanguages,
-        'bio': bio,
-        'joined_at': joinedAt.toIso8601String(),
-        'timezone': timezone,
+        'first_name': firstName,
+        'last_name': lastName,
+        'profile': {
+          if (nativeLanguageId != null) 'native_language': nativeLanguageId,
+          'languages_learning': languagesLearning,
+          'languages_teaching': languagesTeaching,
+        },
       };
 }
 
@@ -93,25 +88,31 @@ class DashboardSummaryModel {
   final int activeCourses;
   final int totalXp;
   final int currentStreak;
-  final double todayGoalProgress; // 0.0 to 1.0
+  final double todayGoalProgress;
   final int upcomingClasses;
   final List<ActivityLogModel> recentActivities;
 
   factory DashboardSummaryModel.fromJson(Map<String, dynamic> json) {
     return DashboardSummaryModel(
-      activeCourses: json['active_courses'] as int? ??
-          json['courses_enrolled'] as int? ??
-          json['enrollments'] as int? ??
+      activeCourses: int.tryParse(json['active_courses']?.toString() ??
+              json['courses_enrolled']?.toString() ??
+              json['enrollments']?.toString() ??
+              '0') ??
           0,
-      totalXp: json['total_xp'] as int? ?? json['xp'] as int? ?? 0,
-      currentStreak:
-          json['current_streak'] as int? ?? json['streak'] as int? ?? 0,
+      totalXp: int.tryParse(
+              json['total_xp']?.toString() ?? json['xp']?.toString() ?? '0') ??
+          0,
+      currentStreak: int.tryParse(json['current_streak']?.toString() ??
+              json['streak']?.toString() ??
+              '0') ??
+          0,
       todayGoalProgress: (json['today_goal_progress'] as num?)?.toDouble() ??
           (json['progress_today'] as num?)?.toDouble() ??
           0.0,
-      upcomingClasses: json['upcoming_classes'] as int? ??
-          json['upcoming_sessions'] as int? ??
-          json['next_classes'] as int? ??
+      upcomingClasses: int.tryParse(json['upcoming_classes']?.toString() ??
+              json['upcoming_sessions']?.toString() ??
+              json['next_classes']?.toString() ??
+              '0') ??
           0,
       recentActivities: (json['recent_activities'] as List?)
               ?.map((e) => ActivityLogModel.fromJson(e as Map<String, dynamic>))
@@ -136,20 +137,19 @@ class ActivityLogModel {
   });
 
   final int id;
-  final String
-      activityType; // 'lesson_completed', 'achievement_unlocked', 'course_started'
+  final String activityType;
   final String description;
   final DateTime createdAt;
   final int? relatedId;
 
   factory ActivityLogModel.fromJson(Map<String, dynamic> json) {
     return ActivityLogModel(
-      id: json['id'] as int,
+      id: int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       activityType: json['activity_type']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
-      relatedId: json['related_id'] as int?,
+      relatedId: int.tryParse(json['related_id']?.toString() ?? ''),
     );
   }
 }

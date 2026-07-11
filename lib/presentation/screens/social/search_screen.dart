@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/theme/text_styles.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -22,101 +24,111 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final resultsAsync = ref.watch(searchResultsProvider(_query));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+    final hintColor = isDark ? Colors.white38 : Colors.black38;
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Buscar'),
-      ),
+      backgroundColor: Colors.transparent,
       body: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
         child: Column(
           children: [
-            TextField(
-              controller: _searchController,
-              autofocus: true,
-              decoration: InputDecoration(
-                hintText: 'Buscar cursos, lecciones o usuarios...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _query.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                          setState(() => _query = '');
-                        },
-                      )
-                    : null,
-                filled: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
+            GlassContainer(
+              opacity: 0.1,
+              blur: 15,
+              padding: EdgeInsets.zero,
+              borderRadius: BorderRadius.circular(16),
+              child: TextField(
+                controller: _searchController,
+                autofocus: false,
+                style: AppTextStyles.bodyMedium.copyWith(color: textColor),
+                decoration: InputDecoration(
+                  hintText: 'Buscar cursos, lecciones, personas...',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: hintColor),
+                  prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C4DFF)),
+                  suffixIcon: _query.isNotEmpty
+                      ? IconButton(
+                          icon: Icon(Icons.clear_rounded, color: hintColor),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _query = '');
+                          },
+                        )
+                      : null,
+                  filled: false,
+                  border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
+                onChanged: (v) => setState(() => _query = v.trim()),
+                onSubmitted: (v) => setState(() => _query = v.trim()),
               ),
-              onChanged: (v) => setState(() => _query = v.trim()),
-              onSubmitted: (v) => setState(() => _query = v.trim()),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 20),
             Expanded(
               child: _query.isEmpty
-                  ? Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.search_rounded,
-                              size: 64,
-                              color: theme.colorScheme.primary
-                                  .withValues(alpha: 0.3)),
-                          const SizedBox(height: 12),
-                          Text('Busca en JumpUp',
-                              style: theme.textTheme.titleMedium),
-                          const SizedBox(height: 4),
-                          Text('Encuentra cursos, lecciones y personas',
-                              style: theme.textTheme.bodyMedium?.copyWith(
-                                  color: theme.colorScheme
-                                      .onSurfaceVariant)),
-                        ],
-                      ),
-                    )
+                  ? _buildPlaceholder(isDark, textColor, subtextColor)
                   : resultsAsync.when(
-                      loading: () => const Center(
-                          child: CircularProgressIndicator()),
+                      loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
                       error: (e, _) => Center(
                         child: Text('Error: $e',
-                            style: theme.textTheme.bodyMedium
-                                ?.copyWith(
-                                    color: theme.colorScheme.error)),
+                            style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent)),
                       ),
                       data: (results) {
-                        if (results.isEmpty) {
-                          return Center(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.search_off,
-                                    size: 48,
-                                    color: theme.colorScheme
-                                        .onSurfaceVariant),
-                                const SizedBox(height: 12),
-                                Text('Sin resultados para "$_query"',
-                                    style: theme.textTheme.titleMedium),
-                              ],
-                            ),
-                          );
-                        }
-                        return ListView.builder(
+                        if (results.isEmpty) return _buildNoResults(isDark);
+                        return ListView.separated(
+                          physics: const BouncingScrollPhysics(),
                           itemCount: results.length,
-                          itemBuilder: (context, index) {
-                            final r = results[index];
-                            return _SearchResultTile(result: r);
-                          },
+                          separatorBuilder: (_, __) => const SizedBox(height: 12),
+                          itemBuilder: (context, index) =>
+                              _SearchResultTile(result: results[index]),
                         );
                       },
                     ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(bool isDark, Color textColor, Color subtextColor) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(28),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+            ),
+            child: const Icon(Icons.search_rounded, size: 56, color: Color(0xFF7C4DFF)),
+          ),
+          const SizedBox(height: 20),
+          Text('Busca en JumpUp',
+              style: AppTextStyles.titleMedium.copyWith(color: textColor, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('Encuentra cursos, lecciones y personas',
+              style: AppTextStyles.bodyMedium.copyWith(color: subtextColor)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNoResults(bool isDark) {
+    return Center(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.search_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
+          const SizedBox(height: 12),
+          Text('Sin resultados para "$_query"',
+              style: AppTextStyles.titleMedium.copyWith(
+                  color: isDark ? Colors.white38 : Colors.black38)),
+        ],
       ),
     );
   }
@@ -128,37 +140,53 @@ class _SearchResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+
     final icon = switch (result.type) {
-      'course' => Icons.book_rounded,
-      'lesson' => Icons.play_circle_rounded,
+      'course' || 'cursos' => Icons.book_rounded,
+      'lesson' || 'lecciones' => Icons.play_circle_rounded,
       'user' || 'profile' => Icons.person_rounded,
+      'forum' || 'foro' => Icons.forum_rounded,
+      'live-session' || 'sesiones' => Icons.live_tv_rounded,
       _ => Icons.article_rounded,
     };
 
-    return Card(
-      margin: const EdgeInsets.only(bottom: 8),
+    return GlassContainer(
+      opacity: 0.08,
+      blur: 10,
+      padding: EdgeInsets.zero,
+      borderRadius: BorderRadius.circular(16),
       child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         leading: CircleAvatar(
-          backgroundColor: theme.colorScheme.primaryContainer,
-          child: Icon(icon, color: theme.colorScheme.onPrimaryContainer),
+          radius: 24,
+          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+          child: Icon(icon, color: const Color(0xFF7C4DFF), size: 24),
         ),
         title: Text(result.title,
-            style: theme.textTheme.titleSmall
-                ?.copyWith(fontWeight: FontWeight.w600)),
+            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: textColor)),
         subtitle: result.subtitle != null
-            ? Text(result.subtitle!,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: theme.textTheme.bodySmall)
+            ? Padding(
+                padding: const EdgeInsets.only(top: 4),
+                child: Text(result.subtitle!,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(color: subtextColor)),
+              )
             : null,
-        trailing: Chip(
-          label: Text(
-            result.type[0].toUpperCase() + result.type.substring(1),
-            style: theme.textTheme.labelSmall,
+        trailing: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
+            borderRadius: BorderRadius.circular(12),
           ),
-          padding: EdgeInsets.zero,
-          visualDensity: VisualDensity.compact,
+          child: Text(
+            result.type[0].toUpperCase() + result.type.substring(1),
+            style: AppTextStyles.labelSmall.copyWith(
+                color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900, fontSize: 10),
+          ),
         ),
         onTap: () {},
       ),

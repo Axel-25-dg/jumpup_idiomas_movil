@@ -50,6 +50,18 @@ class CourseFilters {
   final String? difficultyLevel;
   final int? languageId;
   final String? search;
+
+  CourseFilters copyWith({
+    String? difficultyLevel,
+    int? languageId,
+    String? search,
+  }) {
+    return CourseFilters(
+      difficultyLevel: difficultyLevel ?? this.difficultyLevel,
+      languageId: languageId ?? this.languageId,
+      search: search ?? this.search,
+    );
+  }
 }
 
 final courseFiltersProvider = StateProvider<CourseFilters>((ref) {

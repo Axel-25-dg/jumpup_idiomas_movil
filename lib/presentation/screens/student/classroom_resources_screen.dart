@@ -28,7 +28,7 @@ class ClassroomResourcesScreen extends ConsumerWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: AppColors.surface,
+        backgroundColor: AppColors.primary,
         title: const Text('Recursos del Aula',
             style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold)),
       ),
@@ -94,9 +94,9 @@ class _FolderWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: AppColors.surface,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.white12),
+        border: Border.all(color: AppColors.divider),
       ),
       child: Column(
         children: [
@@ -115,7 +115,7 @@ class _FolderWidget extends StatelessWidget {
                 color: AppColors.textSecondary),
           ),
           if (isExpanded && files.isNotEmpty) ...[
-            const Divider(color: Colors.white12, height: 1),
+            const Divider(color: AppColors.divider, height: 1),
             ...files,
           ],
         ],
@@ -177,7 +177,7 @@ class _FileWidget extends StatelessWidget {
       title:
           Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
       subtitle: Text(size,
-          style: const TextStyle(color: Colors.white38, fontSize: 11)),
+          style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
       trailing: IconButton(
         icon: const Icon(Icons.download, color: AppColors.textSecondary),
         onPressed: () {

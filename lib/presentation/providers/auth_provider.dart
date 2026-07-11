@@ -38,19 +38,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final TokenStorage _tokenStorage;
 
   AuthNotifier(this._authService, this._tokenStorage)
-      : super(const AuthState()) {
+      : super(const AuthState(status: AuthStatus.loading)) {
     _checkSession();
   }
 
   Future<void> _checkSession() async {
-    final hasToken = await _tokenStorage.hasToken();
-    if (!hasToken) {
-      state = const AuthState(status: AuthStatus.unauthenticated);
-      return;
-    }
-    state = const AuthState(status: AuthStatus.loading);
     try {
-      final user = await _authService.getProfile();
+      // FlutterSecureStorage can hang on first access on some Android devices.
+      // Wrap with a timeout to guarantee we always exit loading state.
+      final hasToken = await _tokenStorage
+          .hasToken()
+          .timeout(const Duration(seconds: 4), onTimeout: () => false);
+
+      if (!hasToken) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+
+      // We have a token — try to verify it with the server.
+      // Timeout so the splash never hangs indefinitely.
+      final user = await _authService
+          .getProfile()
+          .timeout(const Duration(seconds: 8), onTimeout: () {
+        throw Exception('timeout');
+      });
+
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (_) {
       await _tokenStorage.clearTokens();
@@ -63,10 +75,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      await _authService.login(
+      final result = await _authService.login(
         LoginRequest(email: email, password: password),
       );
-      final user = await _authService.getProfile();
+
+      // Si el login ya trajo el perfil del usuario, lo usamos directamente
+      // sin hacer una segunda llamada a /auth/me/
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -91,8 +106,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
         state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
-      await _authService.loginWithGoogle(idToken);
-      final user = await _authService.getProfile();
+      final result = await _authService.loginWithGoogle(idToken);
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -109,15 +124,12 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
-  /// Autentica al usuario con huella dactilar.
-  /// Requiere que el dispositivo haya sido registrado previamente.
   Future<void> loginWithBiometric({
     required String deviceId,
     required String biometricToken,
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
-      // 1. Solicita verificación biométrica al sistema operativo
       final authenticated = await BiometricService.instance.authenticate();
       if (!authenticated) {
         state = const AuthState(
@@ -126,12 +138,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         return;
       }
-      // 2. Envía el token al backend para obtener JWT
-      await _authService.biometricLogin(
+      final result = await _authService.biometricLogin(
         deviceId: deviceId,
         biometricToken: biometricToken,
       );
-      final user = await _authService.getProfile();
+      final user = result.user ?? await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -154,6 +165,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String firstName,
     required String lastName,
     required String username,
+    String role = 'student',
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
@@ -165,8 +177,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
           lastName: lastName,
           username: username,
           confirmPassword: password,
+          role: role,
         ),
       );
+      // Forzar la obtención del perfil real del usuario con su token recién emitido
       final user = await _authService.getProfile();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
@@ -195,7 +209,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   void clearError() {
     if (state.errorMessage != null) {
       state = state.copyWith(
-          errorMessage: null, status: AuthStatus.unauthenticated);
+        errorMessage: null,
+        status: AuthStatus.unauthenticated,
+      );
     }
   }
 }

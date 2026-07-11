@@ -32,13 +32,21 @@ class PaymentNotifier extends StateNotifier<PaymentStatus> {
 
   Future<void> processPayment({
     required int subscriptionId,
+    required double totalAmount,
     required String paymentMethod,
   }) async {
     state = PaymentStatus.loading;
     try {
-      final order = await _service.createOrder(subscriptionId);
+      final order = await _service.createOrder(
+        subscriptionId: subscriptionId,
+        totalAmount: totalAmount,
+        paymentMethod: paymentMethod,
+      );
       await _service.registerPayment(
-          amount: order.totalAmount, method: paymentMethod);
+        orderId: order.id,
+        amount: order.totalAmount,
+        paymentMethod: paymentMethod,
+      );
       state = PaymentStatus.success;
     } catch (_) {
       state = PaymentStatus.failure;
@@ -51,4 +59,72 @@ class PaymentNotifier extends StateNotifier<PaymentStatus> {
 final paymentNotifierProvider =
     StateNotifierProvider<PaymentNotifier, PaymentStatus>((ref) {
   return PaymentNotifier(ref.watch(subscriptionServiceProvider));
+});
+
+// ── Stripe Payment Intent ─────────────────────────────────────────────────────
+
+class StripePaymentIntentState {
+  final bool isLoading;
+  final String? clientSecret;
+  final String? publishableKey;
+  final int? orderId;
+  final String? error;
+
+  const StripePaymentIntentState({
+    this.isLoading = false,
+    this.clientSecret,
+    this.publishableKey,
+    this.orderId,
+    this.error,
+  });
+
+  StripePaymentIntentState copyWith({
+    bool? isLoading,
+    String? clientSecret,
+    String? publishableKey,
+    int? orderId,
+    String? error,
+  }) {
+    return StripePaymentIntentState(
+      isLoading: isLoading ?? this.isLoading,
+      clientSecret: clientSecret ?? this.clientSecret,
+      publishableKey: publishableKey ?? this.publishableKey,
+      orderId: orderId ?? this.orderId,
+      error: error,
+    );
+  }
+}
+
+class StripePaymentNotifier extends StateNotifier<StripePaymentIntentState> {
+  StripePaymentNotifier(this._service) : super(const StripePaymentIntentState());
+  final SubscriptionService _service;
+
+  Future<bool> createIntent({required int subscriptionId}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final data = await _service.createPaymentIntent(
+        subscriptionId: subscriptionId,
+      );
+      state = state.copyWith(
+        isLoading: false,
+        clientSecret: data['client_secret']?.toString(),
+        publishableKey: data['publishable_key']?.toString(),
+        orderId: data['order_id'] as int?,
+      );
+      return state.clientSecret != null;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
+  void reset() => state = const StripePaymentIntentState();
+}
+
+final stripePaymentProvider =
+    StateNotifierProvider<StripePaymentNotifier, StripePaymentIntentState>((ref) {
+  return StripePaymentNotifier(ref.watch(subscriptionServiceProvider));
 });

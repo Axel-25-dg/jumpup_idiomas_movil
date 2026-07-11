@@ -17,12 +17,22 @@ class UserModel {
   final UserRole role;
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
+    // Build full name: prefer full_name field, then first+last, then name/username
+    final firstName = json['first_name']?.toString().trim() ?? '';
+    final lastName = json['last_name']?.toString().trim() ?? '';
+    final fullNameFromParts = [firstName, lastName].where((s) => s.isNotEmpty).join(' ');
+
+    final name = json['full_name']?.toString().trim().isNotEmpty == true
+        ? json['full_name'].toString().trim()
+        : fullNameFromParts.isNotEmpty
+            ? fullNameFromParts
+            : json['name']?.toString().trim().isNotEmpty == true
+                ? json['name'].toString().trim()
+                : json['username']?.toString() ?? '';
+
     return UserModel(
       id: json['id']?.toString() ?? '',
-      name: json['name']?.toString() ??
-          json['full_name']?.toString() ??
-          json['username']?.toString() ??
-          '',
+      name: name,
       email: json['email']?.toString() ?? '',
       avatarUrl: json['avatarUrl']?.toString() ??
           json['avatar']?.toString() ??
@@ -46,23 +56,20 @@ class UserModel {
         ? (raw['name'] ?? raw['code'] ?? raw['slug'] ?? raw['role'])
         : raw;
 
-    switch (value?.toString().toLowerCase()) {
-      case 'admin':
-      case 'administrator':
-      case 'administrador':
-        return UserRole.admin;
-      case 'teacher':
-      case 'profesor':
-      case 'instructor':
-      case 'assistant_teacher':
-        return UserRole.teacher;
-      case 'student':
-      case 'estudiante':
-      case 'learner':
-      case 'premium_student':
-        return UserRole.student;
-      default:
-        return UserRole.unknown;
+    final str = value?.toString().toLowerCase().trim() ?? '';
+    if (str.isEmpty) return UserRole.student;
+
+    if (str.contains('admin') || str.contains('administrador') || str.contains('superuser')) {
+      return UserRole.admin;
     }
+    if (str.contains('teacher') || str.contains('profesor') || str.contains('instructor') ||
+        str.contains('assistant') || str.contains('staff')) {
+      return UserRole.teacher;
+    }
+    if (str.contains('student') || str.contains('estudiante') || str.contains('learner') ||
+        str.contains('premium') || str.contains('user')) {
+      return UserRole.student;
+    }
+    return UserRole.student;
   }
 }

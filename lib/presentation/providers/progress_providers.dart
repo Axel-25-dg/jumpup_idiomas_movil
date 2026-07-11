@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/data/repository/auth/progress_service.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 
 final progressServiceProvider = Provider<ProgressService>((ref) {
   return const ProgressService();
@@ -68,11 +69,47 @@ final rankingProvider = FutureProvider<List<RankingEntryModel>>((ref) async {
 
 final myRankingPositionProvider = FutureProvider<int?>((ref) async {
   final rankingAsync = await ref.watch(rankingProvider.future);
-  return rankingAsync.isEmpty ? null : rankingAsync.first.position;
+  final authState = ref.watch(authProvider);
+  final userIdStr = authState.user?.id;
+  
+  if (userIdStr == null || rankingAsync.isEmpty) return null;
+  
+  // Intentamos encontrar al usuario en la lista por su ID
+  try {
+    final myEntry = rankingAsync.firstWhere(
+      (entry) => entry.userId.toString() == userIdStr,
+    );
+    return myEntry.position;
+  } catch (_) {
+    return null;
+  }
 });
 
 final dailyChallengesProvider =
     FutureProvider<List<Map<String, dynamic>>>((ref) async {
   final service = ref.watch(progressServiceProvider);
   return service.getDailyChallenges();
+});
+
+class ExerciseSubmitNotifier extends StateNotifier<AsyncValue<Map<String, dynamic>?>> {
+  ExerciseSubmitNotifier(this._service) : super(const AsyncValue.data(null));
+
+  final ProgressService _service;
+
+  Future<void> submitExercise({
+    required int exerciseId,
+    required String answer,
+  }) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _service.submitExercise(
+          exerciseId: exerciseId,
+          answer: answer,
+        ));
+  }
+}
+
+final exerciseSubmitNotifierProvider =
+    StateNotifierProvider<ExerciseSubmitNotifier, AsyncValue<Map<String, dynamic>?>>(
+        (ref) {
+  return ExerciseSubmitNotifier(ref.watch(progressServiceProvider));
 });

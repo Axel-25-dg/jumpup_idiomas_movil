@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/login_screen.dart';
@@ -19,13 +21,17 @@ import 'package:jumpup_app/presentation/screens/student/ranking_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/achievements_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/certificates_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/virtual_class_list_screen.dart';
+import 'package:jumpup_app/presentation/screens/catalog/catalog_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dart'
     as student_subs;
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/change_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/cart/cart_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 import 'package:jumpup_app/presentation/screens/admin/admin_dashboard_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/teacher_dashboard_screen.dart';
@@ -39,6 +45,11 @@ import 'package:jumpup_app/presentation/screens/admin/users_list_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/report_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/resource_library_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/create_module_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/create_lesson_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart'
     as admin_subs;
 
@@ -71,6 +82,10 @@ abstract final class AppRoutes {
   static const studentSubscriptions = '/student/subscriptions';
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
+  static const studentChangePassword = '/student/change-password';
+  static const studentGames = '/student/games';
+  static const studentCart = '/cart';
+  static const studentCatalog = '/student/catalog';
 
   // Teacher
   static const teacherDashboard = '/teacher';
@@ -78,6 +93,11 @@ abstract final class AppRoutes {
   static const teacherManageClassroom = '/teacher/classroom/:id';
   static const teacherCreateExercise = '/teacher/create-exercise';
   static const teacherUploadResource = '/teacher/upload-resource';
+  static const teacherResources = '/teacher/resources';
+  static const teacherCreateModule = '/teacher/create-module';
+  static const teacherCreateLesson = '/teacher/create-lesson';
+  static const teacherInbox = '/teacher/inbox';
+  static const teacherLiveSessions = '/teacher/live-sessions';
   static const teacherProfile = '/teacher/profile';
   static const teacherUserStats = '/teacher/user-stats/:studentId';
 
@@ -95,24 +115,29 @@ GoRouter buildAppRouter(WidgetRef ref) {
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
     redirect: (context, state) {
-      final authState = ref.read(authProvider);
-      final isAuth = authState.status == AuthStatus.authenticated;
-      final location = state.uri.toString();
+      try {
+        final authState = ref.read(authProvider);
+        final isAuth = authState.status == AuthStatus.authenticated;
+        final location = state.uri.toString();
 
-      final isAuthRoute = location == AppRoutes.login ||
-          location == AppRoutes.register ||
-          location == AppRoutes.forgotPassword ||
-          location == AppRoutes.splash;
+        final isAuthRoute = location == AppRoutes.login ||
+            location == AppRoutes.register ||
+            location == AppRoutes.forgotPassword ||
+            location == AppRoutes.splash;
 
-      if (!isAuth && isProtectedRoute(location)) {
-        return AppRoutes.login;
+        if (!isAuth && isProtectedRoute(location)) {
+          return AppRoutes.login;
+        }
+
+        if (isAuth && isAuthRoute && authState.user != null) {
+          return routeForRole(authState.user!.role);
+        }
+
+        return null;
+      } catch (e) {
+        debugPrint('Router redirect error: $e');
+        return null;
       }
-
-      if (isAuth && isAuthRoute) {
-        return routeForRole(authState.user!.role);
-      }
-
-      return null;
     },
     routes: [
       // Auth
@@ -215,6 +240,22 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentSettings,
           name: 'studentSettings',
           builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+          path: AppRoutes.studentChangePassword,
+          name: 'studentChangePassword',
+          builder: (_, __) => const ChangePasswordScreen()),
+      GoRoute(
+          path: AppRoutes.studentGames,
+          name: 'studentGames',
+          builder: (_, __) => const GamesScreen()),
+      GoRoute(
+          path: AppRoutes.studentCart,
+          name: 'studentCart',
+          builder: (_, __) => const CartScreen()),
+      GoRoute(
+          path: AppRoutes.studentCatalog,
+          name: 'studentCatalog',
+          builder: (_, __) => const CatalogScreen()),
 
       // Teacher
       GoRoute(
@@ -224,7 +265,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
           path: AppRoutes.teacherCreateClassroom,
           name: 'teacherCreateClassroom',
-          builder: (_, __) => const CreateClassroomScreen()),
+          builder: (_, state) {
+            final classroom = state.extra as ClassroomModel?;
+            return CreateClassroomScreen(classroom: classroom);
+          }),
       GoRoute(
           path: AppRoutes.teacherManageClassroom,
           name: 'teacherManageClassroom',
@@ -238,6 +282,26 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.teacherUploadResource,
           name: 'teacherUploadResource',
           builder: (_, __) => const UploadResourceScreen()),
+      GoRoute(
+          path: AppRoutes.teacherResources,
+          name: 'teacherResources',
+          builder: (_, __) => const ResourceLibraryScreen()),
+      GoRoute(
+          path: AppRoutes.teacherCreateModule,
+          name: 'teacherCreateModule',
+          builder: (_, __) => const CreateModuleScreen()),
+      GoRoute(
+          path: AppRoutes.teacherCreateLesson,
+          name: 'teacherCreateLesson',
+          builder: (_, __) => const CreateLessonScreen()),
+      GoRoute(
+          path: AppRoutes.teacherInbox,
+          name: 'teacherInbox',
+          builder: (_, __) => const TeacherInboxScreen()),
+      GoRoute(
+          path: AppRoutes.teacherLiveSessions,
+          name: 'teacherLiveSessions',
+          builder: (_, __) => const ManageLiveSessionsScreen()),
       GoRoute(
           path: AppRoutes.teacherProfile,
           name: 'teacherProfile',
@@ -287,7 +351,7 @@ String routeForRole(UserRole role) {
     case UserRole.student:
       return AppRoutes.studentDashboard;
     case UserRole.unknown:
-      return AppRoutes.login;
+      return AppRoutes.studentDashboard;
   }
 }
 

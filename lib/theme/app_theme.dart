@@ -1,44 +1,56 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'colors.dart';
 
 // Re-exportar para que todo el proyecto funcione con un solo import
 export 'colors.dart';
 export 'text_styles.dart';
 
 class AppTheme {
-  // Paleta de colores
-  static const Color celeste = Color(0xFF00AEEF);
-  static const Color blanco = Color(0xFFFFFFFF);
-  static const Color grisClaro = Color(0xFFF5F5F5);
-  static const Color textoOscuro = Color(0xFF2C3E50);
-  static const Color textoClaro = Color(0xFF7F8C8D);
+  // Colores para compatibilidad con pantallas antiguas
+  static const Color primary = AppColors.primary;
+  static const Color celeste = AppColors.secondary;
+  static const Color grisClaro = AppColors.background;
+  static const Color textoOscuro = AppColors.textPrimary;
+  static const Color textoClaro = AppColors.textSecondary;
 
   static ThemeData get lightTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: const ColorScheme.light(
+<<<<<<< HEAD
         primary: celeste,
         onPrimary: blanco,
         surface: blanco,
         onSurface: textoOscuro,
+=======
+        primary: AppColors.primary,
+        onPrimary: AppColors.white,
+        secondary: AppColors.secondary,
+        onSecondary: AppColors.white,
+        surface: AppColors.white,
+        onSurface: AppColors.textPrimary,
+        error: AppColors.error,
+        onError: AppColors.white,
+>>>>>>> main
       ),
-      scaffoldBackgroundColor: grisClaro,
+      scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.poppinsTextTheme().copyWith(
-        displayLarge: GoogleFonts.poppins(color: textoOscuro, fontWeight: FontWeight.bold),
-        displayMedium: GoogleFonts.poppins(color: textoOscuro, fontWeight: FontWeight.bold),
-        bodyLarge: GoogleFonts.poppins(color: textoOscuro),
-        bodyMedium: GoogleFonts.poppins(color: textoOscuro),
+        displayLarge: GoogleFonts.poppins(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        displayMedium: GoogleFonts.poppins(color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+        bodyLarge: GoogleFonts.poppins(color: AppColors.textPrimary),
+        bodyMedium: GoogleFonts.poppins(color: AppColors.textPrimary),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: celeste,
-        foregroundColor: blanco,
+        backgroundColor: AppColors.primary,
+        foregroundColor: AppColors.white,
         centerTitle: true,
         elevation: 0,
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: celeste,
-          foregroundColor: blanco,
+          backgroundColor: AppColors.primary,
+          foregroundColor: AppColors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

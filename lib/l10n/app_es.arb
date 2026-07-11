@@ -1,0 +1,177 @@
+{
+  "@@locale": "es",
+  "login": "Iniciar Sesión",
+  "welcome": "Bienvenido",
+  "welcomeSubtitle": "Inicia sesión para continuar tu viaje",
+  "email": "Correo electrónico",
+  "password": "Contraseña",
+  "forgotPassword": "¿Olvidaste tu contraseña?",
+  "loginButton": "Iniciar Sesión",
+  "noAccount": "¿No tienes cuenta? ",
+  "registerHere": "Regístrate aquí",
+  "logout": "Cerrar Sesión",
+  "logoutConfirmation": "¿Estás seguro de que deseas cerrar sesión?",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "joinToday": "Únete hoy",
+  "createAccountSubtitle": "Crea tu cuenta y lleva tus idiomas al siguiente nivel.",
+  "firstName": "Nombre",
+  "lastName": "Apellido",
+  "username": "Nombre de usuario",
+  "confirmPassword": "Confirmar contraseña",
+  "registerButton": "Crear Cuenta",
+  "alreadyHaveAccount": "¿Ya tienes cuenta? ",
+  "loginLink": "Inicia sesión",
+  "settings": "Configuración",
+  "preferences": "PREFERENCIAS",
+  "darkMode": "Tema Oscuro",
+  "darkModeSubtitle": "Mejora la lectura en la noche",
+  "notifications": "Notificaciones",
+  "notificationsSubtitle": "Recordatorios de clases y retos",
+  "haptics": "Haptics (Vibración)",
+  "hapticsSubtitle": "Feedback táctil al interactuar",
+  "appLanguage": "Idioma de la App",
+  "account": "CUENTA",
+  "learningLanguages": "Idiomas de aprendizaje",
+  "manageCourses": "Gestiona tus cursos activos",
+  "security": "Seguridad",
+  "securitySubtitle": "Cambiar contraseña y privacidad",
+  "support": "SOPORTE",
+  "sendFeedback": "Enviar sugerencia",
+  "helpCenter": "Centro de Ayuda",
+  "selectLanguage": "Seleccionar Idioma",
+  "category": "Categoría",
+  "bug": "Error",
+  "feature": "Nueva función",
+  "improvement": "Mejora",
+  "other": "Otro",
+  "feedbackHint": "Describe tu sugerencia...",
+  "send": "ENVIAR",
+  "feedbackSuccess": "¡Gracias por tu sugerencia!",
+  "forgotPasswordTitle": "¿Olvidaste tu contraseña?",
+  "forgotPasswordInstructions": "Ingresa tu correo electrónico para recibir un código de recuperación.",
+  "sendCode": "Enviar Código",
+  "verifyEmail": "Verifica tu correo",
+  "verifyEmailInstructions": "Hemos enviado un código a {email}. Ingrésalo junto con tu nueva contraseña.",
+  "@verifyEmailInstructions": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "sixDigitCode": "Código de 6 dígitos",
+  "newPassword": "Nueva contraseña",
+  "resetPassword": "Restablecer Contraseña",
+  "allDone": "¡Todo listo!",
+  "passwordUpdated": "Tu contraseña ha sido actualizada exitosamente.",
+  "backToStart": "Volver al Inicio",
+  "changePassword": "Cambiar Contraseña",
+  "currentPassword": "Contraseña Actual",
+  "updatePassword": "ACTUALIZAR CONTRASEÑA",
+  "passwordsDoNotMatch": "Las contraseñas no coinciden",
+  "passwordLengthError": "La contraseña debe tener al menos 8 caracteres",
+  "fillAllFields": "Por favor completa todos los campos",
+  "passwordUpdateSuccess": "Contraseña actualizada con éxito",
+  "passwordUpdateError": "Error al cambiar contraseña. Verifica tu contraseña actual.",
+  "user": "Usuario",
+  "profile": "Perfil",
+  "editProfile": "Editar perfil",
+  "save": "Guardar",
+  "share": "Compartir",
+  "personalInformation": "Información Personal",
+  "noName": "Sin nombre",
+  "noLastName": "Sin apellido",
+  "noUsername": "Sin usuario",
+  "noEmail": "Sin correo",
+  "profileUpdated": "Perfil actualizado",
+  "profilePictureUpdated": "Foto de perfil actualizada",
+  "profilePictureError": "No se pudo subir la foto.",
+  "logoutSubtitle": "Volver a la pantalla de inicio",
+  "home": "Inicio",
+  "classrooms": "Aulas",
+  "social": "Social",
+  "progress": "Progreso",
+  "hello": "Hola, {name} 👋",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "readyToLearn": "¿Listo para aprender?",
+  "quickActions": "Acciones Rápidas",
+  "virtualClasses": "Clases V.",
+  "store": "Tienda",
+  "games": "Juegos",
+  "ranking": "Ranking",
+  "recentProgress": "Tu Progreso Reciente",
+  "viewVirtualClasses": "Clases Virtuales ➔",
+  "exploreCourses": "Explora cursos en la Tienda",
+  "continueLesson": "Continuar Lección",
+  "lessonsCount": "{count} Lecciones",
+  "@lessonsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiTutorTitle": "Tutor Inteligente",
+  "aiTutorSubtitle": "Practica gramática o conversación con nuestra IA avanzada",
+  "startSpeaking": "Empezar a hablar",
+  "streakDays": "{days} Días",
+  "@streakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "currentStreak": "Racha Actual",
+  "xpAmount": "{xp} XP",
+  "@xpAmount": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelLabel": "Nivel {level}",
+  "@levelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "levelProgressLabel": "Progreso Nivel {level}",
+  "@levelProgressLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "exploreCoursesTitle": "Explorar Cursos",
+  "whatDoYouWantToLearn": "¿Qué quieres aprender?",
+  "all": "Todos",
+  "modulesCount": "{count} Módulos",
+  "@modulesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "advancedFilters": "Filtros Avanzados",
+  "language": "Idioma",
+  "clearAll": "Limpiar Todo",
+  "apply": "Aplicar",
+  "noCoursesFound": "No encontramos cursos",
+  "tryOtherFilters": "Intenta con otros filtros o términos de búsqueda",
+  "somethingWentWrong": "Algo salió mal",
+  "retry": "Reintentar",
+  "loadingLanguagesError": "Error al cargar idiomas"
+}

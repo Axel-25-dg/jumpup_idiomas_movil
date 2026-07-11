@@ -18,6 +18,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _fadeAnim;
   late final Animation<double> _scaleAnim;
   late final Animation<Offset> _slideAnim;
+  bool _navigated = false;
+  bool _hasCheckedInitialState = false;
+
+  /// Safety timeout: if auth takes too long, go to login anyway.
+  static const _maxWait = Duration(seconds: 6);
 
   @override
   void initState() {
@@ -52,7 +57,22 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _ctrl.forward();
 
-    Future.delayed(const Duration(milliseconds: 2400), _navigate);
+    // Check initial state once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_navigated && !_hasCheckedInitialState) {
+        _hasCheckedInitialState = true;
+        final currentState = ref.read(authProvider);
+        _navigate(currentState);
+      }
+    });
+
+    // Safety net: if auth is still pending after _maxWait, send to login.
+    Future.delayed(_maxWait, () {
+      if (mounted && !_navigated) {
+        _navigated = true;
+        _safeGo(context, AppRoutes.login);
+      }
+    });
   }
 
   @override
@@ -61,24 +81,36 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.dispose();
   }
 
-  void _navigate() {
-    if (!mounted) return;
-    final authState = ref.read(authProvider);
+  void _safeGo(BuildContext context, String route) {
+    if (mounted) {
+      try {
+        context.go(route);
+      } catch (e) {
+        debugPrint('Navigation error: $e');
+      }
+    }
+  }
+
+  void _navigate(AuthState authState) {
+    if (_navigated || !mounted) return;
     if (authState.status == AuthStatus.authenticated &&
         authState.user != null) {
-      context.go(routeForRole(authState.user!.role));
-    } else {
-      context.go(AppRoutes.login);
+      _navigated = true;
+      _safeGo(context, routeForRole(authState.user!.role));
+    } else if (authState.status == AuthStatus.unauthenticated ||
+        authState.status == AuthStatus.error) {
+      _navigated = true;
+      _safeGo(context, AppRoutes.login);
     }
+    // status == loading | initial → wait
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (prev, next) {
-      if (next.status == AuthStatus.authenticated &&
-          next.user != null &&
-          mounted) {
-        context.go(routeForRole(next.user!.role));
+    // Listen to future changes
+    ref.listen<AuthState>(authProvider, (_, next) {
+      if (mounted && !_navigated) {
+        _navigate(next);
       }
     });
 

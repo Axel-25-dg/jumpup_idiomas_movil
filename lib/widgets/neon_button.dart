@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import '../theme/app_theme.dart';
+import '../theme/colors.dart';
 
 class NeonButton extends StatelessWidget {
   final String text;
-  final VoidCallback onPressed;
+  final VoidCallback? onPressed;
   final Color glowColor;
 
   const NeonButton({
     super.key,
     required this.text,
-    required this.onPressed,
-    this.glowColor = AppTheme.celeste,
+    this.onPressed,
+    this.glowColor = AppColors.secondary,
   });
 
   @override

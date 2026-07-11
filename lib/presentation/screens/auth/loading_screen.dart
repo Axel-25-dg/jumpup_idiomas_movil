@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/data/repository/auth/auth_service.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
 
 class LoadingScreen extends StatefulWidget {
   const LoadingScreen({super.key});
@@ -52,51 +51,144 @@ class _LoadingScreenState extends State<LoadingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
+      body: Container(
+        width: double.infinity,
+        height: double.infinity,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark 
+              ? [const Color(0xFF1A0533), const Color(0xFF0F111A)]
+              : [const Color(0xFFF5F7FF), Colors.white],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Stack(
           children: [
-            AnimatedBuilder(
-              animation: _pulseCtrl,
-              builder: (_, __) => Transform.scale(
-                scale: 0.9 + _pulseCtrl.value * 0.1,
-                child: Container(
-                  width: 72,
-                  height: 72,
-                  decoration: const BoxDecoration(
-                    gradient: AppColors.primaryGradient,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.translate_rounded,
-                    color: Colors.white,
-                    size: 36,
-                  ),
-                ),
-              ),
+            // Decorative blobs
+            Positioned(
+              top: -100,
+              right: -50,
+              child: _BlurBlob(color: Colors.purple.withValues(alpha: isDark ? 0.2 : 0.1), size: 300),
             ),
-            const SizedBox(height: 24),
-            Text(
-              'Verificando sesión...',
-              style: AppTextStyles.bodyMedium.copyWith(
-                color: AppColors.textSecondary,
-              ),
+            Positioned(
+              bottom: -50,
+              left: -50,
+              child: _BlurBlob(color: Colors.blue.withValues(alpha: isDark ? 0.15 : 0.08), size: 250),
             ),
-            const SizedBox(height: 16),
-            SizedBox(
-              width: 160,
-              child: LinearProgressIndicator(
-                backgroundColor: AppColors.divider,
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                  AppColors.primary,
-                ),
-                borderRadius: BorderRadius.circular(4),
+            
+            Center(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _pulseCtrl,
+                    builder: (_, __) {
+                      final scale = 1.0 + (_pulseCtrl.value * 0.12);
+                      return Transform.scale(
+                        scale: scale,
+                        child: Container(
+                          width: 120,
+                          height: 120,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: const LinearGradient(
+                              colors: [Colors.purpleAccent, Colors.blueAccent],
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.purpleAccent.withValues(alpha: 0.5),
+                                blurRadius: 30 * scale,
+                                spreadRadius: 5,
+                              ),
+                            ],
+                          ),
+                          child: const Icon(
+                            Icons.translate_rounded,
+                            color: Colors.white,
+                            size: 60,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 48),
+                  Text(
+                    'JUMPUP',
+                    style: TextStyle(
+                      color: textColor,
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 8,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Idiomas al siguiente nivel',
+                    style: TextStyle(
+                      color: textColor.withValues(alpha: 0.5),
+                      fontSize: 14,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 60),
+                  SizedBox(
+                    width: 200,
+                    child: Column(
+                      children: [
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(10),
+                          child: LinearProgressIndicator(
+                            backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                            minHeight: 4,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Iniciando experiencia...',
+                          style: TextStyle(
+                            color: textColor.withValues(alpha: 0.3),
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _BlurBlob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _BlurBlob({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.5),
+            blurRadius: 100,
+            spreadRadius: 50,
+          ),
+        ],
       ),
     );
   }

@@ -1,9 +1,12 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
-  final FirebaseMessaging _firebaseMessaging = FirebaseMessaging.instance;
+  
+  FirebaseMessaging get _firebaseMessaging => FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
 
   factory NotificationService() {
@@ -13,17 +16,32 @@ class NotificationService {
   NotificationService._internal();
 
   Future<void> initialize() async {
+    // Si Firebase no está inicializado, no podemos continuar con FCM
+    if (Firebase.apps.isEmpty) {
+      debugPrint('NotificationService: Firebase no inicializado. Abortando.');
+      return;
+    }
+
     // Solicitar permisos en iOS
     await _firebaseMessaging.requestPermission();
-    
-    // Configuracion de Notificaciones Locales (Android/iOS)
+
     const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosInit = DarwinInitializationSettings();
-    const InitializationSettings initSettings = InitializationSettings(android: androidInit, iOS: iosInit);
-    
+    const InitializationSettings initSettings = InitializationSettings(
+      android: androidInit,
+      iOS: iosInit,
+    );
+
     await _localNotifications.initialize(
+<<<<<<< HEAD
       //initializationSettings: initSettings, Error local Ariel
       settings: initSettings, 
+=======
+      settings: initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        // Opcional: manejar cuando el usuario toca la notificación
+      },
+>>>>>>> main
     );
 
     // Escuchar mensajes en primer plano

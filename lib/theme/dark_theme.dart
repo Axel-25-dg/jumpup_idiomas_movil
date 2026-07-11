@@ -7,7 +7,11 @@ import 'text_styles.dart';
 final ThemeData darkTheme = _buildDarkTheme();
 
 ThemeData _buildDarkTheme() {
+<<<<<<< HEAD
   const colorScheme = ColorScheme(
+=======
+const ColorScheme colorScheme = ColorScheme(
+>>>>>>> main
     brightness: Brightness.dark,
     primary: AppColors.secondaryLight,
     onPrimary: AppColors.primaryDark,
@@ -19,18 +23,18 @@ ThemeData _buildDarkTheme() {
     onSecondaryContainer: AppColors.secondaryLight,
     tertiary: AppColors.accent,
     onTertiary: AppColors.primaryDark,
-    tertiaryContainer: const Color(0xFF004D57),
-    onTertiaryContainer: const Color(0xFFB2EBF2),
-    error: const Color(0xFFEF9A9A),
-    onError: const Color(0xFFB71C1C),
-    errorContainer: const Color(0xFFB71C1C),
-    onErrorContainer: const Color(0xFFFFCDD2),
+    tertiaryContainer: Color(0xFF004D57),
+    onTertiaryContainer: Color(0xFFB2EBF2),
+    error: Color(0xFFEF9A9A),
+    onError: Color(0xFFB71C1C),
+    errorContainer: Color(0xFFB71C1C),
+    onErrorContainer: Color(0xFFFFCDD2),
     surface: AppColors.darkSurface,
     onSurface: AppColors.darkTextPrimary,
     surfaceContainerHighest: AppColors.darkCard,
     onSurfaceVariant: AppColors.darkTextSecondary,
-    outline: const Color(0xFF2A3A52),
-    outlineVariant: const Color(0xFF1E2D44),
+    outline: Color(0xFF2A3A52),
+    outlineVariant: Color(0xFF1E2D44),
     inverseSurface: AppColors.surface,
     onInverseSurface: AppColors.textPrimary,
     inversePrimary: AppColors.primary,

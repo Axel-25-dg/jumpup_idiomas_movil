@@ -1,57 +1,32 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:jumpup_app/theme/colors.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 
-/// Pantalla del Tutor IA.
-///
-/// Estado actual: EN CONSTRUCCIÓN 🚧
-///
-/// Esta pantalla mostrará la interfaz de chat con el Tutor IA una vez que
-/// el backend conecte la API de mensajería con un proveedor de IA (OpenAI/Gemini).
-/// Por ahora, ofrece un modo demo con respuestas simuladas y un banner informativo.
-class AITutorScreen extends StatefulWidget {
+import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
+
+class AITutorScreen extends ConsumerStatefulWidget {
   const AITutorScreen({super.key});
 
   @override
-  State<AITutorScreen> createState() => _AITutorScreenState();
+  ConsumerState<AITutorScreen> createState() => _AITutorScreenState();
 }
 
-class _AITutorScreenState extends State<AITutorScreen>
-    with TickerProviderStateMixin {
+class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
-  bool _isTyping = false;
 
-  final List<_ChatMessage> _messages = [
-    _ChatMessage(
-      isBot: true,
-      text:
-          '¡Hola! 👋 Soy **Tutor JumpUp AI**, tu asistente personal de idiomas.\n\n⚠️ Estoy en modo **demostración** mientras el backend activa la conexión con IA. Mis respuestas actuales son ejemplos estáticos.\n\nEn la versión final podré ayudarte con gramática, pronunciación, vocabulario y mucho más. ¿Sobre qué quieres practicar hoy?',
-      timestamp: DateTime.now().subtract(const Duration(seconds: 5)),
-      hasQuickReplies: true,
-    ),
-  ];
-
-  final List<String> _quickReplies = [
-    '📚 Gramática básica',
-    '🗣️ Conversación',
-    '✍️ Escritura',
-    '🎧 Comprensión auditiva',
-  ];
-
-  // Respuestas demo del bot
-  final Map<String, String> _demoReplies = {
-    '📚 Gramática básica':
-        '¡Excelente elección! 📚\n\nVamos a repasar el presente simple:\n\n• **I speak** English (yo hablo)\n• **She speaks** English (ella habla)\n• **They speak** English (ellos hablan)\n\n¿Notas el cambio? Con he/she/it agregamos **-s** al verbo. ¿Quieres practicar con un ejercicio?',
-    '🗣️ Conversación':
-        '¡Perfecto para practicar! 🗣️\n\nIntenta responder en inglés:\n\n**"What do you like to do on weekends?"**\n(¿Qué te gusta hacer los fines de semana?)\n\nNo te preocupes por los errores, ¡para eso estoy aquí! 😊',
-    '✍️ Escritura':
-        '✍️ ¡Vamos a escribir!\n\nEjercicio: Escribe 3 oraciones sobre tu día usando los tiempos:\n1. **Presente**: *"I usually..."*\n2. **Pasado**: *"Yesterday I..."*\n3. **Futuro**: *"Tomorrow I will..."*\n\nPublica tu respuesta y te corrijo con cariño 💙',
-    '🎧 Comprensión auditiva':
-        '🎧 Comprensión auditiva es clave.\n\nEn la versión completa del Tutor IA podrás escuchar audio y transcribir lo que oyes. Por ahora, te recomiendo:\n\n• 🎬 Ver series en inglés con subtítulos\n• 🎵 Escuchar canciones y leer la letra\n• 📻 Podcasts en inglés para principiantes\n\n¿Quieres que te recomiende recursos específicos?',
-  };
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(aiChatProvider.notifier).initChat();
+    });
+  }
 
   @override
   void dispose() {
@@ -60,43 +35,14 @@ class _AITutorScreenState extends State<AITutorScreen>
     super.dispose();
   }
 
-  Future<void> _sendMessage([String? quickText]) async {
+  void _sendMessage([String? quickText]) {
     final text = quickText ?? _messageController.text.trim();
     if (text.isEmpty) return;
 
     HapticFeedback.lightImpact();
+    ref.read(aiChatProvider.notifier).sendMessage(text);
     _messageController.clear();
-
-    setState(() {
-      _messages.add(_ChatMessage(
-        isBot: false,
-        text: text,
-        timestamp: DateTime.now(),
-        hasQuickReplies: false,
-      ));
-      _isTyping = true;
-    });
-
     _scrollToBottom();
-
-    // Simula tiempo de respuesta del bot
-    await Future.delayed(const Duration(milliseconds: 1200));
-
-    final reply = _demoReplies[text] ??
-        '¡Interesante pregunta! 🤔\n\nEn la versión completa del Tutor IA (próximamente con GPT-4 / Gemini), podré responder cualquier duda sobre idiomas en tiempo real.\n\nPor ahora, te puedo decir que practicar a diario es la clave del éxito. ¡Sigue así! 💪';
-
-    if (mounted) {
-      setState(() {
-        _isTyping = false;
-        _messages.add(_ChatMessage(
-          isBot: true,
-          text: reply,
-          timestamp: DateTime.now(),
-          hasQuickReplies: false,
-        ));
-      });
-      _scrollToBottom();
-    }
   }
 
   void _scrollToBottom() {
@@ -113,132 +59,190 @@ class _AITutorScreenState extends State<AITutorScreen>
 
   @override
   Widget build(BuildContext context) {
+    final chatState = ref.watch(aiChatProvider);
+    final mySubAsync = ref.watch(mySubscriptionProvider);
+    final isPro = mySubAsync.value?.isActive ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: _buildAppBar(),
-      body: Column(
+      backgroundColor: bgColor,
+      appBar: _buildAppBar(isDark),
+      body: Stack(
         children: [
-          // ── Banner "En construcción" ─────────────────────────────────
-          _ConstructionBanner(),
-
-          // ── Lista de mensajes ────────────────────────────────────────
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
-              itemCount: _messages.length + (_isTyping ? 1 : 0),
-              itemBuilder: (context, index) {
-                if (index == _messages.length && _isTyping) {
-                  return _TypingIndicator();
-                }
-                final msg = _messages[index];
-                return Column(
-                  children: [
-                    _ChatBubble(message: msg),
-                    if (msg.hasQuickReplies)
-                      _QuickRepliesRow(
-                        replies: _quickReplies,
-                        onTap: _sendMessage,
-                      ),
+          // Background Gradient
+          if (isDark)
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blueAccent.withValues(alpha: 0.15),
+                  boxShadow: [
+                    BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.3), blurRadius: 100),
                   ],
-                );
-              },
+                ),
+              ),
             ),
-          ),
+          Column(
+            children: [
+              // Subscription required banner
+              if (!isPro && mySubAsync.hasValue)
+                _SubscriptionBanner(
+                  onUpgrade: () => context.push(AppRoutes.studentSubscriptions),
+                ),
+              if (chatState.error != null)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  color: chatState.isConnecting ? Colors.orange.withValues(alpha: 0.2) : Colors.redAccent.withValues(alpha: 0.2),
+                  child: Row(
+                    children: [
+                      Icon(
+                        chatState.isConnecting ? Icons.sync : Icons.wifi_off_rounded, 
+                        color: chatState.isConnecting ? Colors.orange : Colors.redAccent, 
+                        size: 16
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          chatState.error!, 
+                          style: TextStyle(
+                            color: chatState.isConnecting ? Colors.orange : Colors.redAccent, 
+                            fontSize: 12
+                          )
+                        ),
+                      ),
+                      if (!chatState.isConnecting)
+                        IconButton(
+                          icon: const Icon(Icons.refresh, color: Colors.redAccent, size: 16),
+                          onPressed: () => ref.read(aiChatProvider.notifier).initChat(),
+                        ),
+                    ],
+                  ),
+                ),
+              if (chatState.isLoading)
+                const Expanded(
+                  child: Center(
+                    child: CircularProgressIndicator(color: Colors.blueAccent),
+                  ),
+                )
+              else
+                Expanded(
+                  child: ListView.builder(
+                    controller: _scrollController,
+                    padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
+                    itemCount: chatState.messages.length + (chatState.isTyping ? 1 : 0),
 
-          // ── Input de mensaje ─────────────────────────────────────────
-          _ChatInput(
-            controller: _messageController,
-            onSend: () => _sendMessage(),
-            onMic: _onMicPressed,
+                    itemBuilder: (context, index) {
+                      if (index == chatState.messages.length && chatState.isTyping) {
+                        return _TypingIndicator();
+                      }
+                      final msg = chatState.messages[index];
+                      // Determine if it's bot or user based on senderName
+                      final isBot = msg.senderName == 'AI Tutor' || msg.senderId == 0;
+                      
+                      final showQuickReplies = index == 0 && chatState.messages.length == 1 && !chatState.isLoading;
+                      return Column(
+                        children: [
+                          _ChatBubble(isBot: isBot, text: msg.body, timestamp: msg.createdAt),
+                          if (showQuickReplies)
+                            _QuickRepliesRow(
+                              replies: _quickReplies,
+                              onTap: _sendMessage,
+                            ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              _ChatInput(
+                controller: _messageController,
+                onSend: () => _sendMessage(),
+                enabled: !chatState.isLoading,
+              ),
+            ],
           ),
         ],
       ),
     );
   }
 
-  AppBar _buildAppBar() {
+  final List<String> _quickReplies = [
+    'Ayúdame con la gramática',
+    'Practiquemos conversación',
+    'Explica los phrasal verbs',
+    '¿Podemos hacer un quiz?',
+  ];
+
+  AppBar _buildAppBar(bool isDark) {
+    final bgColor = isDark ? const Color(0xFF0D0D15) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
     return AppBar(
-      backgroundColor: AppColors.surface,
+      backgroundColor: Colors.transparent,
       elevation: 0,
-      leadingWidth: 40,
-      leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary, size: 20),
-        onPressed: () => Navigator.pop(context),
+      centerTitle: false,
+      iconTheme: IconThemeData(color: textColor),
+      flexibleSpace: ClipRRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+          child: Container(color: bgColor.withValues(alpha: 0.7)),
+        ),
       ),
       title: Row(
         children: [
-          Stack(
-            alignment: Alignment.bottomRight,
-            children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [AppColors.primary, Color(0xFF448AFF)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.smart_toy_rounded,
-                    color: AppColors.textPrimary, size: 22),
-              ),
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(
-                  color: AppColors.warning,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.surface, width: 2),
-                ),
-              ),
-            ],
+          Container(
+            padding: const EdgeInsets.all(2),
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+              shape: BoxShape.circle,
+            ),
+            child: const CircleAvatar(
+              radius: 18,
+              backgroundColor: Color(0xFF1E1E2A),
+              child: Icon(Icons.auto_awesome, color: Colors.white, size: 18),
+            ),
           ),
           const SizedBox(width: 12),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Tutor JumpUp AI',
-                style: GoogleFonts.poppins(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                ),
+                'AI Tutor',
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 18),
               ),
               Row(
                 children: [
                   Container(
+<<<<<<< HEAD
                     width: 6,
                     height: 6,
                     decoration: const BoxDecoration(
                       color: AppColors.warning,
+=======
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: Color(0xFF00C853),
+>>>>>>> main
                       shape: BoxShape.circle,
+                      boxShadow: [BoxShadow(color: Color(0xFF00C853), blurRadius: 4)],
                     ),
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Modo demo · Próximamente con IA real',
-                    style: GoogleFonts.poppins(
-                      color: AppColors.warning,
-                      fontSize: 10,
-                    ),
-                  ),
+                  const SizedBox(width: 6),
+                  Text('Online', style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
           ),
         ],
       ),
-      actions: [
-        IconButton(
-          icon: const Icon(Icons.info_outline_rounded, color: AppColors.textSecondary),
-          onPressed: _showInfoDialog,
-        ),
-      ],
     );
   }
+<<<<<<< HEAD
 
   void _onMicPressed() {
     ScaffoldMessenger.of(context).showSnackBar(
@@ -402,103 +406,84 @@ class _ChatMessage {
     required this.timestamp,
     required this.hasQuickReplies,
   });
+=======
+>>>>>>> main
 }
 
 class _ChatBubble extends StatelessWidget {
-  const _ChatBubble({required this.message});
-  final _ChatMessage message;
+  const _ChatBubble({required this.isBot, required this.text, required this.timestamp});
+  final bool isBot;
+  final String text;
+  final DateTime timestamp;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final botBubbleColor = isDark ? const Color(0xFF1F1F30) : Colors.white;
+    final botTextColor = isDark ? Colors.white : Colors.black87;
+    final timeColor = isDark ? Colors.white38 : Colors.black38;
+
     return Align(
-      alignment:
-          message.isBot ? Alignment.centerLeft : Alignment.centerRight,
+      alignment: isBot ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
-        constraints: BoxConstraints(
-          maxWidth: MediaQuery.of(context).size.width * 0.78,
-        ),
+        margin: const EdgeInsets.only(bottom: 20),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
         child: Column(
-          crossAxisAlignment: message.isBot
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.end,
+          crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
-            if (message.isBot)
-              Padding(
-                padding: const EdgeInsets.only(left: 4, bottom: 4),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 20,
-                      height: 20,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.primary, Color(0xFF448AFF)],
-                        ),
-                        borderRadius: BorderRadius.circular(6),
-                      ),
-                      child: const Icon(Icons.smart_toy_rounded,
-                          size: 12, color: AppColors.textPrimary),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Tutor AI',
-                      style: GoogleFonts.poppins(
-                        color: Colors.white38,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
+            if (isBot)
+              Container(
+                decoration: BoxDecoration(
+                  color: botBubbleColor,
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(4),
+                  ),
+                  border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.06)),
+                  boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
+                ),
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  text,
+                  style: TextStyle(color: botTextColor, height: 1.5, fontSize: 15),
+                ),
+              )
+            else
+              Container(
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: const BorderRadius.only(
+                    topLeft: Radius.circular(20),
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(20),
+                    bottomRight: Radius.circular(4),
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF2575FC).withValues(alpha: 0.2),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-              ),
-            Container(
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                gradient: message.isBot
-                    ? null
-                    : const LinearGradient(
-                        colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
-                      ),
-                color: message.isBot
-                    ? AppColors.surface
-                    : null,
-                borderRadius: BorderRadius.only(
-                  topLeft: const Radius.circular(18),
-                  topRight: const Radius.circular(18),
-                  bottomLeft: Radius.circular(message.isBot ? 4 : 18),
-                  bottomRight: Radius.circular(message.isBot ? 18 : 4),
+                padding: const EdgeInsets.all(16),
+                child: Text(
+                  text,
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
                 ),
-                border: message.isBot
-                    ? Border.all(color: Colors.white.withValues(alpha: 0.08))
-                    : null,
-                boxShadow: [
-                  BoxShadow(
-                    color: message.isBot
-                        ? Colors.black26
-                        : AppColors.primary.withValues(alpha: 0.3),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
               ),
+            const SizedBox(height: 6),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
-                // Renderiza **negrita** de forma simple
-                message.text.replaceAll('**', ''),
-                style: GoogleFonts.poppins(
-                  color: AppColors.textPrimary,
-                  fontSize: 14,
-                  height: 1.5,
-                ),
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              _formatTime(message.timestamp),
-              style: GoogleFonts.poppins(
-                color: Colors.white24,
-                fontSize: 10,
+                '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
+                style: TextStyle(fontSize: 10, color: timeColor, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -506,49 +491,32 @@ class _ChatBubble extends StatelessWidget {
       ),
     );
   }
-
-  String _formatTime(DateTime t) {
-    final h = t.hour.toString().padLeft(2, '0');
-    final m = t.minute.toString().padLeft(2, '0');
-    return '$h:$m';
-  }
 }
 
 class _QuickRepliesRow extends StatelessWidget {
-  const _QuickRepliesRow(
-      {required this.replies, required this.onTap});
+  const _QuickRepliesRow({required this.replies, required this.onTap});
   final List<String> replies;
   final void Function(String) onTap;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 20, top: 10),
       child: Wrap(
         spacing: 8,
-        runSpacing: 8,
-        children: replies
-            .map((r) => GestureDetector(
-                  onTap: () => onTap(r),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                        horizontal: 14, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.07),
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.4)),
-                    ),
-                    child: Text(
-                      r,
-                      style: GoogleFonts.poppins(
-                        color: AppColors.textPrimary,
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-                ))
-            .toList(),
+        runSpacing: 10,
+        children: replies.map((r) => GestureDetector(
+          onTap: () => onTap(r),
+          child: GlassContainer(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+            borderRadius: BorderRadius.circular(20),
+            opacity: isDark ? 0.2 : 0.05,
+            child: Text(r, style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500)),
+          ),
+        )).toList(),
       ),
     );
   }
@@ -557,21 +525,22 @@ class _QuickRepliesRow extends StatelessWidget {
 class _TypingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF232336) : Colors.black.withValues(alpha: 0.05);
+
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 12),
+        margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
         decoration: BoxDecoration(
-          color: AppColors.surface,
+          color: bgColor,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(18),
-            topRight: Radius.circular(18),
-            bottomRight: Radius.circular(18),
+            topLeft: Radius.circular(20),
+            topRight: Radius.circular(20),
+            bottomRight: Radius.circular(20),
             bottomLeft: Radius.circular(4),
           ),
-          border:
-              Border.all(color: Colors.white.withValues(alpha: 0.08)),
         ),
         child: const Row(
           mainAxisSize: MainAxisSize.min,
@@ -603,10 +572,7 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
+    _ctrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 600));
     Future.delayed(Duration(milliseconds: widget.delay), () {
       if (mounted) _ctrl.repeat(reverse: true);
     });
@@ -624,104 +590,114 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
     return FadeTransition(
       opacity: _anim,
       child: Container(
-        width: 8,
-        height: 8,
-        decoration: const BoxDecoration(
-          color: AppColors.primary,
-          shape: BoxShape.circle,
-        ),
+        width: 6,
+        height: 6,
+        decoration: const BoxDecoration(color: Colors.blueAccent, shape: BoxShape.circle),
       ),
     );
   }
 }
 
 class _ChatInput extends StatelessWidget {
-  const _ChatInput({
-    required this.controller,
-    required this.onSend,
-    required this.onMic,
-  });
-
+  const _ChatInput({required this.controller, required this.onSend, required this.enabled});
   final TextEditingController controller;
   final VoidCallback onSend;
-  final VoidCallback onMic;
+  final bool enabled;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        border: Border(
-            top: BorderSide(
-                color: Colors.white.withValues(alpha: 0.07))),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputBg = isDark ? const Color(0xFF0F111A) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final hintColor = isDark ? Colors.white38 : Colors.black38;
+
+    return ClipRRect(
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+        child: Container(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
+          decoration: BoxDecoration(
+            color: inputBg.withValues(alpha: 0.9),
+            border: Border(top: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.08))),
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: GlassContainer(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  borderRadius: BorderRadius.circular(25),
+                  opacity: isDark ? 0.05 : 0.5,
+                  child: TextField(
+                    controller: controller,
+                    enabled: enabled,
+                    style: TextStyle(color: textColor, fontSize: 15),
+                    decoration: InputDecoration(
+                      hintText: 'Pregúntale algo al tutor...',
+                      hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                      border: InputBorder.none,
+                    ),
+                    onSubmitted: (_) => onSend(),
+                    textInputAction: TextInputAction.send,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              GestureDetector(
+                onTap: enabled ? onSend : null,
+                child: Container(
+                  padding: const EdgeInsets.all(14),
+                  decoration: BoxDecoration(
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: const Icon(Icons.send_rounded, color: Colors.white, size: 22),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Row(
+    );
+  }
+}
+
+/// Banner shown at the top of AI Tutor screen when user has no active subscription
+class _SubscriptionBanner extends StatelessWidget {
+  final VoidCallback onUpgrade;
+  const _SubscriptionBanner({required this.onUpgrade});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onUpgrade,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          ),
+        ),
+        child: const Row(
           children: [
-            // Micrófono
-            Container(
-              width: 44,
-              height: 44,
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, Color(0xFF5B2EFF)],
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.mic_rounded,
-                    color: AppColors.textPrimary, size: 20),
-                onPressed: onMic,
-              ),
-            ),
-            const SizedBox(width: 10),
-
-            // Campo de texto
+            Text('🔒', style: TextStyle(fontSize: 18)),
+            SizedBox(width: 10),
             Expanded(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.07),
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: Colors.white12),
-                ),
-                child: TextField(
-                  controller: controller,
-                  style: GoogleFonts.poppins(
-                      color: AppColors.textPrimary, fontSize: 14),
-                  decoration: InputDecoration(
-                    hintText: 'Escribe en inglés o español...',
-                    hintStyle: GoogleFonts.poppins(
-                        color: Colors.white38, fontSize: 13),
-                    border: InputBorder.none,
-                    contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 18, vertical: 12),
-                  ),
-                  onSubmitted: (_) => onSend(),
-                  textInputAction: TextInputAction.send,
-                  maxLines: null,
-                ),
+              child: Text(
+                'El Tutor IA requiere suscripción Pro — Toca para ver planes',
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
               ),
             ),
-            const SizedBox(width: 10),
-
-            // Enviar
-            GestureDetector(
-              onTap: onSend,
-              child: Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
-                  ),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(Icons.send_rounded,
-                    color: AppColors.textPrimary, size: 20),
-              ),
-            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
           ],
         ),
       ),

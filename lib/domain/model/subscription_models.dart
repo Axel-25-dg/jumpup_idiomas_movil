@@ -35,14 +35,24 @@ class SubscriptionModel {
   }
 
   factory SubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final rawFeatures = json['features'];
+    List<String> parsedFeatures;
+    if (rawFeatures is String) {
+      parsedFeatures = rawFeatures.isEmpty
+          ? []
+          : rawFeatures.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
+    } else if (rawFeatures is List) {
+      parsedFeatures = rawFeatures.map((e) => e.toString()).toList();
+    } else {
+      parsedFeatures = [];
+    }
     return SubscriptionModel(
       id: json['id'] as int,
       name: json['name']?.toString() ?? '',
       description: json['description']?.toString() ?? '',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       durationDays: json['duration_days'] as int? ?? 30,
-      features:
-          (json['features'] as List?)?.map((e) => e.toString()).toList() ?? [],
+      features: parsedFeatures,
       isActive: json['is_active'] as bool? ?? true,
     );
   }
@@ -128,7 +138,7 @@ class PaymentModel {
       id: json['id'] as int,
       amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status']?.toString() ?? 'pending',
-      method: json['method']?.toString() ?? '',
+      method: json['payment_method']?.toString() ?? json['method']?.toString() ?? '',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
           DateTime.now(),
       transactionId: json['transaction_id']?.toString(),
@@ -150,23 +160,34 @@ class PaymentModel {
 class OrderModel {
   const OrderModel({
     required this.id,
-    required this.subscription,
+    required this.subscriptionId,
+    this.subscriptionDetail,
     required this.totalAmount,
     required this.status,
     required this.createdAt,
   });
 
   final int id;
-  final SubscriptionModel subscription;
+  final int subscriptionId;
+  final SubscriptionModel? subscriptionDetail;
   final double totalAmount;
   final String status;
   final DateTime createdAt;
 
   factory OrderModel.fromJson(Map<String, dynamic> json) {
+    final sub = json['subscription'];
+    int subId;
+    SubscriptionModel? subDetail;
+    if (sub is Map) {
+      subDetail = SubscriptionModel.fromJson(Map<String, dynamic>.from(sub));
+      subId = subDetail.id;
+    } else {
+      subId = sub as int? ?? 0;
+    }
     return OrderModel(
       id: json['id'] as int,
-      subscription: SubscriptionModel.fromJson(
-          json['subscription'] as Map<String, dynamic>),
+      subscriptionId: subId,
+      subscriptionDetail: subDetail,
       totalAmount: (json['total_amount'] as num?)?.toDouble() ?? 0.0,
       status: json['status']?.toString() ?? 'pending',
       createdAt: DateTime.tryParse(json['created_at']?.toString() ?? '') ??
