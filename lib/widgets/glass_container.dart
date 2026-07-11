@@ -29,6 +29,15 @@ class GlassContainer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    // In dark mode: white overlay. In light mode: dark overlay for visibility.
+    final overlayColor = isDark
+        ? Colors.white.withValues(alpha: opacity)
+        : Colors.black.withValues(alpha: opacity * 0.4);
+    final borderColor = isDark
+        ? Colors.white.withValues(alpha: 0.15)
+        : Colors.black.withValues(alpha: 0.08);
+
     Widget content = Container(
       padding: padding,
       margin: margin,
@@ -36,10 +45,10 @@ class GlassContainer extends StatelessWidget {
       width: width,
       constraints: constraints,
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: opacity),
+        color: overlayColor,
         borderRadius: borderRadius,
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
+          color: borderColor,
           width: 1.5,
         ),
       ),

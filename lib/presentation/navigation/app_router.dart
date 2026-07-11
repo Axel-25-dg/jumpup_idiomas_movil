@@ -27,6 +27,7 @@ import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dar
     as student_subs;
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/change_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/cart/cart_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
@@ -79,6 +80,7 @@ abstract final class AppRoutes {
   static const studentSubscriptions = '/student/subscriptions';
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
+  static const studentChangePassword = '/student/change-password';
   static const studentGames = '/student/games';
   static const studentCart = '/cart';
   static const studentCatalog = '/student/catalog';
@@ -231,6 +233,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
           path: AppRoutes.studentSettings,
           name: 'studentSettings',
           builder: (_, __) => const SettingsScreen()),
+      GoRoute(
+          path: AppRoutes.studentChangePassword,
+          name: 'studentChangePassword',
+          builder: (_, __) => const ChangePasswordScreen()),
       GoRoute(
           path: AppRoutes.studentGames,
           name: 'studentGames',

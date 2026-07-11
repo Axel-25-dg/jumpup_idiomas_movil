@@ -1,0 +1,177 @@
+{
+  "@@locale": "en",
+  "login": "Login",
+  "welcome": "Welcome",
+  "welcomeSubtitle": "Log in to continue your journey",
+  "email": "Email",
+  "password": "Password",
+  "forgotPassword": "Forgot your password?",
+  "loginButton": "Log In",
+  "noAccount": "Don't have an account? ",
+  "registerHere": "Register here",
+  "logout": "Logout",
+  "logoutConfirmation": "Are you sure you want to log out?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "joinToday": "Join today",
+  "createAccountSubtitle": "Create your account and take your languages to the next level.",
+  "firstName": "First Name",
+  "lastName": "Last Name",
+  "username": "Username",
+  "confirmPassword": "Confirm Password",
+  "registerButton": "Create Account",
+  "alreadyHaveAccount": "Already have an account? ",
+  "loginLink": "Log in",
+  "settings": "Settings",
+  "preferences": "PREFERENCES",
+  "darkMode": "Dark Mode",
+  "darkModeSubtitle": "Improves reading at night",
+  "notifications": "Notifications",
+  "notificationsSubtitle": "Class and challenge reminders",
+  "haptics": "Haptics (Vibration)",
+  "hapticsSubtitle": "Tactile feedback when interacting",
+  "appLanguage": "App Language",
+  "account": "ACCOUNT",
+  "learningLanguages": "Learning Languages",
+  "manageCourses": "Manage your active courses",
+  "security": "Security",
+  "securitySubtitle": "Change password and privacy",
+  "support": "SUPPORT",
+  "sendFeedback": "Send feedback",
+  "helpCenter": "Help Center",
+  "selectLanguage": "Select Language",
+  "category": "Category",
+  "bug": "Bug",
+  "feature": "Feature",
+  "improvement": "Improvement",
+  "other": "Other",
+  "feedbackHint": "Describe your suggestion...",
+  "send": "SEND",
+  "feedbackSuccess": "Thank you for your feedback!",
+  "forgotPasswordTitle": "Forgot your password?",
+  "forgotPasswordInstructions": "Enter your email to receive a recovery code.",
+  "sendCode": "Send Code",
+  "verifyEmail": "Verify your email",
+  "verifyEmailInstructions": "We've sent a code to {email}. Enter it along with your new password.",
+  "@verifyEmailInstructions": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "sixDigitCode": "6-digit code",
+  "newPassword": "New password",
+  "resetPassword": "Reset Password",
+  "allDone": "All done!",
+  "passwordUpdated": "Your password has been successfully updated.",
+  "backToStart": "Back to Start",
+  "changePassword": "Change Password",
+  "currentPassword": "Current Password",
+  "updatePassword": "UPDATE PASSWORD",
+  "passwordsDoNotMatch": "Passwords do not match",
+  "passwordLengthError": "Password must be at least 8 characters",
+  "fillAllFields": "Please fill all fields",
+  "passwordUpdateSuccess": "Password updated successfully",
+  "passwordUpdateError": "Error changing password. Check your current password.",
+  "user": "User",
+  "profile": "Profile",
+  "editProfile": "Edit profile",
+  "save": "Save",
+  "share": "Share",
+  "personalInformation": "Personal Information",
+  "noName": "No name",
+  "noLastName": "No last name",
+  "noUsername": "No username",
+  "noEmail": "No email",
+  "profileUpdated": "Profile updated",
+  "profilePictureUpdated": "Profile picture updated",
+  "profilePictureError": "Could not upload picture.",
+  "logoutSubtitle": "Back to start screen",
+  "home": "Home",
+  "classrooms": "Classrooms",
+  "social": "Social",
+  "progress": "Progress",
+  "hello": "Hello, {name} 👋",
+  "@hello": {
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "readyToLearn": "Ready to learn?",
+  "quickActions": "Quick Actions",
+  "virtualClasses": "Classes",
+  "store": "Store",
+  "games": "Games",
+  "ranking": "Ranking",
+  "recentProgress": "Your Recent Progress",
+  "viewVirtualClasses": "Virtual Classes ➔",
+  "exploreCourses": "Explore courses in the Store",
+  "continueLesson": "Continue Lesson",
+  "lessonsCount": "{count} Lessons",
+  "@lessonsCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "aiTutorTitle": "AI Tutor",
+  "aiTutorSubtitle": "Practice grammar or conversation with our advanced AI",
+  "startSpeaking": "Start speaking",
+  "streakDays": "{days} Days",
+  "@streakDays": {
+    "placeholders": {
+      "days": {
+        "type": "int"
+      }
+    }
+  },
+  "currentStreak": "Current Streak",
+  "xpAmount": "{xp} XP",
+  "@xpAmount": {
+    "placeholders": {
+      "xp": {
+        "type": "int"
+      }
+    }
+  },
+  "levelLabel": "Level {level}",
+  "@levelLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "levelProgressLabel": "Level {level} Progress",
+  "@levelProgressLabel": {
+    "placeholders": {
+      "level": {
+        "type": "int"
+      }
+    }
+  },
+  "exploreCoursesTitle": "Explore Courses",
+  "whatDoYouWantToLearn": "What do you want to learn?",
+  "all": "All",
+  "modulesCount": "{count} Modules",
+  "@modulesCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "advancedFilters": "Advanced Filters",
+  "language": "Language",
+  "clearAll": "Clear All",
+  "apply": "Apply",
+  "noCoursesFound": "No courses found",
+  "tryOtherFilters": "Try with other filters or search terms",
+  "somethingWentWrong": "Something went wrong",
+  "retry": "Retry",
+  "loadingLanguagesError": "Error loading languages"
+}

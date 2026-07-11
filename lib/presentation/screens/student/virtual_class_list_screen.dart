@@ -5,7 +5,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Tokens de diseño centralizados para el módulo de clases virtuales.
@@ -821,42 +820,10 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
   }
 }
 
-class _QRScannerScreen extends StatefulWidget {
+/// QR Scanner — temporarily disabled while mobile_scanner migrates to Built-in Kotlin.
+/// Shows a friendly "coming soon" message instead of crashing.
+class _QRScannerScreen extends StatelessWidget {
   const _QRScannerScreen();
-
-  @override
-  State<_QRScannerScreen> createState() => _QRScannerScreenState();
-}
-
-class _QRScannerScreenState extends State<_QRScannerScreen> {
-  late final MobileScannerController _controller;
-  bool _isTorchOn = false;
-  bool _handled = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = MobileScannerController(
-      detectionSpeed: DetectionSpeed.normal,
-      facing: CameraFacing.back,
-    );
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  void _onDetect(BarcodeCapture capture) {
-    if (_handled) return;
-    final barcodes = capture.barcodes;
-    if (barcodes.isEmpty) return;
-    final code = barcodes.first.rawValue;
-    if (code == null || code.isEmpty) return;
-    _handled = true;
-    Navigator.pop(context, code);
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -869,92 +836,42 @@ class _QRScannerScreenState extends State<_QRScannerScreen> {
           icon: const Icon(Icons.close_rounded, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(
-              _isTorchOn ? Icons.flash_on_rounded : Icons.flash_off_rounded,
-              color: Colors.white,
-            ),
-            onPressed: () async {
-              await _controller.toggleTorch();
-              if (mounted) setState(() => _isTorchOn = !_isTorchOn);
-            },
-          ),
-        ],
       ),
-      extendBodyBehindAppBar: true,
-      body: Stack(
-        children: [
-          MobileScanner(
-            key: const ValueKey('virtual_class_scanner'),
-            controller: _controller,
-            onDetect: _onDetect,
-          ),
-          Center(
-            child: Container(
-              width: 250,
-              height: 250,
-              decoration: BoxDecoration(
-                border: Border.all(color: _ClassTokens.primary, width: 2),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: const Stack(
-                children: [
-                  _ScannerCorner(top: 0, left: 0),
-                  _ScannerCorner(top: 0, right: 0),
-                  _ScannerCorner(bottom: 0, left: 0),
-                  _ScannerCorner(bottom: 0, right: 0),
-                ],
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 120,
-            left: 40,
-            right: 40,
-            child: Container(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                'Encuadra el código QR del aula',
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.qr_code_scanner_rounded,
+                  size: 80, color: Colors.white24),
+              const SizedBox(height: 24),
+              const Text(
+                'Escáner QR\nPróximamente',
                 textAlign: TextAlign.center,
-                style: AppTextStyles.bodyMedium.copyWith(
-                    color: Colors.white, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ScannerCorner extends StatelessWidget {
-  const _ScannerCorner({this.top, this.bottom, this.left, this.right});
-
-  final double? top, bottom, left, right;
-
-  @override
-  Widget build(BuildContext context) {
-    const side = BorderSide(color: _ClassTokens.primary, width: 4);
-    return Positioned(
-      top: top,
-      bottom: bottom,
-      left: left,
-      right: right,
-      child: Container(
-        width: 30,
-        height: 30,
-        decoration: BoxDecoration(
-          border: Border(
-            top: top != null ? side : BorderSide.none,
-            bottom: bottom != null ? side : BorderSide.none,
-            left: left != null ? side : BorderSide.none,
-            right: right != null ? side : BorderSide.none,
+              const SizedBox(height: 12),
+              Text(
+                'Ingresa el código manualmente por ahora.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
+              ),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () => Navigator.pop(context),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                ),
+                child: const Text('Volver', style: TextStyle(color: Colors.white)),
+              ),
+            ],
           ),
         ),
       ),

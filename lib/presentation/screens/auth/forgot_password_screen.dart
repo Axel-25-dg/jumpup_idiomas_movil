@@ -1,5 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 import '../../../services/auth_service.dart';
 
@@ -53,14 +54,17 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: isDark ? const Color(0xFF0F111A) : Colors.white,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -80,23 +84,25 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   children: [
                     if (_step == 1) ...[
                       _buildHeader(
+                        context,
                         Icons.lock_reset_rounded,
-                        '¿Olvidaste tu contraseña?',
-                        'Ingresa tu correo electrónico para recibir un código de recuperación.',
+                        l10n.forgotPasswordTitle,
+                        l10n.forgotPasswordInstructions,
                       ),
                       const SizedBox(height: 32),
                       _buildGlassContainer(
+                        context,
                         child: Column(
                           children: [
                             _CustomTextField(
                               controller: _emailCtrl,
-                              hint: 'Correo electrónico',
+                              hint: l10n.email,
                               icon: Icons.email_outlined,
                               keyboardType: TextInputType.emailAddress,
                             ),
                             const SizedBox(height: 24),
                             _buildMainButton(
-                              text: 'Enviar Código',
+                              text: l10n.sendCode,
                               onPressed: _requestPin,
                               isLoading: _isLoading,
                             ),
@@ -106,37 +112,39 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                     if (_step == 2) ...[
                       _buildHeader(
+                        context,
                         Icons.mark_email_read_rounded,
-                        'Verifica tu correo',
-                        'Hemos enviado un código a $_email. Ingrésalo junto con tu nueva contraseña.',
+                        l10n.verifyEmail,
+                        l10n.verifyEmailInstructions(_email),
                       ),
                       const SizedBox(height: 32),
                       _buildGlassContainer(
+                        context,
                         child: Column(
                           children: [
                             _CustomTextField(
                               controller: _codeCtrl,
-                              hint: 'Código de 6 dígitos',
+                              hint: l10n.sixDigitCode,
                               icon: Icons.pin_rounded,
                               keyboardType: TextInputType.number,
                             ),
                             const SizedBox(height: 16),
                             _CustomTextField(
                               controller: _passCtrl,
-                              hint: 'Nueva contraseña',
+                              hint: l10n.newPassword,
                               icon: Icons.lock_outline,
                               obscureText: true,
                             ),
                             const SizedBox(height: 16),
                             _CustomTextField(
                               controller: _pass2Ctrl,
-                              hint: 'Confirmar contraseña',
+                              hint: l10n.confirmPassword,
                               icon: Icons.lock_reset_rounded,
                               obscureText: true,
                             ),
                             const SizedBox(height: 24),
                             _buildMainButton(
-                              text: 'Restablecer Contraseña',
+                              text: l10n.resetPassword,
                               onPressed: _confirmPin,
                               isLoading: _isLoading,
                             ),
@@ -146,14 +154,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     ],
                     if (_step == 3) ...[
                       _buildHeader(
+                        context,
                         Icons.check_circle_outline_rounded,
-                        '¡Todo listo!',
-                        'Tu contraseña ha sido actualizada exitosamente.',
+                        l10n.allDone,
+                        l10n.passwordUpdated,
                         iconColor: Colors.greenAccent,
                       ),
                       const SizedBox(height: 40),
                       _buildMainButton(
-                        text: 'Volver al Inicio',
+                        text: l10n.backToStart,
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -167,7 +176,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildHeader(IconData icon, String title, String subtitle, {Color iconColor = Colors.blueAccent}) {
+  Widget _buildHeader(BuildContext context, IconData icon, String title, String subtitle, {Color iconColor = Colors.blueAccent}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
@@ -182,19 +192,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         Text(
           title,
           textAlign: TextAlign.center,
-          style: AppTextStyles.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+          style: AppTextStyles.headlineSmall.copyWith(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: 12),
         Text(
           subtitle,
           textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.6)),
+          style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black54),
         ),
       ],
     );
   }
 
-  Widget _buildGlassContainer({required Widget child}) {
+  Widget _buildGlassContainer(BuildContext context, {required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
       child: BackdropFilter(
@@ -202,9 +213,9 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
           ),
           child: child,
         ),
@@ -286,22 +297,23 @@ class _CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
+        hintStyle: TextStyle(color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38),
+        prefixIcon: Icon(icon, color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black45, size: 20),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

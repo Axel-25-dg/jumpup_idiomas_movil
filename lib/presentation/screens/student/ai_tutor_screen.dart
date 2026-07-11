@@ -2,7 +2,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 
 import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
 
@@ -57,10 +60,14 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(aiChatProvider);
+    final mySubAsync = ref.watch(mySubscriptionProvider);
+    final isPro = mySubAsync.value?.isActive ?? false;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0D0D15) : const Color(0xFFF0F4F8);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D15),
-      appBar: _buildAppBar(),
+      backgroundColor: bgColor,
+      appBar: _buildAppBar(isDark),
       body: Stack(
         children: [
           // Background Gradient
@@ -81,6 +88,11 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
           ),
           Column(
             children: [
+              // Subscription required banner
+              if (!isPro && mySubAsync.hasValue)
+                _SubscriptionBanner(
+                  onUpgrade: () => GoRouter.of(context).push(AppRoutes.studentSubscriptions),
+                ),
               if (chatState.error != null)
                 Container(
                   width: double.infinity,
@@ -123,6 +135,7 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
                     controller: _scrollController,
                     padding: const EdgeInsets.fromLTRB(16, 16, 16, 20),
                     itemCount: chatState.messages.length + (chatState.isTyping ? 1 : 0),
+
                     itemBuilder: (context, index) {
                       if (index == chatState.messages.length && chatState.isTyping) {
                         return _TypingIndicator();
@@ -164,16 +177,17 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
     '¿Podemos hacer un quiz?',
   ];
 
-  AppBar _buildAppBar() {
+  AppBar _buildAppBar(bool isDark) {
+    final bgColor = isDark ? const Color(0xFF0D0D15) : Colors.white;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      iconTheme: const IconThemeData(color: Colors.white),
+      iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
       flexibleSpace: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
-          child: Container(color: const Color(0xFF0D0D15).withValues(alpha: 0.7)),
+          child: Container(color: bgColor.withValues(alpha: 0.7)),
         ),
       ),
       title: Row(
@@ -229,6 +243,11 @@ class _ChatBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final botBubbleColor = isDark ? const Color(0xFF1F1F30) : Colors.white;
+    final botTextColor = isDark ? Colors.white : Colors.black87;
+    final timeColor = isDark ? Colors.white38 : Colors.black38;
+
     return Align(
       alignment: isBot ? Alignment.centerLeft : Alignment.centerRight,
       child: Container(
@@ -240,19 +259,20 @@ class _ChatBubble extends StatelessWidget {
             if (isBot)
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1F1F30),
+                  color: botBubbleColor,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                     bottomRight: Radius.circular(20),
                     bottomLeft: Radius.circular(4),
                   ),
-                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                  border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.06)),
+                  boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
                 ),
                 padding: const EdgeInsets.all(16),
                 child: Text(
                   text,
-                  style: const TextStyle(color: Colors.white, height: 1.5, fontSize: 15),
+                  style: TextStyle(color: botTextColor, height: 1.5, fontSize: 15),
                 ),
               )
             else
@@ -288,7 +308,7 @@ class _ChatBubble extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: Text(
                 '${timestamp.hour.toString().padLeft(2, '0')}:${timestamp.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(fontSize: 10, color: Colors.white38, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 10, color: timeColor, fontWeight: FontWeight.bold),
               ),
             ),
           ],
@@ -404,14 +424,19 @@ class _ChatInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final inputBg = isDark ? const Color(0xFF0F111A) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final hintColor = isDark ? Colors.white38 : Colors.black38;
+
     return ClipRRect(
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
         child: Container(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 32),
           decoration: BoxDecoration(
-            color: const Color(0xFF0F111A).withValues(alpha: 0.8),
-            border: Border(top: BorderSide(color: Colors.white.withValues(alpha: 0.05))),
+            color: inputBg.withValues(alpha: 0.9),
+            border: Border(top: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.08))),
           ),
           child: Row(
             children: [
@@ -419,14 +444,14 @@ class _ChatInput extends StatelessWidget {
                 child: GlassContainer(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   borderRadius: BorderRadius.circular(25),
-                  opacity: 0.05,
+                  opacity: isDark ? 0.05 : 0.5,
                   child: TextField(
                     controller: controller,
                     enabled: enabled,
-                    style: const TextStyle(color: Colors.white, fontSize: 15),
-                    decoration: const InputDecoration(
+                    style: TextStyle(color: textColor, fontSize: 15),
+                    decoration: InputDecoration(
                       hintText: 'Pregúntale algo al tutor...',
-                      hintStyle: TextStyle(color: Colors.white38, fontSize: 14),
+                      hintStyle: TextStyle(color: hintColor, fontSize: 14),
                       border: InputBorder.none,
                     ),
                     onSubmitted: (_) => onSend(),
@@ -457,6 +482,41 @@ class _ChatInput extends StatelessWidget {
               ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Banner shown at the top of AI Tutor screen when user has no active subscription
+class _SubscriptionBanner extends StatelessWidget {
+  final VoidCallback onUpgrade;
+  const _SubscriptionBanner({required this.onUpgrade});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onUpgrade,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          ),
+        ),
+        child: const Row(
+          children: [
+            Text('🔒', style: TextStyle(fontSize: 18)),
+            SizedBox(width: 10),
+            Expanded(
+              child: Text(
+                'El Tutor IA requiere suscripción Pro — Toca para ver planes',
+                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
+              ),
+            ),
+            Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
+          ],
         ),
       ),
     );

@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:jumpup_app/widgets/logout_dialog.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
 import 'package:jumpup_app/presentation/providers/images/image_upload_provider.dart';
 import 'package:jumpup_app/theme/colors.dart';
@@ -8,11 +9,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
-import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -64,36 +65,39 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 token,
               );
 
-      if (uploadedUrl != null && mounted) {
-        ref.invalidate(userProfileProvider);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Foto de perfil actualizada'),
-            backgroundColor: AppColors.success,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      } else if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo subir la foto.'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('No se pudo subir la foto.'),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      final l10n = AppLocalizations.of(context)!;
+    if (uploadedUrl != null) {
+      ref.invalidate(userProfileProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profilePictureUpdated),
+          backgroundColor: AppColors.success,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } else if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profilePictureError),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  } catch (e) {
+    if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(l10n.profilePictureError),
+          backgroundColor: AppColors.error,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
     }
   }
+}
 
   void _startEditing(String firstName, String lastName) {
     _firstNameController.text = firstName;
@@ -110,10 +114,11 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final notifier = ref.read(profileUpdateNotifierProvider.notifier);
     await notifier.updateProfile(data);
     if (mounted) {
+      final l10n = AppLocalizations.of(context)!;
       setState(() => _isEditing = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Perfil actualizado'),
+        SnackBar(
+          content: Text(l10n.profileUpdated),
           backgroundColor: AppColors.success,
           behavior: SnackBarBehavior.floating,
         ),
@@ -122,62 +127,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   }
 
   void _confirmLogout() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2E),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        icon: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            color: AppColors.error.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(Icons.logout_rounded,
-              color: AppColors.error, size: 28),
-        ),
-        title: Text('Cerrar sesión',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.titleLarge.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.w700,
-            )),
-        content: Text('¿Seguro que quieres salir de tu cuenta?',
-            textAlign: TextAlign.center,
-            style: AppTextStyles.bodyMedium.copyWith(
-              color: Colors.white70,
-            )),
-        actionsAlignment: MainAxisAlignment.center,
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('Cancelar',
-                style: AppTextStyles.labelLarge
-                    .copyWith(color: Colors.white54)),
-          ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(14)),
-            ),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(authProvider.notifier).logout();
-              if (mounted) context.go(AppRoutes.login);
-            },
-            child: const Text('Cerrar sesión'),
-          ),
-        ],
-      ),
-    );
+    LogoutDialog.show(context);
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final authState = ref.watch(authProvider);
     final authUser = authState.user;
     final profileAsync = ref.watch(userProfileProvider);
@@ -191,7 +146,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final authName = authUser?.name;
     final authEmail = authUser?.email;
     final displayFullName = profileData?.fullName ??
-        (authName != null && authName.isNotEmpty ? authName : 'Usuario');
+        (authName != null && authName.isNotEmpty ? authName : l10n.user);
     final displayUsername = profileData?.username ?? '';
     final displayEmail = profileData?.email ??
         (authEmail != null && authEmail.isNotEmpty ? authEmail : '');
@@ -294,6 +249,7 @@ class _ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       width: double.infinity,
       decoration: const BoxDecoration(
@@ -320,7 +276,7 @@ class _ProfileHeader extends StatelessWidget {
                     onPressed: onSettingsTap,
                     icon: const Icon(Icons.settings_outlined,
                         color: Colors.white, size: 22),
-                    tooltip: 'Configuración',
+                    tooltip: l10n.settings,
                   ),
                 ],
               ),
@@ -444,7 +400,7 @@ class _ProfileHeader extends StatelessWidget {
                   Expanded(
                     child: _ActionButton(
                       icon: isEditing ? Icons.check_rounded : Icons.edit_rounded,
-                      label: isEditing ? 'Guardar' : 'Editar perfil',
+                      label: isEditing ? l10n.save : l10n.editProfile,
                       onTap: isSaving ? null : onEditTap,
                       isPrimary: true,
                     ),
@@ -453,7 +409,7 @@ class _ProfileHeader extends StatelessWidget {
                   Expanded(
                     child: _ActionButton(
                       icon: Icons.share_outlined,
-                      label: 'Compartir',
+                      label: l10n.share,
                       onTap: () {},
                       isPrimary: false,
                     ),
@@ -554,6 +510,7 @@ class _ProfileInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(8),
@@ -563,7 +520,7 @@ class _ProfileInfoSection extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
             child: Text(
-              'Información Personal',
+              l10n.personalInformation,
               style: AppTextStyles.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
                 color: Colors.white,
@@ -573,40 +530,40 @@ class _ProfileInfoSection extends StatelessWidget {
           isEditing
               ? _EditableField(
                   controller: firstNameController,
-                  label: 'Nombre',
+                  label: l10n.firstName,
                   icon: Icons.badge_outlined,
                 )
               : _InfoTile(
                   icon: Icons.badge_outlined,
-                  label: 'Nombre',
-                  value: firstName.isNotEmpty ? firstName : 'Sin nombre',
+                  label: l10n.firstName,
+                  value: firstName.isNotEmpty ? firstName : l10n.noName,
                   iconColor: Colors.blueAccent,
                 ),
           _divider(),
           isEditing
               ? _EditableField(
                   controller: lastNameController,
-                  label: 'Apellido',
+                  label: l10n.lastName,
                   icon: Icons.badge_outlined,
                 )
               : _InfoTile(
                   icon: Icons.badge_outlined,
-                  label: 'Apellido',
-                  value: lastName.isNotEmpty ? lastName : 'Sin apellido',
+                  label: l10n.lastName,
+                  value: lastName.isNotEmpty ? lastName : l10n.noLastName,
                   iconColor: Colors.blueAccent,
                 ),
           _divider(),
           _InfoTile(
             icon: Icons.alternate_email_rounded,
-            label: 'Usuario',
-            value: username.isNotEmpty ? username : 'Sin usuario',
+            label: l10n.username,
+            value: username.isNotEmpty ? username : l10n.noUsername,
             iconColor: Colors.purpleAccent,
           ),
           _divider(),
           _InfoTile(
             icon: Icons.email_outlined,
-            label: 'Correo electrónico',
-            value: email.isNotEmpty ? email : 'Sin correo',
+            label: l10n.email,
+            value: email.isNotEmpty ? email : l10n.noEmail,
             iconColor: Colors.greenAccent,
           ),
           const SizedBox(height: 8),
@@ -737,6 +694,7 @@ class _DangerZone extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(8),
@@ -747,7 +705,7 @@ class _DangerZone extends StatelessWidget {
             child: Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                'Cuenta',
+                l10n.account,
                 style: AppTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
@@ -768,15 +726,15 @@ class _DangerZone extends StatelessWidget {
                   size: 18, color: AppColors.error),
             ),
             title: Text(
-              'Cerrar Sesión',
+              l10n.logout,
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.error,
                 fontWeight: FontWeight.w600,
               ),
             ),
-            subtitle: const Text(
-              'Volver a la pantalla de inicio',
-              style: TextStyle(color: Colors.white54, fontSize: 11),
+            subtitle: Text(
+              l10n.logoutSubtitle,
+              style: const TextStyle(color: Colors.white54, fontSize: 11),
             ),
             trailing: Icon(Icons.chevron_right_rounded,
                 color: AppColors.error.withValues(alpha: 0.6)),

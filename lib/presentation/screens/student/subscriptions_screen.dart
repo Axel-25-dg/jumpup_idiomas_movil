@@ -14,9 +14,11 @@ class SubscriptionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final plansAsync = ref.watch(subscriptionsProvider);
     final mySubAsync = ref.watch(mySubscriptionProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0F111A) : const Color(0xFFF0F4F8);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: bgColor,
       body: Stack(
         children: [
           Positioned(top: -80, left: -80, child: _blob(Colors.purpleAccent, 250)),
@@ -129,19 +131,20 @@ class _FeatureHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       borderRadius: BorderRadius.circular(20),
       padding: const EdgeInsets.all(20),
-      child: const Column(
+      child: Column(
         children: [
-          Text('¿Qué incluye Pro?', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-          SizedBox(height: 16),
-          _FeatureRow(icon: '🤖', feature: 'Tutor IA Ilimitado (GPT-4o)'),
-          _FeatureRow(icon: '🎓', feature: 'Acceso a todos los cursos'),
-          _FeatureRow(icon: '📜', feature: 'Certificados verificados'),
-          _FeatureRow(icon: '🎮', feature: 'Todos los minijuegos'),
-          _FeatureRow(icon: '📊', feature: 'Estadísticas avanzadas'),
-          _FeatureRow(icon: '🔔', feature: 'Sin publicidad'),
+          Text('¿Qué incluye Pro?', style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 16, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          const _FeatureRow(icon: '🤖', feature: 'Tutor IA Ilimitado (GPT-4o)'),
+          const _FeatureRow(icon: '🎓', feature: 'Acceso a todos los cursos'),
+          const _FeatureRow(icon: '📜', feature: 'Certificados verificados'),
+          const _FeatureRow(icon: '🎮', feature: 'Todos los minijuegos'),
+          const _FeatureRow(icon: '📊', feature: 'Estadísticas avanzadas'),
+          const _FeatureRow(icon: '🔔', feature: 'Sin publicidad'),
         ],
       ),
     );
@@ -153,18 +156,21 @@ class _FeatureRow extends StatelessWidget {
   const _FeatureRow({required this.icon, required this.feature});
 
   @override
-  Widget build(BuildContext context) => Padding(
-    padding: const EdgeInsets.symmetric(vertical: 6),
-    child: Row(
-      children: [
-        Text(icon, style: const TextStyle(fontSize: 18)),
-        const SizedBox(width: 12),
-        Text(feature, style: const TextStyle(color: Colors.white, fontSize: 14)),
-        const Spacer(),
-        const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 18),
-      ],
-    ),
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Row(
+        children: [
+          Text(icon, style: const TextStyle(fontSize: 18)),
+          const SizedBox(width: 12),
+          Text(feature, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14)),
+          const Spacer(),
+          const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 18),
+        ],
+      ),
+    );
+  }
 }
 
 class _PlanCard extends ConsumerWidget {
@@ -174,6 +180,11 @@ class _PlanCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isPopular = (plan.name ?? '').toLowerCase().contains('pro') || (plan.durationDays ?? 0) == 30;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark ? const Color(0xFF1E1E2E) : Colors.white;
+    final nameColor = isDark ? Colors.white : Colors.black87;
+    final subColor = isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black54;
+
     return GestureDetector(
       onTap: () {
         HapticFeedback.lightImpact();
@@ -194,12 +205,12 @@ class _PlanCard extends ConsumerWidget {
           gradient: isPopular
               ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)], begin: Alignment.topLeft, end: Alignment.bottomRight)
               : null,
-          color: isPopular ? null : const Color(0xFF1E1E2E),
+          color: isPopular ? null : cardColor,
           borderRadius: BorderRadius.circular(24),
-          border: isPopular ? null : Border.all(color: Colors.white12),
+          border: isPopular ? null : Border.all(color: isDark ? Colors.white12 : Colors.black12),
           boxShadow: isPopular
               ? [BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))]
-              : null,
+              : [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -218,15 +229,15 @@ class _PlanCard extends ConsumerWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plan.name ?? 'Plan Pro', style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
-                    Text(plan.durationLabel ?? '${plan.durationDays ?? 30} días', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
+                    Text(plan.name ?? 'Plan Pro', style: TextStyle(color: isPopular ? Colors.white : nameColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(plan.durationLabel ?? '${plan.durationDays ?? 30} días', style: TextStyle(color: isPopular ? Colors.white.withValues(alpha: 0.7) : subColor, fontSize: 13)),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(plan.formattedPrice ?? '\$${plan.price}', style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
-                    const Text('/ período', style: TextStyle(color: Colors.white54, fontSize: 11)),
+                    Text(plan.formattedPrice ?? '\$${plan.price}', style: TextStyle(color: isPopular ? Colors.white : nameColor, fontSize: 28, fontWeight: FontWeight.w900)),
+                    Text('/ período', style: TextStyle(color: isPopular ? Colors.white54 : subColor, fontSize: 11)),
                   ],
                 ),
               ],

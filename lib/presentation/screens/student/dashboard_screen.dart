@@ -13,6 +13,7 @@ import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
 import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 
 // Screens for bottom nav tabs
 import 'package:jumpup_app/presentation/screens/student/course_list_screen.dart';
@@ -88,17 +89,21 @@ class _BottomNav extends StatelessWidget {
   final int currentIndex;
   final ValueChanged<int> onTap;
 
-  static const List<_NavItem> _items = [
-    _NavItem(Icons.home_rounded, Icons.home_outlined, 'Inicio'),
-    _NavItem(Icons.school_rounded, Icons.school_outlined, 'Aulas'),
-    _NavItem(Icons.forum_rounded, Icons.forum_outlined, 'Social'),
-    _NavItem(Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Progreso'),
-    _NavItem(Icons.person_rounded, Icons.person_outlined, 'Perfil'),
-  ];
+  List<_NavItem> _getItems(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _NavItem(Icons.home_rounded, Icons.home_outlined, l10n.home),
+      _NavItem(Icons.school_rounded, Icons.school_outlined, l10n.classrooms),
+      _NavItem(Icons.forum_rounded, Icons.forum_outlined, l10n.social),
+      _NavItem(Icons.bar_chart_rounded, Icons.bar_chart_outlined, l10n.progress),
+      _NavItem(Icons.person_rounded, Icons.person_outlined, l10n.profile),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
     const radius = BorderRadius.vertical(top: Radius.circular(35));
+    final items = _getItems(context);
 
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -125,9 +130,9 @@ class _BottomNav extends StatelessWidget {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  for (var i = 0; i < _items.length; i++)
+                  for (var i = 0; i < items.length; i++)
                     _NavButton(
-                      item: _items[i],
+                      item: items[i],
                       isSelected: i == currentIndex,
                       onTap: () => onTap(i),
                     ),
@@ -254,20 +259,20 @@ class _HomeTab extends ConsumerWidget {
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
                     const SizedBox(height: 24),
-                    const _SectionTitle('Acciones Rápidas'),
+                    _SectionTitle(AppLocalizations.of(context)!.quickActions),
                     const SizedBox(height: 16),
                     const _QuickActionsGrid(),
                     const SizedBox(height: 32),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        const _SectionTitle('Tu Progreso Reciente'),
+                        _SectionTitle(AppLocalizations.of(context)!.recentProgress),
                         TextButton(
                           onPressed: () =>
                               context.push(AppRoutes.studentClassrooms),
-                          child: const Text(
-                            'Clases Virtuales ➔',
-                            style: TextStyle(color: Colors.blueAccent),
+                          child: Text(
+                            AppLocalizations.of(context)!.viewVirtualClasses,
+                            style: const TextStyle(color: Colors.blueAccent),
                           ),
                         ),
                       ],
@@ -353,6 +358,7 @@ class _SliverHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return SliverAppBar(
       expandedHeight: 90,
       pinned: true,
@@ -384,7 +390,7 @@ class _SliverHeader extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
-                          'Hola, ${user.username} 👋',
+                          l10n.hello(user.username),
                           style: AppTextStyles.titleMedium.copyWith(
                             color: Colors.white,
                             fontWeight: FontWeight.w900,
@@ -392,7 +398,7 @@ class _SliverHeader extends StatelessWidget {
                           ),
                         ),
                         Text(
-                          '¿Listo para aprender?',
+                          l10n.readyToLearn,
                           style: AppTextStyles.bodySmall
                               .copyWith(color: Colors.white60),
                         ),
@@ -433,6 +439,7 @@ class _XPAndStreakBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return statsAsync.when(
       data: (stats) => GlassContainer(
         borderRadius: BorderRadius.circular(24),
@@ -445,8 +452,8 @@ class _XPAndStreakBanner extends StatelessWidget {
                   child: _StatBadgeItem(
                     icon: Icons.local_fire_department_rounded,
                     color: Colors.orangeAccent,
-                    value: '${stats.currentStreak} Días',
-                    label: 'Racha Actual',
+                    value: l10n.streakDays(stats.currentStreak),
+                    label: l10n.currentStreak,
                   ),
                 ),
                 Container(width: 1, height: 40, color: Colors.white24),
@@ -454,8 +461,8 @@ class _XPAndStreakBanner extends StatelessWidget {
                   child: _StatBadgeItem(
                     icon: Icons.star_rounded,
                     color: Colors.purpleAccent,
-                    value: '${stats.xpProgress} XP',
-                    label: 'Nivel ${stats.level}',
+                    value: l10n.xpAmount(stats.xpProgress),
+                    label: l10n.levelLabel(stats.level),
                   ),
                 ),
               ],
@@ -465,7 +472,7 @@ class _XPAndStreakBanner extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Progreso Nivel ${stats.level}',
+                  l10n.levelProgressLabel(stats.level),
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
                 Text(
@@ -548,35 +555,39 @@ class _QuickAction {
 class _QuickActionsGrid extends StatelessWidget {
   const _QuickActionsGrid();
 
-  static const List<_QuickAction> _actions = [
-    _QuickAction(
-      Icons.videocam_rounded,
-      'Clases V.',
-      Colors.blueAccent,
-      AppRoutes.studentClassrooms,
-    ),
-    _QuickAction(
-      Icons.shopping_bag_rounded,
-      'Tienda',
-      Colors.greenAccent,
-      '/student/catalog',
-    ),
-    _QuickAction(
-      Icons.videogame_asset_rounded,
-      'Juegos',
-      Colors.orangeAccent,
-      '/student/games',
-    ),
-    _QuickAction(
-      Icons.leaderboard_rounded,
-      'Ranking',
-      Colors.amberAccent,
-      AppRoutes.studentRanking,
-    ),
-  ];
+  List<_QuickAction> _getActions(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+    return [
+      _QuickAction(
+        Icons.videocam_rounded,
+        l10n.virtualClasses,
+        Colors.blueAccent,
+        AppRoutes.studentClassrooms,
+      ),
+      _QuickAction(
+        Icons.shopping_bag_rounded,
+        l10n.store,
+        Colors.greenAccent,
+        '/student/catalog',
+      ),
+      _QuickAction(
+        Icons.videogame_asset_rounded,
+        l10n.games,
+        Colors.orangeAccent,
+        '/student/games',
+      ),
+      _QuickAction(
+        Icons.leaderboard_rounded,
+        l10n.ranking,
+        Colors.amberAccent,
+        AppRoutes.studentRanking,
+      ),
+    ];
+  }
 
   @override
   Widget build(BuildContext context) {
+    final actions = _getActions(context);
     return GridView.count(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
@@ -585,7 +596,7 @@ class _QuickActionsGrid extends StatelessWidget {
       crossAxisSpacing: 12,
       childAspectRatio: 2.1,
       children: [
-        for (final a in _actions)
+        for (final a in actions)
           _QuickActionCard(
             icon: a.icon,
             label: a.label,
@@ -656,17 +667,18 @@ class _RecentCourseCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context)!;
     final coursesAsync = ref.watch(coursesProvider);
 
     return coursesAsync.when(
       data: (courses) {
         if (courses.isEmpty) {
-          return const GlassContainer(
-            padding: EdgeInsets.all(24),
+          return GlassContainer(
+            padding: const EdgeInsets.all(24),
             child: Center(
               child: Text(
-                'Explora cursos en la Tienda',
-                style: TextStyle(color: Colors.white),
+                l10n.exploreCourses,
+                style: const TextStyle(color: Colors.white),
               ),
             ),
           );
@@ -756,16 +768,16 @@ class _RecentCourseCard extends ConsumerWidget {
                             color: Colors.purpleAccent,
                           ),
                           const SizedBox(width: 8),
-                          const Text(
-                            'Continuar Lección',
-                            style: TextStyle(
+                          Text(
+                            l10n.continueLesson,
+                            style: const TextStyle(
                               color: Colors.purpleAccent,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
                           const Spacer(),
                           Text(
-                            '${course.lessonsCount} Lecciones',
+                            l10n.lessonsCount(course.lessonsCount),
                             style: const TextStyle(
                               color: Colors.white54,
                               fontSize: 12,
@@ -795,6 +807,7 @@ class _TutorIABanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => context.push(AppRoutes.studentAiTutor),
       child: Container(
@@ -817,7 +830,7 @@ class _TutorIABanner extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Tutor Inteligente',
+                    l10n.aiTutorTitle,
                     style: AppTextStyles.titleLarge.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
@@ -825,7 +838,7 @@ class _TutorIABanner extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Practica gramática o conversación con nuestra IA avanzada',
+                    l10n.aiTutorSubtitle,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
                     ),
@@ -834,7 +847,7 @@ class _TutorIABanner extends StatelessWidget {
                   Row(
                     children: [
                       Text(
-                        'Empezar a hablar',
+                        l10n.startSpeaking,
                         style: AppTextStyles.labelLarge.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,

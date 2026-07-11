@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jumpup_app/data/local/token_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:jumpup_app/services/ai_chat_service.dart';
 import 'package:jumpup_app/domain/model/chat_message.dart';
@@ -41,86 +41,161 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   AiChatNotifier() : super(AiChatState());
 
   WebSocketChannel? _channel;
-  final _storage = const FlutterSecureStorage();
+  final _tokenStorage = TokenStorage();
   int? _threadId;
 
   Future<void> initChat() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final token = await _storage.read(key: 'access_token');
-      if (token == null) throw Exception('No session token found');
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null || token.isEmpty) {
+        throw Exception('Sesión no encontrada. Por favor inicia sesión nuevamente.');
+      }
 
-      // 1. Create thread if not exists
+      // 1. Crear o reusar el hilo IA
       if (_threadId == null) {
         final threadData = await AiChatService.createAiThread(token);
-        if (threadData == null) throw Exception('Could not create AI session');
-        _threadId = threadData['id'];
+        if (threadData == null) {
+          throw Exception(
+            'No se pudo iniciar la sesión de IA. '
+            'Verifica tu suscripción o intenta más tarde.',
+          );
+        }
+        _threadId = threadData['id'] as int?;
+        if (_threadId == null) throw Exception('Respuesta inválida del servidor.');
 
-        // 2. Load History
+        // 2. Cargar historial
         final history = await AiChatService.getMessages(token, _threadId!);
-        final List<ChatMessage> loadedMessages = history.reversed.map((m) => ChatMessage.fromJson(m)).toList();
-        
-        if (loadedMessages.isEmpty) {
-          loadedMessages.add(ChatMessage(
+        final List<ChatMessage> loaded = history
+            .whereType<Map>()
+            .map((m) {
+              try {
+                return ChatMessage.fromJson(Map<String, dynamic>.from(m));
+              } catch (_) {
+                return null;
+              }
+            })
+            .whereType<ChatMessage>()
+            .toList()
+            .reversed
+            .toList();
+
+        if (loaded.isEmpty) {
+          loaded.add(ChatMessage(
             id: -1,
             senderId: 0,
             senderName: 'AI Tutor',
-            body: '¡Hola! Soy tu Tutor IA. ¿En qué puedo ayudarte hoy?',
+            body: '¡Hola! Soy tu **Tutor IA** de JumpUp (impulsado por GPT-4o). '
+                '¿En qué puedo ayudarte hoy?',
             createdAt: DateTime.now(),
           ));
         }
-        state = state.copyWith(messages: loadedMessages);
+        state = state.copyWith(messages: loaded);
       }
 
       _connect(token);
     } catch (e) {
-      state = state.copyWith(isLoading: false, error: e.toString());
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
     }
   }
 
   void _connect(String token) {
     if (_threadId == null) return;
 
-    state = state.copyWith(isConnecting: true);
+    state = state.copyWith(isConnecting: true, error: null);
     _channel?.sink.close();
-    
-    _channel = AiChatService.connectToAi(_threadId!, token);
-    state = state.copyWith(isLoading: false, isConnecting: false);
 
-    _channel!.stream.listen(
-      (data) {
-        final decoded = jsonDecode(data);
-        if (decoded['type'] == 'typing') {
-          state = state.copyWith(isTyping: decoded['is_typing'] ?? false);
-        } else if (decoded['type'] == 'chat_message') {
-          final newMessage = ChatMessage(
-            id: DateTime.now().millisecondsSinceEpoch,
-            senderId: 0,
-            senderName: 'AI Tutor',
-            body: decoded['body'] ?? '',
-            createdAt: DateTime.now(),
-          );
-          state = state.copyWith(
-            messages: [...state.messages, newMessage],
-            isTyping: false,
-          );
-        }
-      },
-      onError: (e) => _handleError(e),
-      onDone: () => _handleError('Socket closed'),
-    );
+    try {
+      _channel = AiChatService.connectToAi(_threadId!, token);
+      state = state.copyWith(isLoading: false, isConnecting: false);
+
+      _channel!.stream.listen(
+        (data) {
+          try {
+            final decoded = jsonDecode(data as String);
+            if (decoded['type'] == 'typing') {
+              state = state.copyWith(isTyping: decoded['is_typing'] ?? false);
+            } else if (decoded['type'] == 'chat_message') {
+              // El mensaje puede venir en decoded['body'] o decoded['message']['body']
+              final msgData = decoded['message'];
+              String body = '';
+              if (msgData is Map) {
+                body = msgData['body']?.toString() ?? '';
+              } else {
+                body = decoded['body']?.toString() ?? '';
+              }
+
+              final newMessage = ChatMessage(
+                id: DateTime.now().millisecondsSinceEpoch,
+                senderId: 0,
+                senderName: 'AI Tutor',
+                body: body,
+                createdAt: DateTime.now(),
+              );
+              state = state.copyWith(
+                messages: [...state.messages, newMessage],
+                isTyping: false,
+              );
+            } else if (decoded['type'] == 'error') {
+              final code = decoded['code']?.toString() ?? '';
+              final message = decoded['message']?.toString() ?? 'Error desconocido';
+              if (code == 'subscription_required') {
+                // Mostrar mensaje especial invitando a suscribirse
+                final subMsg = ChatMessage(
+                  id: DateTime.now().millisecondsSinceEpoch,
+                  senderId: 0,
+                  senderName: 'AI Tutor',
+                  body: '🔒 Para usar el Tutor IA necesitas una suscripción activa.\n\n'
+                      'Ve a **Suscripciones** y elige un plan para desbloquear el acceso ilimitado al Tutor IA con GPT-4o.',
+                  createdAt: DateTime.now(),
+                );
+                state = state.copyWith(
+                  messages: [...state.messages, subMsg],
+                  isTyping: false,
+                  error: null,
+                );
+              } else {
+                state = state.copyWith(isTyping: false, error: message);
+              }
+            }
+          } catch (_) {
+            // ignore malformed messages
+          }
+        },
+        onError: (e) => _handleError(e),
+        onDone: () {
+          if (mounted) {
+            state = state.copyWith(error: 'Conexión cerrada. Reconectando...', isConnecting: true);
+            Future.delayed(const Duration(seconds: 5), () async {
+              if (!mounted) return;
+              final t = await _tokenStorage.getAccessToken();
+              if (t != null) _connect(t);
+            });
+          }
+        },
+      );
+    } catch (e) {
+      _handleError(e);
+    }
   }
 
   void _handleError(dynamic e) {
     if (!mounted) return;
-    state = state.copyWith(error: 'Conexión perdida. Reconectando...', isConnecting: true);
-    
-    // Retry connection after 5 seconds
+    final msg = e.toString().replaceAll('Exception: ', '');
+    state = state.copyWith(
+      error: 'Conexión perdida. Reconectando en 5s...',
+      isConnecting: true,
+      isTyping: false,
+    );
+
     Future.delayed(const Duration(seconds: 5), () async {
       if (!mounted) return;
-      final token = await _storage.read(key: 'access_token');
-      if (token != null) _connect(token);
+      final token = await _tokenStorage.getAccessToken();
+      if (token != null && token.isNotEmpty) _connect(token);
     });
   }
 

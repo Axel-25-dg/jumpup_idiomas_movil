@@ -38,20 +38,31 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final TokenStorage _tokenStorage;
 
   AuthNotifier(this._authService, this._tokenStorage)
-      : super(const AuthState()) {
+      : super(const AuthState(status: AuthStatus.loading)) {
     _checkSession();
   }
 
   Future<void> _checkSession() async {
-    final hasToken = await _tokenStorage.hasToken();
-    if (!hasToken) {
-      state = const AuthState(status: AuthStatus.unauthenticated);
-      return;
-    }
-    state = const AuthState(status: AuthStatus.loading);
     try {
-      // Carga el perfil solo si ya hay token guardado (inicio en frío)
-      final user = await _authService.getProfile();
+      // FlutterSecureStorage can hang on first access on some Android devices.
+      // Wrap with a timeout to guarantee we always exit loading state.
+      final hasToken = await _tokenStorage
+          .hasToken()
+          .timeout(const Duration(seconds: 4), onTimeout: () => false);
+
+      if (!hasToken) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
+      }
+
+      // We have a token — try to verify it with the server.
+      // Timeout so the splash never hangs indefinitely.
+      final user = await _authService
+          .getProfile()
+          .timeout(const Duration(seconds: 8), onTimeout: () {
+        throw Exception('timeout');
+      });
+
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (_) {
       await _tokenStorage.clearTokens();

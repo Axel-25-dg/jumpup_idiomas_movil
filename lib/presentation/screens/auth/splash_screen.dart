@@ -20,6 +20,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<Offset> _slideAnim;
   bool _navigated = false;
 
+  /// Safety timeout: if auth takes too long, go to login anyway.
+  static const _maxWait = Duration(seconds: 6);
+
   @override
   void initState() {
     super.initState();
@@ -52,6 +55,14 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _ctrl.forward();
+
+    // Safety net: if auth is still pending after _maxWait, send to login.
+    Future.delayed(_maxWait, () {
+      if (mounted && !_navigated) {
+        _navigated = true;
+        context.go(AppRoutes.login);
+      }
+    });
   }
 
   @override
@@ -66,23 +77,25 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         authState.user != null) {
       _navigated = true;
       context.go(routeForRole(authState.user!.role));
-    } else if (authState.status == AuthStatus.unauthenticated) {
+    } else if (authState.status == AuthStatus.unauthenticated ||
+        authState.status == AuthStatus.error) {
       _navigated = true;
       context.go(AppRoutes.login);
     }
-    // Si status == loading o initial, esperar a que cambie
+    // status == loading | initial → wait
   }
 
   @override
   Widget build(BuildContext context) {
-    ref.listen<AuthState>(authProvider, (prev, next) {
-      _navigate(next);
-    });
+    // Listen to future changes
+    ref.listen<AuthState>(authProvider, (_, next) => _navigate(next));
 
-    // También verificar el estado actual al construir
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _navigate(ref.read(authProvider));
-    });
+    // Also handle the current state — covers the case where _checkSession()
+    // already finished before this widget was inserted into the tree.
+    final currentState = ref.read(authProvider);
+    if (!_navigated) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _navigate(currentState));
+    }
 
     return Scaffold(
       body: Container(

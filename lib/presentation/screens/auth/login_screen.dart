@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
@@ -76,22 +77,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
       }
     });
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final l10n = AppLocalizations.of(context)!;
+
     return PopScope(
       canPop: false,
       child: Scaffold(
-        backgroundColor: const Color(0xFF0F111A),
+        backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
           children: [
-            // Decorative Blobs (Consistent with LoadingScreen)
+            // Decorative Blobs
             Positioned(
               top: -100,
               right: -50,
-              child: _BlurBlob(color: Colors.purple.withValues(alpha: 0.15), size: 300),
+              child: _BlurBlob(color: Colors.purple.withValues(alpha: isDark ? 0.15 : 0.08), size: 300),
             ),
             Positioned(
               bottom: -50,
               left: -50,
-              child: _BlurBlob(color: Colors.blue.withValues(alpha: 0.1), size: 250),
+              child: _BlurBlob(color: Colors.blue.withValues(alpha: isDark ? 0.1 : 0.05), size: 250),
             ),
 
             SafeArea(
@@ -125,19 +130,19 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Bienvenido',
+                          l10n.welcome,
                           style: AppTextStyles.headlineLarge.copyWith(
-                            color: Colors.white,
+                            color: isDark ? Colors.white : Colors.black87,
                             fontWeight: FontWeight.w800,
                             letterSpacing: -0.5,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Inicia sesión para continuar tu viaje',
+                          l10n.welcomeSubtitle,
                           textAlign: TextAlign.center,
                           style: AppTextStyles.bodyMedium.copyWith(
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.6),
                           ),
                         ),
                         const SizedBox(height: 40),
@@ -150,10 +155,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                             child: Container(
                               padding: const EdgeInsets.all(24),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
+                                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
                                 borderRadius: BorderRadius.circular(24),
                                 border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
                                   width: 1,
                                 ),
                               ),
@@ -161,7 +166,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 children: [
                                   _CustomTextField(
                                     controller: _emailCtrl,
-                                    hint: 'Correo electrónico',
+                                    hint: l10n.email,
                                     icon: Icons.email_outlined,
                                     keyboardType: TextInputType.emailAddress,
                                     validator: (v) {
@@ -175,7 +180,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                   const SizedBox(height: 16),
                                   _CustomTextField(
                                     controller: _passCtrl,
-                                    hint: 'Contraseña',
+                                    hint: l10n.password,
                                     icon: Icons.lock_outline,
                                     obscureText: _obscurePass,
                                     onToggleObscure: () => setState(() => _obscurePass = !_obscurePass),
@@ -198,7 +203,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                       ),
                                       child: Text(
-                                        '¿Olvidaste tu contraseña?',
+                                        l10n.forgotPassword,
                                         style: AppTextStyles.labelMedium.copyWith(
                                           fontWeight: FontWeight.w600,
                                         ),
@@ -242,7 +247,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                                     color: Colors.white, strokeWidth: 2),
                                               )
                                             : Text(
-                                                'Iniciar Sesión',
+                                                l10n.loginButton,
                                                 style: AppTextStyles.buttonText.copyWith(
                                                   color: Colors.white,
                                                   fontSize: 16,
@@ -290,15 +295,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Text(
-                              '¿No tienes cuenta? ',
+                              l10n.noAccount,
                               style: AppTextStyles.bodyMedium.copyWith(
-                                color: Colors.white.withValues(alpha: 0.5),
+                                color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
                               ),
                             ),
                             GestureDetector(
                               onTap: () => context.push(AppRoutes.register),
                               child: Text(
-                                'Regístrate aquí',
+                                l10n.registerHere,
                                 style: AppTextStyles.labelLarge.copyWith(
                                   color: Colors.blueAccent,
                                   fontWeight: FontWeight.w700,
@@ -366,28 +371,29 @@ class _CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white, fontSize: 15),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 15),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3)),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
+        hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3)),
+        prefixIcon: Icon(icon, color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5), size: 20),
         suffixIcon: onToggleObscure != null
             ? IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
                   size: 20,
                 ),
                 onPressed: onToggleObscure,
               )
             : null,
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -395,7 +401,7 @@ class _CustomTextField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

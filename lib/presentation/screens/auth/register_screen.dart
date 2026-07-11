@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 
@@ -62,14 +63,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
       }
     });
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87, size: 20),
           onPressed: () => context.pop(),
         ),
       ),
@@ -79,12 +83,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           Positioned(
             top: -50,
             left: -50,
-            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: 0.1), size: 200),
+            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: isDark ? 0.1 : 0.05), size: 200),
           ),
           Positioned(
             bottom: 50,
             right: -100,
-            child: _BlurBlob(color: Colors.purpleAccent.withValues(alpha: 0.1), size: 300),
+            child: _BlurBlob(color: Colors.purpleAccent.withValues(alpha: isDark ? 0.1 : 0.05), size: 300),
           ),
 
           SafeArea(
@@ -97,17 +101,17 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      'Únete hoy',
+                      l10n.joinToday,
                       style: AppTextStyles.headlineLarge.copyWith(
-                        color: Colors.white,
+                        color: isDark ? Colors.white : Colors.black87,
                         fontWeight: FontWeight.w800,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      'Crea tu cuenta y lleva tus idiomas al siguiente nivel.',
+                      l10n.createAccountSubtitle,
                       style: AppTextStyles.bodyMedium.copyWith(
-                        color: Colors.white.withValues(alpha: 0.5),
+                        color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -120,10 +124,10 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
+                            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
-                              color: Colors.white.withValues(alpha: 0.1),
+                              color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
                               width: 1,
                             ),
                           ),
@@ -134,7 +138,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   Expanded(
                                     child: _CustomTextField(
                                       controller: _firstNameCtrl,
-                                      hint: 'Nombre',
+                                      hint: l10n.firstName,
                                       icon: Icons.person_outline,
                                       textCapitalization: TextCapitalization.words,
                                       validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
@@ -144,7 +148,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                   Expanded(
                                     child: _CustomTextField(
                                       controller: _lastNameCtrl,
-                                      hint: 'Apellido',
+                                      hint: l10n.lastName,
                                       icon: Icons.person_outline,
                                       textCapitalization: TextCapitalization.words,
                                       validator: (v) => v == null || v.trim().isEmpty ? 'Requerido' : null,
@@ -155,7 +159,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SizedBox(height: 16),
                               _CustomTextField(
                                 controller: _usernameCtrl,
-                                hint: 'Nombre de usuario',
+                                hint: l10n.username,
                                 icon: Icons.alternate_email,
                                 validator: (v) {
                                   if (v == null || v.trim().isEmpty) return 'Requerido';
@@ -166,7 +170,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SizedBox(height: 16),
                               _CustomTextField(
                                 controller: _emailCtrl,
-                                hint: 'Correo electrónico',
+                                hint: l10n.email,
                                 icon: Icons.email_outlined,
                                 keyboardType: TextInputType.emailAddress,
                                 validator: (v) {
@@ -178,7 +182,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SizedBox(height: 16),
                               _CustomTextField(
                                 controller: _passCtrl,
-                                hint: 'Contraseña',
+                                hint: l10n.password,
                                 icon: Icons.lock_outline,
                                 obscureText: _obscurePass,
                                 onToggleObscure: () => setState(() => _obscurePass = !_obscurePass),
@@ -191,7 +195,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                               const SizedBox(height: 16),
                               _CustomTextField(
                                 controller: _confirmPassCtrl,
-                                hint: 'Confirmar contraseña',
+                                hint: l10n.confirmPassword,
                                 icon: Icons.lock_outline,
                                 obscureText: _obscureConfirm,
                                 onToggleObscure: () => setState(() => _obscureConfirm = !_obscureConfirm),
@@ -238,7 +242,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                                                 color: Colors.white, strokeWidth: 2),
                                           )
                                         : Text(
-                                            'Crear Cuenta',
+                                            l10n.registerButton,
                                             style: AppTextStyles.buttonText.copyWith(
                                               color: Colors.white,
                                               fontSize: 16,
@@ -260,15 +264,15 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            '¿Ya tienes cuenta? ',
+                            l10n.alreadyHaveAccount,
                             style: AppTextStyles.bodyMedium.copyWith(
-                              color: Colors.white.withValues(alpha: 0.5),
+                              color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
                             ),
                           ),
                           GestureDetector(
                             onTap: () => context.pop(),
                             child: Text(
-                              'Inicia sesión',
+                              l10n.loginLink,
                               style: AppTextStyles.labelLarge.copyWith(
                                 color: Colors.blueAccent,
                                 fontWeight: FontWeight.w700,
@@ -338,29 +342,30 @@ class _CustomTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
       textCapitalization: textCapitalization,
-      style: const TextStyle(color: Colors.white, fontSize: 14),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 14),
       validator: validator,
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 14),
-        prefixIcon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 18),
+        hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3), fontSize: 14),
+        prefixIcon: Icon(icon, color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5), size: 18),
         suffixIcon: onToggleObscure != null
             ? IconButton(
                 icon: Icon(
                   obscureText ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
                   size: 18,
                 ),
                 onPressed: onToggleObscure,
               )
             : null,
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
         contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
@@ -368,7 +373,7 @@ class _CustomTextField extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.05)),
+          borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),

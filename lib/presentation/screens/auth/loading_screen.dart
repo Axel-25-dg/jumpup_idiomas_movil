@@ -51,13 +51,18 @@ class _LoadingScreenState extends State<LoadingScreen>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: [Color(0xFF1A0533), Color(0xFF0F111A)],
+            colors: isDark 
+              ? [const Color(0xFF1A0533), const Color(0xFF0F111A)]
+              : [const Color(0xFFF5F7FF), Colors.white],
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
           ),
@@ -68,12 +73,12 @@ class _LoadingScreenState extends State<LoadingScreen>
             Positioned(
               top: -100,
               right: -50,
-              child: _BlurBlob(color: Colors.purple.withValues(alpha: 0.2), size: 300),
+              child: _BlurBlob(color: Colors.purple.withValues(alpha: isDark ? 0.2 : 0.1), size: 300),
             ),
             Positioned(
               bottom: -50,
               left: -50,
-              child: _BlurBlob(color: Colors.blue.withValues(alpha: 0.15), size: 250),
+              child: _BlurBlob(color: Colors.blue.withValues(alpha: isDark ? 0.15 : 0.08), size: 250),
             ),
             
             Center(
@@ -112,10 +117,10 @@ class _LoadingScreenState extends State<LoadingScreen>
                     },
                   ),
                   const SizedBox(height: 48),
-                  const Text(
+                  Text(
                     'JUMPUP',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: textColor,
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       letterSpacing: 8,
@@ -125,7 +130,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                   Text(
                     'Idiomas al siguiente nivel',
                     style: TextStyle(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: textColor.withValues(alpha: 0.5),
                       fontSize: 14,
                       letterSpacing: 1.2,
                     ),
@@ -137,9 +142,9 @@ class _LoadingScreenState extends State<LoadingScreen>
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(10),
-                          child: const LinearProgressIndicator(
-                            backgroundColor: Colors.white10,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                          child: LinearProgressIndicator(
+                            backgroundColor: isDark ? Colors.white10 : Colors.black12,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
                             minHeight: 4,
                           ),
                         ),
@@ -147,7 +152,7 @@ class _LoadingScreenState extends State<LoadingScreen>
                         Text(
                           'Iniciando experiencia...',
                           style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: textColor.withValues(alpha: 0.3),
                             fontSize: 12,
                           ),
                         ),

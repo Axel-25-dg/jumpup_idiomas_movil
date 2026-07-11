@@ -7,26 +7,70 @@ class AiChatService {
   static const String baseUrl = 'https://guaman-idiomas-ute.online/api';
   static const String wsBase = 'wss://guaman-idiomas-ute.online/ws';
 
-  // Crear hilo con el tutor IA
+  // Crear hilo con el tutor IA (o reusar el existente)
+  // El backend activa GPT-4o automáticamente cuando el subject contiene "IA"
+  // y el hilo tiene solo 1 participante (el propio usuario).
   static Future<Map?> createAiThread(String token) async {
-    final r = await http.post(
-      Uri.parse('$baseUrl/threads/'),
-      headers: {
-        'Authorization': 'Bearer $token',
-        'Content-Type': 'application/json',
-      },
-      // subject con "IA" activa el bot automáticamente
-      body: jsonEncode({'subject': 'Tutor IA - Práctica de idiomas', 'participants': []}),
-    );
-    if (r.statusCode == 201) return jsonDecode(r.body);
-    return null;
+    try {
+      final r = await http.post(
+        Uri.parse('$baseUrl/threads/'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/json',
+        },
+        // participants: lista vacía = solo el usuario actual → activa Tutor IA
+        body: jsonEncode({
+          'subject': 'Tutor IA',
+          'participants': <int>[],
+        }),
+      );
+
+      if (r.statusCode == 201 || r.statusCode == 200) {
+        final body = jsonDecode(r.body);
+        if (body is Map && body['id'] != null) return body;
+      }
+
+      // 400 puede significar que ya existe el hilo IA — buscar en la lista
+      if (r.statusCode == 400) {
+        return await _findExistingAiThread(token);
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
   }
 
-  // Conectar WebSocket al chat del tutor
+  /// Busca el primer hilo con subject "Tutor IA" en los hilos del usuario
+  static Future<Map?> _findExistingAiThread(String token) async {
+    try {
+      final r = await http.get(
+        Uri.parse('$baseUrl/threads/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (r.statusCode == 200) {
+        final body = jsonDecode(r.body);
+        final list = body is List ? body : (body['results'] as List? ?? []);
+        for (final item in list) {
+          if (item is Map) {
+            final subject = item['subject']?.toString() ?? '';
+            if (subject.contains('IA') || subject.contains('Tutor')) {
+              return item;
+            }
+          }
+        }
+        // Si no encontramos por subject, devolvemos el primer hilo
+        if (list.isNotEmpty && list.first is Map) return list.first as Map;
+      }
+      return null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  // Conectar WebSocket al chat del tutor — token en query string (única forma fiable en Flutter)
   static WebSocketChannel connectToAi(int threadId, String token) {
-    return WebSocketChannel.connect(
-      Uri.parse('$wsBase/chat/$threadId/?token=$token'),
-    );
+    final uri = Uri.parse('$wsBase/chat/$threadId/?token=$token');
+    return WebSocketChannel.connect(uri);
   }
 
   // Enviar mensaje al tutor IA
@@ -53,13 +97,24 @@ class AiChatService {
     }));
   }
 
-  // Obtener historial de mensajes
+  // Obtener historial de mensajes — maneja tanto paginado como lista directa
   static Future<List> getMessages(String token, int threadId) async {
-    final r = await http.get(
-      Uri.parse('$baseUrl/threads/$threadId/messages/'),
-      headers: {'Authorization': 'Bearer $token'},
-    );
-    if (r.statusCode == 200) return jsonDecode(r.body)['results'];
-    return [];
+    try {
+      final r = await http.get(
+        Uri.parse('$baseUrl/threads/$threadId/messages/'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+      if (r.statusCode == 200) {
+        final body = jsonDecode(r.body);
+        if (body is List) return body;
+        if (body is Map) {
+          final results = body['results'];
+          if (results is List) return results;
+        }
+      }
+      return [];
+    } catch (e) {
+      return [];
+    }
   }
 }
