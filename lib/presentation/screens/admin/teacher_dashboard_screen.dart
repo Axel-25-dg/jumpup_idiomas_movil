@@ -3,13 +3,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
-import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
-import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
-import 'package:jumpup_app/presentation/providers/dashboard_teacher_provider.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_exercise_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/manage_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/upload_resource_screen.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
+import 'package:jumpup_app/presentation/widgets/empty_state.dart';
+import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 
 class TeacherDashboardScreen extends ConsumerWidget {
@@ -17,9 +16,9 @@ class TeacherDashboardScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final statsAsync = ref.watch(statsProvider);
-    final classroomsAsync = ref.watch(classroomsListProvider);
-    final profileAsync = ref.watch(userProfileProvider);
+    final statsAsync = ref.watch(teacherStatsProvider);
+    final classroomsAsync = ref.watch(classroomsProvider);
+    final authState = ref.watch(authProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -46,32 +45,19 @@ class TeacherDashboardScreen extends ConsumerWidget {
                   children: [
                     Row(
                       children: [
-                        profileAsync.when(
-                          loading: () => const CircleAvatar(
-                              radius: 24,
-                              backgroundColor: Colors.white24,
-                              child: Icon(Icons.person, color: Colors.white)),
-                          error: (_, __) => const CircleAvatar(
-                              radius: 24,
-                              backgroundColor: Colors.white24,
-                              child: Icon(Icons.person, color: Colors.white)),
-                          data: (p) => CircleAvatar(
-                            radius: 24,
-                            backgroundColor: Colors.white24,
-                            backgroundImage: p.avatarUrl != null
-                                ? NetworkImage(p.avatarUrl!)
-                                : null,
-                            child: p.avatarUrl == null
-                                ? Text(
-                                    p.username.isNotEmpty
-                                        ? p.username[0].toUpperCase()
-                                        : '?',
-                                    style: const TextStyle(
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 18),
-                                  )
-                                : null,
+                        CircleAvatar(
+                          radius: 24,
+                          backgroundColor: Colors.white24,
+                          child: Text(
+                            authState.user?.name.isNotEmpty ==
+                                    true // ✅ Quitar '?'
+                                ? authState.user!.name[0].toUpperCase()
+                                : '?',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
                           ),
                         ),
                         const SizedBox(width: 12),
@@ -79,23 +65,29 @@ class TeacherDashboardScreen extends ConsumerWidget {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Panel del Profesor',
-                                  style: TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.w700)),
-                              profileAsync.maybeWhen(
-                                data: (p) => Text(p.email,
-                                    style: const TextStyle(
-                                        color: Colors.white60, fontSize: 12)),
-                                orElse: () => const SizedBox.shrink(),
+                              const Text(
+                                'Panel del Profesor',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                              Text(
+                                authState.user?.email ?? 'profesor@jumpup.com',
+                                style: const TextStyle(
+                                  color: Colors.white60,
+                                  fontSize: 12,
+                                ),
                               ),
                             ],
                           ),
                         ),
                         IconButton(
-                          icon: const Icon(Icons.logout_rounded,
-                              color: Colors.white70),
+                          icon: const Icon(
+                            Icons.logout_rounded,
+                            color: Colors.white70,
+                          ),
                           tooltip: 'Cerrar sesión',
                           onPressed: () => _confirmLogout(context, ref),
                         ),
@@ -113,20 +105,26 @@ class TeacherDashboardScreen extends ConsumerWidget {
               padding: const EdgeInsets.fromLTRB(16, 20, 16, 0),
               child: statsAsync.when(
                 loading: () => const Center(
-                    child: Padding(
-                        padding: EdgeInsets.all(24),
-                        child: CircularProgressIndicator())),
+                  child: Padding(
+                    padding: EdgeInsets.all(24),
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
                 error: (e, _) => Container(
                   padding: const EdgeInsets.all(14),
                   decoration: BoxDecoration(
                     color: AppColors.error.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                        color: AppColors.error.withValues(alpha: 0.3)),
+                      color: AppColors.error.withValues(alpha: 0.3),
+                    ),
                   ),
-                  child: Text('Error: $e',
-                      style: AppTextStyles.bodySmall
-                          .copyWith(color: AppColors.error)),
+                  child: Text(
+                    'Error: $e',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: AppColors.error,
+                    ),
+                  ),
                 ),
                 data: (stats) => Row(
                   children: [
@@ -135,7 +133,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       label: 'Mis Aulas',
                       value: '${stats.totalAulas}',
                       gradient: const LinearGradient(
-                          colors: [Color(0xFF1565C0), Color(0xFF29B6F6)]),
+                        colors: [Color(0xFF1565C0), Color(0xFF29B6F6)],
+                      ),
                     ),
                     const SizedBox(width: 12),
                     _TeacherStatBadge(
@@ -143,7 +142,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
                       label: 'Estudiantes',
                       value: '${stats.totalAlumnos}',
                       gradient: const LinearGradient(
-                          colors: [Color(0xFF00695C), Color(0xFF26A69A)]),
+                        colors: [Color(0xFF00695C), Color(0xFF26A69A)],
+                      ),
                     ),
                     if (stats.totalCursos > 0) ...[
                       const SizedBox(width: 12),
@@ -152,7 +152,8 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         label: 'Cursos',
                         value: '${stats.totalCursos}',
                         gradient: const LinearGradient(
-                            colors: [Color(0xFF6A1B9A), Color(0xFFAB47BC)]),
+                          colors: [Color(0xFF6A1B9A), Color(0xFFAB47BC)],
+                        ),
                       ),
                     ],
                   ],
@@ -168,9 +169,12 @@ class TeacherDashboardScreen extends ConsumerWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Acciones rápidas',
-                      style: AppTextStyles.titleMedium
-                          .copyWith(fontWeight: FontWeight.w700)),
+                  Text(
+                    'Acciones rápidas',
+                    style: AppTextStyles.titleMedium.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
@@ -179,26 +183,32 @@ class TeacherDashboardScreen extends ConsumerWidget {
                         label: 'Nueva Aula',
                         color: AppColors.primary,
                         onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (_) => const CreateClassroomScreen())),
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       _TeacherQuickBtn(
                         icon: Icons.quiz_rounded,
-                        label: 'Ejercicio',
+                        label: 'Ejercicios',
                         color: const Color(0xFF2E7D32),
                         onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (_) => const CreateExerciseScreen())),
+                          MaterialPageRoute(
+                            builder: (_) => const ExercisesScreen(),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 10),
                       _TeacherQuickBtn(
-                        icon: Icons.upload_file_rounded,
-                        label: 'Recurso',
+                        icon: Icons.school_rounded,
+                        label: 'Mis Aulas',
                         color: const Color(0xFFE65100),
                         onTap: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (_) => const UploadResourceScreen())),
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -216,14 +226,19 @@ class TeacherDashboardScreen extends ConsumerWidget {
                 children: [
                   Row(
                     children: [
-                      Text('Mis Aulas',
-                          style: AppTextStyles.titleMedium
-                              .copyWith(fontWeight: FontWeight.w700)),
+                      Text(
+                        'Mis Aulas',
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
                       const Spacer(),
                       TextButton.icon(
                         onPressed: () => Navigator.of(context).push(
-                            MaterialPageRoute(
-                                builder: (_) => const CreateClassroomScreen())),
+                          MaterialPageRoute(
+                            builder: (_) => const ClassroomsScreen(),
+                          ),
+                        ),
                         icon: const Icon(Icons.add, size: 18),
                         label: const Text('Nueva'),
                       ),
@@ -232,9 +247,11 @@ class TeacherDashboardScreen extends ConsumerWidget {
                   const SizedBox(height: 10),
                   classroomsAsync.when(
                     loading: () => const Center(
-                        child: Padding(
-                            padding: EdgeInsets.all(24),
-                            child: CircularProgressIndicator())),
+                      child: Padding(
+                        padding: EdgeInsets.all(24),
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
                     error: (e, _) => Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
@@ -245,45 +262,29 @@ class TeacherDashboardScreen extends ConsumerWidget {
                     ),
                     data: (classrooms) {
                       if (classrooms.isEmpty) {
-                        return Container(
-                          padding: const EdgeInsets.all(32),
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(18),
-                            border: Border.all(color: AppColors.divider),
-                          ),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                const Icon(Icons.school_outlined,
-                                    size: 48, color: AppColors.textHint),
-                                const SizedBox(height: 10),
-                                Text('Sin aulas creadas',
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                        color: AppColors.textSecondary)),
-                                const SizedBox(height: 14),
-                                FilledButton.icon(
-                                  onPressed: () => Navigator.of(context).push(
-                                      MaterialPageRoute(
-                                          builder: (_) =>
-                                              const CreateClassroomScreen())),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Crear aula'),
-                                ),
-                              ],
+                        return EmptyState(
+                          title: 'Sin aulas creadas',
+                          subtitle: 'Crea tu primera aula para comenzar',
+                          icon: Icons.class_rounded,
+                          buttonText: 'Crear aula',
+                          onButtonPressed: () => Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => const ClassroomsScreen(),
                             ),
                           ),
                         );
                       }
                       return Column(
-                        children: classrooms
-                            .map((c) => _ClassroomTile(
-                                classroom: c,
-                                onTap: () => Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                        builder: (_) => ManageClassroomScreen(
-                                            classroomId: c.id)))))
-                            .toList(),
+                        children: classrooms.map((c) {
+                          return _ClassroomTile(
+                            classroom: c,
+                            onTap: () => Navigator.of(context).push(
+                              MaterialPageRoute(
+                                builder: (_) => const ClassroomsScreen(),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       );
                     },
                   ),
@@ -304,16 +305,16 @@ class TeacherDashboardScreen extends ConsumerWidget {
         content: const Text('¿Seguro que quieres salir del panel?'),
         actions: [
           TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Cancelar')),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: AppColors.error),
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          PrimaryButton(
+            label: 'Cerrar sesión',
             onPressed: () async {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) context.go(AppRoutes.login);
             },
-            child: const Text('Cerrar sesión'),
           ),
         ],
       ),
@@ -355,13 +356,18 @@ class _TeacherStatBadge extends StatelessWidget {
           children: [
             Icon(icon, color: Colors.white, size: 24),
             const SizedBox(height: 6),
-            Text(value,
-                style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800)),
-            Text(label,
-                style: const TextStyle(color: Colors.white70, fontSize: 11)),
+            Text(
+              value,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+                fontWeight: FontWeight.w800,
+              ),
+            ),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.white70, fontSize: 11),
+            ),
           ],
         ),
       ),
@@ -397,9 +403,14 @@ class _TeacherQuickBtn extends StatelessWidget {
             children: [
               Icon(icon, color: color, size: 26),
               const SizedBox(height: 6),
-              Text(label,
-                  style: TextStyle(
-                      color: color, fontSize: 12, fontWeight: FontWeight.w600)),
+              Text(
+                label,
+                style: TextStyle(
+                  color: color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ],
           ),
         ),
@@ -409,7 +420,10 @@ class _TeacherQuickBtn extends StatelessWidget {
 }
 
 class _ClassroomTile extends StatelessWidget {
-  const _ClassroomTile({required this.classroom, required this.onTap});
+  const _ClassroomTile({
+    required this.classroom,
+    required this.onTap,
+  });
   final dynamic classroom;
   final VoidCallback onTap;
 
@@ -423,9 +437,10 @@ class _ClassroomTile extends StatelessWidget {
         border: Border.all(color: AppColors.divider),
         boxShadow: const [
           BoxShadow(
-              color: AppColors.shadow,
-              blurRadius: 6,
-              offset: Offset(0, 2)),
+            color: AppColors.shadow,
+            blurRadius: 6,
+            offset: Offset(0, 2),
+          ),
         ],
       ),
       child: ListTile(
@@ -436,14 +451,22 @@ class _ClassroomTile extends StatelessWidget {
             color: AppColors.primary.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: const Icon(Icons.class_rounded,
-              color: AppColors.primary, size: 22),
+          child: const Icon(
+            Icons.class_rounded,
+            color: AppColors.primary,
+            size: 22,
+          ),
         ),
-        title: Text(classroom.name,
-            style:
-                AppTextStyles.titleSmall.copyWith(fontWeight: FontWeight.w700)),
-        subtitle: Text('${classroom.totalStudents} estudiantes',
-            style: AppTextStyles.bodySmall),
+        title: Text(
+          classroom.name,
+          style: AppTextStyles.titleSmall.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        subtitle: Text(
+          '${classroom.totalStudents} estudiantes',
+          style: AppTextStyles.bodySmall,
+        ),
         trailing: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(

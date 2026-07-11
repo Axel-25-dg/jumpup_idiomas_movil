@@ -56,6 +56,20 @@ abstract class BaseRepository {
     }, message: message ?? 'No se pudo crear');
   }
 
+  // Correccion - Metodo para operaciones que no retornan datos (POST, PUT, PATCH, DELETE)
+  
+  Future<void> executeRequest(
+    Future<void> Function() request, {
+    String? message,
+  }) async {
+    try {
+      await request();
+    } catch (error) {
+      if (error is ApiException) rethrow;
+      throw ApiException(message ?? 'Ocurrió un error inesperado', null, error);
+    }
+  }
+
   Future<T> handleRequest<T>(Future<T> Function() request,
       {String? message}) async {
     try {

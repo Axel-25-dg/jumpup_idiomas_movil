@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/data/repository/auth/course_service.dart';
 
 final courseServiceProvider = Provider<CourseService>((ref) {

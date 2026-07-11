@@ -27,20 +27,21 @@ import 'package:jumpup_app/presentation/screens/student/payment_history_screen.d
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
-import 'package:jumpup_app/presentation/screens/admin/admin_dashboard_screen.dart';
+
+// NUEVAS IMPORTACIONES TEACHER
+
 import 'package:jumpup_app/presentation/screens/admin/teacher_dashboard_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/manage_classroom_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_exercise_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/upload_resource_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/profile_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/user_stats_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/users_list_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/report_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart'
-    as admin_subs;
+
+// NUEVAS IMPORTACIONES ADMIN
+import 'package:jumpup_app/presentation/screens/admin/correcciones/admin_dashboard_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
 
 abstract final class AppRoutes {
   // Auth
@@ -72,22 +73,21 @@ abstract final class AppRoutes {
   static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
 
-  // Teacher
+  // ✅ NUEVAS RUTAS TEACHER
   static const teacherDashboard = '/teacher';
-  static const teacherCreateClassroom = '/teacher/create-classroom';
-  static const teacherManageClassroom = '/teacher/classroom/:id';
-  static const teacherCreateExercise = '/teacher/create-exercise';
-  static const teacherUploadResource = '/teacher/upload-resource';
-  static const teacherProfile = '/teacher/profile';
-  static const teacherUserStats = '/teacher/user-stats/:studentId';
+  static const teacherClassrooms = '/teacher/classrooms';
+  static const teacherExercises = '/teacher/exercises';
 
-  // Admin
+  // ✅ NUEVAS RUTAS ADMIN
   static const adminDashboard = '/admin';
   static const adminUsers = '/admin/users';
-  static const adminCreateCourse = '/admin/create-course';
+  static const adminLanguages = '/admin/languages';
+  static const adminCourses = '/admin/courses';
   static const adminAnnouncements = '/admin/announcements';
   static const adminReports = '/admin/reports';
   static const adminSubscriptions = '/admin/subscriptions';
+  static const adminClassrooms = '/admin/classrooms';
+  static const adminExercises = '/admin/exercises';
 }
 
 GoRouter buildAppRouter(WidgetRef ref) {
@@ -115,165 +115,196 @@ GoRouter buildAppRouter(WidgetRef ref) {
       return null;
     },
     routes: [
-      // Auth
+      // ─── Auth ─────────────────────────────────────────────────────
       GoRoute(
-          path: AppRoutes.splash,
-          name: 'splash',
-          builder: (_, __) => const SplashScreen()),
+        path: AppRoutes.splash,
+        name: 'splash',
+        builder: (_, __) => const SplashScreen(),
+      ),
       GoRoute(
-          path: AppRoutes.login,
-          name: 'login',
-          builder: (_, __) => const LoginScreen()),
+        path: AppRoutes.login,
+        name: 'login',
+        builder: (_, __) => const LoginScreen(),
+      ),
       GoRoute(
-          path: AppRoutes.register,
-          name: 'register',
-          builder: (_, __) => const RegisterScreen()),
+        path: AppRoutes.register,
+        name: 'register',
+        builder: (_, __) => const RegisterScreen(),
+      ),
       GoRoute(
-          path: AppRoutes.forgotPassword,
-          name: 'forgotPassword',
-          builder: (_, __) => const ForgotPasswordScreen()),
-
-      // Social
-      GoRoute(
-          path: AppRoutes.home,
-          name: 'home',
-          builder: (_, __) => const SocialMediaShell()),
-
-      // Student
-      GoRoute(
-          path: AppRoutes.studentDashboard,
-          name: 'studentDashboard',
-          builder: (_, __) => const DashboardScreen()),
-      GoRoute(
-          path: AppRoutes.studentCourses,
-          name: 'studentCourses',
-          builder: (_, __) => const CourseListScreen()),
-      GoRoute(
-          path: AppRoutes.studentCourseDetail,
-          name: 'studentCourseDetail',
-          builder: (_, state) => CourseDetailScreen(
-              courseId: int.parse(state.pathParameters['id']!))),
-      GoRoute(
-          path: AppRoutes.studentLessonDetail,
-          name: 'studentLessonDetail',
-          builder: (_, state) => LessonDetailScreen(
-              lessonId: int.parse(state.pathParameters['id']!))),
-      GoRoute(
-          path: AppRoutes.studentExercise,
-          name: 'studentExercise',
-          builder: (_, state) => ExerciseScreen(
-              lessonId: int.parse(state.pathParameters['lessonId']!))),
-      GoRoute(
-          path: AppRoutes.studentLearningPath,
-          name: 'studentLearningPath',
-          builder: (_, __) => const LearningPathScreen()),
-      GoRoute(
-          path: AppRoutes.studentProfile,
-          name: 'studentProfile',
-          builder: (_, __) => const student_profile.ProfileScreen()),
-      GoRoute(
-          path: AppRoutes.studentProgress,
-          name: 'studentProgress',
-          builder: (_, __) => const ProgressScreen()),
-      GoRoute(
-          path: AppRoutes.studentRanking,
-          name: 'studentRanking',
-          builder: (_, __) => const RankingScreen()),
-      GoRoute(
-          path: AppRoutes.studentAchievements,
-          name: 'studentAchievements',
-          builder: (_, __) => const AchievementsScreen()),
-      GoRoute(
-          path: AppRoutes.studentCertificates,
-          name: 'studentCertificates',
-          builder: (_, __) => const CertificatesScreen()),
-      GoRoute(
-          path: AppRoutes.studentClassrooms,
-          name: 'studentClassrooms',
-          builder: (_, __) => const VirtualClassListScreen()),
-      GoRoute(
-          path: AppRoutes.studentResources,
-          name: 'studentResources',
-          builder: (_, __) => const ClassroomResourcesScreen()),
-      GoRoute(
-          path: AppRoutes.studentAiTutor,
-          name: 'studentAiTutor',
-          builder: (_, __) => const AITutorScreen()),
-      GoRoute(
-          path: AppRoutes.studentDailyChallenges,
-          name: 'studentDailyChallenges',
-          builder: (_, __) => const DailyChallengesScreen()),
-      GoRoute(
-          path: AppRoutes.studentSubscriptions,
-          name: 'studentSubscriptions',
-          builder: (_, __) => const student_subs.SubscriptionsScreen()),
-      GoRoute(
-          path: AppRoutes.studentPayments,
-          name: 'studentPayments',
-          builder: (_, __) => const PaymentHistoryScreen()),
-      GoRoute(
-          path: AppRoutes.studentSettings,
-          name: 'studentSettings',
-          builder: (_, __) => const SettingsScreen()),
-
-      // Teacher
-      GoRoute(
-          path: AppRoutes.teacherDashboard,
-          name: 'teacherDashboard',
-          builder: (_, __) => const TeacherDashboardScreen()),
-      GoRoute(
-          path: AppRoutes.teacherCreateClassroom,
-          name: 'teacherCreateClassroom',
-          builder: (_, __) => const CreateClassroomScreen()),
-      GoRoute(
-          path: AppRoutes.teacherManageClassroom,
-          name: 'teacherManageClassroom',
-          builder: (_, state) => ManageClassroomScreen(
-              classroomId: int.parse(state.pathParameters['id']!))),
-      GoRoute(
-          path: AppRoutes.teacherCreateExercise,
-          name: 'teacherCreateExercise',
-          builder: (_, __) => const CreateExerciseScreen()),
-      GoRoute(
-          path: AppRoutes.teacherUploadResource,
-          name: 'teacherUploadResource',
-          builder: (_, __) => const UploadResourceScreen()),
-      GoRoute(
-          path: AppRoutes.teacherProfile,
-          name: 'teacherProfile',
-          builder: (_, __) => const ProfileScreen()),
-      GoRoute(
-        path: AppRoutes.teacherUserStats,
-        name: 'teacherUserStats',
-        builder: (_, state) => StudentStatsScreen(
-            studentId: state.pathParameters['studentId']!, studentName: ''),
+        path: AppRoutes.forgotPassword,
+        name: 'forgotPassword',
+        builder: (_, __) => const ForgotPasswordScreen(),
       ),
 
-      // Admin
+      // ─── Social ──────────────────────────────────────────────────
       GoRoute(
-          path: AppRoutes.adminDashboard,
-          name: 'adminDashboard',
-          builder: (_, __) => const AdminDashboardScreen()),
+        path: AppRoutes.home,
+        name: 'home',
+        builder: (_, __) => const SocialMediaShell(),
+      ),
+
+      // ─── Student ──────────────────────────────────────────────────
       GoRoute(
-          path: AppRoutes.adminUsers,
-          name: 'adminUsers',
-          builder: (_, __) => const UsersListScreen()),
+        path: AppRoutes.studentDashboard,
+        name: 'studentDashboard',
+        builder: (_, __) => const DashboardScreen(),
+      ),
       GoRoute(
-          path: AppRoutes.adminCreateCourse,
-          name: 'adminCreateCourse',
-          builder: (_, __) => const CreateCourseScreen()),
+        path: AppRoutes.studentCourses,
+        name: 'studentCourses',
+        builder: (_, __) => const CourseListScreen(),
+      ),
       GoRoute(
-          path: AppRoutes.adminAnnouncements,
-          name: 'adminAnnouncements',
-          builder: (_, __) => const AnnouncementsScreen()),
+        path: AppRoutes.studentCourseDetail,
+        name: 'studentCourseDetail',
+        builder: (_, state) => CourseDetailScreen(
+          courseId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
       GoRoute(
-          path: AppRoutes.adminReports,
-          name: 'adminReports',
-          builder: (_, __) => const ReportsScreen()),
+        path: AppRoutes.studentLessonDetail,
+        name: 'studentLessonDetail',
+        builder: (_, state) => LessonDetailScreen(
+          lessonId: int.parse(state.pathParameters['id']!),
+        ),
+      ),
       GoRoute(
-          path: AppRoutes.adminSubscriptions,
-          name: 'adminSubscriptions',
-          builder: (_, __) => const admin_subs.SubscriptionsScreen()),
+        path: AppRoutes.studentExercise,
+        name: 'studentExercise',
+        builder: (_, state) => ExerciseScreen(
+          lessonId: int.parse(state.pathParameters['lessonId']!),
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.studentLearningPath,
+        name: 'studentLearningPath',
+        builder: (_, __) => const LearningPathScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentProfile,
+        name: 'studentProfile',
+        builder: (_, __) => const student_profile.ProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentProgress,
+        name: 'studentProgress',
+        builder: (_, __) => const ProgressScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentRanking,
+        name: 'studentRanking',
+        builder: (_, __) => const RankingScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentAchievements,
+        name: 'studentAchievements',
+        builder: (_, __) => const AchievementsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentCertificates,
+        name: 'studentCertificates',
+        builder: (_, __) => const CertificatesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentClassrooms,
+        name: 'studentClassrooms',
+        builder: (_, __) => const VirtualClassListScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentResources,
+        name: 'studentResources',
+        builder: (_, __) => const ClassroomResourcesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentAiTutor,
+        name: 'studentAiTutor',
+        builder: (_, __) => const AITutorScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentDailyChallenges,
+        name: 'studentDailyChallenges',
+        builder: (_, __) => const DailyChallengesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentSubscriptions,
+        name: 'studentSubscriptions',
+        builder: (_, __) => const student_subs.SubscriptionsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentPayments,
+        name: 'studentPayments',
+        builder: (_, __) => const PaymentHistoryScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentSettings,
+        name: 'studentSettings',
+        builder: (_, __) => const SettingsScreen(),
+      ),
+
+      // ─── Teacher ──────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.teacherDashboard,
+        name: 'teacherDashboard',
+        builder: (_, __) => const TeacherDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teacherClassrooms,
+        name: 'teacherClassrooms',
+        builder: (_, __) => const ClassroomsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.teacherExercises,
+        name: 'teacherExercises',
+        builder: (_, __) => const ExercisesScreen(),
+      ),
+
+      // ─── Admin ────────────────────────────────────────────────────
+      GoRoute(
+        path: AppRoutes.adminDashboard,
+        name: 'adminDashboard',
+        builder: (_, __) => const AdminDashboardScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUsers,
+        name: 'adminUsers',
+        builder: (_, __) => const UsersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminLanguages,
+        name: 'adminLanguages',
+        builder: (_, __) => const LanguagesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCourses,
+        name: 'adminCourses',
+        builder: (_, __) => const CoursesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminAnnouncements,
+        name: 'adminAnnouncements',
+        builder: (_, __) => const AnnouncementsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminReports,
+        name: 'adminReports',
+        builder: (_, __) => const ReportsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminSubscriptions,
+        name: 'adminSubscriptions',
+        builder: (_, __) => const SubscriptionsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminClassrooms,
+        name: 'adminClassrooms',
+        builder: (_, __) => const ClassroomsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminExercises,
+        name: 'adminExercises',
+        builder: (_, __) => const ExercisesScreen(),
+      ),
     ],
   );
 }

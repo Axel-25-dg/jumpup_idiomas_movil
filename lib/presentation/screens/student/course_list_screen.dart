@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 
 /// Pantalla principal que muestra la lista de cursos disponibles.
