@@ -26,13 +26,16 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF7C4DFF),
-        elevation: 4,
-        onPressed: () => _showCreateDialog(context, ref),
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text('Nuevo Tema',
-            style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 80),
+        child: FloatingActionButton.extended(
+          backgroundColor: const Color(0xFF7C4DFF),
+          elevation: 4,
+          onPressed: () => _showCreateDialog(context, ref),
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: Text('Nuevo Tema',
+              style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        ),
       ),
       body: Column(
         children: [
@@ -401,6 +404,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
   }
 
   Future<void> _submit() async {
+    if (_categoryId == null || _titleCtrl.text.trim().isEmpty) return;
     setState(() => _loading = true);
     try {
       await ref.read(socialRepositoryProvider).createForumThread(
@@ -608,8 +612,8 @@ class _ForumThreadDetailScreenState
             threadId: widget.thread.id,
             body: text,
           );
-      _replyCtrl.clear();
-      ref.invalidate(forumPostsProvider(widget.thread.id));
+      if (mounted) _replyCtrl.clear();
+      if (mounted) ref.invalidate(forumPostsProvider(widget.thread.id));
       if (mounted) FocusScope.of(context).unfocus();
     } catch (e) {
       if (mounted) {

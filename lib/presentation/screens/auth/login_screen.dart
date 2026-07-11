@@ -57,6 +57,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     await ref.read(authProvider.notifier).loginWithBiometric(deviceId: deviceId, biometricToken: '');
   }
 
+  void _safeGo(BuildContext context, String route) {
+    if (mounted) {
+      try {
+        context.go(route);
+      } catch (e) {
+        debugPrint('Navigation error: $e');
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final authState = ref.watch(authProvider);
@@ -65,15 +75,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     ref.listen(authProvider, (prev, next) {
       if (next.status == AuthStatus.authenticated && next.user != null) {
         final route = routeForRole(next.user!.role);
-        context.go(route);
+        _safeGo(context, route);
       } else if (next.status == AuthStatus.error && next.errorMessage != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(next.errorMessage!),
-            backgroundColor: AppColors.error,
-          ),
-        );
-        ref.read(authProvider.notifier).clearError();
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(next.errorMessage!),
+              backgroundColor: AppColors.error,
+            ),
+          );
+          ref.read(authProvider.notifier).clearError();
+        }
       }
     });
 

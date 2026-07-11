@@ -1,8 +1,10 @@
+import 'dart:math' as math;
 import 'dart:ui';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -11,21 +13,48 @@ import 'package:url_launcher/url_launcher.dart';
 class _ClassTokens {
   const _ClassTokens._();
 
+  static bool isDark(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark;
+
   static Color background(BuildContext context) =>
-      Theme.of(context).scaffoldBackgroundColor;
+      isDark(context) ? const Color(0xFF0B0B12) : const Color(0xFFF6F7FB);
 
   static Color surface(BuildContext context) =>
-      Theme.of(context).brightness == Brightness.dark
-          ? const Color(0xFF1E1E2E)
-          : Colors.white;
+      isDark(context) ? const Color(0xFF16161F) : Colors.white;
 
-  static const Color primary = Colors.blueAccent;
+  static Color surfaceAlt(BuildContext context) =>
+      isDark(context) ? const Color(0xFF1C1C28) : const Color(0xFFF0F1F7);
+
+  static Color textPrimary(BuildContext context) =>
+      isDark(context) ? const Color(0xFFF4F4FA) : const Color(0xFF14141F);
+
+  static Color textSecondary(BuildContext context) => isDark(context)
+      ? Colors.white.withValues(alpha: 0.55)
+      : const Color(0xFF14141F).withValues(alpha: 0.55);
+
+  static Color hairline(BuildContext context) => isDark(context)
+      ? Colors.white.withValues(alpha: 0.07)
+      : Colors.black.withValues(alpha: 0.06);
+
+  // Paleta de marca refinada.
+  static const Color primary = Color(0xFF5B8DEF);
+  static const Color accent = Color(0xFF22D3EE);
+  static const Color live = Color(0xFF2DD4A7);
+  static const Color danger = Color(0xFFFF6B6B);
 
   static const LinearGradient brandGradient = LinearGradient(
-    colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+    colors: [Color(0xFF4F7DF0), Color(0xFF29C7E8)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
   );
 
-  static const Color brandGlow = Color(0xFF2575FC);
+  static const LinearGradient liveGradient = LinearGradient(
+    colors: [Color(0xFF2DD4A7), Color(0xFF10B981)],
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+  );
+
+  static const Color brandGlow = Color(0xFF4F7DF0);
 }
 
 class VirtualClassListScreen extends ConsumerWidget {
@@ -51,33 +80,20 @@ class _VirtualClassListBody extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final myClassroomsAsync = ref.watch(myClassroomsProvider);
     final classesAsync = ref.watch(virtualClassesProvider);
 
     return Scaffold(
       backgroundColor: _ClassTokens.background(context),
       body: Stack(
         children: [
-          // Efectos visuales de fondo
-          const Positioned(
-            top: -100,
-            right: -50,
-            child: _BlurBlob(
-              color: Colors.blueAccent,
-              opacity: 0.1,
-              size: 300,
-            ),
-          ),
-          const Positioned(
-            bottom: -50,
-            left: -50,
-            child: _BlurBlob(
-              color: Colors.purpleAccent,
-              opacity: 0.05,
-              size: 250,
-            ),
-          ),
+          // Fondo con malla de color animada.
+          const Positioned.fill(child: _AnimatedMeshBackground()),
           RefreshIndicator(
-            onRefresh: () => ref.refresh(virtualClassesProvider.future),
+            onRefresh: () async {
+              await ref.refresh(myClassroomsProvider.future);
+              await ref.refresh(virtualClassesProvider.future);
+            },
             backgroundColor: _ClassTokens.surface(context),
             color: _ClassTokens.primary,
             child: CustomScrollView(
@@ -88,49 +104,97 @@ class _VirtualClassListBody extends ConsumerWidget {
                 _ClassesSliverAppBar(
                   onAdd: () => _showJoinDialog(context),
                 ),
-                classesAsync.when(
-                  loading: () => const SliverFillRemaining(
-                    child: Center(
-                      child: CircularProgressIndicator(
-                        color: _ClassTokens.primary,
+                // Show My Classrooms first
+                myClassroomsAsync.when(
+                  loading: () => const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Center(
+                        child: CircularProgressIndicator(color: _ClassTokens.primary),
                       ),
                     ),
                   ),
-                  error: (err, stack) => SliverFillRemaining(
-                    child: _ErrorState(
-                      onRetry: () => ref.invalidate(virtualClassesProvider),
-                    ),
+                  error: (err, stack) => const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    sliver: SliverToBoxAdapter(child: SizedBox()),
                   ),
-                  data: (classes) {
-                    if (classes.isEmpty) {
-                      return SliverFillRemaining(
-                        hasScrollBody: false,
-                        child: _EmptyState(
-                          onJoin: () => _showJoinDialog(context),
+                  data: (classrooms) {
+                    if (classrooms.isNotEmpty) {
+                      return SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final classroom = classrooms[index];
+                              return FadeInUp(
+                                duration: Duration(milliseconds: 300 + index * 80),
+                                child: _MyClassroomCard(classroom: classroom),
+                              );
+                            },
+                            childCount: classrooms.length,
+                          ),
                         ),
                       );
+                    } else {
+                      return const SliverPadding(
+                        padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        sliver: SliverToBoxAdapter(child: SizedBox()),
+                      );
                     }
-                    return SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            final vClass = classes[index];
-                            return FadeInUp(
-                              duration:
-                                  Duration(milliseconds: 400 + (index * 100)),
-                              child: _VirtualClassCard(
-                                vClass: vClass,
-                                onJoinPressed: () => _showJoinDialog(context),
-                              ),
-                            );
-                          },
-                          childCount: classes.length,
-                        ),
-                      ),
-                    );
                   },
                 ),
+                // Show Live Sessions
+                if (myClassroomsAsync.hasValue)
+                  classesAsync.when(
+                    loading: () => const SliverPadding(
+                      padding: EdgeInsets.fromLTRB(20, 8, 20, 120),
+                      sliver: SliverToBoxAdapter(
+                        child: Center(
+                          child: CircularProgressIndicator(color: _ClassTokens.primary),
+                        ),
+                      ),
+                    ),
+                    error: (err, stack) => SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                      sliver: SliverToBoxAdapter(
+                        child: _ErrorState(
+                          onRetry: () => ref.invalidate(virtualClassesProvider),
+                        ),
+                      ),
+                    ),
+                    data: (classes) {
+                      if (classes.isEmpty) {
+                        return SliverPadding(
+                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                          sliver: SliverFillRemaining(
+                            hasScrollBody: false,
+                            child: _EmptyState(
+                              onJoin: () => _showJoinDialog(context),
+                            ),
+                          ),
+                        );
+                      }
+                      return SliverPadding(
+                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
+                        sliver: SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final vClass = classes[index];
+                              final myClassesLength = myClassroomsAsync.value?.length ?? 0;
+                              return FadeInUp(
+                                duration: Duration(milliseconds: 400 + (index * 90)),
+                                child: _VirtualClassCard(
+                                  vClass: vClass,
+                                  onJoinPressed: () => _showJoinDialog(context),
+                                ),
+                              );
+                            },
+                            childCount: classes.length,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
           ),
@@ -147,79 +211,165 @@ class _ClassesSliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final titleColor = isDark ? Colors.white : Colors.black87;
+    final titleColor = _ClassTokens.textPrimary(context);
+
+    const double expandedHeight = 176;
 
     return SliverAppBar(
-      expandedHeight: 140,
+      expandedHeight: expandedHeight,
+      collapsedHeight: kToolbarHeight,
       floating: false,
       pinned: true,
       elevation: 0,
       stretch: true,
-      backgroundColor: _ClassTokens.background(context).withValues(alpha: 0.9),
-      flexibleSpace: FlexibleSpaceBar(
-        centerTitle: false,
-        titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
-        title: Text(
-          'Clases Virtuales',
-          style: AppTextStyles.titleLarge.copyWith(
-            color: titleColor,
-            fontWeight: FontWeight.w800,
-            letterSpacing: -0.5,
-          ),
-        ),
-        background: Stack(
-          children: [
-            Positioned(
-              right: -10,
-              bottom: -10,
-              child: Icon(
-                Icons.video_camera_front_rounded,
-                size: 120,
-                color: Colors.white.withValues(alpha: 0.05),
+      backgroundColor: _ClassTokens.background(context).withValues(alpha: 0.72),
+      flexibleSpace: LayoutBuilder(
+        builder: (context, constraints) {
+          final double topPadding = MediaQuery.of(context).padding.top;
+          final double collapsedHeight = kToolbarHeight + topPadding;
+          final double maxHeight = expandedHeight + topPadding;
+          // t = 1 expandido -> 0 colapsado.
+          final double t = ((constraints.maxHeight - collapsedHeight) /
+                  (maxHeight - collapsedHeight))
+              .clamp(0.0, 1.0);
+
+          return ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 14, sigmaY: 14),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // Ícono decorativo (se desvanece al colapsar).
+                  Positioned(
+                    right: -10,
+                    top: topPadding - 6,
+                    child: Opacity(
+                      opacity: (t * 0.9).clamp(0.0, 1.0),
+                      child: ShaderMask(
+                        shaderCallback: (bounds) => LinearGradient(
+                          colors: [
+                            _ClassTokens.primary.withValues(alpha: 0.12),
+                            _ClassTokens.accent.withValues(alpha: 0.02),
+                          ],
+                        ).createShader(bounds),
+                        child: const Icon(
+                          Icons.smart_display_rounded,
+                          size: 150,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                  // Título grande + subtítulo (visible expandido).
+                  Positioned(
+                    left: 22,
+                    right: 22,
+                    bottom: 18,
+                    child: Opacity(
+                      opacity: t,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          ShaderMask(
+                            shaderCallback: (bounds) =>
+                                _ClassTokens.brandGradient.createShader(bounds),
+                            child: Text(
+                              'Clases Virtuales',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: AppTextStyles.titleLarge.copyWith(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -0.6,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Aprende en tiempo real',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.bodyMedium.copyWith(
+                              color: _ClassTokens.textSecondary(context),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // Título compacto (visible colapsado), alineado tras el back.
+                  Positioned(
+                    left: 56,
+                    right: 120,
+                    top: topPadding,
+                    height: kToolbarHeight,
+                    child: Opacity(
+                      opacity: (1 - t).clamp(0.0, 1.0),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: ShaderMask(
+                          shaderCallback: (bounds) => _ClassTokens.brandGradient
+                              .createShader(bounds),
+                          child: Text(
+                            'Clases Virtuales',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: AppTextStyles.titleMedium.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              letterSpacing: -0.4,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          );
+        },
       ),
-      // Solo botón de añadir en el AppBar - ELIMINADO el FAB redundante
       actions: [
         Padding(
-          padding: const EdgeInsets.only(right: 12),
-          child: IconButton(
-            onPressed: onAdd,
-            icon: Container(
-              padding: const EdgeInsets.all(10),
+          padding: const EdgeInsets.only(right: 16),
+          child: GestureDetector(
+            onTap: onAdd,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
-                gradient: isDark ? null : _ClassTokens.brandGradient,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.1)
-                    : null,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.2)
-                      : Colors.transparent,
-                ),
-                boxShadow: isDark
-                    ? null
-                    : [
-                        BoxShadow(
-                          color: _ClassTokens.brandGlow.withValues(alpha: 0.3),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                gradient: _ClassTokens.brandGradient,
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: _ClassTokens.brandGlow.withValues(alpha: 0.35),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
               ),
-              child: Icon(
-                Icons.add_rounded,
-                color: isDark ? Colors.white : Colors.white,
-                size: 22,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(Icons.add_rounded, color: Colors.white, size: 20),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Unirse',
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
         ),
       ],
+      // Mantengo el color de título accesible en estado colapsado.
+      foregroundColor: titleColor,
     );
   }
 }
@@ -230,16 +380,8 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final subColor =
-        isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54;
-    final circleColor = isDark
-        ? Colors.white.withValues(alpha: 0.03)
-        : Colors.black.withValues(alpha: 0.03);
-    final iconColor = isDark
-        ? Colors.white.withValues(alpha: 0.1)
-        : Colors.black26;
+    final textColor = _ClassTokens.textPrimary(context);
+    final subColor = _ClassTokens.textSecondary(context);
 
     return Center(
       child: Padding(
@@ -247,30 +389,41 @@ class _EmptyState extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Ilustración mejorada
-            Container(
-              padding: const EdgeInsets.all(40),
-              decoration: BoxDecoration(
-                color: circleColor,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.08)
-                      : Colors.black.withValues(alpha: 0.08),
+            FadeIn(
+              child: Container(
+                padding: const EdgeInsets.all(36),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  gradient: LinearGradient(
+                    colors: [
+                      _ClassTokens.primary.withValues(alpha: 0.14),
+                      _ClassTokens.accent.withValues(alpha: 0.06),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  border: Border.all(
+                    color: _ClassTokens.primary.withValues(alpha: 0.18),
+                  ),
+                ),
+                child: ShaderMask(
+                  shaderCallback: (b) =>
+                      _ClassTokens.brandGradient.createShader(b),
+                  child: const Icon(
+                    Icons.video_library_rounded,
+                    size: 68,
+                    color: Colors.white,
+                  ),
                 ),
               ),
-              child: Icon(
-                Icons.video_library_rounded,
-                size: 72,
-                color: iconColor,
-              ),
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 36),
             Text(
               'No hay clases activas',
               style: AppTextStyles.titleLarge.copyWith(
                 color: textColor,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.4,
               ),
             ),
             const SizedBox(height: 12),
@@ -279,42 +432,11 @@ class _EmptyState extends StatelessWidget {
               textAlign: TextAlign.center,
               style: AppTextStyles.bodyMedium.copyWith(color: subColor),
             ),
-            const SizedBox(height: 40),
-            // Botón de unirse mejorado
-            Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: _ClassTokens.brandGradient,
-                boxShadow: [
-                  BoxShadow(
-                    color: _ClassTokens.brandGlow.withValues(alpha: 0.3),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: onJoin,
-                icon: const Icon(Icons.add_rounded, color: Colors.white),
-                label: const Text(
-                  'Unirse a una clase',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 16,
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
-              ),
+            const SizedBox(height: 36),
+            _GradientButton(
+              label: 'Unirse a una clase',
+              icon: Icons.add_rounded,
+              onPressed: onJoin,
             ),
           ],
         ),
@@ -329,8 +451,7 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final textColor = isDark ? Colors.white : Colors.black87;
+    final textColor = _ClassTokens.textPrimary(context);
 
     return Center(
       child: Padding(
@@ -342,40 +463,184 @@ class _ErrorState extends StatelessWidget {
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.redAccent.withValues(alpha: 0.1),
+                color: _ClassTokens.danger.withValues(alpha: 0.12),
+                border: Border.all(
+                  color: _ClassTokens.danger.withValues(alpha: 0.25),
+                ),
               ),
               child: const Icon(
                 Icons.error_outline_rounded,
                 size: 48,
-                color: Colors.redAccent,
+                color: _ClassTokens.danger,
               ),
             ),
             const SizedBox(height: 24),
             Text(
               '¡Ups! Algo salió mal',
-              style: AppTextStyles.titleMedium.copyWith(color: textColor),
+              style: AppTextStyles.titleMedium.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
               'No pudimos cargar tus clases',
-              style: TextStyle(
-                color: isDark ? Colors.white54 : Colors.black54,
-              ),
+              style: TextStyle(color: _ClassTokens.textSecondary(context)),
             ),
             const SizedBox(height: 24),
-            ElevatedButton.icon(
+            _GradientButton(
+              label: 'Reintentar',
+              icon: Icons.refresh_rounded,
               onPressed: onRetry,
-              icon: const Icon(Icons.refresh_rounded),
-              label: const Text('Reintentar'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _ClassTokens.primary,
-                foregroundColor: Colors.white,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _MyClassroomCard extends StatelessWidget {
+  const _MyClassroomCard({required this.classroom});
+
+  final ClassroomModel classroom;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = _ClassTokens.isDark(context);
+    final textPrimary = _ClassTokens.textPrimary(context);
+    final textSecondary = _ClassTokens.textSecondary(context);
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(22),
+        gradient: LinearGradient(
+          colors: [
+            _ClassTokens.primary.withValues(alpha: isDark ? 0.25 : 0.12),
+            _ClassTokens.accent.withValues(alpha: isDark ? 0.18 : 0.06),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        border: Border.all(
+          color: _ClassTokens.primary.withValues(alpha: 0.35),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: _ClassTokens.primary.withValues(alpha: 0.12),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: _ClassTokens.primary.withValues(alpha: 0.25),
+                  ),
+                  child: Icon(
+                    Icons.class_rounded,
+                    color: _ClassTokens.primary,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: 14),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        classroom.name,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: textPrimary,
+                        ),
+                      ),
+                      if (classroom.courseName != null)
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4),
+                          child: Text(
+                            classroom.courseName!,
+                            style: AppTextStyles.bodySmall.copyWith(
+                              color: textSecondary,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (classroom.isActive)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 5,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _ClassTokens.live.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      'Activo',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: _ClassTokens.live,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            if (classroom.description.isNotEmpty)
+              Text(
+                classroom.description,
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.bodySmall.copyWith(
+                  color: textSecondary,
+                  height: 1.4,
                 ),
               ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Icon(
+                  Icons.person_outline_rounded,
+                  color: textSecondary,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  classroom.teacherName,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: textSecondary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Icon(
+                  Icons.group_outlined,
+                  color: textSecondary,
+                  size: 16,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  '${classroom.studentsCount} estudiantes',
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: textSecondary,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -399,148 +664,178 @@ class _VirtualClassCard extends ConsumerWidget {
     final isFull = vClass.isFull;
     final isOngoing = vClass.isOngoing;
     final canJoin = vClass.canJoin;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final ratio = vClass.maxParticipants == 0
+        ? 0.0
+        : (vClass.currentParticipants / vClass.maxParticipants)
+            .clamp(0.0, 1.0);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: _ClassTokens.surface(context),
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
-        ),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
+            color: isOngoing
+                ? _ClassTokens.live.withValues(alpha: 0.18)
+                : Colors.black.withValues(
+                    alpha: _ClassTokens.isDark(context) ? 0.32 : 0.07),
+            blurRadius: 22,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Material(
-        color: Colors.transparent,
-        borderRadius: BorderRadius.circular(24),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(24),
-          onTap: () => _handleJoin(context, ref),
-          child: Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Header con badge y participantes
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _StatusBadge(
-                      isOngoing: isOngoing,
-                      isScheduled: vClass.isScheduled,
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.black.withValues(alpha: 0.3)
-                            : Colors.black.withValues(alpha: 0.06),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: Stack(
+          children: [
+            Container(
+              decoration: BoxDecoration(
+                color: _ClassTokens.surface(context),
+                borderRadius: BorderRadius.circular(26),
+                border: Border.all(
+                  color: isOngoing
+                      ? _ClassTokens.live.withValues(alpha: 0.30)
+                      : _ClassTokens.hairline(context),
+                ),
+              ),
+            ),
+            // Franja de acento lateral.
+            Positioned(
+              left: 0,
+              top: 0,
+              bottom: 0,
+              child: Container(
+                width: 4,
+                decoration: BoxDecoration(
+                  gradient: isOngoing
+                      ? _ClassTokens.liveGradient
+                      : _ClassTokens.brandGradient,
+                ),
+              ),
+            ),
+            Material(
+              color: Colors.transparent,
+              child: InkWell(
+                borderRadius: BorderRadius.circular(26),
+                onTap: () => _handleJoin(context, ref),
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(22, 20, 20, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Icon(
-                            Icons.people_outline_rounded,
-                            color: isFull
-                                ? Colors.redAccent
-                                : (isDark
-                                    ? Colors.white.withValues(alpha: 0.5)
-                                    : Colors.black45),
-                            size: 14,
+                          _StatusBadge(
+                            isOngoing: isOngoing,
+                            isScheduled: vClass.isScheduled,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            '${vClass.currentParticipants}/${vClass.maxParticipants}',
-                            style: AppTextStyles.labelSmall.copyWith(
-                              color: isFull
-                                  ? Colors.redAccent
-                                  : (isDark
-                                      ? Colors.white.withValues(alpha: 0.5)
-                                      : Colors.black45),
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                Icons.people_alt_rounded,
+                                color: isFull
+                                    ? _ClassTokens.danger
+                                    : _ClassTokens.textSecondary(context),
+                                size: 15,
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                '${vClass.currentParticipants}/${vClass.maxParticipants}',
+                                style: AppTextStyles.labelSmall.copyWith(
+                                  color: isFull
+                                      ? _ClassTokens.danger
+                                      : _ClassTokens.textSecondary(context),
+                                  fontWeight: FontWeight.w800,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                // Título y descripción
-                Text(
-                  vClass.title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  vClass.description,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.5)
-                        : Colors.black54,
-                    height: 1.5,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                Divider(
-                  height: 1,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.08),
-                ),
-                const SizedBox(height: 16),
-                // Instructor y acción
-                Row(
-                  children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor:
-                          _ClassTokens.primary.withValues(alpha: 0.1),
-                      child: const Icon(
-                        Icons.person_rounded,
-                        size: 20,
-                        color: _ClassTokens.primary,
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Text(
-                        vClass.instructorName,
-                        style: AppTextStyles.labelMedium.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white : Colors.black87,
+                      const SizedBox(height: 16),
+                      Text(
+                        vClass.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.titleMedium.copyWith(
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.3,
+                          color: _ClassTokens.textPrimary(context),
                         ),
                       ),
-                    ),
-                    _ActionButton(
-                      canJoin: canJoin,
-                      isFull: isFull,
-                      isLoading: joinStatus == JoinClassStatus.loading,
-                      onPressed: () => _handleJoin(context, ref),
-                    ),
-                  ],
+                      const SizedBox(height: 8),
+                      Text(
+                        vClass.description,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: _ClassTokens.textSecondary(context),
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      // Barra de ocupación.
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(10),
+                        child: LinearProgressIndicator(
+                          value: ratio,
+                          minHeight: 6,
+                          backgroundColor: _ClassTokens.surfaceAlt(context),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            isFull
+                                ? _ClassTokens.danger
+                                : (isOngoing
+                                    ? _ClassTokens.live
+                                    : _ClassTokens.primary),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 18),
+                      Row(
+                        children: [
+                          _InstructorAvatar(name: vClass.instructorName),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Instructor',
+                                  style: AppTextStyles.labelSmall.copyWith(
+                                    color:
+                                        _ClassTokens.textSecondary(context),
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  vClass.instructorName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: AppTextStyles.labelMedium.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                    color: _ClassTokens.textPrimary(context),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          _ActionButton(
+                            canJoin: canJoin,
+                            isFull: isFull,
+                            isLoading: joinStatus == JoinClassStatus.loading,
+                            onPressed: () => _handleJoin(context, ref),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-              ],
+              ),
             ),
-          ),
+          ],
         ),
       ),
     );
@@ -578,7 +873,7 @@ class _VirtualClassCard extends ConsumerWidget {
         scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('Inscripción exitosa. Te notificaremos.'),
-            backgroundColor: Colors.greenAccent,
+            backgroundColor: _ClassTokens.live,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -588,12 +883,44 @@ class _VirtualClassCard extends ConsumerWidget {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(error ?? 'No se pudo reservar la clase'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: _ClassTokens.danger,
             behavior: SnackBarBehavior.floating,
           ),
         );
       }
     }
+  }
+}
+
+class _InstructorAvatar extends StatelessWidget {
+  const _InstructorAvatar({required this.name});
+  final String name;
+
+  String get _initials {
+    final parts = name.trim().split(RegExp(r'\s+'));
+    if (parts.isEmpty || parts.first.isEmpty) return '?';
+    if (parts.length == 1) return parts.first[0].toUpperCase();
+    return (parts.first[0] + parts.last[0]).toUpperCase();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 40,
+      height: 40,
+      alignment: Alignment.center,
+      decoration: const BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: _ClassTokens.brandGradient,
+      ),
+      child: Text(
+        _initials,
+        style: AppTextStyles.labelMedium.copyWith(
+          color: Colors.white,
+          fontWeight: FontWeight.w800,
+        ),
+      ),
+    );
   }
 }
 
@@ -608,22 +935,21 @@ class _StatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isOngoing
-        ? Colors.greenAccent
+        ? _ClassTokens.live
         : (isScheduled
             ? _ClassTokens.primary
-            : (isDark ? Colors.white38 : Colors.black38));
+            : _ClassTokens.textSecondary(context));
     final text = isOngoing
         ? 'EN VIVO'
         : (isScheduled ? 'PROGRAMADA' : 'FINALIZADA');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        color: color.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: color.withValues(alpha: 0.28)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -631,14 +957,22 @@ class _StatusBadge extends StatelessWidget {
           if (isOngoing) ...[
             Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: ZoomIn(
-                duration: const Duration(seconds: 1),
+              child: Pulse(
+                infinite: true,
+                duration: const Duration(milliseconds: 1200),
                 child: Container(
                   width: 8,
                   height: 8,
-                  decoration: const BoxDecoration(
-                    color: Colors.greenAccent,
+                  decoration: BoxDecoration(
+                    color: _ClassTokens.live,
                     shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: _ClassTokens.live.withValues(alpha: 0.7),
+                        blurRadius: 8,
+                        spreadRadius: 1,
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -648,8 +982,8 @@ class _StatusBadge extends StatelessWidget {
             text,
             style: AppTextStyles.labelSmall.copyWith(
               color: color,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 0.8,
             ),
           ),
         ],
@@ -686,43 +1020,56 @@ class _ActionButton extends StatelessWidget {
 
     if (isFull && !canJoin) {
       return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.redAccent.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(12),
+          color: _ClassTokens.danger.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: _ClassTokens.danger.withValues(alpha: 0.25),
+          ),
         ),
-        child: const Text(
+        child: Text(
           'Completa',
-          style: TextStyle(
-            color: Colors.redAccent,
-            fontWeight: FontWeight.w700,
-            fontSize: 13,
+          style: AppTextStyles.labelMedium.copyWith(
+            color: _ClassTokens.danger,
+            fontWeight: FontWeight.w800,
           ),
         ),
       );
     }
 
-    final color = canJoin ? Colors.greenAccent.shade700 : _ClassTokens.primary;
+    final gradient =
+        canJoin ? _ClassTokens.liveGradient : _ClassTokens.brandGradient;
+    final glow = canJoin ? _ClassTokens.live : _ClassTokens.brandGlow;
+
     return Container(
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        gradient: gradient,
+        borderRadius: BorderRadius.circular(14),
+        boxShadow: [
+          BoxShadow(
+            color: glow.withValues(alpha: 0.35),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
+          ),
+        ],
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(14),
           onTap: onPressed,
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 11),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Text(
                   canJoin ? 'ENTRAR' : 'RESERVAR',
                   style: AppTextStyles.labelLarge.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: color,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: 0.3,
                   ),
                 ),
                 const SizedBox(width: 6),
@@ -731,7 +1078,62 @@ class _ActionButton extends StatelessWidget {
                       ? Icons.arrow_forward_rounded
                       : Icons.bookmark_add_rounded,
                   size: 18,
-                  color: color,
+                  color: Colors.white,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Botón con gradiente reutilizable.
+class _GradientButton extends StatelessWidget {
+  const _GradientButton({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        gradient: _ClassTokens.brandGradient,
+        boxShadow: [
+          BoxShadow(
+            color: _ClassTokens.brandGlow.withValues(alpha: 0.35),
+            blurRadius: 16,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onPressed,
+          child: Padding(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 30, vertical: 16),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 20),
+                const SizedBox(width: 10),
+                Text(
+                  label,
+                  style: AppTextStyles.labelLarge.copyWith(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ],
             ),
@@ -798,7 +1200,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
         scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('¡Inscrito al aula virtual con éxito!'),
-            backgroundColor: Colors.greenAccent,
+            backgroundColor: _ClassTokens.live,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -806,7 +1208,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
-            backgroundColor: Colors.redAccent,
+            backgroundColor: _ClassTokens.danger,
             behavior: SnackBarBehavior.floating,
           ),
         );
@@ -820,27 +1222,28 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
     return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(40)),
       child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
         child: Container(
           padding: EdgeInsets.fromLTRB(
-            28,
-            16,
-            28,
+            24,
+            12,
+            24,
             MediaQuery.of(context).viewInsets.bottom + 40,
           ),
           decoration: BoxDecoration(
-            color: _ClassTokens.surface(context).withValues(alpha: 0.95),
+            color: _ClassTokens.surface(context),
             borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border.all(
-              color: (isDark ? Colors.white : Colors.black)
-                  .withValues(alpha: 0.08),
-            ),
+                const BorderRadius.vertical(top: Radius.circular(40)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 30,
+                offset: const Offset(0, -10),
+              ),
+            ],
           ),
           child: SingleChildScrollView(
             child: Form(
@@ -849,179 +1252,183 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Handle
                   Center(
                     child: Container(
-                      width: 40,
-                      height: 4,
+                      width: 50,
+                      height: 6,
+                      margin: const EdgeInsets.only(bottom: 8),
                       decoration: BoxDecoration(
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
+                        color: _ClassTokens.textSecondary(context)
+                            .withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(3),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 32),
-
-                  // Título
+                  const SizedBox(height: 20),
+                  // Ícono superior con gradiente.
+                  Center(
+                    child: Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: _ClassTokens.brandGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: _ClassTokens.brandGlow.withValues(alpha: 0.4),
+                            blurRadius: 20,
+                            offset: const Offset(0, 8),
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.meeting_room_rounded,
+                        size: 40,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 24),
                   Text(
                     'Unirse a un Aula Virtual',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.headlineSmall.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: isDark ? Colors.white : Colors.black87,
+                      color: _ClassTokens.textPrimary(context),
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 12),
-
-                  // Subtítulo
+                  const SizedBox(height: 8),
                   Text(
-                    'Ingresa el código de 6 caracteres proporcionado por tu profesor',
+                    'Ingresa el código de 8 caracteres proporcionado por tu profesor',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: isDark
-                          ? Colors.white.withValues(alpha: 0.5)
-                          : Colors.black54,
+                      color: _ClassTokens.textSecondary(context),
                     ),
                   ),
-                  const SizedBox(height: 40),
-
-                  // Campo de código
+                  const SizedBox(height: 32),
                   TextFormField(
                     controller: _codeCtrl,
-                    maxLength: 6,
+                    maxLength: 8,
                     textAlign: TextAlign.center,
                     textCapitalization: TextCapitalization.characters,
                     style: AppTextStyles.headlineMedium.copyWith(
-                      letterSpacing: 12,
+                      letterSpacing: 16,
                       fontWeight: FontWeight.w900,
                       color: _ClassTokens.primary,
+                      fontSize: 32,
                     ),
                     validator: (val) {
-                      if (val == null || val.trim().length != 6) {
-                        return 'El código debe tener 6 caracteres';
+                      if (val == null || val.trim().length != 8) {
+                        return 'El código debe tener 8 caracteres';
                       }
                       return null;
                     },
                     decoration: InputDecoration(
-                      hintText: 'ABC123',
+                      hintText: 'ABCD1234',
                       hintStyle: AppTextStyles.headlineMedium.copyWith(
-                        color: (isDark ? Colors.white : Colors.black)
-                            .withValues(alpha: 0.08),
-                        letterSpacing: 12,
+                        color: _ClassTokens.textSecondary(context)
+                            .withValues(alpha: 0.25),
+                        letterSpacing: 16,
+                        fontSize: 32,
                       ),
                       counterText: '',
                       filled: true,
-                      fillColor: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.05),
+                      fillColor: _ClassTokens.surfaceAlt(context),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide.none,
                       ),
                       enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(24),
                         borderSide: BorderSide(
-                          color: (isDark ? Colors.white : Colors.black)
-                              .withValues(alpha: 0.08),
+                          color: _ClassTokens.hairline(context),
+                          width: 1.5,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(24),
                         borderSide: const BorderSide(
                           color: _ClassTokens.primary,
-                          width: 2,
+                          width: 2.5,
                         ),
                       ),
                       contentPadding:
-                          const EdgeInsets.symmetric(vertical: 24),
+                          const EdgeInsets.symmetric(vertical: 28),
                     ),
                   ),
                   const SizedBox(height: 32),
-
-                  // Botones de acción
-                  Row(
-                    children: [
-                      // Escanear QR
-                      Expanded(
-                        child: OutlinedButton.icon(
-                          onPressed: _isProcessing ? null : _scanQR,
-                          icon: const Icon(
-                            Icons.qr_code_scanner_rounded,
-                            size: 20,
-                          ),
-                          label: const Text('Escanear'),
-                          style: OutlinedButton.styleFrom(
-                            padding:
-                                const EdgeInsets.symmetric(vertical: 18),
-                            foregroundColor:
-                                isDark ? Colors.white : Colors.black87,
-                            side: BorderSide(
-                              color: (isDark ? Colors.white : Colors.black)
-                                  .withValues(alpha: 0.15),
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                          ),
+                  Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: _ClassTokens.brandGradient,
+                      boxShadow: [
+                        BoxShadow(
+                          color: _ClassTokens.brandGlow
+                              .withValues(alpha: 0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 8),
                         ),
-                      ),
-                      const SizedBox(width: 16),
-                      // Unirse
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            gradient: _ClassTokens.brandGradient,
-                            boxShadow: [
-                              BoxShadow(
-                                color: _ClassTokens.brandGlow
-                                    .withValues(alpha: 0.3),
-                                blurRadius: 12,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: ElevatedButton.icon(
-                            onPressed: _isProcessing ? null : _enroll,
-                            icon: _isProcessing
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      color: Colors.white,
-                                    ),
-                                  )
-                                : const Icon(
-                                    Icons.login_rounded,
-                                    color: Colors.white,
-                                  ),
-                            label: Text(
-                              _isProcessing
-                                  ? 'Uniendo...'
-                                  : 'Unirse ahora',
-                              style: const TextStyle(
+                      ],
+                    ),
+                    child: ElevatedButton.icon(
+                      onPressed: _isProcessing ? null : _enroll,
+                      icon: _isProcessing
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2.5,
                                 color: Colors.white,
-                                fontWeight: FontWeight.bold,
                               ),
+                            )
+                          : const Icon(
+                              Icons.check_circle_rounded,
+                              color: Colors.white,
+                              size: 22,
                             ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.transparent,
-                              shadowColor: Colors.transparent,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 18,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              elevation: 0,
-                            ),
-                          ),
+                      label: Text(
+                        _isProcessing ? 'Uniendo...' : 'Unirse Ahora',
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 16,
                         ),
                       ),
-                    ],
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        padding:
+                            const EdgeInsets.symmetric(vertical: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 0,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  OutlinedButton.icon(
+                    onPressed: _isProcessing ? null : _scanQR,
+                    icon: const Icon(
+                      Icons.qr_code_scanner_rounded,
+                      size: 20,
+                    ),
+                    label: const Text(
+                      'Escanear Código QR',
+                      style: TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding:
+                          const EdgeInsets.symmetric(vertical: 18),
+                      foregroundColor: _ClassTokens.primary,
+                      side: BorderSide(
+                        color: _ClassTokens.primary.withValues(alpha: 0.3),
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -1039,18 +1446,15 @@ class _QRScannerScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = _ClassTokens.textPrimary(context);
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
+      backgroundColor: _ClassTokens.background(context),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: Icon(
-            Icons.close_rounded,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+          icon: Icon(Icons.close_rounded, color: textColor),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -1064,32 +1468,39 @@ class _QRScannerScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(32),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.05)
-                      : Colors.black.withValues(alpha: 0.05),
+                  gradient: LinearGradient(
+                    colors: [
+                      _ClassTokens.primary.withValues(alpha: 0.14),
+                      _ClassTokens.accent.withValues(alpha: 0.06),
+                    ],
+                  ),
+                  border: Border.all(
+                    color: _ClassTokens.primary.withValues(alpha: 0.18),
+                  ),
                 ),
-                child: Icon(
-                  Icons.qr_code_scanner_rounded,
-                  size: 80,
-                  color: isDark ? Colors.white24 : Colors.black26,
+                child: ShaderMask(
+                  shaderCallback: (b) =>
+                      _ClassTokens.brandGradient.createShader(b),
+                  child: const Icon(
+                    Icons.qr_code_scanner_rounded,
+                    size: 76,
+                    color: Colors.white,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
               Text(
                 'Escáner QR',
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
+                style: AppTextStyles.titleLarge.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w900,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 'Próximamente disponible',
                 style: TextStyle(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.5)
-                      : Colors.black54,
+                  color: _ClassTokens.textSecondary(context),
                   fontSize: 16,
                 ),
               ),
@@ -1098,32 +1509,93 @@ class _QRScannerScreen extends StatelessWidget {
                 'Por ahora, ingresa el código manualmente',
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.3)
-                      : Colors.black38,
+                  color: _ClassTokens.textSecondary(context)
+                      .withValues(alpha: 0.6),
                   fontSize: 14,
                 ),
               ),
               const SizedBox(height: 40),
-              ElevatedButton.icon(
+              _GradientButton(
+                label: 'Volver',
+                icon: Icons.arrow_back_rounded,
                 onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.arrow_back_rounded),
-                label: const Text('Volver'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _ClassTokens.primary,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 32,
-                    vertical: 14,
-                  ),
-                ),
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Fondo animado con blobs de color suaves (malla).
+class _AnimatedMeshBackground extends StatefulWidget {
+  const _AnimatedMeshBackground();
+
+  @override
+  State<_AnimatedMeshBackground> createState() =>
+      _AnimatedMeshBackgroundState();
+}
+
+class _AnimatedMeshBackgroundState extends State<_AnimatedMeshBackground>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = _ClassTokens.isDark(context);
+    return IgnorePointer(
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          final t = _controller.value * 2 * math.pi;
+          return Stack(
+            children: [
+              Positioned(
+                top: -120 + math.sin(t) * 24,
+                right: -80 + math.cos(t) * 24,
+                child: _BlurBlob(
+                  color: _ClassTokens.primary,
+                  opacity: isDark ? 0.16 : 0.14,
+                  size: 320,
+                ),
+              ),
+              Positioned(
+                bottom: -100 + math.cos(t) * 24,
+                left: -80 + math.sin(t) * 24,
+                child: _BlurBlob(
+                  color: _ClassTokens.accent,
+                  opacity: isDark ? 0.12 : 0.10,
+                  size: 280,
+                ),
+              ),
+              Positioned(
+                top: 260 + math.sin(t + 1) * 20,
+                left: -60,
+                child: _BlurBlob(
+                  color: _ClassTokens.live,
+                  opacity: isDark ? 0.08 : 0.06,
+                  size: 220,
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -1152,9 +1624,9 @@ class _BlurBlob extends StatelessWidget {
           color: base,
           boxShadow: [
             BoxShadow(
-              color: base.withValues(alpha: 0.5),
-              blurRadius: 100,
-              spreadRadius: 50,
+              color: base.withValues(alpha: 0.6),
+              blurRadius: 110,
+              spreadRadius: 55,
             ),
           ],
         ),

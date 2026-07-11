@@ -19,6 +19,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   late final Animation<double> _scaleAnim;
   late final Animation<Offset> _slideAnim;
   bool _navigated = false;
+  bool _hasCheckedInitialState = false;
 
   /// Safety timeout: if auth takes too long, go to login anyway.
   static const _maxWait = Duration(seconds: 6);
@@ -56,11 +57,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _ctrl.forward();
 
+    // Check initial state once
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted && !_navigated && !_hasCheckedInitialState) {
+        _hasCheckedInitialState = true;
+        final currentState = ref.read(authProvider);
+        _navigate(currentState);
+      }
+    });
+
     // Safety net: if auth is still pending after _maxWait, send to login.
     Future.delayed(_maxWait, () {
       if (mounted && !_navigated) {
         _navigated = true;
-        context.go(AppRoutes.login);
+        _safeGo(context, AppRoutes.login);
       }
     });
   }
@@ -71,16 +81,26 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     super.dispose();
   }
 
+  void _safeGo(BuildContext context, String route) {
+    if (mounted) {
+      try {
+        context.go(route);
+      } catch (e) {
+        debugPrint('Navigation error: $e');
+      }
+    }
+  }
+
   void _navigate(AuthState authState) {
     if (_navigated || !mounted) return;
     if (authState.status == AuthStatus.authenticated &&
         authState.user != null) {
       _navigated = true;
-      context.go(routeForRole(authState.user!.role));
+      _safeGo(context, routeForRole(authState.user!.role));
     } else if (authState.status == AuthStatus.unauthenticated ||
         authState.status == AuthStatus.error) {
       _navigated = true;
-      context.go(AppRoutes.login);
+      _safeGo(context, AppRoutes.login);
     }
     // status == loading | initial → wait
   }
@@ -88,14 +108,11 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   Widget build(BuildContext context) {
     // Listen to future changes
-    ref.listen<AuthState>(authProvider, (_, next) => _navigate(next));
-
-    // Also handle the current state — covers the case where _checkSession()
-    // already finished before this widget was inserted into the tree.
-    final currentState = ref.read(authProvider);
-    if (!_navigated) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _navigate(currentState));
-    }
+    ref.listen<AuthState>(authProvider, (_, next) {
+      if (mounted && !_navigated) {
+        _navigate(next);
+      }
+    });
 
     return Scaffold(
       body: Container(

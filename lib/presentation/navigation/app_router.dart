@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
@@ -113,24 +114,29 @@ GoRouter buildAppRouter(WidgetRef ref) {
     initialLocation: AppRoutes.splash,
     debugLogDiagnostics: false,
     redirect: (context, state) {
-      final authState = ref.read(authProvider);
-      final isAuth = authState.status == AuthStatus.authenticated;
-      final location = state.uri.toString();
+      try {
+        final authState = ref.read(authProvider);
+        final isAuth = authState.status == AuthStatus.authenticated;
+        final location = state.uri.toString();
 
-      final isAuthRoute = location == AppRoutes.login ||
-          location == AppRoutes.register ||
-          location == AppRoutes.forgotPassword ||
-          location == AppRoutes.splash;
+        final isAuthRoute = location == AppRoutes.login ||
+            location == AppRoutes.register ||
+            location == AppRoutes.forgotPassword ||
+            location == AppRoutes.splash;
 
-      if (!isAuth && isProtectedRoute(location)) {
-        return AppRoutes.login;
+        if (!isAuth && isProtectedRoute(location)) {
+          return AppRoutes.login;
+        }
+
+        if (isAuth && isAuthRoute && authState.user != null) {
+          return routeForRole(authState.user!.role);
+        }
+
+        return null;
+      } catch (e) {
+        debugPrint('Router redirect error: $e');
+        return null;
       }
-
-      if (isAuth && isAuthRoute) {
-        return routeForRole(authState.user!.role);
-      }
-
-      return null;
     },
     routes: [
       // Auth

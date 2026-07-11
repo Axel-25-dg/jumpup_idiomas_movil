@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'shimmer_loading.dart';
 
 class ProductImage extends StatelessWidget {
@@ -18,12 +19,13 @@ class ProductImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (imageUrl == null || imageUrl!.isEmpty) {
-      return _buildPlaceholder();
+    final resolvedUrl = AppConfig.resolveImageUrl(imageUrl);
+    if (resolvedUrl.isEmpty) {
+      return _buildPlaceholder(context);
     }
 
     return CachedNetworkImage(
-      imageUrl: imageUrl!,
+      imageUrl: resolvedUrl,
       width: width,
       height: height,
       fit: fit,
@@ -32,21 +34,22 @@ class ProductImage extends StatelessWidget {
         child: Container(
           width: width,
           height: height,
-          color: Colors.white,
+          color: Colors.grey[300],
         ),
       ),
-      errorWidget: (context, url, error) => _buildPlaceholder(),
+      errorWidget: (context, url, error) => _buildPlaceholder(context),
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
-      color: Colors.grey[200],
-      child: const Icon(
+      color: isDark ? Colors.grey[800] : Colors.grey[200],
+      child: Icon(
         Icons.image_not_supported_outlined,
-        color: Colors.grey,
+        color: isDark ? Colors.grey[600] : Colors.grey,
         size: 40,
       ),
     );

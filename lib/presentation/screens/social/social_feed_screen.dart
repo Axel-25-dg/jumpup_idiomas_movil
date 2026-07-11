@@ -30,8 +30,8 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
     setState(() => _posting = true);
     try {
       await ref.read(socialRepositoryProvider).createSocialPost(content: content);
-      _contentController.clear();
-      setState(() => _showCompose = false);
+      if (mounted) _contentController.clear();
+      if (mounted) setState(() => _showCompose = false);
       if (mounted) ref.invalidate(socialFeedProvider);
     } catch (e) {
       if (mounted) {
@@ -65,13 +65,16 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
 
     return Scaffold(
       backgroundColor: Colors.transparent,
-      floatingActionButton: FloatingActionButton.extended(
-        backgroundColor: const Color(0xFF7C4DFF),
-        elevation: 4,
-        icon: const Icon(Icons.add_rounded, color: Colors.white),
-        label: Text('Publicar',
-            style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-        onPressed: () => setState(() => _showCompose = !_showCompose),
+      floatingActionButton: Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 80),
+        child: FloatingActionButton.extended(
+          backgroundColor: const Color(0xFF7C4DFF),
+          elevation: 4,
+          icon: const Icon(Icons.add_rounded, color: Colors.white),
+          label: Text('Publicar',
+              style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+          onPressed: () => setState(() => _showCompose = !_showCompose),
+        ),
       ),
       body: Column(
         children: [

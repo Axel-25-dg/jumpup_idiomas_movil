@@ -26,8 +26,12 @@ import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 class _DashTokens {
   const _DashTokens._();
 
-  static Color background(BuildContext context) => Theme.of(context).scaffoldBackgroundColor;
+  static Color background(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
   static Color surface(BuildContext context) => Theme.of(context).cardColor;
+
+  static const Color primary = Color(0xFF2575FC);
+  static const Color secondary = Color(0xFF6A11CB);
 
   static const LinearGradient brandGradient = LinearGradient(
     colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
@@ -36,6 +40,19 @@ class _DashTokens {
   );
 
   static const Color brandGlow = Color(0xFF2575FC);
+
+  /// Superficie tipo "liquid glass": muy translúcida con leve tinte de marca.
+  static Color glassFill(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.06 : 0.55);
+  }
+
+  static Color glassStroke(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return (isDark ? Colors.white : Colors.white)
+        .withValues(alpha: isDark ? 0.14 : 0.65);
+  }
 }
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -65,11 +82,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: _DashTokens.background(context),
+      // La barra flota por encima del contenido (estilo liquid glass).
+      extendBody: true,
       body: IndexedStack(
         index: _currentIndex,
         children: _tabs,
       ),
-      bottomNavigationBar: _BottomNav(
+      bottomNavigationBar: _LiquidGlassNav(
         currentIndex: _currentIndex,
         onTap: _onTabTap,
       ),
@@ -84,8 +103,10 @@ class _NavItem {
   final String label;
 }
 
-class _BottomNav extends StatelessWidget {
-  const _BottomNav({required this.currentIndex, required this.onTap});
+/// Barra inferior flotante con efecto "liquid glass" al estilo del nuevo
+/// diseño de WhatsApp: pill translúcida, blur intenso, indicador deslizante.
+class _LiquidGlassNav extends StatelessWidget {
+  const _LiquidGlassNav({required this.currentIndex, required this.onTap});
 
   final int currentIndex;
   final ValueChanged<int> onTap;
@@ -103,50 +124,98 @@ class _BottomNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const radius = BorderRadius.vertical(top: Radius.circular(35));
     final items = _getItems(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        color: _DashTokens.background(context).withValues(alpha: 0.95),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.15),
-            blurRadius: 30,
-            offset: const Offset(0, -10),
-          ),
-        ],
-        borderRadius: radius,
-        border: Border(
-          top: BorderSide(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
-            width: 1,
-          ),
-        ),
-      ),
-      child: ClipRRect(
-        borderRadius: radius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  for (var i = 0; i < items.length; i++)
-                    Expanded(
-                      child: _NavButton(
-                        item: items[i],
-                        isSelected: i == currentIndex,
-                        onTap: () => onTap(i),
-                      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: SafeArea(
+        top: false,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            final double totalWidth = constraints.maxWidth;
+            final int count = items.length;
+            final double slotWidth = totalWidth / count;
+
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(32),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                child: Container(
+                  height: 68,
+                  decoration: BoxDecoration(
+                    color: _DashTokens.glassFill(context),
+                    borderRadius: BorderRadius.circular(32),
+                    border: Border.all(
+                      color: _DashTokens.glassStroke(context),
+                      width: 1.2,
                     ),
-                ],
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black
+                            .withValues(alpha: isDark ? 0.45 : 0.18),
+                        blurRadius: 28,
+                        offset: const Offset(0, 12),
+                      ),
+                      // Glow superior sutil que simula reflejo del cristal.
+                      BoxShadow(
+                        color: Colors.white
+                            .withValues(alpha: isDark ? 0.04 : 0.35),
+                        blurRadius: 1,
+                        offset: const Offset(0, 1),
+                        spreadRadius: -1,
+                      ),
+                    ],
+                  ),
+                  child: Stack(
+                    children: [
+                      // Indicador deslizante (la "gota" de líquido).
+                      AnimatedPositioned(
+                        duration: const Duration(milliseconds: 380),
+                        curve: Curves.easeOutCubic,
+                        left: slotWidth * currentIndex,
+                        top: 0,
+                        bottom: 0,
+                        width: slotWidth,
+                        child: Center(
+                          child: AnimatedContainer(
+                            duration: const Duration(milliseconds: 380),
+                            curve: Curves.easeOutCubic,
+                            width: slotWidth - 14,
+                            height: 52,
+                            decoration: BoxDecoration(
+                              gradient: _DashTokens.brandGradient,
+                              borderRadius: BorderRadius.circular(22),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: _DashTokens.brandGlow
+                                      .withValues(alpha: 0.45),
+                                  blurRadius: 16,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      Row(
+                        children: [
+                          for (var i = 0; i < items.length; i++)
+                            Expanded(
+                              child: _NavButton(
+                                item: items[i],
+                                isSelected: i == currentIndex,
+                                onTap: () => onTap(i),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
       ),
     );
@@ -167,62 +236,53 @@ class _NavButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final Color inactiveColor =
+        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45);
+
     return Semantics(
       button: true,
       selected: isSelected,
       label: item.label,
-      child: Tooltip(
-        message: item.label,
-        child: GestureDetector(
-          onTap: onTap,
-          behavior: HitTestBehavior.opaque,
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            margin: const EdgeInsets.symmetric(horizontal: 2),
-            padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? 12 : 8,
-              vertical: 8,
-            ),
-            decoration: BoxDecoration(
-              gradient: isSelected ? _DashTokens.brandGradient : null,
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: isSelected
-                  ? [
-                      BoxShadow(
-                        color: _DashTokens.brandGlow.withValues(alpha: 0.4),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
+      child: GestureDetector(
+        onTap: onTap,
+        behavior: HitTestBehavior.opaque,
+        child: SizedBox(
+          height: double.infinity,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedScale(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOutBack,
+                scale: isSelected ? 1.12 : 1.0,
+                child: Icon(
                   isSelected ? item.active : item.inactive,
-                  color: isSelected ? Colors.white : (isDark ? Colors.white38 : Colors.black38),
-                  size: 22,
+                  color: isSelected ? Colors.white : inactiveColor,
+                  size: 24,
                 ),
-                if (isSelected) ...[
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      item.label,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.labelLarge.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                ],
-              ],
-            ),
+              ),
+              AnimatedSize(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+                child: isSelected
+                    ? Padding(
+                        padding: const EdgeInsets.only(top: 3),
+                        child: Text(
+                          item.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 10,
+                            letterSpacing: 0.1,
+                          ),
+                        ),
+                      )
+                    : const SizedBox.shrink(),
+              ),
+            ],
           ),
         ),
       ),
@@ -241,21 +301,21 @@ class _HomeTab extends ConsumerWidget {
 
     return Stack(
       children: [
-        // Background Blobs
+        // Malla de color de fondo (blobs suaves).
         const _BackgroundBlob(
-          top: -50,
+          top: -60,
           left: -50,
-          size: 250,
-          color: Colors.purpleAccent,
+          size: 260,
+          color: _DashTokens.secondary,
         ),
         const _BackgroundBlob(
-          bottom: 100,
-          right: -50,
-          size: 200,
-          color: Colors.blueAccent,
+          bottom: 120,
+          right: -60,
+          size: 220,
+          color: _DashTokens.primary,
         ),
         RefreshIndicator(
-          color: Colors.blueAccent,
+          color: _DashTokens.primary,
           backgroundColor: _DashTokens.surface(context),
           onRefresh: () async {
             ref.invalidate(userProfileProvider);
@@ -269,7 +329,7 @@ class _HomeTab extends ConsumerWidget {
             slivers: [
               _SliverHeader(userAsync: userAsync, statsAsync: statsAsync),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 100),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
@@ -282,15 +342,18 @@ class _HomeTab extends ConsumerWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Flexible(
-                          child: _SectionTitle(AppLocalizations.of(context)!.recentProgress),
+                          child: _SectionTitle(
+                              AppLocalizations.of(context)!.recentProgress),
                         ),
                         TextButton(
-                          onPressed: () => context.push(AppRoutes.studentClassrooms),
+                          onPressed: () =>
+                              context.push(AppRoutes.studentClassrooms),
                           child: Text(
                             AppLocalizations.of(context)!.viewVirtualClasses,
                             style: const TextStyle(
-                              color: Colors.blueAccent,
+                              color: _DashTokens.primary,
                               fontSize: 13,
+                              fontWeight: FontWeight.w700,
                             ),
                           ),
                         ),
@@ -330,10 +393,11 @@ class _SubscriptionBanner extends ConsumerWidget {
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.amberAccent.withValues(alpha: 0.1),
+              color: Colors.amberAccent.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
-            child: const Icon(Icons.star_rounded, color: Colors.amberAccent, size: 24),
+            child: const Icon(Icons.star_rounded,
+                color: Colors.amberAccent, size: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -371,7 +435,7 @@ class _SubscriptionBanner extends ConsumerWidget {
             child: const Text(
               'Ver Planes',
               style: TextStyle(
-                color: Colors.blueAccent,
+                color: _DashTokens.primary,
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
@@ -395,7 +459,8 @@ class _SectionTitle extends StatelessWidget {
       style: TextStyle(
         color: isDark ? Colors.white : Colors.black87,
         fontSize: 18,
-        fontWeight: FontWeight.bold,
+        fontWeight: FontWeight.w900,
+        letterSpacing: -0.3,
       ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -433,9 +498,9 @@ class _BackgroundBlob extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.15),
+            color: color.withValues(alpha: 0.18),
             boxShadow: [
-              BoxShadow(color: color.withValues(alpha: 0.2), blurRadius: 100),
+              BoxShadow(color: color.withValues(alpha: 0.22), blurRadius: 110),
             ],
           ),
         ),
@@ -455,75 +520,92 @@ class _SliverHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverAppBar(
-      expandedHeight: 90,
+      expandedHeight: 96,
       pinned: true,
-      backgroundColor: Colors.transparent,
+      backgroundColor: _DashTokens.background(context).withValues(alpha: 0.6),
       elevation: 0,
-      flexibleSpace: FlexibleSpaceBar(
-        background: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-            child: userAsync.when(
-              data: (user) => Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: const BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: _DashTokens.brandGradient,
-                    ),
-                    child: UserAvatar(
-                      imageUrl: AppConfig.resolveImageUrl(user.avatarUrl),
-                      fullName: user.username,
-                      radius: 22,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          l10n.hello(user.username),
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: isDark ? Colors.white : Colors.black87,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 16,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          child: FlexibleSpaceBar(
+            background: SafeArea(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                child: userAsync.when(
+                  data: (user) => Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2.5),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: _DashTokens.brandGradient,
+                          boxShadow: [
+                            BoxShadow(
+                              color: _DashTokens.brandGlow
+                                  .withValues(alpha: 0.35),
+                              blurRadius: 12,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                        Text(
-                          l10n.readyToLearn,
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: isDark ? Colors.white60 : Colors.black54,
-                            fontSize: 12,
-                          ),
+                        child: UserAvatar(
+                          imageUrl:
+                              AppConfig.resolveImageUrl(user.avatarUrl),
+                          fullName: user.username,
+                          radius: 22,
                         ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: () => context.push(AppRoutes.home),
-                    child: GlassContainer(
-                      padding: const EdgeInsets.all(8),
-                      borderRadius: BorderRadius.circular(12),
-                      opacity: 0.1,
-                      child: const Icon(
-                        Icons.notifications_active_rounded,
-                        color: Colors.amberAccent,
-                        size: 20,
                       ),
-                    ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              l10n.hello(user.username),
+                              style: AppTextStyles.titleMedium.copyWith(
+                                color: isDark ? Colors.white : Colors.black87,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              l10n.readyToLearn,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color:
+                                    isDark ? Colors.white60 : Colors.black54,
+                                fontSize: 12,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      GestureDetector(
+                        onTap: () => context.push(AppRoutes.home),
+                        child: GlassContainer(
+                          padding: const EdgeInsets.all(10),
+                          borderRadius: BorderRadius.circular(14),
+                          opacity: 0.1,
+                          child: const Icon(
+                            Icons.notifications_active_rounded,
+                            color: Colors.amberAccent,
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
+                  loading: () => const Center(
+                    child:
+                        CircularProgressIndicator(color: _DashTokens.primary),
+                  ),
+                  error: (_, __) => const SizedBox.shrink(),
+                ),
               ),
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: Colors.blueAccent),
-              ),
-              error: (_, __) => const SizedBox.shrink(),
             ),
           ),
         ),
@@ -561,7 +643,8 @@ class _XPAndStreakBanner extends StatelessWidget {
                 Container(
                   width: 1,
                   height: 40,
-                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                  color: (isDark ? Colors.white : Colors.black)
+                      .withValues(alpha: 0.1),
                 ),
                 Expanded(
                   child: _StatBadgeItem(
@@ -604,8 +687,10 @@ class _XPAndStreakBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
                 value: stats.levelProgress,
-                backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                valueColor: const AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                backgroundColor: (isDark ? Colors.white : Colors.black)
+                    .withValues(alpha: 0.1),
+                valueColor: const AlwaysStoppedAnimation<Color>(
+                    Colors.purpleAccent),
                 minHeight: 10,
               ),
             ),
@@ -640,7 +725,14 @@ class _StatBadgeItem extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 28),
+        Container(
+          padding: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.12),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
         const SizedBox(height: 8),
         Text(
           value,
@@ -684,7 +776,7 @@ class _QuickActionsGrid extends StatelessWidget {
       _QuickAction(
         Icons.videocam_rounded,
         l10n.virtualClasses,
-        Colors.blueAccent,
+        _DashTokens.primary,
         AppRoutes.studentClassrooms,
       ),
       _QuickAction(
@@ -750,17 +842,24 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(route),
       child: GlassContainer(
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(20),
         opacity: 0.08,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(9),
               decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.1),
+                gradient: LinearGradient(
+                  colors: [
+                    color.withValues(alpha: 0.28),
+                    color.withValues(alpha: 0.08),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.2)),
+                border: Border.all(color: color.withValues(alpha: 0.3)),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
@@ -803,7 +902,8 @@ class _RecentCourseCard extends ConsumerWidget {
             child: Center(
               child: Text(
                 l10n.exploreCourses,
-                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+                style:
+                    TextStyle(color: isDark ? Colors.white : Colors.black87),
               ),
             ),
           );
@@ -812,7 +912,8 @@ class _RecentCourseCard extends ConsumerWidget {
         final course = courses.first;
         return GestureDetector(
           onTap: () => context.push(
-            AppRoutes.studentCourseDetail.replaceAll(':id', course.id.toString()),
+            AppRoutes.studentCourseDetail
+                .replaceAll(':id', course.id.toString()),
           ),
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
@@ -821,14 +922,36 @@ class _RecentCourseCard extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-                  child: ProductImage(
-                    imageUrl: course.imageUrl,
-                    height: 140,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
+                Stack(
+                  children: [
+                    ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                          top: Radius.circular(24)),
+                      child: ProductImage(
+                        imageUrl: course.imageUrl,
+                        height: 140,
+                        width: double.infinity,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                    // Degradado inferior para legibilidad tipo liquid glass.
+                    Positioned.fill(
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(24)),
+                          gradient: LinearGradient(
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                            colors: [
+                              Colors.transparent,
+                              Colors.black.withValues(alpha: 0.35),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 Padding(
                   padding: const EdgeInsets.all(16),
@@ -840,15 +963,17 @@ class _RecentCourseCard extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
-                              color: Colors.blueAccent.withValues(alpha: 0.2),
+                              color:
+                                  _DashTokens.primary.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Text(
                               course.difficultyLevel.toUpperCase(),
                               style: const TextStyle(
-                                color: Colors.blueAccent,
+                                color: _DashTokens.primary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -858,7 +983,8 @@ class _RecentCourseCard extends ConsumerWidget {
                             child: Text(
                               course.languageName,
                               style: TextStyle(
-                                color: isDark ? Colors.white54 : Colors.black54,
+                                color:
+                                    isDark ? Colors.white54 : Colors.black54,
                                 fontSize: 11,
                               ),
                               maxLines: 1,
@@ -891,7 +1017,8 @@ class _RecentCourseCard extends ConsumerWidget {
                       const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Icon(Icons.play_circle_fill_rounded, color: Colors.purpleAccent, size: 20),
+                          const Icon(Icons.play_circle_fill_rounded,
+                              color: Colors.purpleAccent, size: 20),
                           const SizedBox(width: 6),
                           Flexible(
                             child: Text(
@@ -989,7 +1116,8 @@ class _TutorIABanner extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 6),
-                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
+                      const Icon(Icons.arrow_forward_rounded,
+                          color: Colors.white, size: 18),
                     ],
                   ),
                 ],
