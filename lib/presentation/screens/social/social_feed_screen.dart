@@ -59,6 +59,9 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
   @override
   Widget build(BuildContext context) {
     final feedAsync = ref.watch(socialFeedProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -90,14 +93,14 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
                       TextField(
                         controller: _contentController,
                         maxLines: 3,
-                        style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                        style: AppTextStyles.bodyMedium.copyWith(color: textColor),
                         decoration: InputDecoration(
                           hintText: '¿Qué quieres compartir?',
-                          hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
+                          hintStyle: AppTextStyles.bodyMedium.copyWith(color: subtextColor),
                           border: InputBorder.none,
                         ),
                       ),
-                      const Divider(color: Colors.white10),
+                      Divider(color: isDark ? Colors.white10 : Colors.black12),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
@@ -109,7 +112,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
                               });
                             },
                             child: Text('Cancelar',
-                                style: AppTextStyles.labelMedium.copyWith(color: Colors.white54)),
+                                style: AppTextStyles.labelMedium.copyWith(color: subtextColor)),
                           ),
                           const SizedBox(width: 8),
                           SizedBox(
@@ -139,9 +142,9 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
           Expanded(
             child: feedAsync.when(
               loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              error: (e, _) => _buildErrorState(ref),
+              error: (e, _) => _buildErrorState(ref, isDark),
               data: (posts) => posts.isEmpty
-                  ? _buildEmptyState()
+                  ? _buildEmptyState(isDark)
                   : ListView.builder(
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       physics: const BouncingScrollPhysics(),
@@ -158,14 +161,15 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
     );
   }
 
-  Widget _buildErrorState(WidgetRef ref) {
+  Widget _buildErrorState(WidgetRef ref, bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 60, color: Colors.white24),
+          Icon(Icons.wifi_off_rounded, size: 60, color: isDark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 12),
-          Text('No se pudo cargar el feed', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+          Text('No se pudo cargar el feed',
+              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => ref.invalidate(socialFeedProvider),
@@ -178,7 +182,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -193,10 +197,11 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
           ),
           const SizedBox(height: 20),
           Text('¡Sé el primero en publicar!',
-              style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+              style: AppTextStyles.titleLarge.copyWith(
+                  color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           Text('Comparte tu progreso con la comunidad',
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
         ],
       ),
     );
@@ -210,6 +215,11 @@ class _PostCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white38 : Colors.black38;
+    final bodyColor = isDark ? Colors.white.withValues(alpha: 0.9) : Colors.black87;
+    final iconFadeColor = isDark ? Colors.white38 : Colors.black38;
     final time = DateFormat('dd MMM, HH:mm').format(post.createdAt);
     final initial = post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?';
 
@@ -243,8 +253,9 @@ class _PostCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(post.authorName, style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-                        Text(time, style: AppTextStyles.labelSmall.copyWith(color: Colors.white38)),
+                        Text(post.authorName,
+                            style: AppTextStyles.labelLarge.copyWith(color: textColor, fontWeight: FontWeight.bold)),
+                        Text(time, style: AppTextStyles.labelSmall.copyWith(color: subtextColor)),
                       ],
                     ),
                   ),
@@ -267,7 +278,8 @@ class _PostCard extends StatelessWidget {
             ),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-              child: Text(post.content, style: AppTextStyles.bodyMedium.copyWith(color: Colors.white.withValues(alpha: 0.9), height: 1.5)),
+              child: Text(post.content,
+                  style: AppTextStyles.bodyMedium.copyWith(color: bodyColor, height: 1.5)),
             ),
             if (post.imageUrl != null)
               Padding(
@@ -293,13 +305,13 @@ class _PostCard extends StatelessWidget {
                           children: [
                             Icon(
                               post.isLiked ? Icons.favorite_rounded : Icons.favorite_border_rounded,
-                              color: post.isLiked ? Colors.redAccent : Colors.white38,
+                              color: post.isLiked ? Colors.redAccent : iconFadeColor,
                               size: 20,
                             ),
                             const SizedBox(width: 6),
                             Text('${post.reactionCount}',
                                 style: AppTextStyles.labelMedium.copyWith(
-                                  color: post.isLiked ? Colors.redAccent : Colors.white54,
+                                  color: post.isLiked ? Colors.redAccent : subtextColor,
                                   fontWeight: FontWeight.bold,
                                 )),
                           ],
@@ -311,18 +323,18 @@ class _PostCard extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                     child: Row(
                       children: [
-                        const Icon(Icons.chat_bubble_outline_rounded, color: Colors.white38, size: 19),
+                        Icon(Icons.chat_bubble_outline_rounded, color: iconFadeColor, size: 19),
                         const SizedBox(width: 6),
                         Text('${post.commentCount}',
                             style: AppTextStyles.labelMedium.copyWith(
-                              color: Colors.white54, fontWeight: FontWeight.bold,
+                              color: subtextColor, fontWeight: FontWeight.bold,
                             )),
                       ],
                     ),
                   ),
                   const Spacer(),
                   IconButton(
-                    icon: const Icon(Icons.share_outlined, color: Colors.white38, size: 20),
+                    icon: Icon(Icons.share_outlined, color: iconFadeColor, size: 20),
                     onPressed: () {},
                   ),
                 ],

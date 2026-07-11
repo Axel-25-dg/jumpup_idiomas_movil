@@ -11,8 +11,14 @@ import 'package:url_launcher/url_launcher.dart';
 class _ClassTokens {
   const _ClassTokens._();
 
-  static const Color background = Color(0xFF0F111A);
-  static const Color surface = Color(0xFF1E1E2E);
+  static Color background(BuildContext context) =>
+      Theme.of(context).scaffoldBackgroundColor;
+
+  static Color surface(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? const Color(0xFF1E1E2E)
+          : Colors.white;
+
   static const Color primary = Colors.blueAccent;
 
   static const LinearGradient brandGradient = LinearGradient(
@@ -48,14 +54,18 @@ class _VirtualClassListBody extends ConsumerWidget {
     final classesAsync = ref.watch(virtualClassesProvider);
 
     return Scaffold(
-      backgroundColor: _ClassTokens.background,
+      backgroundColor: _ClassTokens.background(context),
       body: Stack(
         children: [
           // Efectos visuales de fondo
           const Positioned(
             top: -100,
             right: -50,
-            child: _BlurBlob(color: Colors.blueAccent, opacity: 0.1, size: 300),
+            child: _BlurBlob(
+              color: Colors.blueAccent,
+              opacity: 0.1,
+              size: 300,
+            ),
           ),
           const Positioned(
             bottom: -50,
@@ -68,7 +78,7 @@ class _VirtualClassListBody extends ConsumerWidget {
           ),
           RefreshIndicator(
             onRefresh: () => ref.refresh(virtualClassesProvider.future),
-            backgroundColor: _ClassTokens.surface,
+            backgroundColor: _ClassTokens.surface(context),
             color: _ClassTokens.primary,
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(
@@ -109,7 +119,10 @@ class _VirtualClassListBody extends ConsumerWidget {
                             return FadeInUp(
                               duration:
                                   Duration(milliseconds: 400 + (index * 100)),
-                              child: _VirtualClassCard(vClass: vClass),
+                              child: _VirtualClassCard(
+                                vClass: vClass,
+                                onJoinPressed: () => _showJoinDialog(context),
+                              ),
                             );
                           },
                           childCount: classes.length,
@@ -123,17 +136,6 @@ class _VirtualClassListBody extends ConsumerWidget {
           ),
         ],
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showJoinDialog(context),
-        backgroundColor: _ClassTokens.primary,
-        elevation: 4,
-        icon: const Icon(Icons.qr_code_scanner_rounded, color: Colors.white),
-        label: Text(
-          'Unirse con código',
-          style: AppTextStyles.labelLarge
-              .copyWith(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
-      ),
     );
   }
 }
@@ -145,20 +147,23 @@ class _ClassesSliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black87;
+
     return SliverAppBar(
       expandedHeight: 140,
       floating: false,
       pinned: true,
       elevation: 0,
       stretch: true,
-      backgroundColor: _ClassTokens.background.withValues(alpha: 0.8),
+      backgroundColor: _ClassTokens.background(context).withValues(alpha: 0.9),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
         title: Text(
           'Clases Virtuales',
           style: AppTextStyles.titleLarge.copyWith(
-            color: Colors.white,
+            color: titleColor,
             fontWeight: FontWeight.w800,
             letterSpacing: -0.5,
           ),
@@ -177,21 +182,40 @@ class _ClassesSliverAppBar extends StatelessWidget {
           ],
         ),
       ),
+      // Solo botón de añadir en el AppBar - ELIMINADO el FAB redundante
       actions: [
         Padding(
           padding: const EdgeInsets.only(right: 12),
           child: IconButton(
             onPressed: onAdd,
             icon: Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.05),
+                gradient: isDark ? null : _ClassTokens.brandGradient,
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.1)
+                    : null,
                 shape: BoxShape.circle,
-                border:
-                    Border.all(color: Colors.white.withValues(alpha: 0.1)),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.2)
+                      : Colors.transparent,
+                ),
+                boxShadow: isDark
+                    ? null
+                    : [
+                        BoxShadow(
+                          color: _ClassTokens.brandGlow.withValues(alpha: 0.3),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
               ),
-              child: const Icon(Icons.add_rounded,
-                  color: Colors.white, size: 20),
+              child: Icon(
+                Icons.add_rounded,
+                color: isDark ? Colors.white : Colors.white,
+                size: 22,
+              ),
             ),
           ),
         ),
@@ -206,55 +230,90 @@ class _EmptyState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subColor =
+        isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54;
+    final circleColor = isDark
+        ? Colors.white.withValues(alpha: 0.03)
+        : Colors.black.withValues(alpha: 0.03);
+    final iconColor = isDark
+        ? Colors.white.withValues(alpha: 0.1)
+        : Colors.black26;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            // Ilustración mejorada
             Container(
-              padding: const EdgeInsets.all(32),
+              padding: const EdgeInsets.all(40),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.03),
+                color: circleColor,
                 shape: BoxShape.circle,
-                border:
-                    Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
               ),
               child: Icon(
-                Icons.school_rounded,
-                size: 64,
-                color: Colors.white.withValues(alpha: 0.1),
+                Icons.video_library_rounded,
+                size: 72,
+                color: iconColor,
               ),
             ),
-            const SizedBox(height: 32),
+            const SizedBox(height: 40),
             Text(
               'No hay clases activas',
-              style: AppTextStyles.titleLarge
-                  .copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+              style: AppTextStyles.titleLarge.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             const SizedBox(height: 12),
             Text(
-              'Aquí verás tus clases programadas. Únete a una nueva clase para empezar.',
+              'Únete a una clase virtual para comenzar tu aprendizaje',
               textAlign: TextAlign.center,
-              style: AppTextStyles.bodyMedium
-                  .copyWith(color: Colors.white.withValues(alpha: 0.4)),
+              style: AppTextStyles.bodyMedium.copyWith(color: subColor),
             ),
             const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: onJoin,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _ClassTokens.primary.withValues(alpha: 0.1),
-                foregroundColor: _ClassTokens.primary,
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  side: const BorderSide(color: _ClassTokens.primary, width: 1),
-                ),
+            // Botón de unirse mejorado
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: _ClassTokens.brandGradient,
+                boxShadow: [
+                  BoxShadow(
+                    color: _ClassTokens.brandGlow.withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
               ),
-              child: const Text(
-                'Unirse a una clase',
-                style: TextStyle(fontWeight: FontWeight.bold),
+              child: ElevatedButton.icon(
+                onPressed: onJoin,
+                icon: const Icon(Icons.add_rounded, color: Colors.white),
+                label: const Text(
+                  'Unirse a una clase',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 16,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
               ),
             ),
           ],
@@ -270,32 +329,69 @@ class _ErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline_rounded,
-              size: 64, color: Colors.redAccent),
-          const SizedBox(height: 16),
-          Text(
-            '¡Ups! Algo salió mal',
-            style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
-          ),
-          const SizedBox(height: 8),
-          TextButton(
-            onPressed: onRetry,
-            child: const Text('Reintentar',
-                style: TextStyle(color: _ClassTokens.primary)),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: Colors.redAccent.withValues(alpha: 0.1),
+              ),
+              child: const Icon(
+                Icons.error_outline_rounded,
+                size: 48,
+                color: Colors.redAccent,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              '¡Ups! Algo salió mal',
+              style: AppTextStyles.titleMedium.copyWith(color: textColor),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'No pudimos cargar tus clases',
+              style: TextStyle(
+                color: isDark ? Colors.white54 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: onRetry,
+              icon: const Icon(Icons.refresh_rounded),
+              label: const Text('Reintentar'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _ClassTokens.primary,
+                foregroundColor: Colors.white,
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 }
 
 class _VirtualClassCard extends ConsumerWidget {
-  const _VirtualClassCard({required this.vClass});
+  const _VirtualClassCard({
+    required this.vClass,
+    this.onJoinPressed,
+  });
+
   final VirtualClassModel vClass;
+  final VoidCallback? onJoinPressed;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -303,16 +399,19 @@ class _VirtualClassCard extends ConsumerWidget {
     final isFull = vClass.isFull;
     final isOngoing = vClass.isOngoing;
     final canJoin = vClass.canJoin;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: _ClassTokens.surface,
+        color: _ClassTokens.surface(context),
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.06),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.06),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -320,16 +419,17 @@ class _VirtualClassCard extends ConsumerWidget {
       ),
       child: Material(
         color: Colors.transparent,
+        borderRadius: BorderRadius.circular(24),
         child: InkWell(
           borderRadius: BorderRadius.circular(24),
-          onTap: (isFull && !canJoin) ? null : () => _handleJoin(context, ref),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Badge de estado y contador de participantes
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-                child: Row(
+          onTap: () => _handleJoin(context, ref),
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header con badge y participantes
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _StatusBadge(
@@ -338,18 +438,25 @@ class _VirtualClassCard extends ConsumerWidget {
                     ),
                     Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 6),
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.3),
+                        color: isDark
+                            ? Colors.black.withValues(alpha: 0.3)
+                            : Colors.black.withValues(alpha: 0.06),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
                             Icons.people_outline_rounded,
                             color: isFull
                                 ? Colors.redAccent
-                                : Colors.white.withValues(alpha: 0.5),
+                                : (isDark
+                                    ? Colors.white.withValues(alpha: 0.5)
+                                    : Colors.black45),
                             size: 14,
                           ),
                           const SizedBox(width: 6),
@@ -358,7 +465,9 @@ class _VirtualClassCard extends ConsumerWidget {
                             style: AppTextStyles.labelSmall.copyWith(
                               color: isFull
                                   ? Colors.redAccent
-                                  : Colors.white.withValues(alpha: 0.5),
+                                  : (isDark
+                                      ? Colors.white.withValues(alpha: 0.5)
+                                      : Colors.black45),
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -367,48 +476,49 @@ class _VirtualClassCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-              ),
-              // Detalles de la clase
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      vClass.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w800,
-                        color: Colors.white,
-                      ),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      vClass.description,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        height: 1.5,
-                      ),
-                    ),
-                  ],
+                const SizedBox(height: 16),
+                // Título y descripción
+                Text(
+                  vClass.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 20),
-              Divider(height: 1, color: Colors.white.withValues(alpha: 0.05)),
-              // Instructor y botón de acción
-              Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
+                const SizedBox(height: 8),
+                Text(
+                  vClass.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.5)
+                        : Colors.black54,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Divider(
+                  height: 1,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.08),
+                ),
+                const SizedBox(height: 16),
+                // Instructor y acción
+                Row(
                   children: [
                     CircleAvatar(
-                      radius: 16,
+                      radius: 18,
                       backgroundColor:
                           _ClassTokens.primary.withValues(alpha: 0.1),
-                      child: const Icon(Icons.person_rounded,
-                          size: 18, color: _ClassTokens.primary),
+                      child: const Icon(
+                        Icons.person_rounded,
+                        size: 20,
+                        color: _ClassTokens.primary,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -416,7 +526,7 @@ class _VirtualClassCard extends ConsumerWidget {
                         vClass.instructorName,
                         style: AppTextStyles.labelMedium.copyWith(
                           fontWeight: FontWeight.w600,
-                          color: Colors.white,
+                          color: isDark ? Colors.white : Colors.black87,
                         ),
                       ),
                     ),
@@ -428,8 +538,8 @@ class _VirtualClassCard extends ConsumerWidget {
                     ),
                   ],
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -455,7 +565,9 @@ class _VirtualClassCard extends ConsumerWidget {
           await launchUrl(uri, mode: LaunchMode.externalApplication);
         } else {
           scaffoldMessenger.showSnackBar(
-            const SnackBar(content: Text('No se pudo abrir el enlace de la clase')),
+            const SnackBar(
+              content: Text('No se pudo abrir el enlace de la clase'),
+            ),
           );
         }
       }
@@ -471,7 +583,8 @@ class _VirtualClassCard extends ConsumerWidget {
           ),
         );
       } else {
-        final error = ref.read(joinClassNotifierProvider.notifier).errorMessage;
+        final error =
+            ref.read(joinClassNotifierProvider.notifier).errorMessage;
         scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text(error ?? 'No se pudo reservar la clase'),
@@ -485,24 +598,28 @@ class _VirtualClassCard extends ConsumerWidget {
 }
 
 class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.isOngoing, required this.isScheduled});
+  const _StatusBadge({
+    required this.isOngoing,
+    required this.isScheduled,
+  });
 
   final bool isOngoing;
   final bool isScheduled;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final color = isOngoing
         ? Colors.greenAccent
         : (isScheduled
             ? _ClassTokens.primary
-            : Colors.white.withValues(alpha: 0.3));
+            : (isDark ? Colors.white38 : Colors.black38));
     final text = isOngoing
         ? 'EN VIVO'
         : (isScheduled ? 'PROGRAMADA' : 'FINALIZADA');
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
@@ -511,23 +628,22 @@ class _StatusBadge extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          if (isOngoing)
-            const Padding(
-              padding: EdgeInsets.only(right: 6),
+          if (isOngoing) ...[
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
               child: ZoomIn(
-                duration: Duration(seconds: 1),
-                child: SizedBox(
+                duration: const Duration(seconds: 1),
+                child: Container(
                   width: 8,
                   height: 8,
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      color: Colors.greenAccent,
-                      shape: BoxShape.circle,
-                    ),
+                  decoration: const BoxDecoration(
+                    color: Colors.greenAccent,
+                    shape: BoxShape.circle,
                   ),
                 ),
               ),
             ),
+          ],
           Text(
             text,
             style: AppTextStyles.labelSmall.copyWith(
@@ -562,33 +678,65 @@ class _ActionButton extends StatelessWidget {
         width: 24,
         height: 24,
         child: CircularProgressIndicator(
-            strokeWidth: 2, color: _ClassTokens.primary),
-      );
-    }
-
-    if (isFull && !canJoin) {
-      return Text(
-        'Llena',
-        style: AppTextStyles.labelLarge.copyWith(
-          color: Colors.white.withValues(alpha: 0.3),
-          fontWeight: FontWeight.bold,
+          strokeWidth: 2,
+          color: _ClassTokens.primary,
         ),
       );
     }
 
-    final color = canJoin ? Colors.greenAccent : _ClassTokens.primary;
-    return TextButton(
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: color,
+    if (isFull && !canJoin) {
+      return Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        backgroundColor: color.withValues(alpha: 0.1),
+        decoration: BoxDecoration(
+          color: Colors.redAccent.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: const Text(
+          'Completa',
+          style: TextStyle(
+            color: Colors.redAccent,
+            fontWeight: FontWeight.w700,
+            fontSize: 13,
+          ),
+        ),
+      );
+    }
+
+    final color = canJoin ? Colors.greenAccent.shade700 : _ClassTokens.primary;
+    return Container(
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
-      child: Text(
-        canJoin ? 'ENTRAR' : 'RESERVAR',
-        style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w800),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: onPressed,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  canJoin ? 'ENTRAR' : 'RESERVAR',
+                  style: AppTextStyles.labelLarge.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Icon(
+                  canJoin
+                      ? Icons.arrow_forward_rounded
+                      : Icons.bookmark_add_rounded,
+                  size: 18,
+                  color: color,
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -604,6 +752,7 @@ class _JoinClassSheet extends ConsumerStatefulWidget {
 class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
   final _codeCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  bool _isProcessing = false;
 
   @override
   void dispose() {
@@ -615,7 +764,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
     final result = await Navigator.of(context).push<String>(
       MaterialPageRoute(builder: (_) => const _QRScannerScreen()),
     );
-    
+
     if (!mounted) return;
 
     if (result != null && result.isNotEmpty) {
@@ -627,39 +776,52 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
   }
 
   Future<void> _enroll() async {
-    if (_formKey.currentState == null || !_formKey.currentState!.validate()) return;
+    if (_formKey.currentState == null || !_formKey.currentState!.validate()) {
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
     final code = _codeCtrl.text.trim();
 
-    final notifier = ref.read(classroomEnrollNotifierProvider.notifier);
-    final success = await notifier.enrollByCode(code);
+    try {
+      final notifier = ref.read(classroomEnrollNotifierProvider.notifier);
+      final success = await notifier.enrollByCode(code);
 
-    if (!mounted) return;
+      if (!mounted) return;
 
-    if (success) {
-      ref.invalidate(virtualClassesProvider);
-      navigator.pop();
-      scaffoldMessenger.showSnackBar(
-        const SnackBar(
-          content: Text('¡Inscrito al aula virtual con éxito!'),
-          backgroundColor: Colors.greenAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-    } else {
-      scaffoldMessenger.showSnackBar(
-        SnackBar(
-          content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
-          backgroundColor: Colors.redAccent,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
+      if (success) {
+        ref.invalidate(virtualClassesProvider);
+        navigator.pop();
+        scaffoldMessenger.showSnackBar(
+          const SnackBar(
+            content: Text('¡Inscrito al aula virtual con éxito!'),
+            backgroundColor: Colors.greenAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      } else {
+        scaffoldMessenger.showSnackBar(
+          SnackBar(
+            content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
+            backgroundColor: Colors.redAccent,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
       child: BackdropFilter(
@@ -672,9 +834,13 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
             MediaQuery.of(context).viewInsets.bottom + 40,
           ),
           decoration: BoxDecoration(
-            color: _ClassTokens.surface.withValues(alpha: 0.9),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-            border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+            color: _ClassTokens.surface(context).withValues(alpha: 0.95),
+            borderRadius:
+                const BorderRadius.vertical(top: Radius.circular(32)),
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black)
+                  .withValues(alpha: 0.08),
+            ),
           ),
           child: SingleChildScrollView(
             child: Form(
@@ -683,35 +849,45 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // Handle
                   Center(
                     child: Container(
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.1),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(10),
                       ),
                     ),
                   ),
                   const SizedBox(height: 32),
+
+                  // Título
                   Text(
-                    'Unirse a un Aula',
+                    'Unirse a un Aula Virtual',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.headlineSmall.copyWith(
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : Colors.black87,
                       letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 12),
+
+                  // Subtítulo
                   Text(
-                    'Ingresa el código de 6 caracteres o escanea el código QR de tu profesor.',
+                    'Ingresa el código de 6 caracteres proporcionado por tu profesor',
                     textAlign: TextAlign.center,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: Colors.white.withValues(alpha: 0.5),
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.5)
+                          : Colors.black54,
                     ),
                   ),
                   const SizedBox(height: 40),
+
+                  // Campo de código
                   TextFormField(
                     controller: _codeCtrl,
                     maxLength: 6,
@@ -724,19 +900,21 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                     ),
                     validator: (val) {
                       if (val == null || val.trim().length != 6) {
-                        return 'Código inválido (6 caracteres)';
+                        return 'El código debe tener 6 caracteres';
                       }
                       return null;
                     },
                     decoration: InputDecoration(
-                      hintText: '000000',
+                      hintText: 'ABC123',
                       hintStyle: AppTextStyles.headlineMedium.copyWith(
-                        color: Colors.white.withValues(alpha: 0.05),
+                        color: (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.08),
                         letterSpacing: 12,
                       ),
                       counterText: '',
                       filled: true,
-                      fillColor: Colors.black.withValues(alpha: 0.2),
+                      fillColor: (isDark ? Colors.white : Colors.black)
+                          .withValues(alpha: 0.05),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide.none,
@@ -744,40 +922,55 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: BorderSide(
-                            color: Colors.white.withValues(alpha: 0.05)),
+                          color: (isDark ? Colors.white : Colors.black)
+                              .withValues(alpha: 0.08),
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(20),
                         borderSide: const BorderSide(
-                            color: _ClassTokens.primary, width: 2),
+                          color: _ClassTokens.primary,
+                          width: 2,
+                        ),
                       ),
                       contentPadding:
                           const EdgeInsets.symmetric(vertical: 24),
                     ),
                   ),
                   const SizedBox(height: 32),
+
+                  // Botones de acción
                   Row(
                     children: [
+                      // Escanear QR
                       Expanded(
                         child: OutlinedButton.icon(
-                          onPressed: _scanQR,
-                          icon: const Icon(Icons.qr_code_scanner_rounded,
-                              size: 20),
-                          label: const Text('ESCANEAR'),
+                          onPressed: _isProcessing ? null : _scanQR,
+                          icon: const Icon(
+                            Icons.qr_code_scanner_rounded,
+                            size: 20,
+                          ),
+                          label: const Text('Escanear'),
                           style: OutlinedButton.styleFrom(
                             padding:
                                 const EdgeInsets.symmetric(vertical: 18),
-                            foregroundColor: Colors.white,
+                            foregroundColor:
+                                isDark ? Colors.white : Colors.black87,
                             side: BorderSide(
-                                color: Colors.white.withValues(alpha: 0.1)),
+                              color: (isDark ? Colors.white : Colors.black)
+                                  .withValues(alpha: 0.15),
+                            ),
                             shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
                           ),
                         ),
                       ),
                       const SizedBox(width: 16),
+                      // Unirse
                       Expanded(
-                        child: DecoratedBox(
+                        flex: 2,
+                        child: Container(
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(16),
                             gradient: _ClassTokens.brandGradient,
@@ -790,21 +983,41 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                               ),
                             ],
                           ),
-                          child: ElevatedButton(
-                            onPressed: _enroll,
+                          child: ElevatedButton.icon(
+                            onPressed: _isProcessing ? null : _enroll,
+                            icon: _isProcessing
+                                ? const SizedBox(
+                                    width: 20,
+                                    height: 20,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Icon(
+                                    Icons.login_rounded,
+                                    color: Colors.white,
+                                  ),
+                            label: Text(
+                              _isProcessing
+                                  ? 'Uniendo...'
+                                  : 'Unirse ahora',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.transparent,
-                              foregroundColor: Colors.white,
                               shadowColor: Colors.transparent,
-                              padding:
-                                  const EdgeInsets.symmetric(vertical: 18),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 18,
+                              ),
                               shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(16)),
+                                borderRadius: BorderRadius.circular(16),
+                              ),
                               elevation: 0,
                             ),
-                            child: const Text('UNIRSE',
-                                style:
-                                    TextStyle(fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -820,20 +1033,24 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
   }
 }
 
-/// QR Scanner — temporarily disabled while mobile_scanner migrates to Built-in Kotlin.
-/// Shows a friendly "coming soon" message instead of crashing.
+/// QR Scanner — temporalmente deshabilitado mientras mobile_scanner migra a Kotlin.
 class _QRScannerScreen extends StatelessWidget {
   const _QRScannerScreen();
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: isDark ? const Color(0xFF1A1A2E) : Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.close_rounded, color: Colors.white),
+          icon: Icon(
+            Icons.close_rounded,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
       ),
@@ -843,33 +1060,66 @@ class _QRScannerScreen extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.qr_code_scanner_rounded,
-                  size: 80, color: Colors.white24),
-              const SizedBox(height: 24),
-              const Text(
-                'Escáner QR\nPróximamente',
-                textAlign: TextAlign.center,
+              Container(
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.05),
+                ),
+                child: Icon(
+                  Icons.qr_code_scanner_rounded,
+                  size: 80,
+                  color: isDark ? Colors.white24 : Colors.black26,
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                'Escáner QR',
                 style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 22,
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontSize: 24,
                   fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Próximamente disponible',
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.5)
+                      : Colors.black54,
+                  fontSize: 16,
                 ),
               ),
               const SizedBox(height: 12),
               Text(
-                'Ingresa el código manualmente por ahora.',
+                'Por ahora, ingresa el código manualmente',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
-              ),
-              const SizedBox(height: 32),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                style: TextStyle(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.3)
+                      : Colors.black38,
+                  fontSize: 14,
                 ),
-                child: const Text('Volver', style: TextStyle(color: Colors.white)),
+              ),
+              const SizedBox(height: 40),
+              ElevatedButton.icon(
+                onPressed: () => Navigator.pop(context),
+                icon: const Icon(Icons.arrow_back_rounded),
+                label: const Text('Volver'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _ClassTokens.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 14,
+                  ),
+                ),
               ),
             ],
           ),

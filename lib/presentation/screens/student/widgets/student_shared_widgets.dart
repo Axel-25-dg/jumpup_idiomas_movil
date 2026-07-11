@@ -20,19 +20,21 @@ class StudentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 8),
       decoration: BoxDecoration(
-        color: color ?? AppColors.white,
+        color: color ?? (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.white),
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: [
+        boxShadow: isDark ? [] : [
           BoxShadow(
             color: AppColors.shadow.withValues(alpha: 0.05),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
         ],
-        border: Border.all(color: AppColors.divider.withValues(alpha: 0.5)),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : AppColors.divider.withValues(alpha: 0.5)),
       ),
       child: Material(
         color: Colors.transparent,
@@ -100,11 +102,12 @@ class CustomProgressBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: height,
       width: double.infinity,
       decoration: BoxDecoration(
-        color: AppColors.divider.withValues(alpha: 0.5),
+        color: isDark ? Colors.white10 : AppColors.divider.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(height / 2),
       ),
       child: FractionallySizedBox(
@@ -137,6 +140,7 @@ class StatBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
@@ -158,7 +162,7 @@ class StatBadge extends StatelessWidget {
         Text(
           label,
           style: AppTextStyles.labelSmall.copyWith(
-            color: AppColors.textSecondary,
+            color: isDark ? Colors.white54 : AppColors.textSecondary,
           ),
         ),
       ],
@@ -182,6 +186,7 @@ class SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Row(
@@ -191,7 +196,7 @@ class SectionHeader extends StatelessWidget {
             title,
             style: AppTextStyles.titleLarge.copyWith(
               fontWeight: FontWeight.w700,
-              color: textColor ?? AppColors.textPrimary,
+              color: textColor ?? (isDark ? Colors.white : AppColors.textPrimary),
             ),
           ),
           if (actionLabel != null)

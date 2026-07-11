@@ -14,8 +14,10 @@ class AchievementsScreen extends ConsumerWidget {
     final allAsync = ref.watch(achievementsProvider);
     final myAsync = ref.watch(myAchievementsProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
@@ -84,9 +86,12 @@ class AchievementsScreen extends ConsumerWidget {
                           child: Container(
                             padding: const EdgeInsets.all(20),
                             decoration: BoxDecoration(
-                              color: AppColors.white,
+                              color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.white,
                               borderRadius: BorderRadius.circular(20),
-                              boxShadow: [
+                              border: Border.all(
+                                color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.transparent,
+                              ),
+                              boxShadow: isDark ? [] : [
                                 BoxShadow(
                                   color: AppColors.primary.withValues(alpha: 0.08),
                                   blurRadius: 20,
@@ -113,7 +118,7 @@ class AchievementsScreen extends ConsumerWidget {
                                       Text(
                                         'Progreso de Colección',
                                         style: AppTextStyles.labelMedium.copyWith(
-                                          color: AppColors.textSecondary,
+                                          color: isDark ? Colors.white70 : AppColors.textSecondary,
                                           fontWeight: FontWeight.w600,
                                         ),
                                       ),
@@ -122,7 +127,7 @@ class AchievementsScreen extends ConsumerWidget {
                                         '${unlocked.length} de ${allAchievements.length} desbloqueados',
                                         style: AppTextStyles.headlineSmall.copyWith(
                                           fontWeight: FontWeight.w800,
-                                          color: AppColors.textPrimary,
+                                          color: isDark ? Colors.white : AppColors.textPrimary,
                                         ),
                                       ),
                                       const SizedBox(height: 12),
@@ -190,9 +195,13 @@ class _AchievementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return StudentCard(
       padding: EdgeInsets.zero,
-      color: isUnlocked ? AppColors.white : AppColors.white.withValues(alpha: 0.6),
+      color: isUnlocked 
+          ? (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.white)
+          : (isDark ? Colors.white.withValues(alpha: 0.02) : AppColors.white.withValues(alpha: 0.6)),
       child: Stack(
         children: [
           Padding(
@@ -206,14 +215,14 @@ class _AchievementCard extends StatelessWidget {
                     gradient: isUnlocked
                         ? AppColors.primaryGradient
                         : LinearGradient(colors: [
-                            AppColors.textHint.withValues(alpha: 0.2),
-                            AppColors.textHint.withValues(alpha: 0.1),
+                            isDark ? Colors.white10 : AppColors.textHint.withValues(alpha: 0.2),
+                            isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.textHint.withValues(alpha: 0.1),
                           ]),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Icon(
                     isUnlocked ? Icons.emoji_events_rounded : Icons.lock_rounded,
-                    color: isUnlocked ? Colors.white : AppColors.textHint,
+                    color: isUnlocked ? Colors.white : (isDark ? Colors.white24 : AppColors.textHint),
                     size: 30,
                   ),
                 ),
@@ -225,7 +234,9 @@ class _AchievementCard extends StatelessWidget {
                       Text(
                         achievement.name,
                         style: AppTextStyles.titleMedium.copyWith(
-                          color: isUnlocked ? AppColors.textPrimary : AppColors.textSecondary,
+                          color: isUnlocked 
+                              ? (isDark ? Colors.white : AppColors.textPrimary) 
+                              : (isDark ? Colors.white54 : AppColors.textSecondary),
                           fontWeight: FontWeight.w700,
                         ),
                       ),
@@ -233,7 +244,7 @@ class _AchievementCard extends StatelessWidget {
                       Text(
                         achievement.description,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: AppColors.textSecondary,
+                          color: isDark ? Colors.white38 : AppColors.textSecondary,
                         ),
                       ),
                       if (isUnlocked && unlockedAt != null) ...[
@@ -262,7 +273,7 @@ class _AchievementCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: isUnlocked
                         ? AppColors.primary.withValues(alpha: 0.1)
-                        : AppColors.divider.withValues(alpha: 0.5),
+                        : (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.divider.withValues(alpha: 0.5)),
                     borderRadius: BorderRadius.circular(10),
                   ),
                   child: Column(
@@ -270,14 +281,14 @@ class _AchievementCard extends StatelessWidget {
                       Text(
                         '${achievement.requiredXp}',
                         style: AppTextStyles.labelLarge.copyWith(
-                          color: isUnlocked ? AppColors.primary : AppColors.textHint,
+                          color: isUnlocked ? AppColors.primary : (isDark ? Colors.white24 : AppColors.textHint),
                           fontWeight: FontWeight.w800,
                         ),
                       ),
                       Text(
                         'XP',
                         style: AppTextStyles.labelSmall.copyWith(
-                          color: isUnlocked ? AppColors.primary : AppColors.textHint,
+                          color: isUnlocked ? AppColors.primary : (isDark ? Colors.white24 : AppColors.textHint),
                           fontSize: 10,
                         ),
                       ),
@@ -291,7 +302,7 @@ class _AchievementCard extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: isDark ? Colors.black.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.3),
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),

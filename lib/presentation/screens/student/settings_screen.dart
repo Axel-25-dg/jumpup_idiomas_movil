@@ -244,6 +244,7 @@ class SettingsScreen extends ConsumerWidget {
     final controller = TextEditingController();
     String? selectedCategory;
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     showDialog(
       context: context,
@@ -251,23 +252,31 @@ class SettingsScreen extends ConsumerWidget {
         builder: (ctx, setDialogState) => BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
           child: AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2E),
+            backgroundColor: Theme.of(context).scaffoldBackgroundColor,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(24),
-              side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+              side: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black12),
             ),
             title: Text(
               l10n.sendFeedback,
-              style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+              style: AppTextStyles.titleLarge.copyWith(
+                color: isDark ? Colors.white : Colors.black87,
+                fontWeight: FontWeight.w800,
+              ),
             ),
             content: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 DropdownButtonFormField<String>(
                   initialValue: selectedCategory,
-                  dropdownColor: const Color(0xFF2A2D3E),
-                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
-                  hint: Text(l10n.category, style: const TextStyle(color: Colors.white54)),
+                  dropdownColor: isDark ? const Color(0xFF2A2D3E) : Colors.white,
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                  hint: Text(
+                    l10n.category,
+                    style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                  ),
                   items: [
                     DropdownMenuItem(value: 'bug', child: Text(l10n.bug)),
                     DropdownMenuItem(value: 'feature', child: Text(l10n.feature)),
@@ -277,7 +286,7 @@ class SettingsScreen extends ConsumerWidget {
                   onChanged: (v) => setDialogState(() => selectedCategory = v),
                   decoration: InputDecoration(
                     filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.2),
+                    fillColor: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                     contentPadding: const EdgeInsets.symmetric(horizontal: 12),
                   ),
@@ -286,12 +295,14 @@ class SettingsScreen extends ConsumerWidget {
                 TextField(
                   controller: controller,
                   maxLines: 4,
-                  style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                  style: AppTextStyles.bodyMedium.copyWith(
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
                   decoration: InputDecoration(
                     hintText: l10n.feedbackHint,
-                    hintStyle: const TextStyle(color: Colors.white24),
+                    hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
                     filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.2),
+                    fillColor: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.grey.withValues(alpha: 0.1),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
                 ),
@@ -300,7 +311,10 @@ class SettingsScreen extends ConsumerWidget {
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.cancel.toUpperCase(), style: const TextStyle(color: Colors.white54)),
+                child: Text(
+                  l10n.cancel.toUpperCase(),
+                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                ),
               ),
               ElevatedButton(
                 onPressed: () async {

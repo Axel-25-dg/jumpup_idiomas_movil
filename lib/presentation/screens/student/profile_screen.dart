@@ -161,7 +161,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final isSaving = updateState.isLoading;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Positioned(top: -50, left: -50, child: _blob(Colors.purpleAccent, 250)),
@@ -250,15 +250,18 @@ class _ProfileHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: double.infinity,
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [Color(0xFF1A0533), Color(0xFF0F111A)],
+          colors: isDark 
+            ? [const Color(0xFF1A0533), const Color(0xFF0F111A)]
+            : [Colors.purpleAccent.withValues(alpha: 0.1), Theme.of(context).scaffoldBackgroundColor],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
@@ -274,8 +277,8 @@ class _ProfileHeader extends StatelessWidget {
                   const Spacer(),
                   IconButton(
                     onPressed: onSettingsTap,
-                    icon: const Icon(Icons.settings_outlined,
-                        color: Colors.white, size: 22),
+                    icon: Icon(Icons.settings_outlined,
+                        color: isDark ? Colors.white : Colors.black87, size: 22),
                     tooltip: l10n.settings,
                   ),
                 ],
@@ -308,9 +311,9 @@ class _ProfileHeader extends StatelessWidget {
                   ),
                   child: Container(
                     padding: const EdgeInsets.all(3),
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Color(0xFF1E1E2E),
+                      color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
                     ),
                     child: UserAvatar(
                       imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
@@ -326,7 +329,7 @@ class _ProfileHeader extends StatelessWidget {
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF0F111A), width: 2.5),
+                      border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 2.5),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.purpleAccent.withValues(alpha: 0.4),
@@ -355,7 +358,7 @@ class _ProfileHeader extends StatelessWidget {
             Text(
               fullName,
               style: AppTextStyles.headlineMedium.copyWith(
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black87,
                 fontWeight: FontWeight.w800,
                 letterSpacing: -0.3,
               ),
@@ -367,10 +370,10 @@ class _ProfileHeader extends StatelessWidget {
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
                     width: 1,
                   ),
                 ),
@@ -379,12 +382,12 @@ class _ProfileHeader extends StatelessWidget {
                   children: [
                     Icon(Icons.email_outlined,
                         size: 14,
-                        color: Colors.white.withValues(alpha: 0.6)),
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.6)),
                     const SizedBox(width: 6),
                     Text(
                       email,
                       style: AppTextStyles.bodySmall.copyWith(
-                        color: Colors.white.withValues(alpha: 0.8),
+                        color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.8),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -440,18 +443,19 @@ class _ActionButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           gradient: isPrimary ? const LinearGradient(colors: [Colors.purpleAccent, Colors.blueAccent]) : null,
-          color: isPrimary ? null : Colors.white.withValues(alpha: 0.05),
+          color: isPrimary ? null : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(14),
           border: isPrimary
               ? null
               : Border.all(
-                  color: Colors.white.withValues(alpha: 0.1), width: 1),
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1), width: 1),
           boxShadow: isPrimary
               ? [
                   BoxShadow(
@@ -468,13 +472,13 @@ class _ActionButton extends StatelessWidget {
             Icon(
               icon,
               size: 18,
-              color: Colors.white,
+              color: isPrimary ? Colors.white : (isDark ? Colors.white : Colors.black87),
             ),
             const SizedBox(width: 8),
             Text(
               label,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isPrimary ? Colors.white : (isDark ? Colors.white : Colors.black87),
                 fontWeight: FontWeight.w700,
                 fontSize: 13,
                 letterSpacing: 0.2,
@@ -511,6 +515,7 @@ class _ProfileInfoSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(8),
@@ -523,7 +528,7 @@ class _ProfileInfoSection extends StatelessWidget {
               l10n.personalInformation,
               style: AppTextStyles.titleMedium.copyWith(
                 fontWeight: FontWeight.w700,
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black87,
               ),
             ),
           ),
@@ -597,6 +602,7 @@ class _InfoTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       child: Row(
@@ -618,7 +624,7 @@ class _InfoTile extends StatelessWidget {
                 Text(
                   label,
                   style: AppTextStyles.labelSmall.copyWith(
-                    color: Colors.white54,
+                    color: isDark ? Colors.white54 : Colors.black54,
                     fontWeight: FontWeight.w500,
                   ),
                 ),
@@ -626,7 +632,7 @@ class _InfoTile extends StatelessWidget {
                 Text(
                   value,
                   style: AppTextStyles.bodyMedium.copyWith(
-                    color: Colors.white,
+                    color: isDark ? Colors.white : Colors.black87,
                     fontWeight: FontWeight.w600,
                   ),
                   maxLines: 1,
@@ -654,17 +660,18 @@ class _EditableField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
       child: TextFormField(
         controller: controller,
-        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500, color: Colors.white),
+        style: AppTextStyles.bodyMedium.copyWith(fontWeight: FontWeight.w500, color: isDark ? Colors.white : Colors.black87),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.white54),
+          labelStyle: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
           prefixIcon: Icon(icon, size: 20, color: Colors.blueAccent),
           filled: true,
-          fillColor: Colors.white.withValues(alpha: 0.05),
+          fillColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           border: OutlineInputBorder(
@@ -695,6 +702,7 @@ class _DangerZone extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(8),
@@ -708,7 +716,7 @@ class _DangerZone extends StatelessWidget {
                 l10n.account,
                 style: AppTextStyles.titleMedium.copyWith(
                   fontWeight: FontWeight.w700,
-                  color: Colors.white,
+                  color: isDark ? Colors.white : Colors.black87,
                 ),
               ),
             ),
@@ -734,7 +742,7 @@ class _DangerZone extends StatelessWidget {
             ),
             subtitle: Text(
               l10n.logoutSubtitle,
-              style: const TextStyle(color: Colors.white54, fontSize: 11),
+              style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 11),
             ),
             trailing: Icon(Icons.chevron_right_rounded,
                 color: AppColors.error.withValues(alpha: 0.6)),

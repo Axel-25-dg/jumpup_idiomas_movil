@@ -13,32 +13,34 @@ class CatalogScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final coursesAsync = ref.watch(coursesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           // Background Blobs
-          Positioned(
-            top: -50,
-            right: -50,
-            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: 0.1), size: 300),
-          ),
+          if (isDark)
+            Positioned(
+              top: -50,
+              right: -50,
+              child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: 0.1), size: 300),
+            ),
           
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
-              _CatalogHeader(ref: ref),
+              _CatalogHeader(ref: ref, isDark: isDark),
               coursesAsync.when(
                 loading: () => const SliverFillRemaining(
                   child: Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
                 ),
                 error: (e, _) => SliverFillRemaining(
-                  child: _ErrorState(onRetry: () => ref.invalidate(coursesProvider)),
+                  child: _ErrorState(onRetry: () => ref.invalidate(coursesProvider), isDark: isDark),
                 ),
                 data: (courses) {
                   if (courses.isEmpty) {
-                    return const SliverFillRemaining(child: _EmptyState());
+                    return SliverFillRemaining(child: _EmptyState(isDark: isDark));
                   }
                   return SliverPadding(
                     padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -54,7 +56,7 @@ class CatalogScreen extends ConsumerWidget {
                           final course = courses[index];
                           return FadeInUp(
                             duration: Duration(milliseconds: 400 + (index * 100)),
-                            child: _CourseCard(course: course),
+                            child: _CourseCard(course: course, isDark: isDark),
                           );
                         },
                         childCount: courses.length,
@@ -74,7 +76,8 @@ class CatalogScreen extends ConsumerWidget {
 
 class _CatalogHeader extends StatelessWidget {
   final WidgetRef ref;
-  const _CatalogHeader({required this.ref});
+  final bool isDark;
+  const _CatalogHeader({required this.ref, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
@@ -83,15 +86,18 @@ class _CatalogHeader extends StatelessWidget {
     return SliverAppBar(
       expandedHeight: 120,
       pinned: true,
-      backgroundColor: const Color(0xFF0F111A).withValues(alpha: 0.8),
+      backgroundColor: isDark 
+          ? const Color(0xFF0F111A).withValues(alpha: 0.8)
+          : Colors.white.withValues(alpha: 0.9),
       elevation: 0,
+      iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
       flexibleSpace: FlexibleSpaceBar(
         centerTitle: false,
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
         title: Text(
           'Explorar Cursos',
           style: AppTextStyles.headlineSmall.copyWith(
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -103,7 +109,7 @@ class _CatalogHeader extends StatelessWidget {
             alignment: Alignment.center,
             children: [
               IconButton(
-                icon: const Icon(Icons.shopping_bag_outlined, color: Colors.white, size: 28),
+                icon: Icon(Icons.shopping_bag_outlined, color: isDark ? Colors.white : Colors.black87, size: 28),
                 onPressed: () => context.push('/cart'),
               ),
               if (cartCount > 0)
@@ -134,18 +140,19 @@ class _CatalogHeader extends StatelessWidget {
 
 class _CourseCard extends StatelessWidget {
   final dynamic course;
-  const _CourseCard({required this.course});
+  final bool isDark;
+  const _CourseCard({required this.course, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E1E2E),
+        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
             blurRadius: 10,
             offset: const Offset(0, 5),
           ),
@@ -192,7 +199,10 @@ class _CourseCard extends StatelessWidget {
                     course.title,
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: isDark ? Colors.white : Colors.black87, 
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Row(
@@ -201,7 +211,10 @@ class _CourseCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         course.difficultyLevel,
-                        style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 11),
+                        style: TextStyle(
+                          color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54, 
+                          fontSize: 11,
+                        ),
                       ),
                     ],
                   ),
@@ -232,18 +245,29 @@ class _CourseCard extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState();
+  final bool isDark;
+  const _EmptyState({required this.isDark});
   @override
   Widget build(BuildContext context) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.school_outlined, size: 80, color: Colors.white10),
+          Icon(Icons.school_outlined, size: 80, color: isDark ? Colors.white10 : Colors.black12),
           const SizedBox(height: 24),
-          const Text('No hay cursos aún', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text(
+            'No hay cursos aún', 
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black87, 
+              fontSize: 18, 
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 8),
-          Text('Vuelve pronto para nuevas sorpresas.', style: TextStyle(color: Colors.white.withValues(alpha: 0.4))),
+          Text(
+            'Vuelve pronto para nuevas sorpresas.', 
+            style: TextStyle(color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45),
+          ),
         ],
       ),
     );
@@ -252,7 +276,8 @@ class _EmptyState extends StatelessWidget {
 
 class _ErrorState extends StatelessWidget {
   final VoidCallback onRetry;
-  const _ErrorState({required this.onRetry});
+  final bool isDark;
+  const _ErrorState({required this.onRetry, required this.isDark});
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -261,7 +286,7 @@ class _ErrorState extends StatelessWidget {
         children: [
           const Icon(Icons.error_outline_rounded, size: 60, color: Colors.redAccent),
           const SizedBox(height: 20),
-          const Text('Error al cargar catálogo', style: TextStyle(color: Colors.white)),
+          Text('Error al cargar catálogo', style: TextStyle(color: isDark ? Colors.white : Colors.black87)),
           TextButton(onPressed: onRetry, child: const Text('Reintentar')),
         ],
       ),

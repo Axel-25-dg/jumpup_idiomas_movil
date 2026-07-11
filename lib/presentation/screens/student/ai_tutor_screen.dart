@@ -63,7 +63,7 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
     final mySubAsync = ref.watch(mySubscriptionProvider);
     final isPro = mySubAsync.value?.isActive ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF0D0D15) : const Color(0xFFF0F4F8);
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
     return Scaffold(
       backgroundColor: bgColor,
@@ -71,27 +71,28 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
       body: Stack(
         children: [
           // Background Gradient
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.blueAccent.withValues(alpha: 0.15),
-                boxShadow: [
-                  BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.3), blurRadius: 100),
-                ],
+          if (isDark)
+            Positioned(
+              top: -100,
+              right: -100,
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.blueAccent.withValues(alpha: 0.15),
+                  boxShadow: [
+                    BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.3), blurRadius: 100),
+                  ],
+                ),
               ),
             ),
-          ),
           Column(
             children: [
               // Subscription required banner
               if (!isPro && mySubAsync.hasValue)
                 _SubscriptionBanner(
-                  onUpgrade: () => GoRouter.of(context).push(AppRoutes.studentSubscriptions),
+                  onUpgrade: () => context.push(AppRoutes.studentSubscriptions),
                 ),
               if (chatState.error != null)
                 Container(
@@ -141,8 +142,8 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
                         return _TypingIndicator();
                       }
                       final msg = chatState.messages[index];
-                      // Determine if it's bot or user based on senderName or senderId
-                      final isBot = msg.senderName.contains('AI') || msg.senderId == 0;
+                      // Determine if it's bot or user based on senderName
+                      final isBot = msg.senderName == 'AI Tutor' || msg.senderId == 0;
                       
                       final showQuickReplies = index == 0 && chatState.messages.length == 1 && !chatState.isLoading;
                       return Column(
@@ -179,11 +180,12 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
 
   AppBar _buildAppBar(bool isDark) {
     final bgColor = isDark ? const Color(0xFF0D0D15) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       centerTitle: false,
-      iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
+      iconTheme: IconThemeData(color: textColor),
       flexibleSpace: ClipRRect(
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
@@ -208,9 +210,9 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'AI Tutor',
-                style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 18),
+                style: TextStyle(color: textColor, fontWeight: FontWeight.w900, fontSize: 18),
               ),
               Row(
                 children: [
@@ -224,7 +226,7 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
                     ),
                   ),
                   const SizedBox(width: 6),
-                  const Text('Online', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                  Text('Online', style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 10, fontWeight: FontWeight.bold)),
                 ],
               ),
             ],
@@ -325,6 +327,9 @@ class _QuickRepliesRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 20, top: 10),
       child: Wrap(
@@ -335,7 +340,8 @@ class _QuickRepliesRow extends StatelessWidget {
           child: GlassContainer(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             borderRadius: BorderRadius.circular(20),
-            child: Text(r, style: const TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w500)),
+            opacity: isDark ? 0.2 : 0.05,
+            child: Text(r, style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500)),
           ),
         )).toList(),
       ),
@@ -346,14 +352,17 @@ class _QuickRepliesRow extends StatelessWidget {
 class _TypingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF232336) : Colors.black.withValues(alpha: 0.05);
+
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: const BoxDecoration(
-          color: Color(0xFF232336),
-          borderRadius: BorderRadius.only(
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
             bottomRight: Radius.circular(20),

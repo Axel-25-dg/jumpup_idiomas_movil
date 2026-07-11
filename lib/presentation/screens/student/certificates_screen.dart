@@ -14,20 +14,21 @@ class CertificatesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final certsAsync = ref.watch(certificatesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : Colors.black87),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
           'Mis Certificados',
           style: AppTextStyles.titleLarge.copyWith(
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w800,
           ),
         ),
@@ -40,7 +41,7 @@ class CertificatesScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 64),
               const SizedBox(height: 16),
-              Text('Error al cargar certificados', style: AppTextStyles.titleMedium.copyWith(color: Colors.white)),
+              Text('Error al cargar certificados', style: AppTextStyles.titleMedium.copyWith(color: isDark ? Colors.white : Colors.black87)),
               TextButton(onPressed: () => ref.refresh(certificatesProvider), child: const Text('Reintentar')),
             ],
           ),
@@ -61,14 +62,14 @@ class CertificatesScreen extends ConsumerWidget {
                       child: Icon(Icons.workspace_premium_outlined, color: Colors.blueAccent.withValues(alpha: 0.5), size: 100),
                     ),
                     const SizedBox(height: 24),
-                    Text('Aún no tienes certificados', style: AppTextStyles.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                    Text('Aún no tienes certificados', style: AppTextStyles.headlineSmall.copyWith(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 12),
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 40),
                       child: Text(
                         'Completa un curso para obtener tu primer certificado oficial y compartirlo con el mundo.',
                         textAlign: TextAlign.center,
-                        style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54),
+                        style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54),
                       ),
                     ),
                     const SizedBox(height: 32),
@@ -107,6 +108,8 @@ class _CertificateCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return GlassContainer(
       margin: const EdgeInsets.only(bottom: 24),
       padding: EdgeInsets.zero,
@@ -118,7 +121,9 @@ class _CertificateCard extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.blueAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.05)],
+                colors: isDark 
+                  ? [Colors.blueAccent.withValues(alpha: 0.2), Colors.purpleAccent.withValues(alpha: 0.05)]
+                  : [Colors.blueAccent.withValues(alpha: 0.1), Colors.blueAccent.withValues(alpha: 0.05)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
@@ -150,7 +155,10 @@ class _CertificateCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         certificate.courseName,
-                        style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+                        style: AppTextStyles.titleMedium.copyWith(
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontWeight: FontWeight.w800,
+                        ),
                       ),
                     ],
                   ),
@@ -163,18 +171,31 @@ class _CertificateCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _InfoRow(label: 'Fecha de emisión', value: _formatDate(certificate.issueDate)),
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(color: Colors.white10),
+                _InfoRow(
+                  label: 'Fecha de emisión', 
+                  value: _formatDate(certificate.issueDate),
+                  isDark: isDark,
                 ),
-                _InfoRow(label: 'Código de validación', value: certificate.code),
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  child: Divider(color: isDark ? Colors.white10 : Colors.black12),
+                ),
+                _InfoRow(
+                  label: 'Código de validación', 
+                  value: certificate.code,
+                  isDark: isDark,
+                ),
                 if (certificate.score != null) ...[
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12),
-                    child: Divider(color: Colors.white10),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Divider(color: isDark ? Colors.white10 : Colors.black12),
                   ),
-                  _InfoRow(label: 'Calificación final', value: '${certificate.score}%', valueColor: Colors.greenAccent),
+                  _InfoRow(
+                    label: 'Calificación final', 
+                    value: '${certificate.score}%', 
+                    valueColor: Colors.greenAccent,
+                    isDark: isDark,
+                  ),
                 ],
                 const SizedBox(height: 32),
                 Center(
@@ -193,7 +214,7 @@ class _CertificateCard extends StatelessWidget {
                     ),
                     child: CustomPaint(
                       size: const Size(120, 120),
-                      painter: _QrCodePainter(),
+                      painter: _QrCodePainter(isDark: isDark),
                     ),
                   ),
                 ),
@@ -201,7 +222,7 @@ class _CertificateCard extends StatelessWidget {
                 Center(
                   child: Text(
                     'Escanear para verificar autenticidad',
-                    style: AppTextStyles.labelSmall.copyWith(color: Colors.white38),
+                    style: AppTextStyles.labelSmall.copyWith(color: isDark ? Colors.white38 : Colors.black38),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -217,8 +238,8 @@ class _CertificateCard extends StatelessWidget {
                         icon: const Icon(Icons.share_rounded, size: 18),
                         label: const Text('COMPARTIR'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white24),
+                          foregroundColor: isDark ? Colors.white : Colors.black87,
+                          side: BorderSide(color: isDark ? Colors.white24 : Colors.black26),
                           padding: const EdgeInsets.symmetric(vertical: 16),
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                         ),
@@ -268,21 +289,22 @@ class _CertificateCard extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.label, required this.value, this.valueColor});
+  const _InfoRow({required this.label, required this.value, this.valueColor, required this.isDark});
   final String label;
   final String value;
   final Color? valueColor;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+        Text(label, style: AppTextStyles.bodySmall.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
         Text(
           value,
           style: AppTextStyles.bodySmall.copyWith(
-            color: valueColor ?? Colors.white,
+            color: valueColor ?? (isDark ? Colors.white : Colors.black87),
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -292,6 +314,9 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _QrCodePainter extends CustomPainter {
+  final bool isDark;
+  _QrCodePainter({required this.isDark});
+
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..color = Colors.white..style = PaintingStyle.fill;

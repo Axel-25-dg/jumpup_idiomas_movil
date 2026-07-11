@@ -115,19 +115,23 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     final hasUnread = _notifications.any((n) => !n.isRead);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final titleColor = isDark ? Colors.white : Colors.black87;
+    final iconColor = isDark ? Colors.white70 : Colors.black54;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: bgColor,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: bgColor,
         elevation: 0,
         centerTitle: true,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: Icon(Icons.arrow_back_ios_new_rounded, color: iconColor, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text('Notificaciones',
-            style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+            style: AppTextStyles.titleLarge.copyWith(color: titleColor, fontWeight: FontWeight.w900)),
         actions: [
           if (hasUnread)
             TextButton(
@@ -136,46 +140,19 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   style: AppTextStyles.labelMedium.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
             ),
           IconButton(
-            icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+            icon: Icon(Icons.refresh_rounded, color: iconColor),
             onPressed: _fetchNotifications,
           ),
           const SizedBox(width: 8),
         ],
       ),
-      body: Stack(
-        children: [
-          // Background Blobs
-          Positioned(
-            top: -50,
-            right: -50,
-            child: Container(
-              width: 200,
-              height: 200,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100,
-            left: -30,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          _buildBody(),
-        ],
-      ),
+      body: _buildBody(),
     );
   }
 
   Widget _buildBody() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     if (_loading) {
       return const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF)));
     }
@@ -192,15 +169,15 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white24),
+                Icon(Icons.wifi_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
                 const SizedBox(height: 16),
                 Text('¡Vaya! Hubo un problema',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                    style: AppTextStyles.titleMedium.copyWith(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 8),
                 Text('No pudimos conectar con el centro de notificaciones.',
                     textAlign: TextAlign.center,
-                    style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+                    style: AppTextStyles.bodySmall.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
                 const SizedBox(height: 24),
                 FilledButton.icon(
                   onPressed: _loadAndConnect,
@@ -230,14 +207,14 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                 shape: BoxShape.circle,
                 color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
               ),
-              child: const Icon(Icons.notifications_none_rounded, size: 64, color: Colors.white24),
+              child: Icon(Icons.notifications_none_rounded, size: 64, color: isDark ? Colors.white24 : Colors.black26),
             ),
             const SizedBox(height: 24),
             Text('Todo al día por aquí',
-                style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+                style: AppTextStyles.titleLarge.copyWith(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w900)),
             const SizedBox(height: 8),
             Text('Te avisaremos cuando pase algo importante',
-                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+                style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
           ],
         ),
       );
@@ -263,7 +240,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text('Conectado en tiempo real',
-                      style: AppTextStyles.labelSmall.copyWith(color: Colors.white60, fontWeight: FontWeight.bold)),
+                      style: AppTextStyles.labelSmall.copyWith(color: isDark ? Colors.white60 : Colors.black45, fontWeight: FontWeight.bold)),
                 ],
               ),
             ),
@@ -296,6 +273,11 @@ class _NotificationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isUnread = !notification.isRead;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final titleColor = isDark ? Colors.white : Colors.black87;
+    final bodyColor = isUnread
+        ? (isDark ? Colors.white70 : Colors.black54)
+        : (isDark ? Colors.white38 : Colors.black38);
 
     return GlassContainer(
       opacity: isUnread ? 0.12 : 0.05,
@@ -333,7 +315,7 @@ class _NotificationCard extends StatelessWidget {
                             child: Text(
                               notification.title,
                               style: AppTextStyles.labelLarge.copyWith(
-                                color: Colors.white,
+                                color: titleColor,
                                 fontWeight: isUnread ? FontWeight.w900 : FontWeight.w600,
                               ),
                             ),
@@ -353,7 +335,7 @@ class _NotificationCard extends StatelessWidget {
                       Text(
                         notification.message,
                         style: AppTextStyles.bodySmall.copyWith(
-                          color: isUnread ? Colors.white70 : Colors.white38,
+                          color: bodyColor,
                           height: 1.4,
                         ),
                       ),

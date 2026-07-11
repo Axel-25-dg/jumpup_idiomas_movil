@@ -22,11 +22,11 @@ class GamesScreen extends ConsumerWidget {
     final rankingPositionAsync = ref.watch(myRankingPositionProvider);
     final mySubAsync = ref.watch(mySubscriptionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-
     final isPro = mySubAsync.value?.isActive ?? false;
 
     // Theme-aware colors
-    final bgColor = isDark ? const Color(0xFF0F111A) : const Color(0xFFF0F4F8);
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
     final headerGradient = isDark
         ? const [Color(0xFF1A0533), Color(0xFF0F111A)]
         : [const Color(0xFF1565C0), const Color(0xFF1976D2)];
@@ -35,16 +35,18 @@ class GamesScreen extends ConsumerWidget {
       backgroundColor: bgColor,
       body: Stack(
         children: [
-          // Neon background blobs
-          Positioned(top: -60, left: -60, child: _blob(Colors.orangeAccent, 200)),
-          Positioned(bottom: 100, right: -60, child: _blob(Colors.purpleAccent, 180)),
+          // Neon background blobs - solo en dark
+          if (isDark) ...[
+            Positioned(top: -60, left: -60, child: _blob(Colors.orangeAccent, 200)),
+            Positioned(bottom: 100, right: -60, child: _blob(Colors.purpleAccent, 180)),
+          ],
           CustomScrollView(
             physics: const BouncingScrollPhysics(),
             slivers: [
               SliverAppBar(
                 pinned: true,
                 expandedHeight: 160,
-                backgroundColor: Colors.transparent,
+                backgroundColor: isDark ? Colors.transparent : const Color(0xFF1565C0),
                 elevation: 0,
                 iconTheme: const IconThemeData(color: Colors.white),
                 flexibleSpace: FlexibleSpaceBar(
@@ -89,10 +91,10 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     if (!isPro) ...[
                       const SizedBox(height: 20),
-                      _ProBanner(onTap: () => GoRouter.of(context).push(AppRoutes.studentSubscriptions)),
+                      _ProBanner(onTap: () => context.push(AppRoutes.studentSubscriptions)),
                     ],
                     const SizedBox(height: 28),
-                    const Text('Minijuegos', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text('Minijuegos', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     _GameCard(
                       title: '🪢 Ahorcado',

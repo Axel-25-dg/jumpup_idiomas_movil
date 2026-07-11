@@ -12,30 +12,35 @@ class ProgressScreen extends ConsumerWidget {
     final summaryAsync = ref.watch(progressSummaryProvider);
     final statsAsync = ref.watch(userStatsProvider);
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Positioned(top: -80, right: -80, child: _blob(Colors.purpleAccent, 250)),
           Positioned(bottom: 100, left: -60, child: _blob(const Color(0xFF448AFF), 200)),
           RefreshIndicator(
             color: Colors.blueAccent,
-            backgroundColor: const Color(0xFF1E1E2E),
+            backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
             onRefresh: () async {
               return ref.refresh(progressSummaryProvider.future);
             },
             child: CustomScrollView(
               physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
               slivers: [
-                const SliverAppBar(
+                SliverAppBar(
                   pinned: true,
                   backgroundColor: Colors.transparent,
                   elevation: 0,
                   expandedHeight: 80,
                   flexibleSpace: FlexibleSpaceBar(
                     centerTitle: false,
-                    titlePadding: EdgeInsets.fromLTRB(24, 0, 0, 16),
-                    title: Text('Mi Progreso', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 22)),
+                    titlePadding: const EdgeInsets.fromLTRB(24, 0, 0, 16),
+                    title: Text('Mi Progreso', style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87, 
+                      fontWeight: FontWeight.w900, 
+                      fontSize: 22
+                    )),
                   ),
                 ),
                 SliverPadding(
@@ -63,11 +68,15 @@ class ProgressScreen extends ConsumerWidget {
                         data: (s) => _CourseStatsCard(summary: s),
                       ),
                       const SizedBox(height: 24),
-                      const Row(
+                      Row(
                         children: [
-                          Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
-                          SizedBox(width: 8),
-                          Text('Mis Logros', style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold)),
+                          const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
+                          const SizedBox(width: 8),
+                          Text('Mis Logros', style: TextStyle(
+                            color: isDark ? Colors.white : Colors.black87, 
+                            fontSize: 20, 
+                            fontWeight: FontWeight.bold
+                          )),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -101,6 +110,8 @@ class _XPCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final progress = stats.levelProgress.clamp(0.0, 1.0);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return GlassContainer(
       borderRadius: BorderRadius.circular(28),
       padding: const EdgeInsets.all(24),
@@ -132,7 +143,7 @@ class _XPCard extends StatelessWidget {
                     child: CircularProgressIndicator(
                       value: 1,
                       strokeWidth: 8,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white.withValues(alpha: 0.05)),
+                      valueColor: AlwaysStoppedAnimation<Color>((isDark ? Colors.white : Colors.black).withValues(alpha: 0.05)),
                     ),
                   ),
                   SizedBox(
@@ -150,8 +161,8 @@ class _XPCard extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Text('${(progress * 100).toInt()}%', 
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-                      const Text('EXP', style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
+                      Text('EXP', style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 10, fontWeight: FontWeight.bold)),
                     ],
                   ),
                 ],
@@ -172,28 +183,28 @@ class _XPCard extends StatelessWidget {
                         style: const TextStyle(color: Colors.purpleAccent, fontSize: 12, fontWeight: FontWeight.bold)),
                     ),
                     const SizedBox(height: 8),
-                    const Text('Maestro de Idiomas', 
-                      style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+                    Text('Maestro de Idiomas', 
+                      style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 20, fontWeight: FontWeight.w900)),
                     const SizedBox(height: 12),
                     ClipRRect(
                       borderRadius: BorderRadius.circular(10),
                       child: LinearProgressIndicator(
                         value: progress,
-                        backgroundColor: Colors.white.withValues(alpha: 0.05),
+                        backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
                         valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
                         minHeight: 6,
                       ),
                     ),
                     const SizedBox(height: 8),
                     Text('${stats.xpForNextLevel - stats.xpProgress} XP para el siguiente nivel', 
-                      style: const TextStyle(color: Colors.white54, fontSize: 11)),
+                      style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 11)),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          const Divider(color: Colors.white10),
+          Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -217,14 +228,17 @@ class _SmallStat extends StatelessWidget {
   const _SmallStat({required this.icon, required this.label, required this.value, required this.color});
 
   @override
-  Widget build(BuildContext context) => Column(
-    children: [
-      Icon(icon, color: color, size: 28),
-      const SizedBox(height: 6),
-      Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
-      Text(label, style: const TextStyle(color: Colors.white54, fontSize: 10)),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      children: [
+        Icon(icon, color: color, size: 28),
+        const SizedBox(height: 6),
+        Text(value, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 14)),
+        Text(label, style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 10)),
+      ],
+    );
+  }
 }
 
 class _StreakCard extends StatelessWidget {
@@ -285,24 +299,29 @@ class _CourseStatsCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.auto_stories_rounded, color: Colors.blueAccent),
-              SizedBox(width: 8),
-              Text('Estadísticas de Aprendizaje', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+              const Icon(Icons.auto_stories_rounded, color: Colors.blueAccent),
+              const SizedBox(width: 8),
+              Text('Estadísticas de Aprendizaje', style: TextStyle(
+                color: isDark ? Colors.white : Colors.black87, 
+                fontSize: 16, 
+                fontWeight: FontWeight.bold
+              )),
             ],
           ),
           const SizedBox(height: 20),
           _StatRow(icon: Icons.school_rounded, label: 'Cursos Iniciados', value: '${summary.coursesStarted}', color: Colors.blueAccent),
-          const Divider(color: Colors.white12, height: 20),
+          Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1), height: 20),
           _StatRow(icon: Icons.check_circle_rounded, label: 'Cursos Completados', value: '${summary.coursesCompleted}', color: Colors.greenAccent),
-          const Divider(color: Colors.white12, height: 20),
+          Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1), height: 20),
           _StatRow(icon: Icons.play_lesson_rounded, label: 'Lecciones Completas', value: '${summary.lessonsCompleted}', color: Colors.orangeAccent),
         ],
       ),
@@ -318,14 +337,17 @@ class _StatRow extends StatelessWidget {
   const _StatRow({required this.icon, required this.label, required this.value, required this.color});
 
   @override
-  Widget build(BuildContext context) => Row(
-    children: [
-      Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle), child: Icon(icon, color: color, size: 18)),
-      const SizedBox(width: 12),
-      Expanded(child: Text(label, style: const TextStyle(color: Colors.white70, fontSize: 14))),
-      Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
-    ],
-  );
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Row(
+      children: [
+        Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: color.withValues(alpha: 0.15), shape: BoxShape.circle), child: Icon(icon, color: color, size: 18)),
+        const SizedBox(width: 12),
+        Expanded(child: Text(label, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 14))),
+        Text(value, style: TextStyle(color: color, fontWeight: FontWeight.bold, fontSize: 16)),
+      ],
+    );
+  }
 }
 
 class _AchievementsGrid extends ConsumerWidget {
@@ -334,6 +356,7 @@ class _AchievementsGrid extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final achAsync = ref.watch(myAchievementsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return achAsync.when(
       loading: () => const _SkeletonCard(height: 120),
       error: (_, __) => const SizedBox.shrink(),
@@ -342,8 +365,11 @@ class _AchievementsGrid extends ConsumerWidget {
           return GlassContainer(
             borderRadius: BorderRadius.circular(20),
             padding: const EdgeInsets.all(24),
-            child: const Center(
-              child: Text('Completa cursos y juegos para ganar logros 🏅', style: TextStyle(color: Colors.white54), textAlign: TextAlign.center),
+            child: Center(
+              child: Text('Completa cursos y juegos para ganar logros 🏅', 
+                style: TextStyle(color: isDark ? Colors.white54 : Colors.black54), 
+                textAlign: TextAlign.center
+              ),
             ),
           );
         }
@@ -362,7 +388,16 @@ class _AchievementsGrid extends ConsumerWidget {
                 children: [
                   Text(a.achievement.iconUrl ?? '🏅', style: const TextStyle(fontSize: 28)),
                   const SizedBox(height: 6),
-                  Text(a.achievement.name, style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w600), textAlign: TextAlign.center, maxLines: 2, overflow: TextOverflow.ellipsis),
+                  Text(a.achievement.name, 
+                    style: TextStyle(
+                      color: isDark ? Colors.white : Colors.black87, 
+                      fontSize: 10, 
+                      fontWeight: FontWeight.w600
+                    ), 
+                    textAlign: TextAlign.center, 
+                    maxLines: 2, 
+                    overflow: TextOverflow.ellipsis
+                  ),
                 ],
               ),
             );
@@ -379,13 +414,14 @@ class _SkeletonCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GlassContainer(
       height: height,
       borderRadius: BorderRadius.circular(24),
       opacity: 0.05,
-      child: const Center(
+      child: Center(
         child: CircularProgressIndicator(
-          color: Colors.white24,
+          color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.2),
           strokeWidth: 2,
         ),
       ),

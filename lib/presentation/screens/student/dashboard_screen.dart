@@ -8,6 +8,7 @@ import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
@@ -25,8 +26,8 @@ import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 class _DashTokens {
   const _DashTokens._();
 
-  static const Color background = Color(0xFF0F111A); // Premium Dark
-  static const Color surface = Color(0xFF1E1E2E);
+  static Color background(BuildContext context) => Theme.of(context).scaffoldBackgroundColor;
+  static Color surface(BuildContext context) => Theme.of(context).cardColor;
 
   static const LinearGradient brandGradient = LinearGradient(
     colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
@@ -63,7 +64,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: _DashTokens.background,
+      backgroundColor: _DashTokens.background(context),
       body: IndexedStack(
         index: _currentIndex,
         children: _tabs,
@@ -104,20 +105,24 @@ class _BottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     const radius = BorderRadius.vertical(top: Radius.circular(35));
     final items = _getItems(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: _DashTokens.background.withValues(alpha: 0.9),
+        color: _DashTokens.background(context).withValues(alpha: 0.95),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: Colors.black.withValues(alpha: isDark ? 0.5 : 0.15),
             blurRadius: 30,
             offset: const Offset(0, -10),
           ),
         ],
         borderRadius: radius,
         border: Border(
-          top: BorderSide(color: Colors.white.withValues(alpha: 0.1), width: 1),
+          top: BorderSide(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+            width: 1,
+          ),
         ),
       ),
       child: ClipRRect(
@@ -126,15 +131,17 @@ class _BottomNav extends StatelessWidget {
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: SafeArea(
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
                 children: [
                   for (var i = 0; i < items.length; i++)
-                    _NavButton(
-                      item: items[i],
-                      isSelected: i == currentIndex,
-                      onTap: () => onTap(i),
+                    Expanded(
+                      child: _NavButton(
+                        item: items[i],
+                        isSelected: i == currentIndex,
+                        onTap: () => onTap(i),
+                      ),
                     ),
                 ],
               ),
@@ -159,6 +166,7 @@ class _NavButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       button: true,
       selected: isSelected,
@@ -171,9 +179,10 @@ class _NavButton extends StatelessWidget {
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 300),
             curve: Curves.easeOut,
+            margin: const EdgeInsets.symmetric(horizontal: 2),
             padding: EdgeInsets.symmetric(
-              horizontal: isSelected ? 18 : 12,
-              vertical: 10,
+              horizontal: isSelected ? 12 : 8,
+              vertical: 8,
             ),
             decoration: BoxDecoration(
               gradient: isSelected ? _DashTokens.brandGradient : null,
@@ -189,20 +198,26 @@ class _NavButton extends StatelessWidget {
                   : null,
             ),
             child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               children: [
                 Icon(
                   isSelected ? item.active : item.inactive,
-                  color: isSelected ? Colors.white : Colors.white38,
-                  size: 26,
+                  color: isSelected ? Colors.white : (isDark ? Colors.white38 : Colors.black38),
+                  size: 22,
                 ),
                 if (isSelected) ...[
-                  const SizedBox(width: 8),
-                  Text(
-                    item.label,
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
+                  const SizedBox(width: 6),
+                  Flexible(
+                    child: Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
                     ),
                   ),
                 ],
@@ -241,7 +256,7 @@ class _HomeTab extends ConsumerWidget {
         ),
         RefreshIndicator(
           color: Colors.blueAccent,
-          backgroundColor: _DashTokens.surface,
+          backgroundColor: _DashTokens.surface(context),
           onRefresh: () async {
             ref.invalidate(userProfileProvider);
             ref.invalidate(dashboardSummaryProvider);
@@ -266,13 +281,17 @@ class _HomeTab extends ConsumerWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _SectionTitle(AppLocalizations.of(context)!.recentProgress),
+                        Flexible(
+                          child: _SectionTitle(AppLocalizations.of(context)!.recentProgress),
+                        ),
                         TextButton(
-                          onPressed: () =>
-                              context.push(AppRoutes.studentClassrooms),
+                          onPressed: () => context.push(AppRoutes.studentClassrooms),
                           child: Text(
                             AppLocalizations.of(context)!.viewVirtualClasses,
-                            style: const TextStyle(color: Colors.blueAccent),
+                            style: const TextStyle(
+                              color: Colors.blueAccent,
+                              fontSize: 13,
+                            ),
                           ),
                         ),
                       ],
@@ -281,6 +300,8 @@ class _HomeTab extends ConsumerWidget {
                     _RecentCourseCard(summaryAsync: summaryAsync),
                     const SizedBox(height: 24),
                     const _TutorIABanner(),
+                    const SizedBox(height: 24),
+                    _SubscriptionBanner(),
                   ]),
                 ),
               ),
@@ -292,19 +313,92 @@ class _HomeTab extends ConsumerWidget {
   }
 }
 
+class _SubscriptionBanner extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final mySubAsync = ref.watch(mySubscriptionProvider);
+    final isPro = mySubAsync.value?.isActive ?? false;
+
+    if (isPro) return const SizedBox.shrink();
+
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(16),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.amberAccent.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.star_rounded, color: Colors.amberAccent, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Mejora tu Plan',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 15,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'Accede a todos los cursos y tutor IA.',
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 12,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          TextButton(
+            onPressed: () => context.push('/student/subscriptions'),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+            ),
+            child: const Text(
+              'Ver Planes',
+              style: TextStyle(
+                color: Colors.blueAccent,
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Text(
       text,
-      style: const TextStyle(
-        color: Colors.white,
+      style: TextStyle(
+        color: isDark ? Colors.white : Colors.black87,
         fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
     );
   }
 }
@@ -359,6 +453,7 @@ class _SliverHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverAppBar(
       expandedHeight: 90,
       pinned: true,
@@ -380,7 +475,7 @@ class _SliverHeader extends StatelessWidget {
                     child: UserAvatar(
                       imageUrl: AppConfig.resolveImageUrl(user.avatarUrl),
                       fullName: user.username,
-                      radius: 24,
+                      radius: 22,
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -392,19 +487,24 @@ class _SliverHeader extends StatelessWidget {
                         Text(
                           l10n.hello(user.username),
                           style: AppTextStyles.titleMedium.copyWith(
-                            color: Colors.white,
+                            color: isDark ? Colors.white : Colors.black87,
                             fontWeight: FontWeight.w900,
-                            fontSize: 18,
+                            fontSize: 16,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           l10n.readyToLearn,
-                          style: AppTextStyles.bodySmall
-                              .copyWith(color: Colors.white60),
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? Colors.white60 : Colors.black54,
+                            fontSize: 12,
+                          ),
                         ),
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   GestureDetector(
                     onTap: () => context.push(AppRoutes.home),
                     child: GlassContainer(
@@ -440,11 +540,13 @@ class _XPAndStreakBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return statsAsync.when(
       data: (stats) => GlassContainer(
         borderRadius: BorderRadius.circular(24),
         padding: const EdgeInsets.all(20),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
             Row(
               children: [
@@ -456,7 +558,11 @@ class _XPAndStreakBanner extends StatelessWidget {
                     label: l10n.currentStreak,
                   ),
                 ),
-                Container(width: 1, height: 40, color: Colors.white24),
+                Container(
+                  width: 1,
+                  height: 40,
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                ),
                 Expanded(
                   child: _StatBadgeItem(
                     icon: Icons.star_rounded,
@@ -471,14 +577,22 @@ class _XPAndStreakBanner extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  l10n.levelProgressLabel(stats.level),
-                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                Flexible(
+                  child: Text(
+                    l10n.levelProgressLabel(stats.level),
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      fontSize: 12,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Text(
                   '${stats.xpProgress}/${stats.xpForNextLevel} XP',
-                  style: const TextStyle(
-                    color: Colors.white,
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
                   ),
@@ -490,9 +604,8 @@ class _XPAndStreakBanner extends StatelessWidget {
               borderRadius: BorderRadius.circular(10),
               child: LinearProgressIndicator(
                 value: stats.levelProgress,
-                backgroundColor: Colors.black26,
-                valueColor:
-                    const AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
+                backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                valueColor: const AlwaysStoppedAnimation<Color>(Colors.purpleAccent),
                 minHeight: 10,
               ),
             ),
@@ -523,21 +636,31 @@ class _StatBadgeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, color: color, size: 32),
+        Icon(icon, color: color, size: 28),
         const SizedBox(height: 8),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 18,
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
+        const SizedBox(height: 4),
         Text(
           label,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black54,
+            fontSize: 11,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -594,7 +717,7 @@ class _QuickActionsGrid extends StatelessWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 2.1,
+      childAspectRatio: 2.2,
       children: [
         for (final a in actions)
           _QuickActionCard(
@@ -623,6 +746,7 @@ class _QuickActionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => context.push(route),
       child: GlassContainer(
@@ -638,7 +762,7 @@ class _QuickActionCard extends StatelessWidget {
                 shape: BoxShape.circle,
                 border: Border.all(color: color.withValues(alpha: 0.2)),
               ),
-              child: Icon(icon, color: color, size: 22),
+              child: Icon(icon, color: color, size: 20),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -647,9 +771,9 @@ class _QuickActionCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: Colors.white,
+                  color: isDark ? Colors.white : Colors.black87,
                   fontWeight: FontWeight.w800,
-                  fontSize: 13,
+                  fontSize: 12,
                 ),
               ),
             ),
@@ -669,6 +793,7 @@ class _RecentCourseCard extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final coursesAsync = ref.watch(coursesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return coursesAsync.when(
       data: (courses) {
@@ -678,7 +803,7 @@ class _RecentCourseCard extends ConsumerWidget {
             child: Center(
               child: Text(
                 l10n.exploreCourses,
-                style: const TextStyle(color: Colors.white),
+                style: TextStyle(color: isDark ? Colors.white : Colors.black87),
               ),
             ),
           );
@@ -687,18 +812,17 @@ class _RecentCourseCard extends ConsumerWidget {
         final course = courses.first;
         return GestureDetector(
           onTap: () => context.push(
-            AppRoutes.studentCourseDetail
-                .replaceAll(':id', course.id.toString()),
+            AppRoutes.studentCourseDetail.replaceAll(':id', course.id.toString()),
           ),
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
             padding: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 ClipRRect(
-                  borderRadius:
-                      const BorderRadius.vertical(top: Radius.circular(24)),
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                   child: ProductImage(
                     imageUrl: course.imageUrl,
                     height: 140,
@@ -707,18 +831,16 @@ class _RecentCourseCard extends ConsumerWidget {
                   ),
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 4,
-                            ),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                             decoration: BoxDecoration(
                               color: Colors.blueAccent.withValues(alpha: 0.2),
                               borderRadius: BorderRadius.circular(8),
@@ -732,11 +854,15 @@ class _RecentCourseCard extends ConsumerWidget {
                               ),
                             ),
                           ),
-                          Text(
-                            course.languageName,
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
+                          Flexible(
+                            child: Text(
+                              course.languageName,
+                              style: TextStyle(
+                                color: isDark ? Colors.white54 : Colors.black54,
+                                fontSize: 11,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -744,43 +870,45 @@ class _RecentCourseCard extends ConsumerWidget {
                       const SizedBox(height: 12),
                       Text(
                         course.title,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
+                        style: TextStyle(
+                          color: isDark ? Colors.white : Colors.black87,
+                          fontSize: 16,
                           fontWeight: FontWeight.bold,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
                       const SizedBox(height: 8),
                       Text(
                         course.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: Colors.white70,
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black54,
                           fontSize: 12,
                         ),
                       ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 16),
                       Row(
                         children: [
-                          const Icon(
-                            Icons.play_circle_fill_rounded,
-                            color: Colors.purpleAccent,
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            l10n.continueLesson,
-                            style: const TextStyle(
-                              color: Colors.purpleAccent,
-                              fontWeight: FontWeight.bold,
+                          const Icon(Icons.play_circle_fill_rounded, color: Colors.purpleAccent, size: 20),
+                          const SizedBox(width: 6),
+                          Flexible(
+                            child: Text(
+                              l10n.continueLesson,
+                              style: const TextStyle(
+                                color: Colors.purpleAccent,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
                             ),
                           ),
                           const Spacer(),
                           Text(
                             l10n.lessonsCount(course.lessonsCount),
-                            style: const TextStyle(
-                              color: Colors.white54,
-                              fontSize: 12,
+                            style: TextStyle(
+                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontSize: 11,
                             ),
                           ),
                         ],
@@ -811,7 +939,7 @@ class _TutorIABanner extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(AppRoutes.studentAiTutor),
       child: Container(
-        padding: const EdgeInsets.all(28),
+        padding: const EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: _DashTokens.brandGradient,
           borderRadius: BorderRadius.circular(24),
@@ -828,43 +956,47 @@ class _TutorIABanner extends StatelessWidget {
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
                     l10n.aiTutorTitle,
                     style: AppTextStyles.titleLarge.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
+                      fontSize: 20,
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   Text(
                     l10n.aiTutorSubtitle,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: Colors.white.withValues(alpha: 0.9),
+                      fontSize: 13,
                     ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Text(
                         l10n.startSpeaking,
                         style: AppTextStyles.labelLarge.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
+                          fontSize: 14,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.arrow_forward_rounded,
-                        color: Colors.white,
-                        size: 16,
-                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.arrow_forward_rounded, color: Colors.white, size: 18),
                     ],
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.auto_awesome, size: 70, color: Colors.white38),
+            const SizedBox(width: 12),
+            const Icon(Icons.auto_awesome, size: 56, color: Colors.white38),
           ],
         ),
       ),

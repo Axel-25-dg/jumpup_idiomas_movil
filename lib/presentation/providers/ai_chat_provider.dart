@@ -123,16 +123,24 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
               // El mensaje puede venir en decoded['body'] o decoded['message']['body']
               final msgData = decoded['message'];
               String body = '';
+              int senderId = 0;
+              String senderEmail = '';
+
               if (msgData is Map) {
                 body = msgData['body']?.toString() ?? '';
+                senderId = msgData['sender_id'] as int? ?? 0;
+                senderEmail = msgData['sender']?.toString() ?? '';
               } else {
                 body = decoded['body']?.toString() ?? '';
               }
 
+              // Detectar si el mensaje es del bot (sender_id == 0 o email contiene 'ia@')
+              final isAiMessage = senderId == 0 || senderEmail.contains('ia@');
+
               final newMessage = ChatMessage(
                 id: DateTime.now().millisecondsSinceEpoch,
-                senderId: 0,
-                senderName: 'AI Tutor',
+                senderId: senderId,
+                senderName: isAiMessage ? 'AI Tutor' : 'Tú',
                 body: body,
                 createdAt: DateTime.now(),
               );
@@ -185,7 +193,6 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
 
   void _handleError(dynamic e) {
     if (!mounted) return;
-    final msg = e.toString().replaceAll('Exception: ', '');
     state = state.copyWith(
       error: 'Conexión perdida. Reconectando en 5s...',
       isConnecting: true,

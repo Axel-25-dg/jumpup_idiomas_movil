@@ -25,6 +25,10 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     final resultsAsync = ref.watch(searchResultsProvider(_query));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+    final hintColor = isDark ? Colors.white38 : Colors.black38;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -40,14 +44,14 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               child: TextField(
                 controller: _searchController,
                 autofocus: false,
-                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white),
+                style: AppTextStyles.bodyMedium.copyWith(color: textColor),
                 decoration: InputDecoration(
                   hintText: 'Buscar cursos, lecciones, personas...',
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: hintColor),
                   prefixIcon: const Icon(Icons.search_rounded, color: Color(0xFF7C4DFF)),
                   suffixIcon: _query.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, color: Colors.white38),
+                          icon: Icon(Icons.clear_rounded, color: hintColor),
                           onPressed: () {
                             _searchController.clear();
                             setState(() => _query = '');
@@ -65,19 +69,21 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             const SizedBox(height: 20),
             Expanded(
               child: _query.isEmpty
-                  ? _buildPlaceholder()
+                  ? _buildPlaceholder(isDark, textColor, subtextColor)
                   : resultsAsync.when(
                       loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
                       error: (e, _) => Center(
-                        child: Text('Error: $e', style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent)),
+                        child: Text('Error: $e',
+                            style: AppTextStyles.bodyMedium.copyWith(color: Colors.redAccent)),
                       ),
                       data: (results) {
-                        if (results.isEmpty) return _buildNoResults();
+                        if (results.isEmpty) return _buildNoResults(isDark);
                         return ListView.separated(
                           physics: const BouncingScrollPhysics(),
                           itemCount: results.length,
                           separatorBuilder: (_, __) => const SizedBox(height: 12),
-                          itemBuilder: (context, index) => _SearchResultTile(result: results[index]),
+                          itemBuilder: (context, index) =>
+                              _SearchResultTile(result: results[index]),
                         );
                       },
                     ),
@@ -88,7 +94,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder(bool isDark, Color textColor, Color subtextColor) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -102,24 +108,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
             child: const Icon(Icons.search_rounded, size: 56, color: Color(0xFF7C4DFF)),
           ),
           const SizedBox(height: 20),
-          Text('Busca en JumpUp', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text('Busca en JumpUp',
+              style: AppTextStyles.titleMedium.copyWith(color: textColor, fontWeight: FontWeight.bold)),
           const SizedBox(height: 8),
           Text('Encuentra cursos, lecciones y personas',
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+              style: AppTextStyles.bodyMedium.copyWith(color: subtextColor)),
         ],
       ),
     );
   }
 
-  Widget _buildNoResults() {
+  Widget _buildNoResults(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.search_off_rounded, size: 48, color: Colors.white24),
+          Icon(Icons.search_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 12),
           Text('Sin resultados para "$_query"',
-              style: AppTextStyles.titleMedium.copyWith(color: Colors.white38)),
+              style: AppTextStyles.titleMedium.copyWith(
+                  color: isDark ? Colors.white38 : Colors.black38)),
         ],
       ),
     );
@@ -132,6 +140,10 @@ class _SearchResultTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+
     final icon = switch (result.type) {
       'course' || 'cursos' => Icons.book_rounded,
       'lesson' || 'lecciones' => Icons.play_circle_rounded,
@@ -154,12 +166,14 @@ class _SearchResultTile extends StatelessWidget {
           child: Icon(icon, color: const Color(0xFF7C4DFF), size: 24),
         ),
         title: Text(result.title,
-            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: Colors.white)),
+            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: textColor)),
         subtitle: result.subtitle != null
             ? Padding(
                 padding: const EdgeInsets.only(top: 4),
                 child: Text(result.subtitle!,
-                    maxLines: 1, overflow: TextOverflow.ellipsis, style: AppTextStyles.bodySmall.copyWith(color: Colors.white54)),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.bodySmall.copyWith(color: subtextColor)),
               )
             : null,
         trailing: Container(
@@ -170,7 +184,8 @@ class _SearchResultTile extends StatelessWidget {
           ),
           child: Text(
             result.type[0].toUpperCase() + result.type.substring(1),
-            style: AppTextStyles.labelSmall.copyWith(color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900, fontSize: 10),
+            style: AppTextStyles.labelSmall.copyWith(
+                color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900, fontSize: 10),
           ),
         ),
         onTap: () {},

@@ -18,10 +18,10 @@ class AiChatService {
           'Authorization': 'Bearer $token',
           'Content-Type': 'application/json',
         },
-        // participants: lista vacía = solo el usuario actual → activa Tutor IA
+        // participant_ids: lista vacía = solo el usuario actual → activa Tutor IA
         body: jsonEncode({
           'subject': 'Tutor IA',
-          'participants': <int>[],
+          'participant_ids': <int>[],
         }),
       );
 

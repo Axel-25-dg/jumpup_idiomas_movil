@@ -38,9 +38,10 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
   @override
   Widget build(BuildContext context) {
     final coursesAsync = ref.watch(coursesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       body: Stack(
         children: [
           Positioned(top: -100, left: -100, child: _blob(Colors.blueAccent, 300)),
@@ -83,8 +84,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                       ),
                     );
                   },
-                  loading: () => const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+                  loading: () => SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: isDark ? Colors.blueAccent : Colors.blue)),
                   ),
                   error: (err, _) => SliverFillRemaining(
                     hasScrollBody: false,
@@ -144,20 +145,23 @@ class _SliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverAppBar(
       expandedHeight: 140,
       floating: true,
       pinned: true,
       elevation: 0,
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
           children: [
             Container(
-              decoration: const BoxDecoration(
+              decoration: BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Color(0xFF1A0533), Color(0xFF0F111A)],
+                  colors: isDark 
+                    ? [const Color(0xFF1A0533), const Color(0xFF0F111A)]
+                    : [Colors.blueAccent.withValues(alpha: 0.1), Theme.of(context).scaffoldBackgroundColor],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -171,7 +175,11 @@ class _SliverAppBar extends StatelessWidget {
           ],
         ),
       ),
-      title: Text('Explorar Cursos', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 28)),
+      title: Text('Explorar Cursos', style: AppTextStyles.titleLarge.copyWith(
+        color: isDark ? Colors.white : Colors.black87, 
+        fontWeight: FontWeight.w900, 
+        fontSize: 28
+      )),
       bottom: PreferredSize(
         preferredSize: const Size.fromHeight(70),
         child: Padding(
@@ -186,10 +194,10 @@ class _SliverAppBar extends StatelessWidget {
                   child: TextField(
                     controller: searchController,
                     onChanged: onSearchChanged,
-                    style: const TextStyle(color: Colors.white),
+                    style: TextStyle(color: isDark ? Colors.white : Colors.black87),
                     decoration: InputDecoration(
                       hintText: '¿Qué quieres aprender?',
-                      hintStyle: AppTextStyles.bodyMedium.copyWith(color: Colors.white38),
+                      hintStyle: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white38 : Colors.black38),
                       prefixIcon: const Icon(Icons.search, color: Colors.blueAccent),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 15),
@@ -230,6 +238,7 @@ class _DifficultySelector extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 60,
       padding: const EdgeInsets.symmetric(vertical: 12),
@@ -249,14 +258,14 @@ class _DifficultySelector extends StatelessWidget {
               selected: isSelected,
               onSelected: (selected) => onSelect(selected ? level : null),
               selectedColor: Colors.blueAccent,
-              backgroundColor: const Color(0xFF1E1E2E),
+              backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.black.withValues(alpha: 0.05),
               labelStyle: TextStyle(
-                color: isSelected ? Colors.white : Colors.white60,
+                color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
               ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
-                side: BorderSide(color: isSelected ? Colors.blueAccent : Colors.white10),
+                side: BorderSide(color: isSelected ? Colors.blueAccent : (isDark ? Colors.white10 : Colors.black12)),
               ),
               showCheckmark: false,
             ),
@@ -273,6 +282,7 @@ class _CourseListItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: GlassContainer(
@@ -326,7 +336,7 @@ class _CourseListItem extends StatelessWidget {
                 children: [
                   Text(
                     course.description,
-                    style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+                    style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white70 : Colors.black87),
                     maxLines: 3,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -368,11 +378,12 @@ class _InfoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Row(
       children: [
-        Icon(icon, size: 16, color: Colors.white38),
+        Icon(icon, size: 16, color: isDark ? Colors.white38 : Colors.black38),
         const SizedBox(width: 4),
-        Text(label, style: AppTextStyles.labelSmall.copyWith(color: Colors.white38)),
+        Text(label, style: AppTextStyles.labelSmall.copyWith(color: isDark ? Colors.white38 : Colors.black38)),
       ],
     );
   }
@@ -385,11 +396,12 @@ class _FilterBottomSheet extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final languagesAsync = ref.watch(languagesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: const Color(0xFF0F111A).withValues(alpha: 0.8), // Dark background for consistency
+        color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.8), // Responsive background
         borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
       ),
       child: Column(
@@ -399,12 +411,19 @@ class _FilterBottomSheet extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Filtros Avanzados', style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
-              IconButton(onPressed: () => Navigator.pop(context), icon: const Icon(Icons.close, color: Colors.white70)),
+              Text('Filtros Avanzados', style: AppTextStyles.titleLarge.copyWith(
+                color: isDark ? Colors.white : Colors.black87, 
+                fontWeight: FontWeight.bold
+              )),
+              IconButton(onPressed: () => Navigator.pop(context), 
+                icon: Icon(Icons.close, color: isDark ? Colors.white70 : Colors.black54)),
             ],
           ),
           const SizedBox(height: 24),
-          Text('Idioma', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w700)),
+          Text('Idioma', style: AppTextStyles.titleMedium.copyWith(
+            color: isDark ? Colors.white : Colors.black87, 
+            fontWeight: FontWeight.w700
+          )),
           const SizedBox(height: 16),
           languagesAsync.when(
             data: (langs) => Wrap(
@@ -419,14 +438,14 @@ class _FilterBottomSheet extends ConsumerWidget {
                     ref.read(courseFiltersProvider.notifier).state = ref.read(courseFiltersProvider).copyWith(languageId: selected ? lang.id : null);
                   },
                   selectedColor: Colors.blueAccent,
-                  backgroundColor: Colors.white.withValues(alpha: 0.05),
+                  backgroundColor: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : Colors.white60,
+                    color: isSelected ? Colors.white : (isDark ? Colors.white60 : Colors.black54),
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: isSelected ? Colors.blueAccent : Colors.white10),
+                    side: BorderSide(color: isSelected ? Colors.blueAccent : (isDark ? Colors.white10 : Colors.black12)),
                   ),
                   showCheckmark: false,
                 );
@@ -442,8 +461,8 @@ class _FilterBottomSheet extends ConsumerWidget {
                 child: OutlinedButton(
                   onPressed: onClear,
                   style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    side: const BorderSide(color: Colors.white24),
+                    foregroundColor: isDark ? Colors.white : Colors.black87,
+                    side: BorderSide(color: isDark ? Colors.white24 : Colors.black26),
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
@@ -475,15 +494,23 @@ class _EmptyCoursesState extends StatelessWidget {
   const _EmptyCoursesState();
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.search_off_rounded, size: 80, color: Colors.white24),
-          SizedBox(height: 16),
-          Text('No encontramos cursos', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
-          SizedBox(height: 8),
-          Text('Intenta con otros filtros o términos de búsqueda', style: TextStyle(color: Colors.white54), textAlign: TextAlign.center),
+          Icon(Icons.search_off_rounded, size: 80, color: isDark ? Colors.white24 : Colors.black26),
+          const SizedBox(height: 16),
+          Text('No encontramos cursos', style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87, 
+            fontSize: 18, 
+            fontWeight: FontWeight.bold
+          )),
+          const SizedBox(height: 8),
+          Text('Intenta con otros filtros o términos de búsqueda', 
+            style: TextStyle(color: isDark ? Colors.white54 : Colors.black54), 
+            textAlign: TextAlign.center
+          ),
         ],
       ),
     );
@@ -495,13 +522,18 @@ class _ErrorState extends StatelessWidget {
   const _ErrorState({required this.onRetry});
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(Icons.error_outline_rounded, size: 80, color: Colors.redAccent),
           const SizedBox(height: 16),
-          const Text('Algo salió mal', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          Text('Algo salió mal', style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87, 
+            fontSize: 18, 
+            fontWeight: FontWeight.bold
+          )),
           const SizedBox(height: 24),
           FilledButton.icon(
             onPressed: onRetry,

@@ -30,18 +30,39 @@ class SubscriptionsScreen extends ConsumerWidget {
                 pinned: true,
                 backgroundColor: Colors.transparent,
                 elevation: 0,
-                iconTheme: const IconThemeData(color: Colors.white),
+                iconTheme: IconThemeData(color: isDark ? Colors.white : Colors.black87),
                 expandedHeight: 180,
                 flexibleSpace: FlexibleSpaceBar(
                   background: Container(
+                    decoration: BoxDecoration(
+                      gradient: isDark ? null : const LinearGradient(
+                        colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      color: isDark ? Colors.transparent : null,
+                    ),
                     padding: const EdgeInsets.fromLTRB(24, 80, 24, 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Text('✨ Suscripciones', style: TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.w900)),
+                        Text(
+                          '✨ Suscripciones',
+                          style: TextStyle(
+                            color: isDark ? Colors.white : Colors.white,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
                         const SizedBox(height: 6),
-                        Text('Desbloquea todo el potencial de JumpUp', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 14)),
+                        Text(
+                          'Desbloquea todo el potencial de JumpUp',
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : Colors.white.withValues(alpha: 0.9),
+                            fontSize: 14,
+                          ),
+                        ),
                       ],
                     ),
                   ),

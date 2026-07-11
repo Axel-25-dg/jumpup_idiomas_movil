@@ -14,39 +14,41 @@ class LiveSessionsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final liveAsync = ref.watch(liveSessionsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: liveAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (e, _) => _buildError(ref),
+        error: (e, _) => _buildError(ref, isDark),
         data: (sessions) {
-          if (sessions.isEmpty) return _buildEmpty();
-
+          if (sessions.isEmpty) return _buildEmpty(isDark);
           final live = sessions.where((s) => s.isLive).toList();
           final upcoming = sessions.where((s) => s.isScheduled).toList();
           final ended = sessions.where((s) => s.isEnded).toList();
-
           return RefreshIndicator(
             onRefresh: () => ref.refresh(liveSessionsProvider.future),
             color: const Color(0xFF7C4DFF),
-            backgroundColor: const Color(0xFF1A1D2E),
+            backgroundColor: isDark ? const Color(0xFF1A1D2E) : Colors.white,
             child: ListView(
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 100),
               physics: const BouncingScrollPhysics(),
               children: [
                 if (live.isNotEmpty) ...[
-                  const _SectionHeader(label: 'EN VIVO AHORA', color: Color(0xFFFF5252)),
+                  _SectionHeader(label: 'EN VIVO AHORA', color: const Color(0xFFFF5252), isDark: isDark),
                   ...live.map((s) => _SessionCard(session: s)),
                   const SizedBox(height: 16),
                 ],
                 if (upcoming.isNotEmpty) ...[
-                  const _SectionHeader(label: 'PRÓXIMAS SESIONES', color: Color(0xFF7C4DFF)),
+                  _SectionHeader(label: 'PRÓXIMAS SESIONES', color: const Color(0xFF7C4DFF), isDark: isDark),
                   ...upcoming.map((s) => _SessionCard(session: s)),
                   const SizedBox(height: 16),
                 ],
                 if (ended.isNotEmpty) ...[
-                  const _SectionHeader(label: 'SESIONES PASADAS', color: Colors.white24),
+                  _SectionHeader(
+                      label: 'SESIONES PASADAS',
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      isDark: isDark),
                   ...ended.map((s) => _SessionCard(session: s)),
                 ],
               ],
@@ -57,30 +59,29 @@ class LiveSessionsScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildError(WidgetRef ref) {
+  Widget _buildError(WidgetRef ref, bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 60, color: Colors.white24),
+          Icon(Icons.wifi_off_rounded, size: 60, color: isDark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 12),
-          Text('Error al cargar clases', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+          Text('Error al cargar clases',
+              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
           const SizedBox(height: 16),
           FilledButton.icon(
             onPressed: () => ref.invalidate(liveSessionsProvider),
             icon: const Icon(Icons.refresh_rounded, size: 18),
             label: const Text('Reintentar'),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFF7C4DFF),
-              foregroundColor: Colors.white,
-            ),
+                backgroundColor: const Color(0xFF7C4DFF), foregroundColor: Colors.white),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -91,14 +92,17 @@ class LiveSessionsScreen extends ConsumerWidget {
               shape: BoxShape.circle,
               color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
             ),
-            child: const Icon(Icons.videocam_off_rounded, size: 64, color: Colors.white24),
+            child: Icon(Icons.videocam_off_rounded, size: 64,
+                color: isDark ? Colors.white24 : Colors.black26),
           ),
           const SizedBox(height: 24),
           Text('No hay clases programadas',
-              style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900)),
+              style: AppTextStyles.titleLarge.copyWith(
+                  color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w900)),
           const SizedBox(height: 8),
           Text('Vuelve más tarde para unirte a sesiones en vivo',
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+              style: AppTextStyles.bodyMedium.copyWith(
+                  color: isDark ? Colors.white54 : Colors.black54)),
         ],
       ),
     );
@@ -106,37 +110,31 @@ class LiveSessionsScreen extends ConsumerWidget {
 }
 
 class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.label, required this.color});
+  const _SectionHeader({required this.label, required this.color, required this.isDark});
   final String label;
   final Color color;
+  final bool isDark;
 
   @override
   Widget build(BuildContext context) {
-    final shadowColor = color.withValues(alpha: 0.5);
     return Padding(
       padding: const EdgeInsets.only(left: 4, bottom: 12, top: 8),
       child: Row(
         children: [
           Container(
-            width: 4,
-            height: 16,
+            width: 4, height: 16,
             decoration: BoxDecoration(
               color: color,
               borderRadius: BorderRadius.circular(2),
-              boxShadow: [
-                BoxShadow(color: shadowColor, blurRadius: 8, spreadRadius: 0),
-              ],
+              boxShadow: [BoxShadow(color: color.withValues(alpha: 0.5), blurRadius: 8)],
             ),
           ),
           const SizedBox(width: 10),
-          Text(
-            label,
-            style: AppTextStyles.labelSmall.copyWith(
-              color: Colors.white60,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-            ),
-          ),
+          Text(label,
+              style: AppTextStyles.labelSmall.copyWith(
+                  color: isDark ? Colors.white60 : Colors.black45,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.2)),
         ],
       ),
     );
@@ -149,10 +147,15 @@ class _SessionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final Color statusColor;
-    final String statusText;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+    final statColor = isDark ? Colors.white38 : Colors.black38;
+    final statIconColor = isDark ? Colors.white38 : Colors.black38;
     final bool isLive = session.isLive;
 
+    final Color statusColor;
+    final String statusText;
     if (isLive) {
       statusColor = const Color(0xFFFF5252);
       statusText = 'EN VIVO';
@@ -160,7 +163,7 @@ class _SessionCard extends StatelessWidget {
       statusColor = const Color(0xFF7C4DFF);
       statusText = 'PROGRAMADA';
     } else {
-      statusColor = Colors.white24;
+      statusColor = isDark ? Colors.white24 : Colors.black26;
       statusText = 'FINALIZADA';
     }
 
@@ -188,45 +191,39 @@ class _SessionCard extends StatelessWidget {
                     children: [
                       if (isLive) ...[
                         Container(
-                          width: 6,
-                          height: 6,
-                          decoration: const BoxDecoration(color: Color(0xFFFF5252), shape: BoxShape.circle),
+                          width: 6, height: 6,
+                          decoration: const BoxDecoration(
+                              color: Color(0xFFFF5252), shape: BoxShape.circle),
                         ),
                         const SizedBox(width: 6),
                       ],
-                      Text(
-                        statusText,
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: isLive ? const Color(0xFFFF5252) : statusColor,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 10,
-                        ),
-                      ),
+                      Text(statusText,
+                          style: AppTextStyles.labelSmall.copyWith(
+                              color: isLive ? const Color(0xFFFF5252) : statusColor,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 10)),
                     ],
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.people_alt_rounded, size: 14, color: Colors.white38),
+                Icon(Icons.people_alt_rounded, size: 14, color: statIconColor),
                 const SizedBox(width: 6),
                 Text(
                   '${session.participantCount}${session.maxStudents > 0 ? "/${session.maxStudents}" : ""}',
-                  style: AppTextStyles.labelSmall.copyWith(color: Colors.white54, fontWeight: FontWeight.bold),
+                  style: AppTextStyles.labelSmall.copyWith(color: statColor, fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             const SizedBox(height: 16),
-            Text(
-              session.title,
-              style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
-            ),
+            Text(session.title,
+                style: AppTextStyles.titleMedium.copyWith(
+                    color: textColor, fontWeight: FontWeight.w900)),
             if (session.description != null && session.description!.isNotEmpty) ...[
               const SizedBox(height: 6),
-              Text(
-                session.description!,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodySmall.copyWith(color: Colors.white54, height: 1.4),
-              ),
+              Text(session.description!,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.bodySmall.copyWith(color: subtextColor, height: 1.4)),
             ],
             const SizedBox(height: 16),
             Row(
@@ -236,21 +233,22 @@ class _SessionCard extends StatelessWidget {
                   backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
                   child: Text(
                     session.hostName.isNotEmpty ? session.hostName[0].toUpperCase() : '?',
-                    style: const TextStyle(color: Color(0xFF7C4DFF), fontSize: 10, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                        color: Color(0xFF7C4DFF), fontSize: 10, fontWeight: FontWeight.bold),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  session.hostName,
-                  style: AppTextStyles.labelSmall.copyWith(color: Colors.white70, fontWeight: FontWeight.bold),
-                ),
+                Text(session.hostName,
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: isDark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.bold)),
                 const Spacer(),
                 if (session.startsAt != null) ...[
-                  const Icon(Icons.calendar_today_rounded, size: 12, color: Colors.white38),
+                  Icon(Icons.calendar_today_rounded, size: 12, color: statIconColor),
                   const SizedBox(width: 6),
                   Text(
                     DateFormat('dd MMM, HH:mm').format(session.startsAt!.toLocal()),
-                    style: AppTextStyles.labelSmall.copyWith(color: Colors.white38, fontWeight: FontWeight.bold),
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: statColor, fontWeight: FontWeight.bold),
                   ),
                 ],
               ],
@@ -258,13 +256,10 @@ class _SessionCard extends StatelessWidget {
             if (session.isScheduled || isLive) ...[
               const SizedBox(height: 20),
               SizedBox(
-                width: double.infinity,
-                height: 44,
+                width: double.infinity, height: 44,
                 child: FilledButton(
                   onPressed: () async {
                     try {
-                      // Usar ref para obtener el repositorio si es posible, o una instancia directa
-                      // En un ConsumerWidget usamos el repositorio inyectado si existe
                       await const SocialMediaRepository().joinLiveSession(session.id);
                       if (session.meetingUrl != null && session.meetingUrl!.isNotEmpty) {
                         launchUrl(Uri.parse(session.meetingUrl!));
@@ -279,7 +274,8 @@ class _SessionCard extends StatelessWidget {
                   ),
                   child: Text(
                     isLive ? 'UNIRSE AHORA' : 'RESERVAR LUGAR',
-                    style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900),
+                    style: AppTextStyles.labelLarge.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w900),
                   ),
                 ),
               ),

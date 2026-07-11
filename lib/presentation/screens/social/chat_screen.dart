@@ -12,17 +12,18 @@ class ChatScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final threadsAsync = ref.watch(chatThreadsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: threadsAsync.when(
         loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (e, _) => _buildError(ref),
+        error: (e, _) => _buildError(ref, isDark),
         data: (threads) {
-          if (threads.isEmpty) return _buildEmpty();
+          if (threads.isEmpty) return _buildEmpty(isDark);
           return RefreshIndicator(
             color: const Color(0xFF7C4DFF),
-            backgroundColor: const Color(0xFF1A1B2E),
+            backgroundColor: isDark ? const Color(0xFF1A1B2E) : Colors.white,
             onRefresh: () => ref.refresh(chatThreadsProvider.future),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -37,14 +38,15 @@ class ChatScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildError(WidgetRef ref) {
+  Widget _buildError(WidgetRef ref, bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          const Icon(Icons.wifi_off_rounded, size: 48, color: Colors.white24),
+          Icon(Icons.wifi_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 12),
-          Text('Error al cargar mensajes', style: AppTextStyles.titleMedium.copyWith(color: Colors.white54)),
+          Text('Error al cargar mensajes',
+              style: AppTextStyles.titleMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
           const SizedBox(height: 16),
           FilledButton(
             onPressed: () => ref.invalidate(chatThreadsProvider),
@@ -56,7 +58,7 @@ class ChatScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildEmpty() {
+  Widget _buildEmpty(bool isDark) {
     return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
@@ -71,10 +73,12 @@ class ChatScreen extends ConsumerWidget {
                 size: 56, color: Color(0xFF7C4DFF)),
           ),
           const SizedBox(height: 16),
-          Text('Sin conversaciones', style: AppTextStyles.titleMedium.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+          Text('Sin conversaciones',
+              style: AppTextStyles.titleMedium.copyWith(
+                  color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
           const SizedBox(height: 4),
           Text('Inicia un nuevo chat desde el foro',
-              style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
+              style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
         ],
       ),
     );
@@ -87,6 +91,10 @@ class _ThreadTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white38 : Colors.black38;
+    final iconFadeColor = isDark ? Colors.white24 : Colors.black26;
     final initial = thread.participantName.isNotEmpty
         ? thread.participantName[0].toUpperCase()
         : '?';
@@ -98,27 +106,23 @@ class _ThreadTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(20),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Stack(
-          children: [
-            CircleAvatar(
-              radius: 26,
-              backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
-              backgroundImage: thread.participantAvatar != null
-                  ? NetworkImage(thread.participantAvatar!)
-                  : null,
-              child: thread.participantAvatar == null
-                  ? Text(initial,
-                      style: AppTextStyles.titleMedium.copyWith(
-                        color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900,
-                      ))
-                  : null,
-            ),
-          ],
+        leading: CircleAvatar(
+          radius: 26,
+          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+          backgroundImage: thread.participantAvatar != null
+              ? NetworkImage(thread.participantAvatar!)
+              : null,
+          child: thread.participantAvatar == null
+              ? Text(initial,
+                  style: AppTextStyles.titleMedium.copyWith(
+                    color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900,
+                  ))
+              : null,
         ),
         title: Text(thread.subject.isNotEmpty ? thread.subject : thread.participantName,
             style: AppTextStyles.labelLarge.copyWith(
               fontWeight: thread.unreadCount > 0 ? FontWeight.w900 : FontWeight.bold,
-              color: Colors.white,
+              color: textColor,
             )),
         subtitle: Padding(
           padding: const EdgeInsets.only(top: 4),
@@ -127,7 +131,7 @@ class _ThreadTile extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodySmall.copyWith(
-              color: thread.unreadCount > 0 ? Colors.white : Colors.white38,
+              color: thread.unreadCount > 0 ? textColor : subtextColor,
               fontWeight: thread.unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
             ),
           ),
@@ -146,10 +150,11 @@ class _ThreadTile extends StatelessWidget {
                   ],
                 ),
                 child: Text('${thread.unreadCount}',
-                    style: AppTextStyles.labelSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10)),
+                    style: AppTextStyles.labelSmall.copyWith(
+                        color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10)),
               ),
             const SizedBox(height: 4),
-            const Icon(Icons.chevron_right_rounded, color: Colors.white24, size: 20),
+            Icon(Icons.chevron_right_rounded, color: iconFadeColor, size: 20),
           ],
         ),
         onTap: () => Navigator.push(

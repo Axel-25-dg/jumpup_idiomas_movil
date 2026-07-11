@@ -96,23 +96,31 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
       HapticFeedback.vibrate();
     }
 
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = Theme.of(context).scaffoldBackgroundColor;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subTextColor = isDark ? Colors.white60 : Colors.black54;
+    final keyDefaultColor = isDark ? const Color(0xFF2A2A3D) : Colors.grey.shade200;
+    final keyDefaultTextColor = isDark ? Colors.white70 : Colors.black54;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: bgColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: const Text('🪢 Ahorcado', style: TextStyle(color: Colors.white)),
+        elevation: 0,
+        iconTheme: IconThemeData(color: textColor),
+        title: Text('🪢 Ahorcado', style: TextStyle(color: textColor)),
         actions: [
           TextButton(onPressed: _newWord, child: const Text('Nueva', style: TextStyle(color: Colors.orangeAccent))),
         ],
       ),
       body: Column(
         children: [
-          _HangmanDrawing(errors: _errors),
+          _HangmanDrawing(errors: _errors, isDark: isDark),
           const SizedBox(height: 16),
-          Text('Pista: $_hint', style: const TextStyle(color: Colors.white60, fontSize: 13)),
+          Text('Pista: $_hint', style: TextStyle(color: subTextColor, fontSize: 13)),
           const SizedBox(height: 12),
-          Text(displayWord, style: const TextStyle(color: Colors.white, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 8)),
+          Text(displayWord, style: TextStyle(color: textColor, fontSize: 28, fontWeight: FontWeight.bold, letterSpacing: 8)),
           if (_won || lost)
             Padding(
               padding: const EdgeInsets.all(20),
@@ -152,11 +160,15 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      color: wrong ? Colors.red.withValues(alpha: 0.3) : guessed ? Colors.green.withValues(alpha: 0.3) : const Color(0xFF2A2A3D),
+                      color: wrong
+                          ? Colors.red.withValues(alpha: 0.3)
+                          : guessed
+                              ? Colors.green.withValues(alpha: 0.3)
+                              : keyDefaultColor,
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Center(
-                      child: Text(l, style: TextStyle(color: guessed ? Colors.white : Colors.white70, fontWeight: FontWeight.bold)),
+                      child: Text(l, style: TextStyle(color: guessed ? (isDark ? Colors.white : Colors.black87) : keyDefaultTextColor, fontWeight: FontWeight.bold)),
                     ),
                   ),
                 );
@@ -171,24 +183,30 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
 
 class _HangmanDrawing extends StatelessWidget {
   final int errors;
-  const _HangmanDrawing({required this.errors});
+  final bool isDark;
+  const _HangmanDrawing({required this.errors, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return SizedBox(
       height: 160,
-      child: CustomPaint(painter: _HangmanPainter(errors: errors)),
+      child: CustomPaint(painter: _HangmanPainter(errors: errors, isDark: isDark)),
     );
   }
 }
 
 class _HangmanPainter extends CustomPainter {
   final int errors;
-  const _HangmanPainter({required this.errors});
+  final bool isDark;
+  const _HangmanPainter({required this.errors, required this.isDark});
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white70..strokeWidth = 3..style = PaintingStyle.stroke..strokeCap = StrokeCap.round;
+    final paint = Paint()
+      ..color = isDark ? Colors.white70 : Colors.black54
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round;
     final cx = size.width / 2;
     canvas.drawLine(Offset(cx - 60, size.height - 10), Offset(cx + 60, size.height - 10), paint);
     canvas.drawLine(Offset(cx, size.height - 10), Offset(cx, 10), paint);
@@ -203,5 +221,5 @@ class _HangmanPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_HangmanPainter old) => old.errors != errors;
+  bool shouldRepaint(_HangmanPainter old) => old.errors != errors || old.isDark != isDark;
 }
