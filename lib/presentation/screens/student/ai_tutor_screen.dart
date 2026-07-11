@@ -217,10 +217,17 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
               Row(
                 children: [
                   Container(
+<<<<<<< HEAD
+                    width: 6,
+                    height: 6,
+                    decoration: const BoxDecoration(
+                      color: AppColors.warning,
+=======
                     width: 8,
                     height: 8,
                     decoration: const BoxDecoration(
                       color: Color(0xFF00C853),
+>>>>>>> main
                       shape: BoxShape.circle,
                       boxShadow: [BoxShadow(color: Color(0xFF00C853), blurRadius: 4)],
                     ),
@@ -235,6 +242,172 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
       ),
     );
   }
+<<<<<<< HEAD
+
+  void _onMicPressed() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.surface,
+        behavior: SnackBarBehavior.floating,
+        shape:
+            RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Row(
+          children: [
+            const Icon(Icons.mic_off_rounded,
+                color: AppColors.warning, size: 18),
+            const SizedBox(width: 10),
+            Text(
+              'Reconocimiento de voz disponible próximamente',
+              style:
+                  GoogleFonts.poppins(color: AppColors.textPrimary, fontSize: 13),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showInfoDialog() {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.all(28),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 48,
+              height: 4,
+              margin: const EdgeInsets.only(bottom: 24),
+              decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2)),
+            ),
+            const Icon(Icons.construction_rounded,
+                color: AppColors.warning, size: 48),
+            const SizedBox(height: 16),
+            Text(
+              'Tutor IA · En construcción',
+              style: GoogleFonts.poppins(
+                color: AppColors.textPrimary,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Esta función utilizará la API de OpenAI (GPT-4) o Google Gemini para responder tus preguntas sobre idiomas en tiempo real.\n\nEl backend ya tiene la infraestructura de mensajería lista. Solo falta conectar el "cerebro" de IA.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(color: Colors.white60, fontSize: 13, height: 1.5),
+            ),
+            const SizedBox(height: 12),
+            const _FeatureChip(icon: Icons.chat_bubble_outline_rounded, label: 'Chat en tiempo real'),
+            const SizedBox(height: 8),
+            const _FeatureChip(icon: Icons.mic_rounded, label: 'Dictado por voz'),
+            const SizedBox(height: 8),
+            const _FeatureChip(icon: Icons.volume_up_rounded, label: 'Pronunciación de respuestas'),
+            const SizedBox(height: 24),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ── Componentes de UI ──────────────────────────────────────────────────────────
+
+class _ConstructionBanner extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.warning.withValues(alpha: 0.1),
+        border: Border(
+          bottom: BorderSide(
+              color: AppColors.warning.withValues(alpha: 0.3), width: 1),
+        ),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.construction_rounded,
+              color: AppColors.warning, size: 16),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Función en construcción · Las respuestas son ejemplos estáticos',
+              style: GoogleFonts.poppins(
+                color: AppColors.warning,
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FeatureChip extends StatelessWidget {
+  const _FeatureChip({required this.icon, required this.label});
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: Colors.white12),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: AppColors.secondary, size: 18),
+          const SizedBox(width: 10),
+          Text(label,
+              style: GoogleFonts.poppins(
+                  color: AppColors.textPrimary, fontSize: 13)),
+          const Spacer(),
+          Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+            decoration: BoxDecoration(
+              color: AppColors.warning.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Text(
+              'Próximo',
+              style: GoogleFonts.poppins(
+                  color: AppColors.warning, fontSize: 10),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ChatMessage {
+  final bool isBot;
+  final String text;
+  final DateTime timestamp;
+  final bool hasQuickReplies;
+
+  const _ChatMessage({
+    required this.isBot,
+    required this.text,
+    required this.timestamp,
+    required this.hasQuickReplies,
+  });
+=======
+>>>>>>> main
 }
 
 class _ChatBubble extends StatelessWidget {

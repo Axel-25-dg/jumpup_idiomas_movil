@@ -1,4 +1,4 @@
-// language_model.dart
+// admin_language_model.dart
 class Language {
   final int id;
   final String name;

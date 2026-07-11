@@ -40,6 +40,15 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
         children: [
+<<<<<<< HEAD
+          const _SectionHeader(label: 'PREFERENCIAS'),
+          SwitchListTile(
+            title: const Text('Tema Oscuro'),
+            subtitle: const Text('Mejora la lectura en la noche'),
+            secondary: const Icon(Icons.dark_mode),
+            value: Theme.of(context).brightness == Brightness.dark,
+            onChanged: (_) {},
+=======
           _SectionHeader(label: l10n.preferences),
           const SizedBox(height: 12),
           _buildGlassTile(
@@ -53,6 +62,7 @@ class SettingsScreen extends ConsumerWidget {
               activeThumbColor: Colors.blueAccent,
               activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
             ),
+>>>>>>> main
           ),
           const SizedBox(height: 12),
           _buildGlassTile(
@@ -80,6 +90,27 @@ class SettingsScreen extends ConsumerWidget {
               activeTrackColor: Colors.blueAccent.withValues(alpha: 0.3),
             ),
           ),
+<<<<<<< HEAD
+          const Divider(height: 32),
+          const _SectionHeader(label: 'SOPORTE'),
+          ListTile(
+            leading: const Icon(Icons.help_outline),
+            title: const Text('Centro de Ayuda'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.privacy_tip_outlined),
+            title: const Text('Política de Privacidad'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+          ),
+          ListTile(
+            leading: const Icon(Icons.description_outlined),
+            title: const Text('Términos de Servicio'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {},
+=======
           
           const SizedBox(height: 12),
           _buildGlassTile(
@@ -88,6 +119,7 @@ class SettingsScreen extends ConsumerWidget {
             subtitle: prefs.language == 'es' ? 'Español' : 'English',
             icon: Icons.translate_rounded,
             onTap: () => _showLanguageDialog(context, ref),
+>>>>>>> main
           ),
           const SizedBox(height: 32),
           _SectionHeader(label: l10n.account),

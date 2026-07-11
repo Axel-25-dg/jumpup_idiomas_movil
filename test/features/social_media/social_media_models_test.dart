@@ -11,8 +11,14 @@ void main() {
   group('social media models', () {
     test('MessageThread crea un resumen útil', () {
       const thread = MessageThread(
+<<<<<<< HEAD
+        id: 'msg-1',
+        title: 'Clase de conversación',
+        participantName: 'María',
+=======
         id: 1,
         subject: 'Clase de conversación',
+>>>>>>> main
         unreadCount: 2,
       );
 
@@ -20,9 +26,15 @@ void main() {
       expect(thread.unreadCount, 2);
     });
 
+<<<<<<< HEAD
+    test('ForumThread serializa y deserializa correctamente', () {
+      const thread = ForumThread(
+        id: 'f-1',
+=======
     test('ForumThread serializa y deserialize correctamente', () {
       const thread = ForumThread(
         id: 1,
+>>>>>>> main
         title: 'Dudas de pronunciación',
         authorName: 'Luis',
         body: '¿Cómo pronuncio esta palabra?',

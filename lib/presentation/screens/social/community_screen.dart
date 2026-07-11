@@ -343,6 +343,27 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                   onChanged: (v) => setState(() => _categoryId = v),
                 ),
               ),
+<<<<<<< HEAD
+            ),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              initialValue: _languages.contains(languageController.text)
+                  ? languageController.text
+                  : 'en',
+              decoration: const InputDecoration(labelText: 'Idioma'),
+              items: _languages
+                  .map((l) => DropdownMenuItem(
+                      value: l,
+                      child: Text(l.toUpperCase())))
+                  .toList(),
+              onChanged: (v) {
+                if (v != null) {
+                  languageController.text = v;
+                }
+              },
+            ),
+          ],
+=======
               const SizedBox(height: 16),
               TextField(
                 controller: _titleCtrl,
@@ -380,6 +401,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
               ),
             ],
           ),
+>>>>>>> main
         ),
       ),
     );

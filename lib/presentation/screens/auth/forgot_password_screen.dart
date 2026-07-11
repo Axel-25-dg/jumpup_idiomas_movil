@@ -68,6 +68,30 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
+<<<<<<< HEAD
+      body: Center(
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.lock_reset, size: 80, color: AppTheme.celeste),
+              const SizedBox(height: 20),
+              const Text('Restablece tu acceso', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppTheme.textoOscuro)),
+              const SizedBox(height: 10),
+              const Text('Ingresa tu correo electrónico y te enviaremos las instrucciones.', textAlign: TextAlign.center, style: TextStyle(color: AppTheme.textoClaro)),
+              const SizedBox(height: 40),
+              GlassContainer(
+                child: TextField(
+                  controller: _emailCtrl,
+                  decoration: InputDecoration(
+                    hintText: 'Correo electrónico',
+                    prefixIcon: const Icon(Icons.email, color: AppTheme.celeste),
+                    filled: true,
+                    fillColor: Colors.white.withValues(alpha: 0.8),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+=======
       body: Stack(
         children: [
           Positioned(
@@ -167,6 +191,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                     ],
                   ],
+>>>>>>> main
                 ),
               ),
             ),

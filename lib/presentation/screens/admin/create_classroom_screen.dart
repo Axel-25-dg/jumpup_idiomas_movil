@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
-import 'package:jumpup_app/presentation/widgets/classroom_form.dart';
+import 'package:jumpup_app/presentation/providers/course_provider.dart';
 
 class CreateClassroomScreen extends ConsumerStatefulWidget {
   final ClassroomModel? classroom;
@@ -16,14 +15,14 @@ class CreateClassroomScreen extends ConsumerStatefulWidget {
 class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
-  int? _selectedCourseId;
+  late final TextEditingController _courseController;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController(text: widget.classroom?.name);
-    _descController = TextEditingController(text: widget.classroom?.description);
-    _selectedCourseId = widget.classroom?.courseId;
+    _nameController = TextEditingController();
+    _descController = TextEditingController();
+    _courseController = TextEditingController();
   }
 
   @override
@@ -34,39 +33,24 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
   }
 
   Future<void> _handleCreate() async {
-    if (_nameController.text.trim().isEmpty || _selectedCourseId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Por favor completa los campos obligatorios'), backgroundColor: Colors.redAccent)
-      );
-      return;
-    }
-    if (widget.classroom != null) {
-      await ref.read(classroomNotifierProvider.notifier).update(
-            widget.classroom!.id,
-            _nameController.text.trim(),
-            _descController.text.trim(),
-            _selectedCourseId!,
-          );
-    } else {
-      await ref.read(classroomNotifierProvider.notifier).create(
-            _nameController.text.trim(),
-            _descController.text.trim(),
-            _selectedCourseId!,
-          );
-    }
+    await ref.read(classroomNotifierProvider.notifier).create(
+          _nameController.text,
+          _descController.text,
+          int.parse(_courseController.text),
+        );
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(classroomNotifierProvider);
+    final coursesAsync = ref.watch(coursesProvider);
 
     ref.listen(classroomNotifierProvider, (previous, next) {
       if (next.hasError) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Error: ${next.error}'), backgroundColor: Colors.redAccent));
+            .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
         return;
       }
-
       final classroom = next.valueOrNull;
       if (classroom != null && previous?.isLoading == true) {
         final isEdit = widget.classroom != null;
@@ -74,10 +58,7 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
-                  isEdit
-                      ? 'Aula actualizada con éxito'
-                      : 'Aula creada con éxito. Código: ${classroom.accessCode}', 
-                  style: const TextStyle(color: Colors.black))),
+                  'Aula creada con éxito. Código: ${classroom.accessCode}')),
         );
         ref.invalidate(classroomsListProvider);
         Navigator.pop(context);
@@ -85,43 +66,66 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     });
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: Text(widget.classroom != null ? 'Editar Aula' : 'Nueva Aula', 
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
-        iconTheme: const IconThemeData(color: Colors.white),
+      appBar: AppBar(title: const Text('Crear Aula')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ClassroomForm(
+          nameController: _nameController,
+          descController: _descController,
+          courseController: _courseController,
+          loading: state.isLoading,
+          onSubmit: _handleCreate,
+        ),
       ),
-      body: Stack(
-        children: [
-          // Background Blobs
-          Positioned(
-            top: 20,
-            left: -30,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
-                boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.05), blurRadius: 60)],
-              ),
-            ),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: ClassroomForm(
-              nameController: _nameController,
-              descController: _descController,
-              selectedCourseId: _selectedCourseId,
-              onCourseChanged: (val) => setState(() => _selectedCourseId = val),
-              loading: state.isLoading,
-              onSubmit: _handleCreate,
-              isEdit: widget.classroom != null,
-            ),
-          ),
-        ],
+    );
+  }
+}
+
+// ── Widgets auxiliares ────────────────────────────────────────────────────────
+
+class _Label extends StatelessWidget {
+  const _Label(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(text,
+        style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary));
+  }
+}
+
+class _InputField extends StatelessWidget {
+  const _InputField(
+      {required this.controller, required this.hint, this.maxLines = 1});
+  final TextEditingController controller;
+  final String hint;
+  final int maxLines;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      maxLines: maxLines,
+      decoration: InputDecoration(
+        hintText: hint,
+        hintStyle: const TextStyle(color: AppColors.textHint),
+        filled: true,
+        fillColor: Colors.white,
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.divider)),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.divider)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide:
+                const BorderSide(color: AppColors.primary, width: 2)),
       ),
     );
   }

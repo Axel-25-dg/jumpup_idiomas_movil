@@ -1,4 +1,4 @@
-// course_model.dart
+// admin_course_model.dart
 class Course {
   final int id;
   final int languageId;

@@ -89,9 +89,15 @@ class MediaPlayerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Controles',
+<<<<<<< HEAD
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+=======
               style: AppTextStyles.titleSmall
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
+>>>>>>> main
           const Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
@@ -122,9 +128,15 @@ class MediaPlayerScreen extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text('Lista de Reproducción',
+<<<<<<< HEAD
+              style: theme.textTheme.titleSmall
+                  ?.copyWith(fontWeight: FontWeight.w600)),
+          const SizedBox(height: 8),
+=======
               style: AppTextStyles.titleSmall
                   .copyWith(fontWeight: FontWeight.w700)),
           const SizedBox(height: 12),
+>>>>>>> main
           const _MediaItem(
             title: 'Introducción al curso',
             duration: '10:20',

@@ -2,12 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/presentation/providers/admin_stats_provider.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
-import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/users_list_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {

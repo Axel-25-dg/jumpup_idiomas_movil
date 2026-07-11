@@ -93,11 +93,27 @@ class ApiService {
         'password': newPassword,
       });
     } on DioException catch (e) {
+<<<<<<< HEAD
+      throw Exception(e.response?.data['detail'] ?? 'PIN incorrecto o expirado');
+    }
+  }
+
+  // ==========================================
+  // 4. HISTORIAL DE NOTIFICACIONES
+  // ==========================================
+  Future<List<dynamic>> getNotifications() async {
+    try {
+      final response = await _dio.get('notifications/');
+      return response.data; 
+    } on DioException {
+      throw Exception('Error al cargar notificaciones');
+=======
       final detail = e.response?.data;
       final msg = detail is Map
           ? (detail['detail']?.toString() ?? 'PIN incorrecto o expirado')
           : 'PIN incorrecto o expirado';
       throw Exception(msg);
+>>>>>>> main
     }
   }
 }

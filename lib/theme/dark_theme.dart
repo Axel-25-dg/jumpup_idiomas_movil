@@ -7,7 +7,11 @@ import 'text_styles.dart';
 final ThemeData darkTheme = _buildDarkTheme();
 
 ThemeData _buildDarkTheme() {
+<<<<<<< HEAD
+  const colorScheme = ColorScheme(
+=======
 const ColorScheme colorScheme = ColorScheme(
+>>>>>>> main
     brightness: Brightness.dark,
     primary: AppColors.secondaryLight,
     onPrimary: AppColors.primaryDark,

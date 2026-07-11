@@ -1,25 +1,32 @@
-import 'package:dio/dio.dart';
-import 'package:jumpup_app/core/error/api_exception.dart';
-import 'package:jumpup_app/data/remote/dio_client.dart';
-import 'package:jumpup_app/domain/model/admin_stats_model.dart';
-import 'package:jumpup_app/domain/model/announcement_model.dart';
-
-//Nuevas implementaciones
-import 'package:jumpup_app/domain/model/classroom_model.dart';
-import 'package:jumpup_app/domain/model/admin_course_model.dart';
-import 'package:jumpup_app/domain/model/enrollment_model.dart';
-import 'package:jumpup_app/domain/model/admin_language_model.dart';
-import 'package:jumpup_app/domain/model/report_model.dart';
-import 'package:jumpup_app/domain/model/resource_model.dart';
-import 'package:jumpup_app/domain/model/stats_teacher_model.dart';
-import 'package:jumpup_app/domain/model/admin_subscription_model.dart';
-import 'package:jumpup_app/domain/model/admin_user_model.dart';
-import 'package:jumpup_app/domain/model/user_stats.dart';
+// lib/data/repository/teacher_admin/teacher_repository.dart
+import 'package:jumpup_app/data/repository/teacher_admin/language_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/course_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/module_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/lesson_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/exercise_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/user_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/report_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/announcement_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/subscription_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/classroom_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/stats_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/resource_repository.dart';
 
 class TeacherRepository {
-  TeacherRepository({Dio? dio}) : _dio = dio ?? DioClient.instance.dio;
-  final Dio _dio;
+  final LanguageRepository languages = LanguageRepository();
+  final CourseRepository courses = CourseRepository();
+  final ModuleRepository modules = ModuleRepository();
+  final LessonRepository lessons = LessonRepository();
+  final ExerciseRepository exercises = ExerciseRepository();
+  final UserRepository users = UserRepository();
+  final ReportRepository reports = ReportRepository();
+  final AnnouncementRepository announcements = AnnouncementRepository();
+  final SubscriptionRepository subscriptions = SubscriptionRepository();
+  final ClassroomRepository classrooms = ClassroomRepository();
+  final StatsRepository stats = StatsRepository();
+  final ResourceRepository resources = ResourceRepository();
 
+<<<<<<< HEAD
   List<dynamic> _listFrom(dynamic raw) {
     if (raw is List) return raw;
     if (raw is Map && raw['results'] is List) return raw['results'] as List;
@@ -334,3 +341,7 @@ class TeacherRepository {
     }
   }
 }
+=======
+  Future<Object?> initiateCheckout(int id) async {}
+}
+>>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200

@@ -143,7 +143,11 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> {
               width: 88,
               height: 88,
               decoration: BoxDecoration(
+<<<<<<< HEAD
+                color: AppTheme.celeste.withValues(alpha: 0.1),
+=======
                 color: AppColors.primary.withValues(alpha: 0.1),
+>>>>>>> main
                 shape: BoxShape.circle,
               ),
               child: const Icon(Icons.mark_email_read_rounded,
@@ -161,9 +165,68 @@ class _ConfirmPinScreenState extends State<ConfirmPinScreen> {
             Text(
               'Te enviamos un código de 6 dígitos a:\n${widget.email}',
               textAlign: TextAlign.center,
+<<<<<<< HEAD
+              style: const TextStyle(color: AppTheme.textoClaro, height: 1.5),
+            ),
+
+            const SizedBox(height: 36),
+
+            // ── Cajas de PIN ──────────────────────────────────────────
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _PinBox(controller: _pin1, focusNode: focus1, nextFocus: focus2, onChange: _onPinChanged),
+                _PinBox(controller: _pin2, focusNode: focus2, nextFocus: focus3, onChange: _onPinChanged),
+                _PinBox(controller: _pin3, focusNode: focus3, nextFocus: focus4, onChange: _onPinChanged),
+                _PinBox(controller: _pin4, focusNode: focus4, nextFocus: focus5, onChange: _onPinChanged),
+                _PinBox(controller: _pin5, focusNode: focus5, nextFocus: focus6, onChange: _onPinChanged),
+                _PinBox(controller: _pin6, focusNode: focus6, nextFocus: null, onChange: _onPinChanged),
+              ],
+            ),
+
+            const SizedBox(height: 36),
+
+            // ── Nueva contraseña ──────────────────────────────────────
+            GlassContainer(
+              child: Column(
+                children: [
+                  TextField(
+                    controller: _newPasswordCtrl,
+                    obscureText: _obscureNew,
+                    decoration: InputDecoration(
+                      hintText: 'Nueva contraseña',
+                      prefixIcon: const Icon(Icons.lock_outline, color: AppTheme.celeste),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility, color: AppTheme.textoClaro),
+                        onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: _confirmPasswordCtrl,
+                    obscureText: _obscureConfirm,
+                    decoration: InputDecoration(
+                      hintText: 'Confirmar contraseña',
+                      prefixIcon: const Icon(Icons.lock, color: AppTheme.celeste),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility, color: AppTheme.textoClaro),
+                        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                      ),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.8),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                    ),
+                  ),
+                ],
+=======
               style: AppTextStyles.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
                 height: 1.5,
+>>>>>>> main
               ),
             ),
 
