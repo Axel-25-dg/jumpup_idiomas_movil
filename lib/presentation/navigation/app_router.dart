@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/login_screen.dart';
