@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 class NotificationSocketService {
   WebSocketChannel? _channel;
 
   Future<void> connect(String token) async {
-    // La URL de tu consumer de notificaciones
-    final wsUrl = Uri.parse('wss://guaman-idiomas-ute.online/ws/notifications/?token=$token');
-    _channel = WebSocketChannel.connect(wsUrl);
+    final wsUrl = AppConfig.buildWsUrl('notifications/', token: token);
+    
+    debugPrint('[NotificationWS] Conectando a: $wsUrl');
+    _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
 
     _channel?.stream.listen((message) {
       // Cuando Django envía una notificación en tiempo real

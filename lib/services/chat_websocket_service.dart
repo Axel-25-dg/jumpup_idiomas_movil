@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
@@ -14,9 +15,9 @@ class ChatWebSocketService {
       throw Exception('Token no encontrado. Debes iniciar sesión.');
     }
 
-    // La URL de tu servidor en tiempo real. 
-    // Asegúrate de usar 'wss://' para producción o 'ws://' si es local.
-    final wsUrl = Uri.parse('wss://guaman-idiomas-ute.online/ws/chat/$threadId/?token=$token');
+    // Usamos AppConfig para obtener una URL de WebSocket válida y segura
+    final wsBase = AppConfig.wsBaseUrl;
+    final wsUrl = Uri.parse('$wsBase/chat/$threadId/?token=$token');
     
     _channel = WebSocketChannel.connect(wsUrl);
   }

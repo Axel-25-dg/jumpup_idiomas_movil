@@ -35,11 +35,20 @@ class _LiveTokens {
       isDark ? Colors.white38 : const Color(0xFF9A9DB4);
 }
 
-class LiveSessionsScreen extends ConsumerWidget {
+class LiveSessionsScreen extends ConsumerStatefulWidget {
   const LiveSessionsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<LiveSessionsScreen> createState() => _LiveSessionsScreenState();
+}
+
+class _LiveSessionsScreenState extends ConsumerState<LiveSessionsScreen> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
     final liveAsync = ref.watch(liveSessionsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

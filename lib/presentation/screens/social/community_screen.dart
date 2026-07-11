@@ -13,11 +13,15 @@ class CommunityScreen extends ConsumerStatefulWidget {
   ConsumerState<CommunityScreen> createState() => _CommunityScreenState();
 }
 
-class _CommunityScreenState extends ConsumerState<CommunityScreen> {
+class _CommunityScreenState extends ConsumerState<CommunityScreen> with AutomaticKeepAliveClientMixin {
   int? _selectedCategoryId;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // Importante para KeepAlive
     final categoriesAsync = ref.watch(forumCategoriesProvider);
     final threadsAsync = ref.watch(forumThreadsProvider(_selectedCategoryId));
     final isDark = Theme.of(context).brightness == Brightness.dark;

@@ -67,6 +67,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
 
   Future<void> _connectWebSocket() async {
     await _ws.connect();
+    if (!mounted) return;
     _wsSub = _ws.messages.listen((data) {
       if (data['type'] == 'notification' && data['notification'] != null) {
         final newNotif = NotificationItem.fromJson(
@@ -76,9 +77,11 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> {
           setState(() {
             _notifications = [newNotif, ..._notifications];
           });
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(newNotif.title), duration: const Duration(seconds: 3)),
-          );
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(newNotif.title), duration: const Duration(seconds: 3)),
+            );
+          }
         }
       }
     });

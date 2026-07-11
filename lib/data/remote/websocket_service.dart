@@ -27,15 +27,7 @@ class WebSocketService {
   /// ID de sala/conversación, si aplica.
   final String? roomId;
 
-  static String get _wsBase {
-    final httpUrl = AppConfig.baseUrl;
-    final wsUrl = httpUrl
-        .replaceFirst('https://', 'wss://')
-        .replaceFirst('http://', 'ws://');
-    final clean = wsUrl.endsWith('/') ? wsUrl.substring(0, wsUrl.length - 1) : wsUrl;
-    if (clean.endsWith('/api')) return '$clean/ws';
-    return '${clean.replaceAll('/api', '')}/ws';
-  }
+  static String get _wsBase => AppConfig.wsBaseUrl;
 
   final TokenStorage _tokenStorage = TokenStorage();
 
@@ -62,18 +54,21 @@ class WebSocketService {
       return;
     }
 
-    // URL resultante:
-    //   wss://guaman-idiomas-ute.online/ws/notifications/?token=eyJ...
-    //   wss://guaman-idiomas-ute.online/ws/chat/room-123/?token=eyJ...
-    final room = roomId != null ? '$roomId/' : '';
-    final uri = Uri.parse('$_wsBase/$path/$room?token=$token');
+    // URL resultante limpia usando el generador centralizado de AppConfig
+    final roomPath = roomId != null ? '$roomId/' : '';
+    final fullPath = '$path/$roomPath'.replaceAll('//', '/');
+    final wsUrl = AppConfig.buildWsUrl(fullPath, token: token);
+    final uri = Uri.parse(wsUrl);
 
     try {
+      debugPrint('[WS] Intentando conectar a: $wsUrl');
       _channel = WebSocketChannel.connect(uri);
-      // Espera handshake HTTP→WS
+      
+      // El handshake ocurre aquí. Si falla, lanzará Exception
       await _channel!.ready;
+      
       _connected = true;
-      debugPrint('[WS] ✓ Conectado → $uri');
+      debugPrint('[WS] ✓ Conexión establecida con éxito');
 
       _controller ??= StreamController<Map<String, dynamic>>.broadcast();
 

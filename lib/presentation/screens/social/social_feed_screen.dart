@@ -13,10 +13,13 @@ class SocialFeedScreen extends ConsumerStatefulWidget {
   ConsumerState<SocialFeedScreen> createState() => _SocialFeedScreenState();
 }
 
-class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
+class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> with AutomaticKeepAliveClientMixin {
   final _contentController = TextEditingController();
   bool _posting = false;
   bool _showCompose = false;
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void dispose() {
@@ -58,6 +61,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // Importante para KeepAlive
     final feedAsync = ref.watch(socialFeedProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = isDark ? Colors.white : Colors.black87;

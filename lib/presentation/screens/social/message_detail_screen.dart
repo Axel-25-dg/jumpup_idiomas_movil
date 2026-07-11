@@ -134,12 +134,14 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
         setState(() {
           _messages = _messages.where((m) => m.id != optimistic.id).toList();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('No se pudo enviar el mensaje'),
-            backgroundColor: Theme.of(context).colorScheme.error,
-          ),
-        );
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('No se pudo enviar el mensaje'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) setState(() => _sending = false);

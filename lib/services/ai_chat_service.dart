@@ -1,11 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:http/http.dart' as http;
 
+import 'package:jumpup_app/core/config/app_config.dart';
+
 class AiChatService {
-  static const String baseUrl = 'https://guaman-idiomas-ute.online/api';
-  static const String wsBase = 'wss://guaman-idiomas-ute.online/ws';
+  static String get baseUrl => AppConfig.baseUrl.replaceAll('/api/', '/api');
+  static String get wsBase => AppConfig.wsBaseUrl;
 
   // Crear hilo con el tutor IA (o reusar el existente)
   // El backend activa GPT-4o automáticamente cuando el subject contiene "IA"
@@ -67,10 +70,11 @@ class AiChatService {
     }
   }
 
-  // Conectar WebSocket al chat del tutor — token en query string (única forma fiable en Flutter)
+  // Conectar WebSocket al chat del tutor — token en query string
   static WebSocketChannel connectToAi(int threadId, String token) {
-    final uri = Uri.parse('$wsBase/chat/$threadId/?token=$token');
-    return WebSocketChannel.connect(uri);
+    final wsUrl = AppConfig.buildWsUrl('chat/$threadId/', token: token);
+    debugPrint('[AiChatWS] Conectando a: $wsUrl');
+    return WebSocketChannel.connect(Uri.parse(wsUrl));
   }
 
   // Enviar mensaje al tutor IA
