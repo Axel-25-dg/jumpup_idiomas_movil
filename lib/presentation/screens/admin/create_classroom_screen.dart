@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/widgets/classroom_form.dart';
 
 class CreateClassroomScreen extends ConsumerStatefulWidget {
-  const CreateClassroomScreen({super.key});
+  final ClassroomModel? classroom;
+  const CreateClassroomScreen({super.key, this.classroom});
 
   @override
   ConsumerState<CreateClassroomScreen> createState() =>
@@ -14,36 +16,44 @@ class CreateClassroomScreen extends ConsumerStatefulWidget {
 class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
-  late final TextEditingController _courseController;
+  int? _selectedCourseId;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _descController = TextEditingController();
-    _courseController = TextEditingController();
+    _nameController = TextEditingController(text: widget.classroom?.name);
+    _descController = TextEditingController(text: widget.classroom?.description);
+    _selectedCourseId = widget.classroom?.courseId;
   }
 
   @override
   void dispose() {
     _nameController.dispose();
     _descController.dispose();
-    _courseController.dispose();
     super.dispose();
   }
 
   Future<void> _handleCreate() async {
-    if (_nameController.text.trim().isEmpty || _courseController.text.trim().isEmpty) {
+    if (_nameController.text.trim().isEmpty || _selectedCourseId == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Por favor completa los campos obligatorios'), backgroundColor: Colors.redAccent)
       );
       return;
     }
-    await ref.read(classroomNotifierProvider.notifier).create(
-          _nameController.text.trim(),
-          _descController.text.trim(),
-          int.parse(_courseController.text.trim()),
-        );
+    if (widget.classroom != null) {
+      await ref.read(classroomNotifierProvider.notifier).update(
+            widget.classroom!.id,
+            _nameController.text.trim(),
+            _descController.text.trim(),
+            _selectedCourseId!,
+          );
+    } else {
+      await ref.read(classroomNotifierProvider.notifier).create(
+            _nameController.text.trim(),
+            _descController.text.trim(),
+            _selectedCourseId!,
+          );
+    }
   }
 
   @override
@@ -59,12 +69,17 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
 
       final classroom = next.valueOrNull;
       if (classroom != null && previous?.isLoading == true) {
+        final isEdit = widget.classroom != null;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
-                  'Aula creada con éxito. Código: ${classroom.accessCode}', style: const TextStyle(color: Colors.black))),
+                  isEdit
+                      ? 'Aula actualizada con éxito'
+                      : 'Aula creada con éxito. Código: ${classroom.accessCode}', 
+                  style: const TextStyle(color: Colors.black))),
         );
+        ref.invalidate(classroomsListProvider);
         Navigator.pop(context);
       }
     });
@@ -74,8 +89,8 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Nueva Aula', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+        title: Text(widget.classroom != null ? 'Editar Aula' : 'Nueva Aula', 
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Stack(
@@ -99,9 +114,11 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
             child: ClassroomForm(
               nameController: _nameController,
               descController: _descController,
-              courseController: _courseController,
+              selectedCourseId: _selectedCourseId,
+              onCourseChanged: (val) => setState(() => _selectedCourseId = val),
               loading: state.isLoading,
               onSubmit: _handleCreate,
+              isEdit: widget.classroom != null,
             ),
           ),
         ],

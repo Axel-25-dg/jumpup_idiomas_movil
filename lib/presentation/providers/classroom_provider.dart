@@ -23,6 +23,24 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<ClassroomModel?>> {
           courseId: courseId,
         ));
   }
+
+  Future<void> update(int id, String name, String desc, int courseId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() => _repo.updateClassroom(
+          id: id,
+          name: name,
+          description: desc,
+          courseId: courseId,
+        ));
+  }
+
+  Future<void> delete(int id) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.deleteClassroom(id);
+      return null;
+    });
+  }
 }
 
 final classroomNotifierProvider =

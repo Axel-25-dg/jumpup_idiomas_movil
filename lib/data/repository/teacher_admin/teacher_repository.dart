@@ -54,6 +54,37 @@ class TeacherRepository {
     }
   }
 
+  Future<ClassroomModel> updateClassroom({
+    required int id,
+    required String name,
+    required String description,
+    required int courseId,
+  }) async {
+    try {
+      final response = await _dio.patch<Map<String, dynamic>>(
+        'classrooms/$id/',
+        data: {
+          'name': name,
+          'description': description,
+          'course': courseId,
+        },
+      );
+      return ClassroomModel.fromJson(response.data!);
+    } on DioException catch (e) {
+      throw ApiException(
+          e.message ?? 'Error al actualizar aula', e.response?.statusCode, e);
+    }
+  }
+
+  Future<void> deleteClassroom(int id) async {
+    try {
+      await _dio.delete('classrooms/$id/');
+    } on DioException catch (e) {
+      throw ApiException(
+          e.message ?? 'Error al eliminar aula', e.response?.statusCode, e);
+    }
+  }
+
   Future<List<ClassroomEnrollment>> fetchEnrollments(int classroomId) async {
     try {
       final response = await _dio.get<dynamic>(

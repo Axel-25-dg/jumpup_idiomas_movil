@@ -165,6 +165,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String firstName,
     required String lastName,
     required String username,
+    String role = 'student',
   }) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
@@ -176,6 +177,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
           lastName: lastName,
           username: username,
           confirmPassword: password,
+          role: role,
         ),
       );
       final user = result.user ?? await _authService.getProfile();

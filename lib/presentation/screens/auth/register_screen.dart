@@ -23,6 +23,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmPassCtrl = TextEditingController();
   bool _obscurePass = true;
   bool _obscureConfirm = true;
+  String _selectedRole = 'student';
 
   @override
   void dispose() {
@@ -43,6 +44,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           username: _usernameCtrl.text.trim(),
           email: _emailCtrl.text.trim(),
           password: _passCtrl.text,
+          role: _selectedRole,
         );
   }
 
@@ -133,6 +135,67 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           child: Column(
                             children: [
+                              // ── Role Selector ──────────────────────────
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: isDark ? Colors.white10 : Colors.black12,
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => setState(() => _selectedRole = 'student'),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          decoration: BoxDecoration(
+                                            gradient: _selectedRole == 'student'
+                                                ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)])
+                                                : null,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Estudiante',
+                                            style: TextStyle(
+                                              color: _selectedRole == 'student' ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () => setState(() => _selectedRole = 'teacher'),
+                                        child: AnimatedContainer(
+                                          duration: const Duration(milliseconds: 200),
+                                          padding: const EdgeInsets.symmetric(vertical: 12),
+                                          decoration: BoxDecoration(
+                                            gradient: _selectedRole == 'teacher'
+                                                ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)])
+                                                : null,
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          alignment: Alignment.center,
+                                          child: Text(
+                                            'Profesor',
+                                            style: TextStyle(
+                                              color: _selectedRole == 'teacher' ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 24),
                               Row(
                                 children: [
                                   Expanded(

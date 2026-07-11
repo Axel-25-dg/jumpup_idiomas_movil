@@ -258,7 +258,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
           path: AppRoutes.teacherCreateClassroom,
           name: 'teacherCreateClassroom',
-          builder: (_, __) => const CreateClassroomScreen()),
+          builder: (_, state) {
+            final classroom = state.extra as ClassroomModel?;
+            return CreateClassroomScreen(classroom: classroom);
+          }),
       GoRoute(
           path: AppRoutes.teacherManageClassroom,
           name: 'teacherManageClassroom',
