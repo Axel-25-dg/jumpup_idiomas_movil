@@ -141,8 +141,9 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text(classroom != null ? 'Editar aula' : 'Crear aula'),
-        content: Form(
-          key: _formKey,
+        content: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -401,7 +402,9 @@ class _ClassroomCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
             ],
-            Row(
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
@@ -417,7 +420,6 @@ class _ClassroomCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(
@@ -434,7 +436,6 @@ class _ClassroomCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                   decoration: BoxDecoration(

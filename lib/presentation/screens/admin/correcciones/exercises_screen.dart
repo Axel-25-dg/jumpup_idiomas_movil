@@ -43,9 +43,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercisesAsync = _currentLessonId != null
-        ? ref.watch(exercisesByLessonProvider(_currentLessonId!))
-        : const AsyncValue<List<ExerciseModel>>.loading();
+
 
     final notifier = ref.read(exerciseNotifierProvider.notifier);
 
@@ -111,7 +109,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             ),
           ),
 
-          // Lista de ejercicios
           Expanded(
             child: _currentLessonId == null
                 ? Center(
@@ -136,46 +133,10 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                       ],
                     ),
                   )
-                : RefreshIndicator(
-                    onRefresh: () => notifier.refresh(_currentLessonId!),
-                    child: LoadingOverlay(
-                      isLoading: exercisesAsync.isLoading,
-                      child: exercisesAsync.when(
-                        loading: () => const Center(child: CircularProgressIndicator()),
-                        error: (error, stack) => _buildErrorView(error, notifier),
-                        data: (exercises) {
-                          if (exercises.isEmpty) {
-                            return EmptyState(
-                              title: 'No hay ejercicios',
-                              subtitle: 'Crea el primer ejercicio para esta lección',
-                              icon: Icons.edit_note_rounded,
-                              buttonText: 'Crear ejercicio',
-                              onButtonPressed: () => _showAddEditDialog(context),
-                            );
-                          }
-                          return ListView.builder(
-                            padding: const EdgeInsets.all(16),
-                            itemCount: exercises.length,
-                            itemBuilder: (context, index) {
-                              final exercise = exercises[index];
-                              return _ExerciseCard(
-                                exercise: exercise,
-                                onEdit: () => _showAddEditDialog(
-                                  context,
-                                  exercise: exercise,
-                                ),
-                                onDelete: () => _confirmDelete(
-                                  context,
-                                  exercise.id,
-                                  _currentLessonId!,
-                                  notifier,
-                                ),
-                              );
-                            },
-                          );
-                        },
-                      ),
-                    ),
+                : _ExercisesList(
+                    lessonId: _currentLessonId!,
+                    onEdit: (exercise) => _showAddEditDialog(context, exercise: exercise),
+                    onDelete: (exerciseId, lessonId, notifier) => _confirmDelete(context, exerciseId, lessonId, notifier),
                   ),
           ),
         ],
@@ -228,8 +189,9 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         title: Text(isEditing ? 'Editar ejercicio' : 'Crear ejercicio'),
         content: SizedBox(
           width: 400,
-          child: Form(
-            key: _formKey,
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -588,6 +550,79 @@ class _ExerciseCard extends StatelessWidget {
               color: AppColors.error,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ExercisesList extends ConsumerWidget {
+  const _ExercisesList({
+    required this.lessonId,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
+  final int lessonId;
+  final void Function(ExerciseModel) onEdit;
+  final void Function(int, int, ExerciseNotifier) onDelete;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final exercisesAsync = ref.watch(exercisesByLessonProvider(lessonId));
+    final notifier = ref.read(exerciseNotifierProvider.notifier);
+
+    return RefreshIndicator(
+      onRefresh: () => notifier.refresh(lessonId),
+      child: LoadingOverlay(
+        isLoading: exercisesAsync.isLoading,
+        child: exercisesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, stack) => Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
+                const SizedBox(height: 16),
+                Text('Error al cargar ejercicios', style: AppTextStyles.titleMedium),
+                const SizedBox(height: 8),
+                Text(
+                  error.toString(),
+                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  label: 'Reintentar',
+                  onPressed: () => notifier.refresh(lessonId),
+                  icon: Icons.refresh_rounded,
+                ),
+              ],
+            ),
+          ),
+          data: (exercises) {
+            if (exercises.isEmpty) {
+              return EmptyState(
+                title: 'No hay ejercicios',
+                subtitle: 'Crea el primer ejercicio para esta lección',
+                icon: Icons.edit_note_rounded,
+                buttonText: 'Crear ejercicio',
+                onButtonPressed: () {}, 
+              );
+            }
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: exercises.length,
+              itemBuilder: (context, index) {
+                final exercise = exercises[index];
+                return _ExerciseCard(
+                  exercise: exercise,
+                  onEdit: () => onEdit(exercise),
+                  onDelete: () => onDelete(exercise.id, lessonId, notifier),
+                );
+              },
+            );
+          },
         ),
       ),
     );

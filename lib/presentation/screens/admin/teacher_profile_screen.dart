@@ -70,9 +70,9 @@ class _TeacherProfileScreenState
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('Mi Perfil'),
+        title: const Text('Mi Perfil', style: TextStyle(color: Colors.black87, fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
+        foregroundColor: Colors.black87,
         elevation: 0,
         surfaceTintColor: Colors.white,
         actions: [
