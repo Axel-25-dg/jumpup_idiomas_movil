@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
@@ -114,11 +116,13 @@ class SubscriptionsScreen extends ConsumerWidget {
 }
 
 class _ActivePlanBanner extends StatelessWidget {
-  final dynamic subscription;
+  final UserSubscriptionModel subscription;
   const _ActivePlanBanner({required this.subscription});
 
   @override
   Widget build(BuildContext context) {
+    final expiryDate = DateFormat('dd/MM/yyyy').format(subscription.endDate);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 20),
       padding: const EdgeInsets.all(20),
@@ -135,9 +139,9 @@ class _ActivePlanBanner extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('Plan Activo: ${subscription.planName ?? "Pro"}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
+                Text('Plan Activo: ${subscription.subscription.name}', style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
-                Text('Vence: ${subscription.endDate ?? "N/A"}', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
+                Text('Vence: $expiryDate', style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12)),
               ],
             ),
           ),
@@ -195,7 +199,7 @@ class _FeatureRow extends StatelessWidget {
 }
 
 class _PlanCard extends ConsumerWidget {
-  final dynamic plan;
+  final SubscriptionModel plan;
   const _PlanCard({required this.plan});
 
   @override

@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
@@ -5,20 +7,30 @@ class SubscriptionService extends BaseRepository {
   const SubscriptionService();
 
   Future<List<SubscriptionModel>> getSubscriptions() async {
-    return getList('subscriptions/', SubscriptionModel.fromJson,
+    return getList('subscriptions/active/', SubscriptionModel.fromJson,
         message: 'No se pudieron cargar los planes');
   }
 
   Future<UserSubscriptionModel?> getMySubscription() async {
     return handleRequest<UserSubscriptionModel?>(() async {
-      final response = await dio.get<dynamic>('my-subscriptions/');
-      final data = response.data;
-      if (data == null) return null;
-      final list = data is List ? data : (data['results'] as List?) ?? [];
-      if (list.isEmpty) return null;
-      return UserSubscriptionModel.fromJson(
-        list.first is Map ? Map<String, dynamic>.from(list.first) : {},
-      );
+      try {
+        final response = await dio.get<dynamic>('my-subscriptions/current/');
+        final data = response.data;
+        
+        // El backend devuelve { "detail": "...", "subscription": null } si no hay plan
+        if (data == null || (data is Map && data['subscription'] == null)) {
+          return null;
+        }
+        
+        // Si data es un Map y tiene la info del usuario
+        return UserSubscriptionModel.fromJson(Map<String, dynamic>.from(data as Map));
+      } on DioException catch (e) {
+        if (e.response?.statusCode == 404) return null;
+        rethrow;
+      } catch (e) {
+        debugPrint('Error de parseo en getMySubscription: $e');
+        return null;
+      }
     }, message: 'No se pudo obtener tu suscripción');
   }
 

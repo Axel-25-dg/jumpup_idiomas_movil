@@ -89,10 +89,23 @@ class UserSubscriptionModel {
   int get daysRemaining => endDate.difference(DateTime.now()).inDays;
 
   factory UserSubscriptionModel.fromJson(Map<String, dynamic> json) {
+    final subData = json['subscription'];
+    final SubscriptionModel sub;
+    if (subData is Map) {
+      sub = SubscriptionModel.fromJson(Map<String, dynamic>.from(subData));
+    } else {
+      // Fallback si solo viene el ID o es nulo
+      sub = SubscriptionModel(
+        id: subData is int ? subData : 0,
+        name: 'Plan',
+        description: '',
+        price: 0.0,
+        durationDays: 30,
+      );
+    }
     return UserSubscriptionModel(
-      id: json['id'] as int,
-      subscription: SubscriptionModel.fromJson(
-          json['subscription'] as Map<String, dynamic>),
+      id: json['id'] as int? ?? 0,
+      subscription: sub,
       startDate: DateTime.tryParse(json['start_date']?.toString() ?? '') ??
           DateTime.now(),
       endDate: DateTime.tryParse(json['end_date']?.toString() ?? '') ??

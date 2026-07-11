@@ -12,6 +12,7 @@ import 'package:jumpup_app/theme/light_theme.dart';
 import 'package:jumpup_app/theme/dark_theme.dart';
 import 'package:jumpup_app/presentation/providers/preferences_provider.dart';
 import 'package:jumpup_app/services/notification_service.dart';
+import 'package:jumpup_app/presentation/widgets/gamification/gamification_overlay.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,10 +39,9 @@ Future<void> main() async {
     debugPrint('NotificationService error: $e');
   }
 
-  // Inicializar Stripe — solo establece la publishable key, NO llama applySettings()
-  // en main() para evitar el crash cuando MainActivity no estaba lista.
-  // applySettings() se llama después en cada flujo de pago.
-  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? 'pk_test_PLACEHOLDER';
+  // ─── INICIALIZACIÓN DE STRIPE ──────────────────────────────────────
+  // La publishableKey se configura dinámicamente desde el backend en CartScreen
+  // ──────────────────────────────────────────────────────────────────
 
   // Barra de estado transparente para que el Splash ocupe toda la pantalla
   SystemChrome.setSystemUIOverlayStyle(
@@ -62,8 +62,8 @@ Future<void> main() async {
       overrides: [
         sharedPreferencesProvider.overrideWithValue(prefs),
       ],
-      child: const JumpUpApp()
-    )
+      child: const JumpUpApp(),
+    ),
   );
 }
 
@@ -74,25 +74,27 @@ class JumpUpApp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(preferencesProvider);
 
-    return MaterialApp.router(
-      title: 'JumpUp',
-      debugShowCheckedModeBanner: false,
+    return GamificationOverlay(
+      child: MaterialApp.router(
+        title: 'JumpUp',
+        debugShowCheckedModeBanner: false,
 
-      // ── Localización ───────────────────────────────────────────────
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      supportedLocales: const [
-        Locale('en'),
-        Locale('es'),
-      ],
-      locale: Locale(prefs.language),
+        // ── Localización ───────────────────────────────────────────────
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: const [
+          Locale('en'),
+          Locale('es'),
+        ],
+        locale: Locale(prefs.language),
 
-      // ── Temas ───────────────────────────────────────────────────────
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      themeMode: prefs.darkMode ? ThemeMode.dark : ThemeMode.light,
+        // ── Temas ───────────────────────────────────────────────────────
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        themeMode: prefs.darkMode ? ThemeMode.dark : ThemeMode.light,
 
-      // ── go_router ────────────────────────────────────────────────────────
-      routerConfig: buildAppRouter(ref),
+        // ── go_router ────────────────────────────────────────────────────
+        routerConfig: buildAppRouter(ref),
+      ),
     );
   }
 }

@@ -5,6 +5,7 @@ import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+import 'package:jumpup_app/domain/model/subscription_models.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class CartScreen extends ConsumerWidget {
@@ -113,7 +114,7 @@ class _EmptyCartView extends StatelessWidget {
 }
 
 class _CartItemCard extends StatelessWidget {
-  final dynamic item;
+  final SubscriptionModel item;
   final WidgetRef ref;
 
   const _CartItemCard({required this.item, required this.ref});
@@ -141,12 +142,12 @@ class _CartItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name ?? 'Plan Premium',
+                  item.name,
                   style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold, fontSize: 16),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.durationLabel ?? 'Plan mensual',
+                  item.durationLabel,
                   style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 12),
                 ),
                 const SizedBox(height: 8),
@@ -162,7 +163,7 @@ class _CartItemCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                item.formattedPrice ?? '\$${item.price}',
+                item.formattedPrice,
                 style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.w900, fontSize: 18),
               ),
               const SizedBox(height: 8),
@@ -184,7 +185,7 @@ class _CartItemCard extends StatelessWidget {
 // ── Cart Summary + Stripe Checkout ────────────────────────────────────────────
 
 class _CartSummaryPanel extends ConsumerStatefulWidget {
-  final dynamic cart;
+  final CartState cart;
   const _CartSummaryPanel({required this.cart});
 
   @override
