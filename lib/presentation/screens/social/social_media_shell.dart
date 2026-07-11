@@ -48,7 +48,7 @@ class _SocialMediaShellState extends ConsumerState<SocialMediaShell>
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
     final titleColor = isDark ? Colors.white : Colors.black87;
     final iconColor = isDark ? Colors.white70 : Colors.black54;
-    final tabColor = const Color(0xFF7C4DFF);
+    const tabColor = Color(0xFF7C4DFF);
     final unselectedTabColor = isDark ? Colors.white30 : Colors.black38;
 
     return Scaffold(

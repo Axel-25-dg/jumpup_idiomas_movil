@@ -64,20 +64,6 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
     final subtextColor = isDark ? Colors.white54 : Colors.black54;
 
     return Scaffold(
-<<<<<<< HEAD
-      backgroundColor: const Color(0xFFF2F9FF),
-      appBar: AppBar(
-        backgroundColor: AppTheme.celeste,
-        elevation: 0,
-        centerTitle: true,
-        title: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.rocket_launch_rounded, color: Colors.white, size: 20),
-            SizedBox(width: 8),
-            Text('Feed JumpUp', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
-          ],
-=======
       backgroundColor: Colors.transparent,
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 80),
@@ -88,7 +74,6 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
           label: Text('Publicar',
               style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
           onPressed: () => setState(() => _showCompose = !_showCompose),
->>>>>>> main
         ),
       ),
       body: Column(
@@ -99,25 +84,6 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
             curve: Curves.fastOutSlowIn,
             child: SingleChildScrollView(
               physics: const NeverScrollableScrollPhysics(),
-<<<<<<< HEAD
-              child: Container(
-                margin: const EdgeInsets.all(12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [BoxShadow(color: AppTheme.celeste.withValues(alpha: 0.15), blurRadius: 10, offset: const Offset(0, 4))],
-                ),
-                child: Column(
-                  children: [
-                    TextField(
-                      controller: _contentController,
-                      maxLines: 3,
-                      decoration: const InputDecoration(
-                        hintText: '¿Qué quieres compartir con la comunidad JumpUp?',
-                        border: InputBorder.none,
-                        hintStyle: TextStyle(color: AppTheme.textoClaro),
-=======
               child: Padding(
                 padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
                 child: GlassContainer(
@@ -136,7 +102,6 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
                           hintStyle: AppTextStyles.bodyMedium.copyWith(color: subtextColor),
                           border: InputBorder.none,
                         ),
->>>>>>> main
                       ),
                       Divider(color: isDark ? Colors.white10 : Colors.black12),
                       Row(
@@ -229,11 +194,7 @@ class _SocialFeedScreenState extends ConsumerState<SocialFeedScreen> {
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-<<<<<<< HEAD
-              color: AppTheme.celeste.withValues(alpha: 0.1),
-=======
               color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
->>>>>>> main
             ),
             child: const Icon(Icons.explore_rounded, size: 56, color: Color(0xFF7C4DFF)),
           ),
@@ -265,61 +226,6 @@ class _PostCard extends StatelessWidget {
     final time = DateFormat('dd MMM, HH:mm').format(post.createdAt);
     final initial = post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?';
 
-<<<<<<< HEAD
-    return Container(
-      margin: const EdgeInsets.only(bottom: 14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(color: AppTheme.celeste.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4)),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Header
-          Padding(
-            padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 22,
-                  backgroundColor: AppTheme.celeste.withValues(alpha: 0.15),
-                  backgroundImage: post.authorAvatar != null ? NetworkImage(post.authorAvatar!) : null,
-                  child: post.authorAvatar == null
-                      ? Text(initial, style: const TextStyle(color: AppTheme.celeste, fontWeight: FontWeight.bold, fontSize: 16))
-                      : null,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(post.authorName, style: const TextStyle(fontWeight: FontWeight.bold, color: AppTheme.textoOscuro, fontSize: 14)),
-                      Text(time, style: const TextStyle(color: AppTheme.textoClaro, fontSize: 11)),
-                    ],
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.celeste.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  child: const Text('Estudiante', style: TextStyle(color: AppTheme.celeste, fontSize: 11, fontWeight: FontWeight.w600)),
-                ),
-              ],
-            ),
-          ),
-          // Contenido
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 14),
-            child: Text(post.content, style: const TextStyle(color: AppTheme.textoOscuro, fontSize: 15, height: 1.4)),
-          ),
-          // Imagen si hay
-          if (post.imageUrl != null)
-=======
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: GlassContainer(
@@ -330,7 +236,6 @@ class _PostCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
->>>>>>> main
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 10),
               child: Row(

@@ -26,11 +26,11 @@ class StatsRepository extends BaseRepository {
       try {
         final classroomsRes = await dio.get<dynamic>('classrooms/');
         final classrooms = (classroomsRes.data as List)
-            .map((i) => Classroom.fromJson(i as Map<String, dynamic>))
+            .map((i) => ClassroomModel.fromJson(i as Map<String, dynamic>))
             .toList();
         return TeacherStats(
           totalAulas: classrooms.length,
-          totalAlumnos: classrooms.fold(0, (sum, item) => sum + item.totalStudents),
+          totalAlumnos: classrooms.fold(0, (sum, item) => sum + item.studentsCount),
         );
       } catch (_) {
         throw ApiException('Error al cargar estadísticas del profesor', e.response?.statusCode, e);

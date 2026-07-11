@@ -77,7 +77,7 @@ class ClassroomForm extends ConsumerWidget {
                 ),
                 data: (courses) {
                   return DropdownButtonFormField<int>(
-                    value: selectedCourseId,
+                    initialValue: selectedCourseId,
                     dropdownColor: const Color(0xFF1E1E2A),
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                     decoration: InputDecoration(

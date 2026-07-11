@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/domain/model/live_session.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
@@ -59,15 +58,15 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
         ),
         data: (sessions) {
           if (sessions.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.videocam_off_outlined, size: 64, color: Colors.white30),
-                  const SizedBox(height: 12),
-                  const Text('No hay sesiones programadas', style: TextStyle(color: Colors.white, fontSize: 18)),
-                  const SizedBox(height: 8),
-                  const Text('Tus sesiones en vivo aparecerán aquí.', style: TextStyle(color: Colors.white54)),
+                  Icon(Icons.videocam_off_outlined, size: 64, color: Colors.white30),
+                  SizedBox(height: 12),
+                  Text('No hay sesiones programadas', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  SizedBox(height: 8),
+                  Text('Tus sesiones en vivo aparecerán aquí.', style: TextStyle(color: Colors.white54)),
                 ],
               ),
             );
@@ -162,7 +161,9 @@ class _SessionManagementCard extends ConsumerWidget {
                     color: Colors.white54, size: 14),
                 const SizedBox(width: 6),
                 Text(
-                  DateFormat('dd MMM yyyy, HH:mm').format(session.startsAt),
+                  session.startsAt != null 
+                      ? DateFormat('dd MMM yyyy, HH:mm').format(session.startsAt!)
+                      : 'Sin fecha',
                   style: const TextStyle(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -173,7 +174,7 @@ class _SessionManagementCard extends ConsumerWidget {
                 width: double.infinity,
                 child: NeonButton(
                   text: isLive ? 'Finalizar Sesión' : 'Iniciar Sesión',
-                  color: isLive ? Colors.redAccent : const Color(0xFF7C4DFF),
+                  glowColor: isLive ? Colors.redAccent : const Color(0xFF7C4DFF),
                   onPressed: () => _handleSessionAction(context, ref, isLive),
                 ),
               ),

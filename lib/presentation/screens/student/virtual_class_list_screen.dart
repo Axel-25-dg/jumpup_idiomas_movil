@@ -91,8 +91,12 @@ class _VirtualClassListBody extends ConsumerWidget {
           const Positioned.fill(child: _AnimatedMeshBackground()),
           RefreshIndicator(
             onRefresh: () async {
-              await ref.refresh(myClassroomsProvider.future);
-              await ref.refresh(virtualClassesProvider.future);
+              ref.invalidate(myClassroomsProvider);
+              ref.invalidate(virtualClassesProvider);
+              await Future.wait([
+                ref.read(myClassroomsProvider.future),
+                ref.read(virtualClassesProvider.future),
+              ]);
             },
             backgroundColor: _ClassTokens.surface(context),
             color: _ClassTokens.primary,
@@ -180,7 +184,6 @@ class _VirtualClassListBody extends ConsumerWidget {
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
                               final vClass = classes[index];
-                              final myClassesLength = myClassroomsAsync.value?.length ?? 0;
                               return FadeInUp(
                                 duration: Duration(milliseconds: 400 + (index * 90)),
                                 child: _VirtualClassCard(
@@ -548,7 +551,7 @@ class _MyClassroomCard extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: _ClassTokens.primary.withValues(alpha: 0.25),
                   ),
-                  child: Icon(
+                  child: const Icon(
                     Icons.class_rounded,
                     color: _ClassTokens.primary,
                     size: 28,

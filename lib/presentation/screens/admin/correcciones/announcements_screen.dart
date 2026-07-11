@@ -110,16 +110,16 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text('Error al cargar anuncios', style: AppTextStyles.titleMedium),
+           Text('Error al cargar anuncios', style: AppTextStyles.titleMedium),
           const SizedBox(height: 8),
           Text(
             error.toString(),
             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 16),
+           SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
             onPressed: () => notifier.refresh(),
@@ -382,11 +382,11 @@ class _AnnouncementCard extends StatelessWidget {
           color: isActive ? AppColors.primary.withValues(alpha: 0.3) : AppColors.divider,
           width: isActive ? 1.5 : 1,
         ),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: AppColors.shadow,
             blurRadius: 8,
-            offset: Offset(0, 2),
+            offset: const Offset(0, 2),
           ),
         ],
       ),

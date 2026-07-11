@@ -1,4 +1,4 @@
-import 'package:jumpup_app/domain/model/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 

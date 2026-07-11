@@ -1,8 +1,12 @@
 import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/remote/interceptor/auth_interceptor.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
-import 'package:jumpup_app/core/error/api_exception.dart';
 
+/// Cliente HTTP centralizado.
+///
+/// Registra [AuthInterceptor] para manejo automático de token JWT,
+/// renovación silenciosa con refresh token y logs de red.
 class DioClient {
   DioClient._();
 
@@ -28,63 +32,11 @@ class DioClient {
       ),
     );
 
-    dio.interceptors.add(
-      InterceptorsWrapper(
-        onRequest: (options, handler) async {
-          // Eliminar slash inicial para evitar doble barra con la baseUrl
-          if (options.path.startsWith('/')) {
-            options.path = options.path.substring(1);
-          }
-          final token = await _tokenStorage.getAccessToken();
-          if (token != null && token.isNotEmpty) {
-            options.headers['Authorization'] = 'Bearer $token';
-          }
-          return handler.next(options);
-        },
-        onError: (DioException error, handler) async {
-          if (error.response?.statusCode == 401) {
-            final refreshToken = await _tokenStorage.getRefreshToken();
-            if (refreshToken != null && refreshToken.isNotEmpty) {
-              try {
-                final response = await Dio(
-                  BaseOptions(baseUrl: AppConfig.baseUrl),
-                ).post<Map<String, dynamic>>(
-                  'auth/token/refresh/',
-                  data: {'refresh': refreshToken},
-                );
-                final data = response.data!;
-                final newAccess = data['access'] as String?;
-                final newRefresh = data['refresh'] as String?;
-                if (newAccess != null) {
-                  await _tokenStorage.saveTokens(
-                    accessToken: newAccess,
-                    refreshToken: newRefresh ?? refreshToken,
-                  );
-                  error.requestOptions.headers['Authorization'] =
-                      'Bearer $newAccess';
-                  final retryResponse = await Dio(
-                    BaseOptions(baseUrl: AppConfig.baseUrl),
-                  ).fetch<dynamic>(error.requestOptions);
-                  return handler.resolve(retryResponse);
-                }
-              } catch (_) {}
-            }
-          }
+    // ── Interceptores ──────────────────────────────────────────────────────
+    // 1. Auth: adjunta Bearer token, maneja 401 y renueva con refresh token
+    dio.interceptors.add(AuthInterceptor(_tokenStorage));
 
-          final statusCode = error.response?.statusCode;
-          final message = _messageFromStatus(statusCode, error);
-          return handler.reject(
-            DioException(
-              requestOptions: error.requestOptions,
-              error: ApiException(message, statusCode, error),
-              response: error.response,
-              type: error.type,
-            ),
-          );
-        },
-      ),
-    );
-
+    // 2. Log: visible solo en modo debug
     dio.interceptors.add(
       LogInterceptor(
         request: true,
@@ -95,27 +47,6 @@ class DioClient {
     );
 
     return dio;
-  }
-
-  static String _messageFromStatus(int? code, DioException err) {
-    switch (code) {
-      case 400:
-        return 'Solicitud inválida (400)';
-      case 401:
-        return 'No autorizado. Inicie sesión nuevamente (401)';
-      case 403:
-        return 'Acceso denegado (403)';
-      case 404:
-        return 'Recurso no encontrado (404)';
-      case 500:
-        return 'Error interno del servidor (500)';
-      default:
-        if (err.type == DioExceptionType.connectionTimeout ||
-            err.type == DioExceptionType.receiveTimeout) {
-          return 'Tiempo de espera agotado. Verifique su conexión.';
-        }
-        return 'Error de red: ${err.message}';
-    }
   }
 
   Future<void> saveTokens({

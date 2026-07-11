@@ -93,8 +93,11 @@ class ApiService {
         'password': newPassword,
       });
     } on DioException catch (e) {
-<<<<<<< HEAD
-      throw Exception(e.response?.data['detail'] ?? 'PIN incorrecto o expirado');
+      final detail = e.response?.data;
+      final msg = detail is Map
+          ? (detail['detail']?.toString() ?? 'PIN incorrecto o expirado')
+          : 'PIN incorrecto o expirado';
+      throw Exception(msg);
     }
   }
 
@@ -107,13 +110,6 @@ class ApiService {
       return response.data; 
     } on DioException {
       throw Exception('Error al cargar notificaciones');
-=======
-      final detail = e.response?.data;
-      final msg = detail is Map
-          ? (detail['detail']?.toString() ?? 'PIN incorrecto o expirado')
-          : 'PIN incorrecto o expirado';
-      throw Exception(msg);
->>>>>>> main
     }
   }
 }

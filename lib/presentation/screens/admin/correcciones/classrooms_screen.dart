@@ -126,11 +126,11 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {Classroom? classroom}) {
+  void _showAddEditDialog(BuildContext context, {ClassroomModel? classroom}) {
     if (classroom != null) {
       _nameController.text = classroom.name;
       _descriptionController.text = classroom.description;
-      _courseIdController.text = classroom.course.toString();
+      _courseIdController.text = classroom.courseId.toString();
     } else {
       _nameController.clear();
       _descriptionController.clear();
@@ -345,7 +345,7 @@ class _ClassroomCard extends StatelessWidget {
     required this.onViewStudents,
   });
 
-  final Classroom classroom;
+  final ClassroomModel classroom;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
   final VoidCallback onViewStudents;
@@ -410,7 +410,7 @@ class _ClassroomCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'ID Curso: ${classroom.course}',
+                    'ID Curso: ${classroom.courseId}',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.primary,
                       fontSize: 10,

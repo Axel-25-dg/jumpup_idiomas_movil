@@ -15,7 +15,6 @@ import 'package:jumpup_app/presentation/screens/admin/resource_library_screen.da
 import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/teacher_profile_screen.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/widgets/neon_button.dart';
 
@@ -69,14 +68,14 @@ class _TeacherBottomNav extends StatelessWidget {
     ];
 
     return Container(
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: AppColors.divider, width: 0.5)),
+        border: Border(top: BorderSide(color: Color(0xFFEEEEEE), width: 0.5)),
         boxShadow: [
           BoxShadow(
-            color: AppColors.shadow,
+            color: Color(0x1A000000),
             blurRadius: 12,
-            offset: const Offset(0, -2),
+            offset: Offset(0, -2),
           ),
         ],
       ),
@@ -98,8 +97,8 @@ class _TeacherBottomNav extends StatelessWidget {
                       Icon(
                         isSelected ? activeIcon : inactiveIcon,
                         color: isSelected
-                            ? AppColors.primary
-                            : AppColors.textSecondary,
+                            ? const Color(0xFF7C4DFF)
+                            : const Color(0xFF757575),
                         size: 26,
                       ),
                       const SizedBox(height: 2),
@@ -111,8 +110,8 @@ class _TeacherBottomNav extends StatelessWidget {
                               ? FontWeight.w700
                               : FontWeight.w400,
                           color: isSelected
-                              ? AppColors.primary
-                              : AppColors.textSecondary,
+                              ? const Color(0xFF7C4DFF)
+                              : const Color(0xFF757575),
                         ),
                       ),
                     ],
@@ -170,7 +169,7 @@ class _TeacherHomeTab extends ConsumerWidget {
                               backgroundColor: Colors.white12,
                               child: CircularProgressIndicator(
                                   color: Color(0xFF7C4DFF))),
-                          error: (_, __) => const CircleAvatar(
+                          error: (error, _) => const CircleAvatar(
                               radius: 24,
                               backgroundColor: Colors.white12,
                               child: Icon(Icons.person, color: Colors.white)),
@@ -549,13 +548,13 @@ class _TeacherCoursesTab extends ConsumerWidget {
         data: (courses) {
           if (courses.isEmpty) {
             return Center(
-              child: Column(
+              child: const Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.library_books_outlined,
+                  Icon(Icons.library_books_outlined,
                       size: 64, color: Colors.white30),
-                  const SizedBox(height: 12),
-                  const Text('No tienes cursos creados aún.',
+                  SizedBox(height: 12),
+                  Text('No tienes cursos creados aún.',
                       style: TextStyle(color: Colors.white54)),
                 ],
               ),

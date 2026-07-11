@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
-import 'package:jumpup_app/presentation/providers/course_provider.dart';
+// import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/widgets/classroom_form.dart';
 
 class CreateClassroomScreen extends ConsumerStatefulWidget {
   final ClassroomModel? classroom;
@@ -15,14 +17,14 @@ class CreateClassroomScreen extends ConsumerStatefulWidget {
 class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
   late final TextEditingController _nameController;
   late final TextEditingController _descController;
-  late final TextEditingController _courseController;
+  int? _selectedCourseId;
 
   @override
   void initState() {
     super.initState();
-    _nameController = TextEditingController();
-    _descController = TextEditingController();
-    _courseController = TextEditingController();
+    _nameController = TextEditingController(text: widget.classroom?.name ?? '');
+    _descController = TextEditingController(text: widget.classroom?.description ?? '');
+    _selectedCourseId = widget.classroom?.courseId;
   }
 
   @override
@@ -32,18 +34,23 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     super.dispose();
   }
 
-  Future<void> _handleCreate() async {
+  Future<void> _handleSubmit() async {
+    if (_nameController.text.trim().isEmpty || _selectedCourseId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Completa el nombre y selecciona un curso')),
+      );
+      return;
+    }
     await ref.read(classroomNotifierProvider.notifier).create(
-          _nameController.text,
-          _descController.text,
-          int.parse(_courseController.text),
+          _nameController.text.trim(),
+          _descController.text.trim(),
+          _selectedCourseId!,
         );
   }
 
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(classroomNotifierProvider);
-    final coursesAsync = ref.watch(coursesProvider);
 
     ref.listen(classroomNotifierProvider, (previous, next) {
       if (next.hasError) {
@@ -53,12 +60,11 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       }
       final classroom = next.valueOrNull;
       if (classroom != null && previous?.isLoading == true) {
-        final isEdit = widget.classroom != null;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
-                  'Aula creada con éxito. Código: ${classroom.accessCode}')),
+                  'Aula guardada. Código: ${classroom.accessCode}')),
         );
         ref.invalidate(classroomsListProvider);
         Navigator.pop(context);
@@ -66,66 +72,26 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     });
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Aula')),
+      backgroundColor: const Color(0xFF0F0E1A),
+      appBar: AppBar(
+        backgroundColor: const Color(0xFF1A1828),
+        title: Text(
+          widget.classroom == null ? 'Crear Aula' : 'Editar Aula',
+          style: const TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: ClassroomForm(
           nameController: _nameController,
           descController: _descController,
-          courseController: _courseController,
+          selectedCourseId: _selectedCourseId,
+          onCourseChanged: (val) => setState(() => _selectedCourseId = val),
           loading: state.isLoading,
-          onSubmit: _handleCreate,
+          onSubmit: _handleSubmit,
+          isEdit: widget.classroom != null,
         ),
-      ),
-    );
-  }
-}
-
-// ── Widgets auxiliares ────────────────────────────────────────────────────────
-
-class _Label extends StatelessWidget {
-  const _Label(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(text,
-        style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary));
-  }
-}
-
-class _InputField extends StatelessWidget {
-  const _InputField(
-      {required this.controller, required this.hint, this.maxLines = 1});
-  final TextEditingController controller;
-  final String hint;
-  final int maxLines;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textHint),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.divider)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.divider)),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide:
-                const BorderSide(color: AppColors.primary, width: 2)),
       ),
     );
   }

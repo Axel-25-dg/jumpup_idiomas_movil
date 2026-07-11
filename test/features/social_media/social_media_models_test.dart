@@ -2,23 +2,13 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/domain/model/forum_thread.dart';
 import 'package:jumpup_app/domain/model/live_session.dart';
 import 'package:jumpup_app/domain/model/message_thread.dart';
-// import 'package:jumpup_app/domain/model/notification_item.dart';
-// import 'package:jumpup_app/domain/model/search_result.dart';
-// import 'package:jumpup_app/domain/model/social_post.dart';
-
 
 void main() {
   group('social media models', () {
-    test('MessageThread crea un resumen útil', () {
+    test('MessageThread expone title y unreadCount correctamente', () {
       const thread = MessageThread(
-<<<<<<< HEAD
-        id: 'msg-1',
-        title: 'Clase de conversación',
-        participantName: 'María',
-=======
         id: 1,
         subject: 'Clase de conversación',
->>>>>>> main
         unreadCount: 2,
       );
 
@@ -26,18 +16,12 @@ void main() {
       expect(thread.unreadCount, 2);
     });
 
-<<<<<<< HEAD
     test('ForumThread serializa y deserializa correctamente', () {
       const thread = ForumThread(
-        id: 'f-1',
-=======
-    test('ForumThread serializa y deserialize correctamente', () {
-      const thread = ForumThread(
         id: 1,
->>>>>>> main
         title: 'Dudas de pronunciación',
-        authorName: 'Luis',
         body: '¿Cómo pronuncio esta palabra?',
+        authorName: 'Luis',
         postCount: 4,
       );
 
@@ -48,7 +32,7 @@ void main() {
       expect(decoded.postCount, 4);
     });
 
-    test('LiveSession expone estado y horario', () {
+    test('LiveSession expone estado y horario correctamente', () {
       final session = LiveSession(
         id: 1,
         title: 'Tutoría de speaking',
@@ -59,8 +43,38 @@ void main() {
 
       expect(session.status, 'scheduled');
       expect(session.title, contains('speaking'));
+      expect(session.isScheduled, isTrue);
+      expect(session.isLive, isFalse);
+      expect(session.isEnded, isFalse);
+    });
+
+    test('LiveSession detecta estado en vivo', () {
+      const session = LiveSession(
+        id: 2,
+        title: 'Sesión activa',
+        status: 'live',
+      );
+
+      expect(session.isLive, isTrue);
+      expect(session.statusLabel, 'En vivo');
+    });
+
+    test('MessageThread.fromJson parsea correctamente desde JSON', () {
+      final json = {
+        'id': 10,
+        'subject': 'Práctica de inglés',
+        'unread_count': 3,
+        'participants': [
+          {'username': 'carlos'}
+        ],
+      };
+
+      final thread = MessageThread.fromJson(json);
+
+      expect(thread.id, 10);
+      expect(thread.subject, 'Práctica de inglés');
+      expect(thread.unreadCount, 3);
+      expect(thread.participantName, 'carlos');
     });
   });
-
-
 }

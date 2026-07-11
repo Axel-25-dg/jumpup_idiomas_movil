@@ -48,15 +48,15 @@ class ResourceLibraryScreen extends ConsumerWidget {
         ),
         data: (resources) {
           if (resources.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const Icon(Icons.folder_open_rounded, size: 64, color: Colors.white30),
-                  const SizedBox(height: 12),
-                  const Text('No has subido recursos', style: TextStyle(color: Colors.white, fontSize: 18)),
-                  const SizedBox(height: 8),
-                  const Text('Sube PDFs, Audios o Videos para tus alumnos.', style: TextStyle(color: Colors.white54)),
+                  Icon(Icons.folder_open_rounded, size: 64, color: Colors.white30),
+                  SizedBox(height: 12),
+                  Text('No has subido recursos', style: TextStyle(color: Colors.white, fontSize: 18)),
+                  SizedBox(height: 8),
+                  Text('Sube PDFs, Audios o Videos para tus alumnos.', style: TextStyle(color: Colors.white54)),
                 ],
               ),
             );
@@ -79,7 +79,7 @@ class ResourceLibraryScreen extends ConsumerWidget {
                       Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: const Color(0xFFFF8A65).withOpacity(0.2),
+                          color: const Color(0xFFFF8A65).withValues(alpha: 0.2),
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: const Icon(Icons.insert_drive_file, color: Color(0xFFFF8A65), size: 24),
@@ -91,7 +91,7 @@ class ResourceLibraryScreen extends ConsumerWidget {
                           children: [
                             Text(res.title, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
                             const SizedBox(height: 4),
-                            Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.courseId}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                            Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.course}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                           ],
                         ),
                       ),
@@ -112,23 +112,5 @@ class ResourceLibraryScreen extends ConsumerWidget {
     );
   }
 
-  IconData _getResourceIcon(String type) {
-    switch (type.toLowerCase()) {
-      case 'pdf': return Icons.picture_as_pdf_rounded;
-      case 'audio': return Icons.audiotrack_rounded;
-      case 'video': return Icons.video_library_rounded;
-      case 'image': return Icons.image_rounded;
-      default: return Icons.insert_drive_file_rounded;
-    }
-  }
 
-  Color _getResourceColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'pdf': return Colors.redAccent;
-      case 'audio': return Colors.orangeAccent;
-      case 'video': return Colors.blueAccent;
-      case 'image': return Colors.greenAccent;
-      default: return Colors.purpleAccent;
-    }
-  }
 }

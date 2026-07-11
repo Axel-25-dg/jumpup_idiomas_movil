@@ -33,15 +33,7 @@ class NotificationService {
     );
 
     await _localNotifications.initialize(
-<<<<<<< HEAD
-      //initializationSettings: initSettings, Error local Ariel
-      settings: initSettings, 
-=======
       settings: initSettings,
-      onDidReceiveNotificationResponse: (NotificationResponse response) {
-        // Opcional: manejar cuando el usuario toca la notificación
-      },
->>>>>>> main
     );
 
     // Escuchar mensajes en primer plano

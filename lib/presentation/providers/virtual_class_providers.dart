@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
-import 'package:jumpup_app/domain/model/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/data/repository/auth/virtual_class_service.dart';
 import 'package:jumpup_app/data/repository/auth/classroom_service.dart';
 

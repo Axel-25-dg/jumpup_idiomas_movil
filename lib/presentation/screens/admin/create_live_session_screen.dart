@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
@@ -117,12 +116,9 @@ class _CreateLiveSessionScreenState
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Theme(
-              data: ThemeData.dark(),
-              child: BrandedTextField(
-                controller: _titleCtrl,
-                label: 'Título de la sesión',
-              ),
+            BrandedTextField(
+              controller: _titleCtrl,
+              label: 'Título de la sesión',
             ),
             const SizedBox(height: 20),
             const Text('Curso asociado', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
@@ -139,7 +135,7 @@ class _CreateLiveSessionScreenState
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
-                  value: _selectedCourseId,
+                  initialValue: _selectedCourseId,
                   hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                   items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
                   onChanged: (val) => setState(() => _selectedCourseId = val),
@@ -193,91 +189,4 @@ class _CreateLiveSessionScreenState
   }
 }
 
-InputDecoration _dropdownDecoration() => InputDecoration(
-      filled: true,
-      fillColor: Colors.white,
-      contentPadding:
-          const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-      border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.divider)),
-      enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: AppColors.divider)),
-      focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-    );
 
-class _Label extends StatelessWidget {
-  const _Label(this.text);
-  final String text;
-  @override
-  Widget build(BuildContext context) => Text(text,
-      style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary));
-}
-
-class _InputField extends StatelessWidget {
-  const _InputField({required this.controller, required this.hint});
-  final TextEditingController controller;
-  final String hint;
-  @override
-  Widget build(BuildContext context) => TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          hintText: hint,
-          hintStyle: const TextStyle(color: AppColors.textHint),
-          filled: true,
-          fillColor: Colors.white,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.divider)),
-          enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: AppColors.divider)),
-          focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide:
-                  const BorderSide(color: AppColors.primary, width: 2)),
-        ),
-      );
-}
-
-class _DateTimePicker extends StatelessWidget {
-  const _DateTimePicker(
-      {required this.label, required this.icon, required this.onTap});
-  final String label;
-  final IconData icon;
-  final VoidCallback onTap;
-  @override
-  Widget build(BuildContext context) => InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
-        child: Container(
-          padding:
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: AppColors.divider),
-          ),
-          child: Row(
-            children: [
-              Icon(icon, size: 16, color: AppColors.primary),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(label,
-                    style: const TextStyle(
-                        color: AppColors.textPrimary, fontSize: 13),
-                    overflow: TextOverflow.ellipsis),
-              ),
-            ],
-          ),
-        ),
-      );
-}

@@ -3,6 +3,7 @@ import 'package:jumpup_app/domain/model/auth_models.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
+import 'package:jumpup_app/domain/repository/auth_repository.dart';
 
 /// Servicio de autenticación conectado a la API Django en Hetzner.
 ///
@@ -15,7 +16,7 @@ import 'package:jumpup_app/data/remote/dio_client.dart';
 ///   POST /api/auth/token/refresh/          → renueva el access token
 ///   POST /api/auth/2fa/verify/             → verifica código 2FA
 ///   POST /api/auth/biometric/login/        → login por huella dactilar
-class AuthService {
+class AuthService implements AuthRepository {
   AuthService() : _dio = DioClient.instance.dio;
 
   final Dio _dio;
@@ -25,6 +26,7 @@ class AuthService {
 
   /// Inicia sesión. Si el backend requiere 2FA devuelve [AuthTokenModel] con
   /// [requires2FA] = true y sin tokens. Si va directo, incluye tokens + user.
+  @override
   Future<AuthTokenModel> login(LoginRequest request) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -53,6 +55,7 @@ class AuthService {
 
   // ── Login con Google ───────────────────────────────────────────────────────
 
+  @override
   Future<AuthTokenModel> loginWithGoogle(String googleIdToken) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -73,6 +76,7 @@ class AuthService {
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
+  @override
   Future<AuthTokenModel> biometricLogin({
     required String deviceId,
     required String biometricToken,
@@ -112,6 +116,7 @@ class AuthService {
 
   // ── Registro ───────────────────────────────────────────────────────────────
 
+  @override
   Future<AuthTokenModel> register(RegisterRequest request) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -134,6 +139,7 @@ class AuthService {
 
   // ── Recuperar contraseña — Paso 1: Enviar PIN al correo ───────────────────
 
+  @override
   Future<void> forgotPassword(ForgotPasswordRequest request) async {
     try {
       await _dio.post<dynamic>(
@@ -147,6 +153,7 @@ class AuthService {
 
   // ── Recuperar contraseña — Paso 2: Confirmar PIN + nueva contraseña ────────
 
+  @override
   Future<void> resetPasswordConfirm({
     required String email,
     required String pin,
@@ -168,6 +175,7 @@ class AuthService {
 
   // ── Perfil del usuario autenticado ─────────────────────────────────────────
 
+  @override
   Future<UserModel> getProfile() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('auth/me/');
@@ -179,6 +187,7 @@ class AuthService {
 
   // ── Refrescar token ────────────────────────────────────────────────────────
 
+  @override
   Future<AuthTokenModel> refreshToken(String refreshToken) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
@@ -199,6 +208,7 @@ class AuthService {
 
   // ── Logout ─────────────────────────────────────────────────────────────────
 
+  @override
   Future<void> logout() async {
     await _client.clearTokens();
   }

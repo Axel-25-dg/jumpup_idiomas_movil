@@ -124,35 +124,11 @@ class _LiquidGlassNav extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-<<<<<<< HEAD
-    final items = [
-      (Icons.home_rounded, Icons.home_outlined, 'Inicio'),
-      (Icons.menu_book_rounded, Icons.menu_book_outlined, 'Cursos'),
-      (Icons.bar_chart_rounded, Icons.bar_chart_outlined, 'Progreso'),
-      (Icons.forum_rounded, Icons.forum_outlined, 'Social'),
-      (Icons.person_rounded, Icons.person_outlined, 'Perfil'),
-    ];
-    return Container(
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surface,
-        border: const Border(
-          top: BorderSide(color: AppColors.divider, width: 0.5),
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 12,
-            offset: Offset(0, -2),
-          ),
-        ],
-      ),
-=======
     final items = _getItems(context);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
->>>>>>> main
       child: SafeArea(
         top: false,
         child: LayoutBuilder(
@@ -193,38 +169,6 @@ class _LiquidGlassNav extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-<<<<<<< HEAD
-                      Text('Actividad reciente',
-                          style: AppTextStyles.titleMedium
-                              .copyWith(fontWeight: FontWeight.w700)),
-                      const SizedBox(height: 12),
-                      if (summary.recentActivities.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: AppColors.white,
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: AppColors.divider),
-                          ),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                const Icon(Icons.history,
-                                    size: 40, color: AppColors.textHint),
-                                const SizedBox(height: 8),
-                                Text('Sin actividad reciente',
-                                    style: AppTextStyles.bodyMedium.copyWith(
-                                        color: AppColors.textSecondary)),
-                              ],
-                            ),
-                          ),
-                        )
-                      else
-                        ...summary.recentActivities.map(
-                          (a) => Container(
-                            margin: const EdgeInsets.only(bottom: 8),
-                            padding: const EdgeInsets.all(14),
-=======
                       // Indicador deslizante (la "gota" de líquido).
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 380),
@@ -239,7 +183,6 @@ class _LiquidGlassNav extends StatelessWidget {
                             curve: Curves.easeOutCubic,
                             width: slotWidth - 14,
                             height: 52,
->>>>>>> main
                             decoration: BoxDecoration(
                               gradient: _DashTokens.brandGradient,
                               borderRadius: BorderRadius.circular(22),
@@ -351,42 +294,10 @@ class _HomeTab extends ConsumerWidget {
   const _HomeTab();
 
   @override
-<<<<<<< HEAD
-  Widget build(BuildContext context) {
-    return Expanded(
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.divider),
-          boxShadow: const [
-            BoxShadow(
-                color: AppColors.shadow,
-                blurRadius: 8,
-                offset: Offset(0, 2)),
-          ],
-        ),
-        child: Column(
-          children: [
-            Icon(icon, color: color, size: 22),
-            const SizedBox(height: 4),
-            Text(value,
-                style: AppTextStyles.titleMedium
-                    .copyWith(fontWeight: FontWeight.w700, color: color)),
-            Text(label, style: AppTextStyles.labelSmall),
-          ],
-        ),
-      ),
-    );
-  }
-}
-=======
   Widget build(BuildContext context, WidgetRef ref) {
     final userAsync = ref.watch(userProfileProvider);
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final statsAsync = ref.watch(userStatsProvider);
->>>>>>> main
 
     return Stack(
       children: [

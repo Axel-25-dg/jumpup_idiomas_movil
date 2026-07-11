@@ -5,23 +5,23 @@ import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 
 class ClassroomRepository extends BaseRepository {
   // 📥 Obtener todas las aulas
-  Future<List<Classroom>> fetchAllClassrooms() {
-    return getList<Classroom>(
+  Future<List<ClassroomModel>> fetchAllClassrooms() {
+    return getList<ClassroomModel>(
       'classrooms/',
-      (json) => Classroom.fromJson(json),
+      (json) => ClassroomModel.fromJson(json),
       message: 'Error al cargar aulas',
     );
   }
 
   // ➕ Crear aula
-  Future<Classroom> createClassroom({
+  Future<ClassroomModel> createClassroom({
     required String name,
     required String description,
     required int courseId,
   }) {
-    return createOne<Classroom>(
+    return createOne<ClassroomModel>(
       'classrooms/',
-      (json) => Classroom.fromJson(json),
+      (json) => ClassroomModel.fromJson(json),
       data: {
         'name': name,
         'description': description,

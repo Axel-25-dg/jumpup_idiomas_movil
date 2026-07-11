@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -87,7 +86,7 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
-                  value: _selectedCourseId,
+                  initialValue: _selectedCourseId,
                   hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                   items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
                   onChanged: (val) => setState(() => _selectedCourseId = val),
@@ -95,17 +94,14 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
               },
             ),
             const SizedBox(height: 24),
-            Theme(
-              data: ThemeData.dark(),
-              child: Column(
-                children: [
-                  BrandedTextField(controller: _titleCtrl, label: 'Título del módulo'),
-                  const SizedBox(height: 20),
-                  BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
-                  const SizedBox(height: 20),
-                  BrandedTextField(controller: _orderCtrl, label: 'Orden (Ej. 1)', keyboardType: TextInputType.number),
-                ],
-              ),
+            Column(
+              children: [
+                BrandedTextField(controller: _titleCtrl, label: 'Título del módulo'),
+                const SizedBox(height: 20),
+                BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
+                const SizedBox(height: 20),
+                BrandedTextField(controller: _orderCtrl, label: 'Orden (Ej. 1)', keyboardType: TextInputType.number),
+              ],
             ),
             const SizedBox(height: 40),
             PrimaryButton(
@@ -120,71 +116,4 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
   }
 }
 
-InputDecoration _dropdownDecoration() {
-  return InputDecoration(
-    filled: true,
-    fillColor: Colors.white,
-    contentPadding:
-        const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-    border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.divider)),
-    enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: AppColors.divider)),
-    focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-  );
-}
 
-class _Label extends StatelessWidget {
-  const _Label(this.text);
-  final String text;
-
-  @override
-  Widget build(BuildContext context) => Text(text,
-      style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          color: AppColors.textPrimary));
-}
-
-class _InputField extends StatelessWidget {
-  const _InputField({
-    required this.controller,
-    required this.hint,
-    this.maxLines = 1,
-    this.keyboardType,
-  });
-  final TextEditingController controller;
-  final String hint;
-  final int maxLines;
-  final TextInputType? keyboardType;
-
-  @override
-  Widget build(BuildContext context) {
-    return TextField(
-      controller: controller,
-      maxLines: maxLines,
-      keyboardType: keyboardType,
-      decoration: InputDecoration(
-        hintText: hint,
-        hintStyle: const TextStyle(color: AppColors.textHint),
-        filled: true,
-        fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.divider)),
-        enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.divider)),
-        focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: const BorderSide(color: AppColors.primary, width: 2)),
-      ),
-    );
-  }
-}

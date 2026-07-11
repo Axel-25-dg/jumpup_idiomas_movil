@@ -18,12 +18,6 @@ class AppTheme {
     return ThemeData(
       useMaterial3: true,
       colorScheme: const ColorScheme.light(
-<<<<<<< HEAD
-        primary: celeste,
-        onPrimary: blanco,
-        surface: blanco,
-        onSurface: textoOscuro,
-=======
         primary: AppColors.primary,
         onPrimary: AppColors.white,
         secondary: AppColors.secondary,
@@ -32,7 +26,6 @@ class AppTheme {
         onSurface: AppColors.textPrimary,
         error: AppColors.error,
         onError: AppColors.white,
->>>>>>> main
       ),
       scaffoldBackgroundColor: AppColors.background,
       textTheme: GoogleFonts.poppinsTextTheme().copyWith(

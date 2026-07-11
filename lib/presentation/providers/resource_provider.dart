@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/resource_model.dart';
+import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 
 final teacherRepositoryProvider =

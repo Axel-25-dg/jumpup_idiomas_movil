@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class RankingScreen extends ConsumerWidget {
@@ -215,7 +214,7 @@ class RankingScreen extends ConsumerWidget {
                               label: 'Top 3',
                               value: ranking
                                   .sublist(0, 3)
-                                  .map((e) => e.username ?? 'N/A')
+                                  .map((e) => e.username as String? ?? 'N/A')
                                   .join(', '),
                               color: Colors.purpleAccent,
                               isDark: isDark,
@@ -381,8 +380,8 @@ class _SlideRotation extends GradientTransform {
   final double value;
 
   @override
-  Matrix4? transform(Rect bounds, {TextDirection? textDirection}) {
-    return Matrix4.identity()..translate(value * 200);
+  Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
+    return Matrix4.translationValues(value * 200, 0.0, 0.0);
   }
 }
 

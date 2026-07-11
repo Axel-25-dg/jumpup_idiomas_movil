@@ -10,6 +10,7 @@ class UserProfileModel {
     required this.email,
     this.firstName = '',
     this.lastName = '',
+    this.bio,
     this.avatarUrl,
     this.nativeLanguageId,
     this.languagesLearning = const [],
@@ -21,6 +22,7 @@ class UserProfileModel {
   final String email;
   final String firstName;
   final String lastName;
+  final String? bio;
   final String? avatarUrl;
   final int? nativeLanguageId;
   final List<int> languagesLearning;
@@ -42,6 +44,7 @@ class UserProfileModel {
       email: (json['email'] ?? '').toString(),
       firstName: (json['first_name'] ?? '').toString(),
       lastName: (json['last_name'] ?? '').toString(),
+      bio: profile['bio']?.toString(),
       avatarUrl: (profile['avatar_url'] ?? profile['avatar'])?.toString(),
       nativeLanguageId: profile['native_language'] is int
           ? profile['native_language'] as int

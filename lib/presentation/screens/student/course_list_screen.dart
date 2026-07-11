@@ -1,12 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-<<<<<<< HEAD
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/domain/model/course_models.dart';
-=======
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
->>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
@@ -68,51 +64,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                       setState(() => _selectedDifficulty = level);
                       _applyFilters();
                     },
-<<<<<<< HEAD
-                  );
-                }
-                final level = _difficulties[index - 1];
-                return _DifficultyChip(
-                  label: level,
-                  isSelected: _selectedDifficulty == level,
-                  color: _levelColor(level),
-                  onTap: () {
-                    setState(() => _selectedDifficulty = level);
-                    _applyFilters();
-                  },
-                );
-              },
-            ),
-          ),
-
-          const SizedBox(height: 12),
-
-          // ── Lista de cursos ────────────────────────────────────────────
-          Expanded(
-            child: coursesAsync.when(
-              loading: () => const Center(
-                child: CircularProgressIndicator(color: AppColors.primary),
-              ),
-              error: (err, _) => Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.error_outline,
-                        color: Colors.redAccent, size: 48),
-                    const SizedBox(height: 12),
-                    const Text(
-                      'Error al cargar cursos',
-                      style: TextStyle(color: AppColors.textPrimary, fontSize: 16),
-                    ),
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      onPressed: () => ref.invalidate(coursesProvider),
-                      child: const Text('Reintentar'),
-                    ),
-                  ],
-=======
                   ),
->>>>>>> main
                 ),
               ),
               SliverPadding(

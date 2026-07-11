@@ -5,12 +5,12 @@ import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
 
-final classroomNotifierProvider = StateNotifierProvider<ClassroomNotifier, AsyncValue<List<Classroom>>>((ref) {
+final classroomNotifierProvider = StateNotifierProvider<ClassroomNotifier, AsyncValue<List<ClassroomModel>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).classrooms;
   return ClassroomNotifier(repository);
 });
 
-class ClassroomNotifier extends StateNotifier<AsyncValue<List<Classroom>>> {
+class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> {
   final ClassroomRepository _repository;
 
   ClassroomNotifier(this._repository) : super(const AsyncValue.loading()) {
@@ -99,7 +99,7 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<Classroom>>> {
 }
 
 // Providers con parámetros
-final classroomsProvider = FutureProvider<List<Classroom>>((ref) {
+final classroomsProvider = FutureProvider<List<ClassroomModel>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).classrooms;
   return repository.fetchAllClassrooms();
 });

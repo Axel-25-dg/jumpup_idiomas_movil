@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
+import 'package:jumpup_app/presentation/providers/admin_stats_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
@@ -124,14 +125,14 @@ class AdminDashboardScreen extends ConsumerWidget {
                           title: 'Usuarios',
                           subtitle: 'Moderar roles y acceso',
                           color: const Color(0xFF6A11CB),
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsersListScreen())),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsersScreen())),
                         ),
                         _ActionCard(
                           icon: Icons.menu_book_rounded,
                           title: 'Catálogo',
                           subtitle: 'Cursos y contenidos',
                           color: const Color(0xFF2575FC),
-                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CreateCourseScreen())),
+                          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CoursesScreen())),
                         ),
                         _ActionCard(
                           icon: Icons.campaign_rounded,

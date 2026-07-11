@@ -111,7 +111,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
           Text('Error al cargar cursos', style: AppTextStyles.titleMedium),
           const SizedBox(height: 8),
@@ -171,7 +171,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                       prefixIcon: Icon(Icons.language_rounded),
                       border: OutlineInputBorder(),
                     ),
-                    value: _selectedLanguageId,
+                    initialValue: _selectedLanguageId,
                     items: languages.map((lang) {
                       return DropdownMenuItem(
                         value: lang.id,
@@ -208,7 +208,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                     prefixIcon: Icon(Icons.signal_cellular_alt_rounded),
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedDifficulty,
+                  initialValue: _selectedDifficulty,
                   items: _difficultyLevels.map((level) {
                     return DropdownMenuItem(
                       value: level['value'],

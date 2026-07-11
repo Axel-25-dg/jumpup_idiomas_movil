@@ -174,7 +174,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: AppColors.error),
+          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
           Text('Error al cargar usuarios', style: AppTextStyles.titleMedium),
           const SizedBox(height: 8),
@@ -427,7 +427,7 @@ class _UserCard extends StatelessWidget {
             Switch(
               value: user.isActive,
               onChanged: (_) => onToggleStatus(),
-              activeColor: Colors.green,
+              activeThumbColor: Colors.green,
             ),
             IconButton(
               icon: const Icon(Icons.edit_rounded, size: 20),

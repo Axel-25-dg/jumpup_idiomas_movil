@@ -101,36 +101,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-<<<<<<< HEAD
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Nombre completo',
-                        prefixIcon: const Icon(Icons.person, color: AppTheme.celeste),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.8),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      decoration: InputDecoration(
-                        hintText: 'Correo electrónico',
-                        prefixIcon: const Icon(Icons.email, color: AppTheme.celeste),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.8),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: 'Contraseña',
-                        prefixIcon: const Icon(Icons.lock, color: AppTheme.celeste),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.8),
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-=======
                     const SizedBox(height: 20),
                     Text(
                       l10n.joinToday,
@@ -347,7 +317,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                             ],
                           ),
                         ),
->>>>>>> main
                       ),
                     ),
                     const SizedBox(height: 32),

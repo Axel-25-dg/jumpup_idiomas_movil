@@ -12,6 +12,22 @@ import 'package:jumpup_app/data/repository/teacher_admin/classroom_repository.da
 import 'package:jumpup_app/data/repository/teacher_admin/stats_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/resource_repository.dart';
 
+import 'package:dio/dio.dart';
+import 'package:jumpup_app/data/remote/dio_client.dart';
+import 'package:jumpup_app/core/error/api_exception.dart';
+import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
+import 'package:jumpup_app/domain/model/admin/user_stats.dart';
+import 'package:jumpup_app/domain/model/admin/resource_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_stats_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
+import 'package:jumpup_app/domain/model/admin/report_model.dart';
+import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
+import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
+
 class TeacherRepository {
   final LanguageRepository languages = LanguageRepository();
   final CourseRepository courses = CourseRepository();
@@ -26,7 +42,10 @@ class TeacherRepository {
   final StatsRepository stats = StatsRepository();
   final ResourceRepository resources = ResourceRepository();
 
-<<<<<<< HEAD
+  final Dio _dio = DioClient.instance.dio;
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+
   List<dynamic> _listFrom(dynamic raw) {
     if (raw is List) return raw;
     if (raw is Map && raw['results'] is List) return raw['results'] as List;
@@ -38,6 +57,8 @@ class TeacherRepository {
     if (raw is Map) return Map<String, dynamic>.from(raw);
     return const {};
   }
+
+  // ── Aulas ──────────────────────────────────────────────────────────────────
 
   Future<ClassroomModel> createClassroom({
     required String name,
@@ -109,8 +130,6 @@ class TeacherRepository {
 
   Future<void> removeStudent(int enrollmentId) async {
     try {
-      // Si tu backend hace baja lógica, usualmente es DELETE o PATCH.
-      // Según tu petición, usaremos DELETE.
       await _dio.delete('classroom-enrollments/$enrollmentId/');
     } on DioException catch (e) {
       throw ApiException(
@@ -122,7 +141,6 @@ class TeacherRepository {
     try {
       final response =
           await _dio.get<Map<String, dynamic>>('user-stats/$studentId/');
-      // Usamos el factory definido en el modelo de dominio
       return UserStats.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiException('Error al obtener estadísticas del alumno',
@@ -130,12 +148,15 @@ class TeacherRepository {
     }
   }
 
-  /// Envía un nuevo recurso al backend.
+  // ── Recursos ───────────────────────────────────────────────────────────────
+
   Future<TeacherResource> createResource(
       Map<String, dynamic> resourceData) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>('resources/',
-          data: resourceData);
+      final response = await _dio.post<Map<String, dynamic>>(
+        'resources/',
+        data: resourceData,
+      );
       return TeacherResource.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiException(
@@ -158,7 +179,6 @@ class TeacherRepository {
     }
   }
 
-  /// Obtiene todas las aulas del profesor
   Future<List<ClassroomModel>> fetchAllClassrooms() async {
     try {
       final response = await _dio.get<dynamic>('classrooms/');
@@ -171,7 +191,7 @@ class TeacherRepository {
     }
   }
 
-  //Exercise
+  // ── Ejercicios ─────────────────────────────────────────────────────────────
 
   Future<void> createExercise(Map<String, dynamic> exerciseData) async {
     try {
@@ -182,7 +202,7 @@ class TeacherRepository {
     }
   }
 
-//Perfil docente
+  // ── Perfil docente ─────────────────────────────────────────────────────────
 
   Future<void> updateProfile({
     required String firstName,
@@ -191,7 +211,6 @@ class TeacherRepository {
     required List<int> languagesTeaching,
   }) async {
     try {
-      // El backend espera 'profile' como un objeto dentro del payload
       final data = <String, dynamic>{};
       if (languagesLearning.isNotEmpty) {
         data['languages_learning'] = languagesLearning;
@@ -206,7 +225,7 @@ class TeacherRepository {
     }
   }
 
-//Admin dashboard
+  // ── Admin dashboard ────────────────────────────────────────────────────────
 
   Future<AdminStats> getAdminStats() async {
     try {
@@ -217,20 +236,20 @@ class TeacherRepository {
           'Error al cargar estadísticas', e.response?.statusCode, e);
     }
   }
-//Usuarios crud
+
+  // ── Usuarios CRUD ──────────────────────────────────────────────────────────
 
   Future<List<User>> fetchUsers() async {
     final response = await _dio.get<dynamic>('users/');
-    final data = _listFrom(response.data);
-    return data.map((u) => User.fromJson(u)).toList();
+    return _listFrom(response.data).map((u) => User.fromJson(u)).toList();
   }
 
   Future<void> updateUser(int id, Map<String, dynamic> data) async {
     await _dio.patch('users/$id/', data: data);
   }
 
-//Cursos-Idiomas
-// Idiomas
+  // ── Idiomas ────────────────────────────────────────────────────────────────
+
   Future<List<Language>> fetchLanguages() async {
     final res = await _dio.get<dynamic>('languages/');
     return _listFrom(res.data).map((i) => Language.fromJson(i)).toList();
@@ -239,7 +258,8 @@ class TeacherRepository {
   Future<void> createLanguage(Map<String, dynamic> data) async =>
       await _dio.post('languages/', data: data);
 
-// Cursos
+  // ── Cursos ─────────────────────────────────────────────────────────────────
+
   Future<List<Course>> fetchCourses() async {
     final res = await _dio.get<dynamic>('courses/');
     return _listFrom(res.data).map((c) => Course.fromJson(c)).toList();
@@ -247,14 +267,15 @@ class TeacherRepository {
 
   Future<void> createCourse(Map<String, dynamic> data) async =>
       await _dio.post('courses/', data: data);
-      
+
   Future<void> createModule(Map<String, dynamic> data) async =>
       await _dio.post('modules/', data: data);
-      
+
   Future<void> createLesson(Map<String, dynamic> data) async =>
       await _dio.post('lessons/', data: data);
 
-  Future<void> deleteCourse(int id) async => await _dio.delete('courses/$id/');
+  Future<void> deleteCourse(int id) async =>
+      await _dio.delete('courses/$id/');
 
   Future<List<Map<String, dynamic>>> fetchModulesForCourse(int courseId) async {
     try {
@@ -269,61 +290,51 @@ class TeacherRepository {
               })
           .toList();
     } on DioException catch (e) {
-      throw ApiException(
-          'Error al cargar módulos', e.response?.statusCode, e);
+      throw ApiException('Error al cargar módulos', e.response?.statusCode, e);
     }
   }
 
+  // ── Reportes ───────────────────────────────────────────────────────────────
 
-//informes globales
-// obtener la lista de reportes
   Future<List<Report>> fetchReports() async {
     final res = await _dio.get<dynamic>('reports/');
-    // Dependiendo de tu respuesta, si viene en un objeto con "results", usa:
-    final data = _listFrom(res.data);
-    return data.map((i) => Report.fromJson(i)).toList();
+    return _listFrom(res.data).map((i) => Report.fromJson(i)).toList();
   }
 
-// actualizar el estado de un reporte
   Future<void> updateReport(int id, Map<String, dynamic> data) async {
     await _dio.patch('reports/$id/', data: data);
   }
 
-//anuncios
+  // ── Anuncios ───────────────────────────────────────────────────────────────
+
   Future<List<Announcement>> fetchAnnouncements() async {
-    // Realiza el GET al endpoint que ya tienes configurado en Django
     final res = await _dio.get<dynamic>('announcements/');
-
-    // Si tu API usa paginación (StandardPagination), accedemos a 'results'
-    final data = _listFrom(res.data);
-
-    return data.map((i) => Announcement.fromJson(i)).toList();
+    return _listFrom(res.data).map((i) => Announcement.fromJson(i)).toList();
   }
 
-//Suscripciones
+  // ── Suscripciones ──────────────────────────────────────────────────────────
 
-// Obtener lista de planes para mostrar al usuario
   Future<List<Subscription>> fetchSubscriptions() async {
     final res = await _dio.get<dynamic>('subscriptions/');
-    final data = _listFrom(res.data);
-    return data.map((i) => Subscription.fromJson(i)).toList();
+    return _listFrom(res.data).map((i) => Subscription.fromJson(i)).toList();
   }
 
-// Iniciar el proceso de pago (Checkout)
   Future<String> initiateCheckout(int subscriptionId) async {
-    final res = await _dio.post('subscriptions/checkout/', data: {
-      'subscription_id': subscriptionId,
-    });
-    return res.data['url']; // URL de Stripe
+    final res = await _dio.post(
+      'subscriptions/checkout/',
+      data: {'subscription_id': subscriptionId},
+    );
+    return res.data['url'] as String;
   }
 
-//Teacher Dashboard
+  // ── Teacher Dashboard ──────────────────────────────────────────────────────
+
   Future<TeacherStats> fetchTeacherStats() async {
     try {
       final res = await _dio.get<dynamic>('dashboard/teacher/');
       return TeacherStats.fromJson(_mapFrom(res.data));
     } on DioException catch (e) {
-      // Si el endpoint falla, calcula desde classrooms como fallback
+      // Fallback: calcular desde aulas si el endpoint no existe
       try {
         final classroomsRes = await _dio.get<dynamic>('classrooms/');
         final classrooms = _listFrom(classroomsRes.data)
@@ -341,7 +352,3 @@ class TeacherRepository {
     }
   }
 }
-=======
-  Future<Object?> initiateCheckout(int id) async {}
-}
->>>>>>> 787bdcc6a818689e258182d8f7b3b00e6fb7e200
