@@ -26,10 +26,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
   String? _selectedDifficulty;
 
   final List<Map<String, String>> _difficultyLevels = [
-    {'value': 'beginner', 'label': 'Principiante'},
-    {'value': 'intermediate', 'label': 'Intermedio'},
-    {'value': 'advanced', 'label': 'Avanzado'},
-  ];
+  {'value': 'A1', 'label': 'Principiante A1'},
+  {'value': 'A2', 'label': 'Elemental A2'},
+  {'value': 'B1', 'label': 'Intermedio B1'},
+  {'value': 'B2', 'label': 'Intermedio Alto B2'},
+  {'value': 'C1', 'label': 'Avanzado C1'},
+  {'value': 'C2', 'label': 'Maestría C2'},
+];
 
   @override
   void dispose() {
@@ -77,7 +80,8 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                 subtitle: 'Crea tu primer curso para comenzar',
                 icon: Icons.menu_book_rounded,
                 buttonText: 'Crear curso',
-                onButtonPressed: () => _showAddEditDialog(context, languagesAsync),
+                onButtonPressed:
+                    () => _showAddEditDialog(context, languagesAsync),
               );
             }
             return ListView.builder(
@@ -87,16 +91,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                 final course = courses[index];
                 return _CourseCard(
                   course: course,
-                  onEdit: () => _showAddEditDialog(
-                    context,
-                    languagesAsync,
-                    course: course,
-                  ),
-                  onDelete: () => _confirmDelete(
-                    context,
-                    course.id,
-                    notifier,
-                  ),
+                  onEdit:
+                      () => _showAddEditDialog(
+                        context,
+                        languagesAsync,
+                        course: course,
+                      ),
+                  onDelete: () => _confirmDelete(context, course.id, notifier),
                 );
               },
             );
@@ -117,7 +118,9 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -152,137 +155,176 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(course != null ? 'Editar curso' : 'Agregar curso'),
-        content: SizedBox(
-          width: 400,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Idioma
-                languagesAsync.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Error al cargar idiomas'),
-                  data: (languages) => DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(
-                      labelText: 'Idioma',
-                      prefixIcon: Icon(Icons.language_rounded),
-                      border: OutlineInputBorder(),
-                    ),
-                    initialValue: _selectedLanguageId,
-                    items: languages.map((lang) {
-                      return DropdownMenuItem(
-                        value: lang.id,
-                        child: Text(lang.name),
-                      );
-                    }).toList(),
-                    onChanged: (value) => _selectedLanguageId = value,
-                    validator: (value) => value == null ? 'Selecciona un idioma' : null,
+      builder: (ctx) {
+        // ✅ Variables locales para el diálogo
+        int? localLanguageId = _selectedLanguageId;
+        String? localDifficulty = _selectedDifficulty;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(course != null ? 'Editar curso' : 'Agregar curso'),
+              content: SizedBox(
+                width: 400,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Idioma
+                      languagesAsync.when(
+                        loading: () => const CircularProgressIndicator(),
+                        error: (_, __) => const Text('Error al cargar idiomas'),
+                        data:
+                            (languages) => DropdownButtonFormField<int>(
+                              decoration: const InputDecoration(
+                                labelText: 'Idioma',
+                                prefixIcon: Icon(Icons.language_rounded),
+                                border: OutlineInputBorder(),
+                              ),
+                              // ✅ Usar initialValue (no deprecated)
+                              initialValue: localLanguageId,
+                              items:
+                                  languages.map((lang) {
+                                    return DropdownMenuItem(
+                                      value: lang.id,
+                                      child: Text(lang.name),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                // ✅ Actualizar variable local
+                                localLanguageId = value;
+                                setDialogState(() {});
+                              },
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? 'Selecciona un idioma'
+                                          : null,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _titleController,
+                        label: 'Título del curso',
+                        prefixIcon: Icons.title_rounded,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El título es obligatorio';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _descriptionController,
+                        label: 'Descripción',
+                        prefixIcon: Icons.description_rounded,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      DropdownButtonFormField<String>(
+                        decoration: const InputDecoration(
+                          labelText: 'Nivel de dificultad',
+                          prefixIcon: Icon(Icons.signal_cellular_alt_rounded),
+                          border: OutlineInputBorder(),
+                        ),
+                        // ✅ Usar initialValue (no deprecated)
+                        initialValue: localDifficulty,
+                        items:
+                            _difficultyLevels.map((level) {
+                              return DropdownMenuItem(
+                                value: level['value'],
+                                child: Text(level['label']!),
+                              );
+                            }).toList(),
+                        onChanged: (value) {
+                          localDifficulty = value;
+                          setDialogState(() {});
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _imageUrlController,
+                        label: 'URL de la imagen (opcional)',
+                        prefixIcon: Icons.image_rounded,
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _titleController,
-                  label: 'Título del curso',
-                  prefixIcon: Icons.title_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El título es obligatorio';
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                PrimaryButton(
+                  label: course != null ? 'Actualizar' : 'Guardar',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() &&
+                        localLanguageId != null) {
+                      final notifier = ref.read(
+                        courseNotifierProvider.notifier,
+                      );
+                      
+
+                      // ✅ Usar valores locales
+                      final data = {
+                        'language': localLanguageId!,
+                        'title': _titleController.text.trim(),
+                        'description': _descriptionController.text.trim(),
+                        'difficulty_level': localDifficulty ?? 'beginner',
+                        // ✅ NO enviar image_url (es read-only)
+                      };
+
+                      // ✅ Guardar valores seleccionados para futuras ediciones
+                      _selectedLanguageId = localLanguageId;
+                      _selectedDifficulty = localDifficulty;
+
+                      print('🔍 localLanguageId: $localLanguageId');
+                      print('📤 Datos a enviar: ${data.toString()}');
+
+                      if (course != null) {
+                        notifier.editCourse(course.id, data);
+                      } else {
+                        notifier.addCourse(data);
+                      }
+                      Navigator.pop(ctx);
                     }
-                    return null;
                   },
                 ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _descriptionController,
-                  label: 'Descripción',
-                  prefixIcon: Icons.description_rounded,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Nivel de dificultad',
-                    prefixIcon: Icon(Icons.signal_cellular_alt_rounded),
-                    border: OutlineInputBorder(),
-                  ),
-                  initialValue: _selectedDifficulty,
-                  items: _difficultyLevels.map((level) {
-                    return DropdownMenuItem(
-                      value: level['value'],
-                      child: Text(level['label']!),
-                    );
-                  }).toList(),
-                  onChanged: (value) => _selectedDifficulty = value,
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _imageUrlController,
-                  label: 'URL de la imagen (opcional)',
-                  prefixIcon: Icons.image_rounded,
-                ),
               ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: course != null ? 'Actualizar' : 'Guardar',
-            onPressed: () {
-              if (_formKey.currentState!.validate() && _selectedLanguageId != null) {
-                final notifier = ref.read(courseNotifierProvider.notifier);
-
-                final data = {
-                  'language_id': _selectedLanguageId!,
-                  'title': _titleController.text.trim(),
-                  'description': _descriptionController.text.trim(),
-                  'difficulty_level': _selectedDifficulty ?? 'beginner',
-                  'image_url': _imageUrlController.text.trim(),
-                };
-
-                if (course != null) {
-                  notifier.editCourse(course.id, data);
-                } else {
-                  notifier.addCourse(data);
-                }
-                Navigator.pop(ctx);
-              }
-            },
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
   void _confirmDelete(BuildContext context, int id, CourseNotifier notifier) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar curso'),
-        content: const Text(
-          '¿Estás seguro de que deseas eliminar este curso?\n'
-          'Esta acción eliminará todos los módulos y lecciones asociadas.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Eliminar curso'),
+            content: const Text(
+              '¿Estás seguro de que deseas eliminar este curso?\n'
+              'Esta acción eliminará todos los módulos y lecciones asociadas.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              PrimaryButton(
+                label: 'Eliminar',
+                onPressed: () {
+                  notifier.deleteCourse(id);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
           ),
-          PrimaryButton(
-            label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteCourse(id);
-              Navigator.pop(ctx);
-            },
-          ),
-        ],
-      ),
     );
   }
 }
@@ -349,19 +391,24 @@ class _CourseCard extends StatelessWidget {
             color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: course.imageUrl.isNotEmpty
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    course.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.menu_book_rounded,
-                      color: Color(0xFF2E7D32),
+          child:
+              course.imageUrl.isNotEmpty
+                  ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      course.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder:
+                          (_, __, ___) => const Icon(
+                            Icons.menu_book_rounded,
+                            color: Color(0xFF2E7D32),
+                          ),
                     ),
+                  )
+                  : const Icon(
+                    Icons.menu_book_rounded,
+                    color: Color(0xFF2E7D32),
                   ),
-                )
-              : const Icon(Icons.menu_book_rounded, color: Color(0xFF2E7D32)),
         ),
         title: Text(
           course.title,
@@ -383,7 +430,9 @@ class _CourseCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(
-                color: _getDifficultyColor(course.difficultyLevel).withValues(alpha: 0.1),
+                color: _getDifficultyColor(
+                  course.difficultyLevel,
+                ).withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(

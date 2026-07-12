@@ -13,17 +13,31 @@ class CourseRepository extends BaseRepository {
     );
   }
 
+  // ✅ CORREGIDO: usa 'language' en lugar de 'language_id'
   Future<void> createCourse(Map<String, dynamic> data) async {
     try {
-      await dio.post('courses/', data: data);
+      await dio.post('courses/', data: {
+        'language': data['language'],  // ✅ CORREGIDO
+        'title': data['title'],
+        'description': data['description'] ?? '',
+        'difficulty_level': data['difficulty_level'] ?? 'beginner',
+        'image_url': data['image_url'] ?? '',
+      });
     } on DioException catch (e) {
       throw ApiException('Error al crear curso', e.response?.statusCode, e);
     }
   }
 
+  // ✅ CORREGIDO: usa 'language' en lugar de 'language_id'
   Future<void> updateCourse(int id, Map<String, dynamic> data) async {
     try {
-      await dio.patch('courses/$id/', data: data);
+      await dio.patch('courses/$id/', data: {
+        'language': data['language'],  // ✅ CORREGIDO
+        'title': data['title'],
+        'description': data['description'] ?? '',
+        'difficulty_level': data['difficulty_level'] ?? 'beginner',
+        'image_url': data['image_url'] ?? '',
+      });
     } on DioException catch (e) {
       throw ApiException('Error al actualizar curso', e.response?.statusCode, e);
     }
