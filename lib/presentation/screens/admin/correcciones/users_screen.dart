@@ -220,105 +220,107 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
           width: 400,
           child: Form(
             key: formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BrandedTextField(
-                  controller: emailController,
-                  label: 'Email',
-                  prefixIcon: Icons.email_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El email es obligatorio';
-                    }
-                    if (!value.contains('@')) {
-                      return 'Email inválido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                BrandedTextField(
-                  controller: usernameController,
-                  label: 'Usuario',
-                  prefixIcon: Icons.person_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El usuario es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                BrandedTextField(
-                  controller: firstNameController,
-                  label: 'Nombre',
-                  prefixIcon: Icons.person_outline_rounded,
-                ),
-                const SizedBox(height: 12),
-                BrandedTextField(
-                  controller: lastNameController,
-                  label: 'Apellido',
-                  prefixIcon: Icons.person_outline_rounded,
-                ),
-                const SizedBox(height: 12),
-                BrandedTextField(
-                  controller: passwordController,
-                  label: 'Contraseña',
-                  prefixIcon: Icons.lock_rounded,
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La contraseña es obligatoria';
-                    }
-                    if (value.length < 6) {
-                      return 'Mínimo 6 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  value: selectedRole,
-                  decoration: const InputDecoration(
-                    labelText: 'Rol',
-                    prefixIcon: Icon(Icons.admin_panel_settings_rounded),
-                    border: OutlineInputBorder(),
+            child: SingleChildScrollView(  // ✅ Agregado
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BrandedTextField(
+                    controller: emailController,
+                    label: 'Email',
+                    prefixIcon: Icons.email_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El email es obligatorio';
+                      }
+                      if (!value.contains('@')) {
+                        return 'Email inválido';
+                      }
+                      return null;
+                    },
                   ),
-                  items: const [
-                    DropdownMenuItem(value: 'teacher', child: Text('Profesor')),
-                    DropdownMenuItem(value: 'admin', child: Text('Administrador')),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) {
-                      selectedRole = value;
-                    }
-                  },
-                ),
-                const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+                  const SizedBox(height: 12),
+                  BrandedTextField(
+                    controller: usernameController,
+                    label: 'Usuario',
+                    prefixIcon: Icons.person_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El usuario es obligatorio';
+                      }
+                      return null;
+                    },
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.info_outline, size: 16, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          'Los estudiantes se crean desde el registro público.',
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.blue[700],
+                  const SizedBox(height: 12),
+                  BrandedTextField(
+                    controller: firstNameController,
+                    label: 'Nombre',
+                    prefixIcon: Icons.person_outline_rounded,
+                  ),
+                  const SizedBox(height: 12),
+                  BrandedTextField(
+                    controller: lastNameController,
+                    label: 'Apellido',
+                    prefixIcon: Icons.person_outline_rounded,
+                  ),
+                  const SizedBox(height: 12),
+                  BrandedTextField(
+                    controller: passwordController,
+                    label: 'Contraseña',
+                    prefixIcon: Icons.lock_rounded,
+                    obscureText: true,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'La contraseña es obligatoria';
+                      }
+                      if (value.length < 6) {
+                        return 'Mínimo 6 caracteres';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    decoration: const InputDecoration(
+                      labelText: 'Rol',
+                      prefixIcon: Icon(Icons.admin_panel_settings_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'teacher', child: Text('Profesor')),
+                      DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        selectedRole = value;
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'Los estudiantes se crean desde el registro público.',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.blue[700],
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
@@ -336,11 +338,11 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                 int roleId;
                 switch (selectedRole) {
                   case 'admin':
-                    roleId = 2; // ✅ ID correcto para admin
+                    roleId = 2;
                     break;
                   case 'teacher':
                   default:
-                    roleId = 4; // ✅ ID correcto para teacher
+                    roleId = 4;
                     break;
                 }
 
@@ -381,75 +383,77 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: Text('Editar usuario: ${user.username}'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _InfoRow(label: 'ID', value: user.id.toString()),
-            _InfoRow(label: 'Email', value: user.email),
-            _InfoRow(label: 'Nombre', value: '${user.firstName} ${user.lastName}'),
-            _InfoRow(label: 'Rol', value: user.roleName),
-            _InfoRow(
-              label: 'Estado',
-              value: user.isActive ? 'Activo ✅' : 'Inactivo ❌',
-              valueColor: user.isActive ? Colors.green : Colors.red,
-            ),
-            const Divider(height: 24),
+        content: SingleChildScrollView(  // ✅ Agregado
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _InfoRow(label: 'ID', value: user.id.toString()),
+              _InfoRow(label: 'Email', value: user.email),
+              _InfoRow(label: 'Nombre', value: '${user.firstName} ${user.lastName}'),
+              _InfoRow(label: 'Rol', value: user.roleName),
+              _InfoRow(
+                label: 'Estado',
+                value: user.isActive ? 'Activo ✅' : 'Inactivo ❌',
+                valueColor: user.isActive ? Colors.green : Colors.red,
+              ),
+              const Divider(height: 24),
 
-            if (isStudent) ...[
-              const Text(
-                'Opciones para estudiantes:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              PrimaryButton(
-                label: user.isActive ? 'Desactivar' : 'Activar',
-                onPressed: () {
-                  notifier.toggleUserStatus(user.id, !user.isActive);
-                  Navigator.pop(ctx);
-                },
-              ),
-            ] else ...[
-              const Text(
-                'Cambiar rol:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                children: [
-                  _RoleButton(
-                    label: 'Admin',
-                    color: Colors.purple,
-                    onPressed: user.roleName == 'Admin'
-                        ? null
-                        : () {
-                            notifier.changeUserRole(user.id, 2);
-                            Navigator.pop(ctx);
-                          },
-                  ),
-                  _RoleButton(
-                    label: 'Profesor',
-                    color: Colors.orange,
-                    onPressed: user.roleName == 'Teacher'
-                        ? null
-                        : () {
-                            notifier.changeUserRole(user.id, 4);
-                            Navigator.pop(ctx);
-                          },
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              PrimaryButton(
-                label: user.isActive ? 'Desactivar' : 'Activar',
-                onPressed: () {
-                  notifier.toggleUserStatus(user.id, !user.isActive);
-                  Navigator.pop(ctx);
-                },
-              ),
+              if (isStudent) ...[
+                const Text(
+                  'Opciones para estudiantes:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                PrimaryButton(
+                  label: user.isActive ? 'Desactivar' : 'Activar',
+                  onPressed: () {
+                    notifier.toggleUserStatus(user.id, !user.isActive);
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ] else ...[
+                const Text(
+                  'Cambiar rol:',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Wrap(
+                  spacing: 8,
+                  children: [
+                    _RoleButton(
+                      label: 'Admin',
+                      color: Colors.purple,
+                      onPressed: user.roleName == 'Admin'
+                          ? null
+                          : () {
+                              notifier.changeUserRole(user.id, 2);
+                              Navigator.pop(ctx);
+                            },
+                    ),
+                    _RoleButton(
+                      label: 'Profesor',
+                      color: Colors.orange,
+                      onPressed: user.roleName == 'Teacher'
+                          ? null
+                          : () {
+                              notifier.changeUserRole(user.id, 4);
+                              Navigator.pop(ctx);
+                            },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                PrimaryButton(
+                  label: user.isActive ? 'Desactivar' : 'Activar',
+                  onPressed: () {
+                    notifier.toggleUserStatus(user.id, !user.isActive);
+                    Navigator.pop(ctx);
+                  },
+                ),
+              ],
             ],
-          ],
+          ),
         ),
         actions: [
           TextButton(
