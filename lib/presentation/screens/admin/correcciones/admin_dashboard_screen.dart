@@ -12,9 +12,11 @@ import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_scr
 import 'package:jumpup_app/presentation/screens/admin/correcciones/lesson_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/modules_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/resources_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -265,7 +267,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // ✅ Módulos (NUEVO)
+                    // ✅ Módulos
                     _ActionCard(
                       icon: Icons.view_module_rounded,
                       title: 'Gestión de Módulos',
@@ -278,7 +280,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // ✅ Lecciones (NUEVO)
+                    // ✅ Lecciones
                     _ActionCard(
                       icon: Icons.menu_book_rounded,
                       title: 'Gestión de Lecciones',
@@ -313,6 +315,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ClassroomsScreen(),
+                        ),
+                      ),
+                    ),
+
+                    // ✅ Recursos (NUEVO)
+                    _ActionCard(
+                      icon: Icons.folder_rounded,
+                      title: 'Gestión de Recursos',
+                      subtitle: 'Subir y gestionar materiales didácticos',
+                      color: const Color(0xFF00BCD4),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ResourcesScreen(),
                         ),
                       ),
                     ),
