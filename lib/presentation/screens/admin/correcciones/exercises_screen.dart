@@ -3,10 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/exercise_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/lesson_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+
 
 class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
@@ -22,6 +24,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   final _answerController = TextEditingController();
   String _selectedType = 'multiple_choice';
   int? _currentLessonId;
+  int? _selectedLessonId;
   ExerciseModel? _editingExercise;
 
   final List<Map<String, dynamic>> _exerciseTypes = [
@@ -42,11 +45,21 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final exercisesAsync = _currentLessonId != null
-        ? ref.watch(exercisesByLessonProvider(_currentLessonId!))
-        : const AsyncValue<List<ExerciseModel>>.loading();
-
+    final allExercisesAsync = ref.watch(exerciseNotifierProvider);
     final notifier = ref.read(exerciseNotifierProvider.notifier);
+    final lessonsAsync = ref.watch(lessonNotifierProvider);
+
+    // Filtrar por lección
+    final exercisesAsync = allExercisesAsync.when(
+      data: (exercises) {
+        final filtered = _currentLessonId != null
+            ? exercises.where((e) => e.lesson == _currentLessonId).toList()
+            : exercises;
+        return AsyncValue.data(filtered);
+      },
+      loading: () => const AsyncValue.loading(),
+      error: (e, stack) => AsyncValue.error(e, stack),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -58,16 +71,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: _currentLessonId != null
-                ? () => _showAddEditDialog(context)
-                : null,
+            onPressed: () => _showAddEditDialog(context, lessonsAsync),
             tooltip: 'Crear ejercicio',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _currentLessonId != null
-                ? () => notifier.refresh(_currentLessonId!)
-                : null,
+            onPressed: () => notifier.fetchAllExercises(),
             tooltip: 'Refrescar',
           ),
         ],
@@ -77,7 +86,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           padding: const EdgeInsets.all(16),
           child: Column(
             children: [
-              // ✅ Campo de búsqueda - SIN Row
+              // Campo de búsqueda por ID de lección
               BrandedTextField(
                 controller: _lessonIdController,
                 label: 'ID de Lección',
@@ -86,19 +95,18 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 12),
-              // ✅ Botón Buscar - ANCHO COMPLETO
               PrimaryButton(
                 label: 'Buscar',
                 onPressed: () {
                   final id = int.tryParse(_lessonIdController.text);
                   if (id != null && id > 0) {
                     setState(() => _currentLessonId = id);
-                    notifier.refresh(id);
                   } else {
+                    setState(() => _currentLessonId = null);
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('Ingresa un ID de lección válido'),
-                        backgroundColor: AppColors.error,
+                        content: Text('Mostrando todos los ejercicios'),
+                        backgroundColor: Colors.blue,
                       ),
                     );
                   }
@@ -107,74 +115,53 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Lista de ejercicios - CON Expanded
+              // Lista de ejercicios
               Expanded(
-                child: _currentLessonId == null
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_rounded, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              'Busca una lección para ver sus ejercicios',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Ingresa el ID de la lección y presiona Buscar',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                child: exercisesAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => _buildErrorView(error, notifier),
+                  data: (exercises) {
+                    if (exercises.isEmpty) {
+                      return Center(
+                        child: EmptyState(
+                          title: _currentLessonId != null
+                              ? 'No hay ejercicios para esta lección'
+                              : 'No hay ejercicios creados',
+                          subtitle: _currentLessonId != null
+                              ? 'Crea el primer ejercicio para esta lección'
+                              : 'Crea tu primer ejercicio para comenzar',
+                          icon: Icons.edit_note_rounded,
+                          buttonText: 'Crear ejercicio',
+                          onButtonPressed: () => _showAddEditDialog(context, lessonsAsync),
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () => notifier.refresh(_currentLessonId!),
-                        child: exercisesAsync.when(
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (error, stack) => _buildErrorView(error, notifier),
-                          data: (exercises) {
-                            if (exercises.isEmpty) {
-                              return Center(
-                                child: EmptyState(
-                                  title: 'No hay ejercicios',
-                                  subtitle: 'Crea el primer ejercicio para esta lección',
-                                  icon: Icons.edit_note_rounded,
-                                  buttonText: 'Crear ejercicio',
-                                  onButtonPressed: () => _showAddEditDialog(context),
-                                ),
-                              );
-                            }
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: exercises.length,
-                              itemBuilder: (context, index) {
-                                final exercise = exercises[index];
-                                return _ExerciseCard(
-                                  exercise: exercise,
-                                  onEdit: () => _showAddEditDialog(
-                                    context,
-                                    exercise: exercise,
-                                  ),
-                                  onDelete: () => _confirmDelete(
-                                    context,
-                                    exercise.id,
-                                    _currentLessonId!,
-                                    notifier,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
+                      );
+                    }
+                    return RefreshIndicator(
+                      onRefresh: () => notifier.fetchAllExercises(),
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: exercises.length,
+                        itemBuilder: (context, index) {
+                          final exercise = exercises[index];
+                          return _ExerciseCard(
+                            exercise: exercise,
+                            onEdit: () => _showAddEditDialog(
+                              context,
+                              lessonsAsync,
+                              exercise: exercise,
+                            ),
+                            onDelete: () => _confirmDelete(
+                              context,
+                              exercise.id,
+                              _currentLessonId ?? exercise.lesson,
+                              notifier,
+                            ),
+                          );
+                        },
                       ),
+                    );
+                  },
+                ),
               ),
             ],
           ),
@@ -200,7 +187,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
-            onPressed: () => notifier.refresh(_currentLessonId!),
+            onPressed: () => notifier.fetchAllExercises(),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -208,7 +195,11 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {ExerciseModel? exercise}) {
+  void _showAddEditDialog(
+    BuildContext context,
+    AsyncValue<List<LessonModel>> lessonsAsync, {
+    ExerciseModel? exercise,
+  }) {
     _editingExercise = exercise;
     final isEditing = exercise != null;
 
@@ -216,177 +207,147 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
       _questionController.text = exercise.questionText;
       _answerController.text = exercise.correctAnswer;
       _selectedType = exercise.exerciseType;
+      _selectedLessonId = exercise.lesson;
     } else {
       _questionController.clear();
       _answerController.clear();
       _selectedType = 'multiple_choice';
+      _selectedLessonId = null;
     }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Editar ejercicio' : 'Crear ejercicio'),
-        content: SizedBox(
-          width: MediaQuery.of(context).size.width * 0.85,
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (!isEditing) ...[
-                    BrandedTextField(
-                      controller: _lessonIdController,
-                      label: 'ID de Lección',
-                      prefixIcon: Icons.book_rounded,
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El ID de lección es obligatorio';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Ingresa un número válido';
-                        }
-                        return null;
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                  DropdownButtonFormField<String>(
-                    initialValue: _selectedType,
-                    isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de ejercicio',
-                      prefixIcon: Icon(Icons.category_rounded),
-                      border: OutlineInputBorder(),
-                    ),
-                    items: _exerciseTypes.map<DropdownMenuItem<String>>((type) {
-                      return DropdownMenuItem<String>(
-                        value: type['value'] as String,
-                        child: Row(
-                          children: [
-                            Icon(type['icon'] as IconData, size: 20, color: AppColors.primary),
-                            const SizedBox(width: 12),
-                            Text(type['label'] as String),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedType = value);
-                      }
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  BrandedTextField(
-                    controller: _questionController,
-                    label: 'Enunciado / Pregunta',
-                    prefixIcon: Icons.question_mark_rounded,
-                    maxLines: 3,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El enunciado es obligatorio';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  BrandedTextField(
-                    controller: _answerController,
-                    label: 'Respuesta Correcta',
-                    prefixIcon: Icons.check_circle_rounded,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'La respuesta es obligatoria';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
+      builder: (ctx) {
+        int? localLessonId = _selectedLessonId;
+
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(isEditing ? 'Editar ejercicio' : 'Crear ejercicio'),
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.85,
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(
-                          _exerciseTypes.firstWhere(
-                            (t) => t['value'] == _selectedType,
-                            orElse: () => const {'icon': Icons.help_rounded},
-                          )['icon'] as IconData,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tipo seleccionado:',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              Text(
-                                _exerciseTypes.firstWhere(
-                                  (t) => t['value'] == _selectedType,
-                                  orElse: () => const {'label': 'No definido'},
-                                )['label'] as String,
-                                style: AppTextStyles.titleSmall.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
+                        // ✅ Selector de lección (Dropdown)
+                        lessonsAsync.when(
+                          loading: () => const CircularProgressIndicator(),
+                          error: (_, __) => const Text('Error al cargar lecciones'),
+                          data: (lessons) => DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Lección',
+                              prefixIcon: Icon(Icons.book_rounded),
+                              border: OutlineInputBorder(),
+                            ),
+                            hint: const Text('Selecciona una lección'),
+                            value: localLessonId,
+                            items: lessons.map((lesson) {
+                              return DropdownMenuItem(
+                                value: lesson.id,
+                                child: Text('${lesson.title} (ID: ${lesson.id})'),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              localLessonId = value;
+                              setDialogState(() {});
+                            },
+                            validator: (value) => value == null ? 'Selecciona una lección' : null,
                           ),
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          initialValue: _selectedType,
+                          isExpanded: true,
+                          decoration: const InputDecoration(
+                            labelText: 'Tipo de ejercicio',
+                            prefixIcon: Icon(Icons.category_rounded),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _exerciseTypes.map<DropdownMenuItem<String>>((type) {
+                            return DropdownMenuItem<String>(
+                              value: type['value'] as String,
+                              child: Row(
+                                children: [
+                                  Icon(type['icon'] as IconData, size: 20, color: AppColors.primary),
+                                  const SizedBox(width: 12),
+                                  Text(type['label'] as String),
+                                ],
+                              ),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            if (value != null) {
+                              _selectedType = value;
+                              setDialogState(() {});
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        BrandedTextField(
+                          controller: _questionController,
+                          label: 'Enunciado / Pregunta',
+                          prefixIcon: Icons.question_mark_rounded,
+                          maxLines: 3,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El enunciado es obligatorio';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        BrandedTextField(
+                          controller: _answerController,
+                          label: 'Respuesta Correcta',
+                          prefixIcon: Icons.check_circle_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'La respuesta es obligatoria';
+                            }
+                            return null;
+                          },
                         ),
                       ],
                     ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: isEditing ? 'Actualizar' : 'Guardar',
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final notifier = ref.read(exerciseNotifierProvider.notifier);
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                PrimaryButton(
+                  label: isEditing ? 'Actualizar' : 'Guardar',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() && localLessonId != null) {
+                      final notifier = ref.read(exerciseNotifierProvider.notifier);
 
-                int lessonId = isEditing
-                    ? _editingExercise!.lesson
-                    : int.parse(_lessonIdController.text);
+                      final data = {
+                        'lesson': localLessonId!,
+                        'question_text': _questionController.text.trim(),
+                        'exercise_type': _selectedType,
+                        'correct_answer': _answerController.text.trim(),
+                      };
 
-                final data = {
-                  'lesson': lessonId,
-                  'question_text': _questionController.text.trim(),
-                  'exercise_type': _selectedType,
-                  'correct_answer': _answerController.text.trim(),
-                };
-
-                if (isEditing) {
-                  notifier.updateExercise(_editingExercise!.id, data);
-                } else {
-                  notifier.addExercise(data);
-                }
-                Navigator.pop(ctx);
-              }
-            },
-          ),
-        ],
-      ),
+                      if (isEditing) {
+                        notifier.updateExercise(_editingExercise!.id, data);
+                      } else {
+                        notifier.addExercise(data);
+                      }
+                      Navigator.pop(ctx);
+                      notifier.fetchAllExercises();
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -414,6 +375,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             onPressed: () {
               notifier.deleteExercise(exerciseId, lessonId);
               Navigator.pop(ctx);
+              notifier.fetchAllExercises();
             },
           ),
         ],

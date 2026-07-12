@@ -22,19 +22,36 @@ class ExerciseRepository extends BaseRepository {
     }
   }
 
+  Future<void> updateExercise(int id, Map<String, dynamic> data) async {
+    try {
+      await dio.patch('exercises/$id/', data: data);
+    } on DioException catch (e) {
+      throw ApiException(
+        'Error al actualizar ejercicio',
+        e.response?.statusCode,
+        e,
+      );
+    }
+  }
+
   Future<void> deleteExercise(int id) async {
     try {
       await dio.delete('exercises/$id/');
     } on DioException catch (e) {
-      throw ApiException('Error al eliminar ejercicio', e.response?.statusCode, e);
+      throw ApiException(
+        'Error al eliminar ejercicio',
+        e.response?.statusCode,
+        e,
+      );
     }
   }
 
-  Future<void> updateExercise(int id, Map<String, dynamic> data) async {
-  try {
-    await dio.patch('exercises/$id/', data: data);
-  } on DioException catch (e) {
-    throw ApiException('Error al actualizar ejercicio', e.response?.statusCode, e);
+  Future<List<ExerciseModel>> getAllExercises() {
+    return getList<ExerciseModel>(
+      'exercises/',
+      (json) => ExerciseModel.fromJson(json),
+      message: 'Error al cargar ejercicios',
+    );
   }
 }
-}
+
