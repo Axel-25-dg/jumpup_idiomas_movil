@@ -27,8 +27,6 @@ class WebSocketService {
   /// ID de sala/conversación, si aplica.
   final String? roomId;
 
-  static String get _wsBase => AppConfig.wsBaseUrl;
-
   final TokenStorage _tokenStorage = TokenStorage();
 
   WebSocketChannel? _channel;

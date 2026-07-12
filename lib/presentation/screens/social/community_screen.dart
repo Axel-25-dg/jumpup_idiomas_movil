@@ -344,7 +344,6 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                   style: AppTextStyles.bodyMedium.copyWith(color: textColor),
                   decoration: _inputDecoration('Seleccionar categoría', Icons.category_outlined, isDark),
                   items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                  value: _categoryId,
                   onChanged: (v) => setState(() => _categoryId = v),
                 ),
               ),

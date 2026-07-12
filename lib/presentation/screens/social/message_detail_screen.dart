@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:jumpup_app/data/remote/websocket_service.dart';
 import 'package:jumpup_app/domain/model/chat_message.dart';
 import 'package:jumpup_app/domain/model/message_thread.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/presentation/providers/service_providers.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,7 +20,6 @@ class MessageDetailScreen extends ConsumerStatefulWidget {
 }
 
 class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
-  late final WebSocketService _ws;
   final _scrollController = ScrollController();
   final _inputController = TextEditingController();
   final _focusNode = FocusNode();
@@ -30,20 +29,32 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
   bool _sending = false;
   String? _error;
   bool _isTyping = false;
+  bool _isListening = false;
 
-  StreamSubscription<Map<String, dynamic>>? _wsSub;
+  StreamSubscription<ChatMessage>? _messageSub;
 
   @override
   void initState() {
     super.initState();
-    _ws = WebSocketService(path: 'chat', roomId: widget.thread.id.toString());
     _loadHistory();
+    
+    // Escuchar cambios en el estado de voz
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(speechServiceProvider).isListeningNotifier.addListener(_onSpeechStatusChanged);
+    });
+  }
+
+  void _onSpeechStatusChanged() {
+    if (!mounted) return;
+    setState(() {
+      _isListening = ref.read(speechServiceProvider).isListeningNotifier.value;
+    });
   }
 
   @override
   void dispose() {
-    _wsSub?.cancel();
-    _ws.disconnect();
+    ref.read(speechServiceProvider).isListeningNotifier.removeListener(_onSpeechStatusChanged);
+    _messageSub?.cancel();
     _scrollController.dispose();
     _inputController.dispose();
     _focusNode.dispose();
@@ -56,7 +67,8 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
       _error = null;
     });
     try {
-      final msgs = await ref.read(socialRepositoryProvider).fetchChatMessages(widget.thread.id);
+      final repo = ref.read(chatRepositoryProvider);
+      final msgs = await repo.getMessages(widget.thread.id);
       if (mounted) {
         setState(() {
           _messages = msgs;
@@ -76,35 +88,29 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
   }
 
   Future<void> _connectWebSocket() async {
-    await _ws.connect();
-    _wsSub = _ws.messages.listen((data) {
+    final repo = ref.read(chatRepositoryProvider);
+    await repo.connectToThread(widget.thread.id);
+    _messageSub = repo.messageStream.listen((msg) {
       if (!mounted) return;
-      final type = data['type']?.toString() ?? '';
-
-      switch (type) {
-        case 'chat_message':
-        case 'message':
-          final msgData = data['message'] ?? data;
-          if (msgData is Map<String, dynamic>) {
-            final msg = ChatMessage.fromJson(msgData);
-            setState(() {
-              _messages = [..._messages, msg];
-              _isTyping = false;
-            });
-            _scrollToBottom();
-          }
-        case 'typing':
-          setState(() => _isTyping = true);
-          Future.delayed(const Duration(seconds: 3), () {
-            if (mounted) setState(() => _isTyping = false);
-          });
-      }
+      setState(() {
+        // Evitar duplicados si ya se agregó de forma optimista
+        if (!_messages.any((m) => m.body == msg.body && m.senderId == msg.senderId && (m.id < 0))) {
+           _messages = [..._messages, msg];
+        } else {
+           // Reemplazar el mensaje optimista con el real
+           _messages = _messages.map((m) => (m.body == msg.body && m.id < 0) ? msg : m).toList();
+        }
+        _isTyping = false;
+      });
+      _scrollToBottom();
     });
   }
 
   Future<void> _sendMessage() async {
     final text = _inputController.text.trim();
     if (text.isEmpty || _sending) return;
+
+    final repo = ref.read(chatRepositoryProvider);
 
     final optimistic = ChatMessage(
       id: -DateTime.now().millisecondsSinceEpoch,
@@ -122,13 +128,14 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
     _scrollToBottom();
 
     try {
-      if (_ws.isConnected) {
-        _ws.send({'type': 'chat_message', 'body': text});
+      if (repo.isConnected) {
+        repo.sendWsMessage(text);
+      } else {
+        await repo.sendMessage(
+          threadId: widget.thread.id,
+          body: text,
+        );
       }
-      await ref.read(socialRepositoryProvider).sendMessage(
-            threadId: widget.thread.id,
-            body: text,
-          );
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -182,8 +189,8 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
           Padding(
             padding: const EdgeInsets.only(right: 12),
             child: Icon(
-              _ws.isConnected ? Icons.wifi_rounded : Icons.wifi_off_rounded,
-              color: _ws.isConnected ? Colors.greenAccent : Colors.white38,
+              ref.watch(chatRepositoryProvider).isConnected ? Icons.wifi_rounded : Icons.wifi_off_rounded,
+              color: ref.watch(chatRepositoryProvider).isConnected ? Colors.greenAccent : Colors.white38,
               size: 18,
             ),
           ),
@@ -271,6 +278,28 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
     );
   }
 
+  Future<void> _toggleListening() async {
+    final speechService = ref.read(speechServiceProvider);
+
+    if (_isListening) {
+      await speechService.stopListening();
+    } else {
+      final available = await speechService.initialize();
+      if (available) {
+        await speechService.startListening(
+          onResult: (text) {
+            setState(() {
+              _inputController.text = text;
+              _inputController.selection = TextSelection.fromPosition(
+                TextPosition(offset: _inputController.text.length),
+              );
+            });
+          },
+        );
+      }
+    }
+  }
+
   Widget _buildInputBar() {
     return SafeArea(
       child: Container(
@@ -281,6 +310,18 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
         ),
         child: Row(
           children: [
+            IconButton(
+              onPressed: _toggleListening,
+              icon: Icon(
+                _isListening ? Icons.mic_rounded : Icons.mic_none_rounded,
+                color: _isListening ? Colors.redAccent : AppColors.textSecondary,
+              ),
+              style: IconButton.styleFrom(
+                backgroundColor: _isListening 
+                  ? Colors.redAccent.withValues(alpha: 0.1) 
+                  : Colors.transparent,
+              ),
+            ),
             Expanded(
               child: TextField(
                 controller: _inputController,
@@ -288,8 +329,10 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
                 textCapitalization: TextCapitalization.sentences,
                 style: AppTextStyles.bodyMedium,
                 decoration: InputDecoration(
-                  hintText: 'Escribe un mensaje...',
-                  hintStyle: AppTextStyles.bodyMedium.copyWith(color: AppColors.textHint),
+                  hintText: _isListening ? 'Escuchando...' : 'Escribe un mensaje...',
+                  hintStyle: AppTextStyles.bodyMedium.copyWith(
+                    color: _isListening ? Colors.redAccent : AppColors.textHint
+                  ),
                   filled: true,
                   fillColor: AppColors.surface,
                   border: OutlineInputBorder(

@@ -79,14 +79,19 @@ class AppConfig {
 
   static String resolveImageUrl(String? path) {
     if (path == null || path.isEmpty) return '';
+    
+    // Si ya es una URL completa (Unsplash, etc.), la devolvemos tal cual
     if (path.startsWith('http://') || path.startsWith('https://')) return path;
     
-    final apiFreeBase = baseUrl.replaceFirst(RegExp(r'/?api/?$'), '');
-    final cleanBase = apiFreeBase.endsWith('/')
-        ? apiFreeBase.substring(0, apiFreeBase.length - 1)
-        : apiFreeBase;
+    // Si es una ruta de media relativa (/media/...)
     final cleanPath = path.startsWith('/') ? path : '/$path';
-    return '$cleanBase$cleanPath';
+    
+    // Obtenemos la base sin el sufijo /api/
+    String base = baseUrl.replaceFirst(RegExp(r'/?api/?$'), '');
+    if (base.endsWith('/')) base = base.substring(0, base.length - 1);
+    
+    // Unimos base + /media + path si no lo trae
+    return '$base$cleanPath';
   }
 
   static const String appName = 'JumpUp';

@@ -70,5 +70,29 @@
     <array>
         <string>https</string>
     </array>
+
+    <!-- Permisos de Cámara y Galería -->
+    <key>NSCameraUsageDescription</key>
+    <string>Necesitamos acceso a la cámara para que puedas tomar fotos de perfil y escanear textos para ejercicios.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>Necesitamos acceso a tu galería para que puedas subir tu avatar y adjuntar imágenes a tus recursos.</string>
+
+    <!-- Permisos de Audio y Micrófono -->
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Necesitamos el micrófono para evaluar tu pronunciación y practicar conversación con el tutor IA.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Utilizamos el reconocimiento de voz para transcribir tus ejercicios de pronunciación.</string>
+
+    <!-- Permisos de Biometría -->
+    <key>NSFaceIDUsageDescription</key>
+    <string>Utilizamos Face ID para que puedas iniciar sesión de forma rápida y segura.</string>
+
+    <!-- Permisos de Notificaciones -->
+    <key>UIBackgroundModes</key>
+    <array>
+        <string>fetch</string>
+        <string>remote-notification</string>
+        <string>voip</string>
+    </array>
 </dict>
 </plist>

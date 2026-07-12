@@ -1,11 +1,14 @@
 import 'dart:ui';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+import 'package:jumpup_app/presentation/providers/service_providers.dart';
 
 import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
 
@@ -20,16 +23,30 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   final _messageController = TextEditingController();
   final _scrollController = ScrollController();
 
+  bool _isListening = false;
+  bool _isProcessingOcr = false;
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.read(aiChatProvider.notifier).initChat();
+      
+      // Sincronizar estado de voz con el servicio
+      ref.read(speechServiceProvider).isListeningNotifier.addListener(_onSpeechStatusChanged);
+    });
+  }
+
+  void _onSpeechStatusChanged() {
+    if (!mounted) return;
+    setState(() {
+      _isListening = ref.read(speechServiceProvider).isListeningNotifier.value;
     });
   }
 
   @override
   void dispose() {
+    ref.read(speechServiceProvider).isListeningNotifier.removeListener(_onSpeechStatusChanged);
     _messageController.dispose();
     _scrollController.dispose();
     super.dispose();
@@ -55,6 +72,63 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
         );
       }
     });
+  }
+
+  Future<void> _toggleListening() async {
+    final speechService = ref.read(speechServiceProvider);
+
+    if (_isListening) {
+      await speechService.stopListening();
+    } else {
+      final available = await speechService.initialize();
+      if (available) {
+        await speechService.startListening(
+          onResult: (text) {
+            setState(() => _messageController.text = text);
+          },
+        );
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Reconocimiento de voz no disponible')),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _pickImageAndOcr() async {
+    final picker = ImagePicker();
+    final image = await picker.pickImage(source: ImageSource.camera);
+
+    if (image != null) {
+      setState(() => _isProcessingOcr = true);
+      try {
+        final ocrService = ref.read(ocrServiceProvider);
+        final text = await ocrService.recognizeText(File(image.path));
+        
+        if (text.isNotEmpty) {
+          setState(() {
+            _messageController.text = text;
+            _isProcessingOcr = false;
+          });
+        } else {
+          setState(() => _isProcessingOcr = false);
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('No se detectó texto en la imagen')),
+            );
+          }
+        }
+      } catch (e) {
+        setState(() => _isProcessingOcr = false);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Error al procesar imagen: $e')),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -163,6 +237,10 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
                 controller: _messageController,
                 onSend: () => _sendMessage(),
                 enabled: !chatState.isLoading,
+                onVoiceToggle: _toggleListening,
+                onOcrTap: _pickImageAndOcr,
+                isListening: _isListening,
+                isProcessingOcr: _isProcessingOcr,
               ),
             ],
           ),
@@ -426,10 +504,22 @@ class _DotState extends State<_Dot> with SingleTickerProviderStateMixin {
 }
 
 class _ChatInput extends StatelessWidget {
-  const _ChatInput({required this.controller, required this.onSend, required this.enabled});
+  const _ChatInput({
+    required this.controller,
+    required this.onSend,
+    required this.enabled,
+    required this.onVoiceToggle,
+    required this.onOcrTap,
+    required this.isListening,
+    required this.isProcessingOcr,
+  });
   final TextEditingController controller;
   final VoidCallback onSend;
   final bool enabled;
+  final VoidCallback onVoiceToggle;
+  final VoidCallback onOcrTap;
+  final bool isListening;
+  final bool isProcessingOcr;
 
   @override
   Widget build(BuildContext context) {
@@ -449,6 +539,19 @@ class _ChatInput extends StatelessWidget {
           ),
           child: Row(
             children: [
+              IconButton(
+                onPressed: enabled ? onOcrTap : null,
+                icon: isProcessingOcr 
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : const Icon(Icons.camera_alt_rounded),
+                color: isDark ? Colors.white70 : Colors.black54,
+              ),
+              IconButton(
+                onPressed: enabled ? onVoiceToggle : null,
+                icon: Icon(isListening ? Icons.mic_rounded : Icons.mic_none_rounded),
+                color: isListening ? Colors.redAccent : (isDark ? Colors.white70 : Colors.black54),
+              ),
+              const SizedBox(width: 4),
               Expanded(
                 child: GlassContainer(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -459,8 +562,8 @@ class _ChatInput extends StatelessWidget {
                     enabled: enabled,
                     style: TextStyle(color: textColor, fontSize: 15),
                     decoration: InputDecoration(
-                      hintText: 'Pregúntale algo al tutor...',
-                      hintStyle: TextStyle(color: hintColor, fontSize: 14),
+                      hintText: isListening ? 'Escuchando...' : 'Pregúntale algo...',
+                      hintStyle: TextStyle(color: isListening ? Colors.redAccent : hintColor, fontSize: 14),
                       border: InputBorder.none,
                     ),
                     onSubmitted: (_) => onSend(),

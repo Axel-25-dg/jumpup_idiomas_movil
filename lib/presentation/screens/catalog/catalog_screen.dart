@@ -222,7 +222,9 @@ class _CourseCard extends StatelessWidget {
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
-                      onPressed: () {}, // Detail navigation
+                      onPressed: () {
+                        context.push('/student/course/${course.id}');
+                      },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
                         foregroundColor: Colors.blueAccent,

@@ -547,8 +547,8 @@ class _TeacherCoursesTab extends ConsumerWidget {
                 style: const TextStyle(color: Colors.redAccent))),
         data: (courses) {
           if (courses.isEmpty) {
-            return Center(
-              child: const Column(
+            return const Center(
+              child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.library_books_outlined,

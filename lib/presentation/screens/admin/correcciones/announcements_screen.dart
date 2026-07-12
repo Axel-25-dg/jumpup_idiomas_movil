@@ -112,14 +112,14 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-           Text('Error al cargar anuncios', style: AppTextStyles.titleMedium),
+          Text('Error al cargar anuncios', style: AppTextStyles.titleMedium),
           const SizedBox(height: 8),
           Text(
             error.toString(),
             style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
-           SizedBox(height: 16),
+          const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
             onPressed: () => notifier.refresh(),
@@ -325,7 +325,7 @@ class _DatePickerField extends StatelessWidget {
             ),
             child: Row(
               children: [
-                Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.textSecondary),
+                const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.textSecondary),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -383,11 +383,11 @@ class _AnnouncementCard extends StatelessWidget {
           color: isActive ? AppColors.primary.withValues(alpha: 0.3) : AppColors.divider,
           width: isActive ? 1.5 : 1,
         ),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
             color: AppColors.shadow,
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),

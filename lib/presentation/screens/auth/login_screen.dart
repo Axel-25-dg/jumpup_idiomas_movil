@@ -44,17 +44,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
+    FocusScope.of(context).unfocus(); // Cerrar teclado para evitar saltos de UI
     final email = _emailCtrl.text.trim();
     final pass = _passCtrl.text;
     await ref.read(authProvider.notifier).login(email, pass);
   }
 
   Future<void> _loginWithBiometric() async {
-    final authenticated = await BiometricService.instance.authenticate();
-    if (!authenticated) return;
-
-    final deviceId = 'flutter_device_${DateTime.now().millisecondsSinceEpoch}';
-    await ref.read(authProvider.notifier).loginWithBiometric(deviceId: deviceId, biometricToken: '');
+    await ref.read(authProvider.notifier).loginWithBiometric();
   }
 
   void _safeGo(BuildContext context, String route) {
@@ -276,7 +273,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 32),
 
                         // ── Alternative Login ──────────────────────────────
-                        if (_biometricAvailable) ...[
+                        if (_biometricAvailable && authState.canUseBiometrics) ...[
                           Row(
                             children: [
                               const Expanded(child: Divider(color: Colors.white10)),
@@ -285,7 +282,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                                 child: Text(
                                   'o usa biometría',
                                   style: AppTextStyles.bodySmall.copyWith(
-                                    color: Colors.white.withValues(alpha: 0.3),
+                                    color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
                                   ),
                                 ),
                               ),

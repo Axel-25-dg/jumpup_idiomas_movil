@@ -8,6 +8,8 @@ class TokenStorage {
 
   static const _keyAccess = 'jumpup_access_token';
   static const _keyRefresh = 'jumpup_refresh_token';
+  static const _keyBiometricToken = 'jumpup_biometric_token';
+  static const _keyDeviceId = 'jumpup_device_id';
 
   Future<void> saveTokens({
     required String accessToken,
@@ -19,9 +21,23 @@ class TokenStorage {
     ]);
   }
 
+  Future<void> saveBiometricData({
+    required String biometricToken,
+    required String deviceId,
+  }) async {
+    await Future.wait([
+      _storage.write(key: _keyBiometricToken, value: biometricToken),
+      _storage.write(key: _keyDeviceId, value: deviceId),
+    ]);
+  }
+
   Future<String?> getAccessToken() => _storage.read(key: _keyAccess);
 
   Future<String?> getRefreshToken() => _storage.read(key: _keyRefresh);
+
+  Future<String?> getBiometricToken() => _storage.read(key: _keyBiometricToken);
+
+  Future<String?> getDeviceId() => _storage.read(key: _keyDeviceId);
 
   Future<void> clearTokens() async {
     await Future.wait([
@@ -30,8 +46,17 @@ class TokenStorage {
     ]);
   }
 
+  Future<void> clearAll() async {
+    await _storage.deleteAll();
+  }
+
   Future<bool> hasToken() async {
     final token = await getAccessToken();
+    return token != null && token.isNotEmpty;
+  }
+
+  Future<bool> hasBiometricStored() async {
+    final token = await getBiometricToken();
     return token != null && token.isNotEmpty;
   }
 }
