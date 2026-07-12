@@ -1,13 +1,16 @@
 // lib/presentation/screens/admin/classrooms_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/course_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/loading_overlay.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+
 
 class ClassroomsScreen extends ConsumerStatefulWidget {
   const ClassroomsScreen({super.key});
@@ -18,15 +21,27 @@ class ClassroomsScreen extends ConsumerStatefulWidget {
 
 class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
   final _formKey = GlobalKey<FormState>();
+  final _searchController = TextEditingController();
   final _nameController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _courseIdController = TextEditingController();
+  String _searchQuery = '';
+  int? _selectedCourseId;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _nameController.dispose();
     _descriptionController.dispose();
-    _courseIdController.dispose();
     super.dispose();
   }
 
@@ -34,6 +49,24 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
   Widget build(BuildContext context) {
     final classroomsAsync = ref.watch(classroomNotifierProvider);
     final notifier = ref.read(classroomNotifierProvider.notifier);
+    final coursesAsync = ref.watch(coursesProvider);
+
+    // ✅ Filtrar aulas por búsqueda
+    final filteredClassrooms = classroomsAsync.when(
+      data: (classrooms) {
+        if (_searchQuery.isEmpty) return AsyncValue.data(classrooms);
+        final filtered = classrooms.where((c) =>
+          c.name.toLowerCase().contains(_searchQuery) ||
+          c.description.toLowerCase().contains(_searchQuery) ||
+          c.accessCode.toLowerCase().contains(_searchQuery) ||
+          (c.courseName?.toLowerCase().contains(_searchQuery) ?? false) ||
+          c.courseId?.toString().contains(_searchQuery) == true
+        ).toList();
+        return AsyncValue.data(filtered);
+      },
+      loading: () => const AsyncValue.loading(),
+      error: (e, stack) => AsyncValue.error(e, stack),
+    );
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -45,7 +78,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context),
+            onPressed: () => _showAddEditDialog(context, coursesAsync),
             tooltip: 'Crear aula',
           ),
           IconButton(
@@ -57,45 +90,74 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
       ),
       body: RefreshIndicator(
         onRefresh: () => notifier.refresh(),
-        child: LoadingOverlay(
-          isLoading: classroomsAsync.isLoading,
-          child: classroomsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => _buildErrorView(error, notifier),
-            data: (classrooms) {
-              if (classrooms.isEmpty) {
-                return const EmptyState(
-                  title: 'No hay aulas creadas',
-                  subtitle: 'Crea tu primera aula para comenzar',
-                  icon: Icons.class_rounded,
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: classrooms.length,
-                itemBuilder: (context, index) {
-                  final classroom = classrooms[index];
-                  return _ClassroomCard(
-                    classroom: classroom,
-                    onEdit: () => _showAddEditDialog(
-                      context,
-                      classroom: classroom,
-                    ),
-                    onDelete: () => _confirmDelete(
-                      context,
-                      classroom.id,
-                      notifier,
-                    ),
-                    onViewStudents: () => _showStudentsDialog(
-                      context,
-                      classroom.id,
-                      classroom.name,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
+        child: Column(
+          children: [
+            // ✅ Barra de búsqueda
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: BrandedTextField(
+                controller: _searchController,
+                label: 'Buscar aula',
+                hint: 'Nombre, descripción, código o curso...',
+                prefixIcon: Icons.search_rounded,
+              ),
+            ),
+            // Lista de aulas
+            Expanded(
+              child: LoadingOverlay(
+                isLoading: filteredClassrooms.isLoading,
+                child: filteredClassrooms.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (error, stack) => _buildErrorView(error, notifier),
+                  data: (classrooms) {
+                    if (classrooms.isEmpty) {
+                      return EmptyState(
+                        title: _searchQuery.isEmpty
+                            ? 'No hay aulas creadas'
+                            : 'No se encontraron aulas',
+                        subtitle: _searchQuery.isEmpty
+                            ? 'Crea tu primera aula para comenzar'
+                            : 'Intenta con otro término de búsqueda',
+                        icon: Icons.class_rounded,
+                        buttonText: _searchQuery.isEmpty ? 'Crear aula' : 'Limpiar búsqueda',
+                        onButtonPressed: _searchQuery.isEmpty
+                            ? () => _showAddEditDialog(context, coursesAsync)
+                            : () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                      );
+                    }
+                    return ListView.builder(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: classrooms.length,
+                      itemBuilder: (context, index) {
+                        final classroom = classrooms[index];
+                        return _ClassroomCard(
+                          classroom: classroom,
+                          onEdit: () => _showAddEditDialog(
+                            context,
+                            coursesAsync,
+                            classroom: classroom,
+                          ),
+                          onDelete: () => _confirmDelete(
+                            context,
+                            classroom.id,
+                            notifier,
+                          ),
+                          onViewStudents: () => _showStudentsDialog(
+                            context,
+                            classroom.id,
+                            classroom.name,
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -126,93 +188,117 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {ClassroomModel? classroom}) {
+  void _showAddEditDialog(
+    BuildContext context,
+    AsyncValue<List<Course>> coursesAsync, {
+    ClassroomModel? classroom,
+  }) {
     if (classroom != null) {
       _nameController.text = classroom.name;
       _descriptionController.text = classroom.description;
-      _courseIdController.text = classroom.courseId.toString();
+      _selectedCourseId = classroom.courseId;
     } else {
       _nameController.clear();
       _descriptionController.clear();
-      _courseIdController.clear();
+      _selectedCourseId = null;
     }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(classroom != null ? 'Editar aula' : 'Crear aula'),
-        content: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BrandedTextField(
-                controller: _nameController,
-                label: 'Nombre del aula',
-                prefixIcon: Icons.class_rounded,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre es obligatorio';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              BrandedTextField(
-                controller: _descriptionController,
-                label: 'Descripción',
-                prefixIcon: Icons.description_rounded,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              BrandedTextField(
-                controller: _courseIdController,
-                label: 'ID del curso',
-                prefixIcon: Icons.menu_book_rounded,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El ID del curso es obligatorio';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Ingresa un número válido';
-                  }
-                  return null;
-                },
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: classroom != null ? 'Actualizar' : 'Crear',
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final notifier = ref.read(classroomNotifierProvider.notifier);
+      builder: (ctx) {
+        int? localCourseId = _selectedCourseId;
 
-                if (classroom != null) {
-                  notifier.updateClassroom(
-                    id: classroom.id,
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                  );
-                } else {
-                  notifier.addClassroom(
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                    courseId: int.parse(_courseIdController.text.trim()),
-                  );
-                }
-                Navigator.pop(ctx);
-              }
-            },
-          ),
-        ],
-      ),
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(classroom != null ? 'Editar aula' : 'Crear aula'),
+              content: SizedBox(
+                width: 400,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      BrandedTextField(
+                        controller: _nameController,
+                        label: 'Nombre del aula',
+                        prefixIcon: Icons.class_rounded,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El nombre es obligatorio';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _descriptionController,
+                        label: 'Descripción',
+                        prefixIcon: Icons.description_rounded,
+                        maxLines: 3,
+                      ),
+                      const SizedBox(height: 16),
+                      coursesAsync.when(
+                        loading: () => const CircularProgressIndicator(),
+                        error: (_, __) => const Text('Error al cargar cursos'),
+                        data: (courses) => DropdownButtonFormField<int>(
+                          decoration: const InputDecoration(
+                            labelText: 'Curso',
+                            prefixIcon: Icon(Icons.menu_book_rounded),
+                            border: OutlineInputBorder(),
+                          ),
+                          hint: const Text('Selecciona un curso'),
+                          value: localCourseId,
+                          items: courses.map((course) {
+                            return DropdownMenuItem(
+                              value: course.id,
+                              child: Text('${course.title} (ID: ${course.id})'),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            localCourseId = value;
+                            setDialogState(() {});
+                          },
+                          validator: (value) => value == null ? 'Selecciona un curso' : null,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                PrimaryButton(
+                  label: classroom != null ? 'Actualizar' : 'Crear',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() && localCourseId != null) {
+                      final notifier = ref.read(classroomNotifierProvider.notifier);
+
+                      if (classroom != null) {
+                        notifier.updateClassroom(
+                          id: classroom.id,
+                          name: _nameController.text.trim(),
+                          description: _descriptionController.text.trim(),
+                        );
+                      } else {
+                        notifier.addClassroom(
+                          name: _nameController.text.trim(),
+                          description: _descriptionController.text.trim(),
+                          courseId: localCourseId!,
+                        );
+                      }
+                      Navigator.pop(ctx);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
@@ -410,7 +496,7 @@ class _ClassroomCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Text(
-                    'ID Curso: ${classroom.courseId}',
+                    'Curso: ${classroom.courseName ?? 'ID ${classroom.courseId}'}',
                     style: AppTextStyles.bodySmall.copyWith(
                       color: AppColors.primary,
                       fontSize: 10,
