@@ -396,7 +396,7 @@ class _CertificatesAdminScreenState extends ConsumerState<CertificatesAdminScree
                         'description': _descriptionController.text.trim(),
                       };
 
-                      if (isEditing && certificate != null) {
+                      if (isEditing) {
                         notifier.updateCertificate(certificate.id!, data);
                       } else {
                         notifier.createCertificate(data);
