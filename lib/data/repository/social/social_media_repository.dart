@@ -163,7 +163,7 @@ class SocialMediaRepository extends BaseRepository {
         data: {
           'title': title,
           'course': courseId,
-          'starts_at': startsAt.toIso8601String(),
+          'scheduled_at': startsAt.toUtc().toIso8601String(),
         },
         message: 'No se pudo crear la sesión en vivo');
   }

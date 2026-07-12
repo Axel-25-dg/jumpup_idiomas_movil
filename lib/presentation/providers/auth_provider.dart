@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/auth/auth_service.dart';
 import 'package:jumpup_app/data/local/token_storage.dart';
@@ -7,15 +6,6 @@ import 'package:jumpup_app/domain/model/auth_models.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/core/services/google_auth_service.dart';
 import 'package:jumpup_app/core/services/biometric_service.dart';
-import 'package:jumpup_app/presentation/providers/course_provider.dart';
-import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
-import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
-import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
-import 'package:jumpup_app/presentation/providers/stats_provider.dart';
-import 'package:jumpup_app/presentation/providers/resource_provider.dart';
-import 'package:jumpup_app/presentation/providers/language_provider.dart';
-import 'package:jumpup_app/presentation/providers/admin_stats_provider.dart' as admin_stats;
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -23,26 +13,22 @@ class AuthState {
   final AuthStatus status;
   final UserModel? user;
   final String? errorMessage;
-  final bool canUseBiometrics;
 
   const AuthState({
     this.status = AuthStatus.initial,
     this.user,
     this.errorMessage,
-    this.canUseBiometrics = false,
   });
 
   AuthState copyWith({
     AuthStatus? status,
     UserModel? user,
     String? errorMessage,
-    bool? canUseBiometrics,
   }) {
     return AuthState(
       status: status ?? this.status,
       user: user ?? this.user,
       errorMessage: errorMessage ?? this.errorMessage,
-      canUseBiometrics: canUseBiometrics ?? this.canUseBiometrics,
     );
   }
 }
@@ -50,144 +36,121 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
   final TokenStorage _tokenStorage;
-  final Ref _ref;
 
-  AuthNotifier(this._authService, this._tokenStorage, this._ref)
+  AuthNotifier(this._authService, this._tokenStorage)
       : super(const AuthState(status: AuthStatus.loading)) {
     _checkSession();
   }
 
   Future<void> _checkSession() async {
     try {
-      final hasBiometric = await _tokenStorage.hasBiometricStored();
-      
+      // FlutterSecureStorage can hang on first access on some Android devices.
+      // Wrap with a timeout to guarantee we always exit loading state.
       final hasToken = await _tokenStorage
           .hasToken()
           .timeout(const Duration(seconds: 4), onTimeout: () => false);
 
       if (!hasToken) {
-        state = state.copyWith(
-          status: AuthStatus.unauthenticated,
-          canUseBiometrics: hasBiometric,
-        );
+        state = const AuthState(status: AuthStatus.unauthenticated);
         return;
       }
 
+      // We have a token — try to verify it with the server.
+      // Timeout so the splash never hangs indefinitely.
       final user = await _authService
           .getProfile()
           .timeout(const Duration(seconds: 8), onTimeout: () {
         throw Exception('timeout');
       });
 
-      state = state.copyWith(
-        status: AuthStatus.authenticated, 
-        user: user,
-        canUseBiometrics: hasBiometric,
-      );
+      state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (_) {
-      // No limpiamos biometría si falla el refresh, solo el token de sesión
       await _tokenStorage.clearTokens();
-      final hasBiometric = await _tokenStorage.hasBiometricStored();
-      state = state.copyWith(
-        status: AuthStatus.unauthenticated,
-        canUseBiometrics: hasBiometric,
-      );
+      state = const AuthState(status: AuthStatus.unauthenticated);
     }
   }
 
   // ── Login con email/password ───────────────────────────────────────────────
 
   Future<void> login(String email, String password) async {
-    state = state.copyWith(status: AuthStatus.loading);
+    state = const AuthState(status: AuthStatus.loading);
     try {
       final result = await _authService.login(
         LoginRequest(email: email, password: password),
       );
 
+      // Si el login ya trajo el perfil del usuario, lo usamos directamente
+      // sin hacer una segunda llamada a /auth/me/
       final user = result.user ?? await _authService.getProfile();
-      
-      // Intentar registrar biométrico si no existe
-      await _maybeRegisterBiometric();
-
-      // Invalida todos los proveedores de datos para forzar la recarga
-      // con los datos del nuevo usuario.
-      _invalidateAllDataProviders();
-
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+      state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
-      state = state.copyWith(
+      state = AuthState(
         status: AuthStatus.error,
         errorMessage: e.message,
       );
     } catch (_) {
-      state = state.copyWith(
+      state = const AuthState(
         status: AuthStatus.error,
         errorMessage: 'Error inesperado. Intente de nuevo.',
       );
     }
   }
 
-  Future<void> _maybeRegisterBiometric() async {
+  // ── Login con Google ───────────────────────────────────────────────────────
+
+  Future<void> loginWithGoogle() async {
+    state = const AuthState(status: AuthStatus.loading);
     try {
-      final isDeviceSupported = await BiometricService.instance.isAvailable();
-      if (!isDeviceSupported) return;
-
-      final alreadyHas = await _tokenStorage.hasBiometricStored();
-      if (alreadyHas) return;
-
-      final deviceId = await BiometricService.instance.getDeviceId();
-      final biometricToken = await _authService.registerBiometric(deviceId);
-      
-      if (biometricToken.isNotEmpty) {
-        await _tokenStorage.saveBiometricData(
-          biometricToken: biometricToken,
-          deviceId: deviceId,
-        );
-        state = state.copyWith(canUseBiometrics: true);
+      final idToken = await GoogleAuthService.instance.signIn();
+      if (idToken == null) {
+        state = const AuthState(status: AuthStatus.unauthenticated);
+        return;
       }
-    } catch (e) {
-      debugPrint('Error registrando biometría: $e');
+      final result = await _authService.loginWithGoogle(idToken);
+      final user = result.user ?? await _authService.getProfile();
+      state = AuthState(status: AuthStatus.authenticated, user: user);
+    } on ApiException catch (e) {
+      state = AuthState(
+        status: AuthStatus.error,
+        errorMessage: e.message,
+      );
+    } catch (_) {
+      state = const AuthState(
+        status: AuthStatus.error,
+        errorMessage: 'No se pudo iniciar sesión con Google.',
+      );
     }
   }
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
-  Future<void> loginWithBiometric() async {
-    final storedToken = await _tokenStorage.getBiometricToken();
-    final storedDeviceId = await _tokenStorage.getDeviceId();
-
-    if (storedToken == null || storedDeviceId == null) {
-      state = state.copyWith(
-        status: AuthStatus.error,
-        errorMessage: 'Biometría no vinculada.',
-      );
-      return;
-    }
-
-    state = state.copyWith(status: AuthStatus.loading);
+  Future<void> loginWithBiometric({
+    required String deviceId,
+    required String biometricToken,
+  }) async {
+    state = const AuthState(status: AuthStatus.loading);
     try {
       final authenticated = await BiometricService.instance.authenticate();
       if (!authenticated) {
-        state = state.copyWith(
-          status: AuthStatus.unauthenticated,
+        state = const AuthState(
+          status: AuthStatus.error,
+          errorMessage: 'Autenticación biométrica cancelada.',
         );
         return;
       }
-      
       final result = await _authService.biometricLogin(
-        deviceId: storedDeviceId,
-        biometricToken: storedToken,
+        deviceId: deviceId,
+        biometricToken: biometricToken,
       );
-      
       final user = result.user ?? await _authService.getProfile();
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+      state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
-      state = state.copyWith(
+      state = AuthState(
         status: AuthStatus.error,
         errorMessage: e.message,
       );
     } catch (_) {
-      state = state.copyWith(
+      state = const AuthState(
         status: AuthStatus.error,
         errorMessage: 'Error al autenticar con huella dactilar.',
       );
@@ -204,7 +167,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     required String username,
     String role = 'student',
   }) async {
-    state = state.copyWith(status: AuthStatus.loading);
+    state = const AuthState(status: AuthStatus.loading);
     try {
       await _authService.register(
         RegisterRequest(
@@ -217,19 +180,20 @@ class AuthNotifier extends StateNotifier<AuthState> {
           role: role,
         ),
       );
+      // Forzar la obtención del perfil real del usuario con su token recién emitido
       final user = await _authService.getProfile();
-      
-      // Intentar registrar biométrico tras registro exitoso
-      await _maybeRegisterBiometric();
-
-      state = state.copyWith(status: AuthStatus.authenticated, user: user);
+      try {
+        // ignore: avoid_print
+        print('AuthNotifier.register: fetched_user_id=${user.id}, email=${user.email}');
+      } catch (_) {}
+      state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
-      state = state.copyWith(
+      state = AuthState(
         status: AuthStatus.error,
         errorMessage: e.message,
       );
     } catch (_) {
-      state = state.copyWith(
+      state = const AuthState(
         status: AuthStatus.error,
         errorMessage: 'Error inesperado. Intente de nuevo.',
       );
@@ -239,61 +203,9 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Logout ─────────────────────────────────────────────────────────────────
 
   Future<void> logout() async {
-    // 1. Limpiar tokens locales inmediatamente para invalidar cualquier petición futura
-    await _tokenStorage.clearTokens();
-    
-    try {
-      // 2. Cerrar sesión en Google si aplica
-      await GoogleAuthService.instance.signOut();
-    } catch (_) {}
-
-    final hasBiometric = await _tokenStorage.hasBiometricStored();
-    
-    // 3. Invalida todos los proveedores de datos al cerrar sesión
-    _invalidateAllDataProviders();
-
-    // 4. Actualizar el estado a no autenticado inmediatamente
-    state = state.copyWith(
-      status: AuthStatus.unauthenticated,
-      user: null,
-      canUseBiometrics: hasBiometric,
-    );
-
-    // 5. Notificar al servidor (opcional, sin esperar si es lento)
-    try {
-      await _authService.logout().timeout(const Duration(seconds: 2));
-    } catch (_) {}
-  }
-
-  /// Invalida globalmente los proveedores que almacenan datos específicos
-  /// del usuario para evitar persistencia de datos al cambiar de cuenta.
-  void _invalidateAllDataProviders() {
-    // Lista de proveedores a invalidar
-    final List<dynamic> providersToInvalidate = [
-      userProfileProvider,
-      dashboardSummaryProvider,
-      classroomsListProvider,
-      adminCoursesProvider,
-      admin_stats.adminStatsProvider,
-      teacherStatsProvider,
-      socialFeedProvider,
-      chatThreadsProvider,
-      notificationsProvider,
-      unreadNotificationsProvider,
-      mySubscriptionProvider,
-      paymentHistoryProvider,
-      ordersProvider,
-      subscriptionsProvider,
-      adminLanguagesProvider,
-      resourcesListProvider,
-      // Añade más proveedores según sea necesario
-    ];
-
-    for (final provider in providersToInvalidate) {
-      if (provider is ProviderOrFamily) {
-        _ref.invalidate(provider);
-      }
-    }
+    await _authService.logout();
+    await GoogleAuthService.instance.signOut();
+    state = const AuthState(status: AuthStatus.unauthenticated);
   }
 
   // ── Limpiar error ──────────────────────────────────────────────────────────
@@ -309,5 +221,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(AuthService(), TokenStorage(), ref);
+  return AuthNotifier(AuthService(), TokenStorage());
 });

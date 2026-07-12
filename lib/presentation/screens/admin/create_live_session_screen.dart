@@ -63,25 +63,35 @@ class _CreateLiveSessionScreenState
   }
 
   Future<void> _submit() async {
-    if (_titleCtrl.text.trim().isEmpty || _selectedCourseId == null || _selectedDate == null || _selectedTime == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor, completa todos los campos')));
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa el título de la sesión')));
+      return;
+    }
+    if (_selectedCourseId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona un curso')));
+      return;
+    }
+    if (_selectedDate == null || _selectedTime == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona la fecha y hora')));
       return;
     }
 
     setState(() => _isLoading = true);
 
+    // Combinar fecha+hora y convertir a UTC para el backend
     final startsAt = DateTime(
       _selectedDate!.year,
       _selectedDate!.month,
       _selectedDate!.day,
       _selectedTime!.hour,
       _selectedTime!.minute,
-    );
+    ).toUtc();
 
     try {
       final repo = ref.read(socialRepositoryProvider);
       await repo.createLiveSession(
-        title: _titleCtrl.text.trim(),
+        title: title,
         courseId: _selectedCourseId!,
         startsAt: startsAt,
       );

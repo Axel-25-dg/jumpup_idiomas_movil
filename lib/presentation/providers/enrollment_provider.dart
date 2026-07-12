@@ -15,11 +15,17 @@ class EnrollmentNotifier extends StateNotifier<AsyncValue<void>> {
 
   final Ref _ref;
 
-  Future<void> removeStudent(int enrollmentId) async {
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repo = _ref.read(teacherRepositoryProvider);
-      await repo.removeStudent(enrollmentId);
+      await repo.removeStudent(
+        classroomId: classroomId,
+        studentId: studentId,
+      );
     });
   }
 }

@@ -125,6 +125,10 @@ class AuthService implements AuthRepository {
       );
       final data = response.data!;
       final token = AuthTokenModel.fromJson(data);
+      try {
+        // ignore: avoid_print
+        print('AuthService.register: token_user_id=${token.user?.id ?? 'null'}');
+      } catch (_) {}
       if (token.accessToken.isNotEmpty) {
         await _client.saveTokens(
           accessToken: token.accessToken,
@@ -179,6 +183,10 @@ class AuthService implements AuthRepository {
   Future<UserModel> getProfile() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('auth/me/');
+      try {
+        // ignore: avoid_print
+        print('AuthService.getProfile: raw=${response.data}');
+      } catch (_) {}
       return UserModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo obtener el perfil');

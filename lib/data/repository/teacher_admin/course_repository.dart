@@ -4,6 +4,22 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 
+Map<String, dynamic> buildCoursePayload(Map<String, dynamic> data) {
+  final payload = <String, dynamic>{
+    'title': data['title'] ?? '',
+    'description': data['description'] ?? '',
+    'difficulty_level': data['difficulty_level'] ?? 'beginner',
+    'image_url': data['image_url'] ?? '',
+  };
+
+  final languageId = data['language_id'] ?? data['language'] ?? data['course_language_id'];
+  if (languageId != null) {
+    payload['language_id'] = languageId;
+  }
+
+  return payload;
+}
+
 class CourseRepository extends BaseRepository {
   Future<List<Course>> fetchCourses() {
     return getList<Course>(
@@ -15,7 +31,7 @@ class CourseRepository extends BaseRepository {
 
   Future<void> createCourse(Map<String, dynamic> data) async {
     try {
-      await dio.post('courses/', data: data);
+      await dio.post('courses/', data: buildCoursePayload(data));
     } on DioException catch (e) {
       throw ApiException('Error al crear curso', e.response?.statusCode, e);
     }
@@ -23,7 +39,7 @@ class CourseRepository extends BaseRepository {
 
   Future<void> updateCourse(int id, Map<String, dynamic> data) async {
     try {
-      await dio.patch('courses/$id/', data: data);
+      await dio.patch('courses/$id/', data: buildCoursePayload(data));
     } on DioException catch (e) {
       throw ApiException('Error al actualizar curso', e.response?.statusCode, e);
     }
@@ -31,8 +47,14 @@ class CourseRepository extends BaseRepository {
 
   Future<void> deleteCourse(int id) async {
     try {
-      await dio.delete('courses/$id/');
+      // ignore: avoid_print
+      print('CourseRepository.deleteCourse: deleting id=$id');
+      final res = await dio.delete('courses/$id/');
+      // ignore: avoid_print
+      print('CourseRepository.deleteCourse: response status=${res.statusCode}');
     } on DioException catch (e) {
+      // ignore: avoid_print
+      print('CourseRepository.deleteCourse: error=${e.response}');
       throw ApiException('Error al eliminar curso', e.response?.statusCode, e);
     }
   }
