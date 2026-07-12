@@ -41,11 +41,21 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       );
       return;
     }
-    await ref.read(classroomNotifierProvider.notifier).create(
-          name: _nameController.text.trim(),
-          description: _descController.text.trim(),
-          courseId: _selectedCourseId!,
-        );
+
+    if (widget.classroom != null) {
+      await ref.read(classroomNotifierProvider.notifier).update(
+        widget.classroom!.id,
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
+      );
+    } else {
+      await ref.read(classroomNotifierProvider.notifier).create(
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
+      );
+    }
   }
 
   @override
@@ -58,13 +68,15 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
             .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
         return;
       }
-      final classroom = next.valueOrNull?.last;
+      final classroom = next.valueOrNull;
       if (classroom != null && previous?.isLoading == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
-                  'Aula guardada. Código: ${classroom.accessCode}')),
+                  widget.classroom == null
+                      ? 'Aula creada correctamente. Código: ${classroom.accessCode}'
+                      : 'Aula actualizada correctamente.')),
         );
         ref.invalidate(classroomsListProvider);
         Navigator.pop(context);
@@ -74,38 +86,24 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
+        backgroundColor: const Color(0xFF1A1828),
         title: Text(
           widget.classroom == null ? 'Crear Aula' : 'Editar Aula',
-          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: const TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          Positioned(top: -100, right: -100, child: Container(
-            width: 300,
-            height: 300,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-              boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.1), blurRadius: 100)],
-            ),
-          )),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: ClassroomForm(
-              nameController: _nameController,
-              descController: _descController,
-              selectedCourseId: _selectedCourseId,
-              onCourseChanged: (val) => setState(() => _selectedCourseId = val),
-              loading: state.isLoading,
-              onSubmit: _handleSubmit,
-              isEdit: widget.classroom != null,
-            ),
-          ),
-        ],
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: ClassroomForm(
+          nameController: _nameController,
+          descController: _descController,
+          selectedCourseId: _selectedCourseId,
+          onCourseChanged: (val) => setState(() => _selectedCourseId = val),
+          loading: state.isLoading,
+          onSubmit: _handleSubmit,
+          isEdit: widget.classroom != null,
+        ),
       ),
     );
   }

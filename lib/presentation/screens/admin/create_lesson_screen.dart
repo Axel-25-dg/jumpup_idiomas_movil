@@ -3,7 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
-import 'package:jumpup_app/widgets/glass_container.dart';
 
 class CreateLessonScreen extends ConsumerStatefulWidget {
   const CreateLessonScreen({super.key});
@@ -30,43 +29,42 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
   }
 
   Future<void> _submit() async {
-    if (_titleCtrl.text.trim().isEmpty || _moduleIdCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor ingresa el título y el ID del Módulo'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+    final title = _titleCtrl.text.trim();
+    final moduleIdText = _moduleIdCtrl.text.trim();
+    final orderText = _orderCtrl.text.trim();
+
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa el título de la lección')));
       return;
     }
+    final moduleId = int.tryParse(moduleIdText);
+    if (moduleId == null || moduleId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa un ID de Módulo válido (número entero)')));
+      return;
+    }
+    final order = int.tryParse(orderText) ?? 1;
 
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(adminCoursesProvider.notifier).addLesson({
-        'title': _titleCtrl.text.trim(),
-        'description': _descriptionCtrl.text.trim(),
-        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
-        'module': int.tryParse(_moduleIdCtrl.text.trim()),
-      });
+      final data = <String, dynamic>{
+        'title': title,
+        'module': moduleId,
+        'order': order,
+      };
+      // Solo incluir descripción si no está vacía
+      final desc = _descriptionCtrl.text.trim();
+      if (desc.isNotEmpty) data['description'] = desc;
+
+      await ref.read(adminCoursesProvider.notifier).addLesson(data);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Lección creada correctamente'),
-            backgroundColor: Colors.greenAccent,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lección creada correctamente')));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -78,104 +76,33 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Crear Nueva Lección',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        backgroundColor: const Color(0xFF1A1828),
+        title: const Text('Crear Lección', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          // Background Blobs
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                    blurRadius: 100,
-                  )
-                ],
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Theme(
+          data: ThemeData.dark(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              BrandedTextField(controller: _titleCtrl, label: 'Título de la lección'),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _moduleIdCtrl, label: 'ID del Módulo', keyboardType: TextInputType.number),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _orderCtrl, label: 'Orden (Ej. 1)', keyboardType: TextInputType.number),
+              const SizedBox(height: 40),
+              PrimaryButton(
+                label: 'Guardar Lección',
+                loading: _isLoading,
+                onPressed: _submit,
               ),
-            ),
+            ],
           ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "Detalles de la Lección",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-                GlassContainer(
-                  padding: const EdgeInsets.all(20),
-                  borderRadius: BorderRadius.circular(24),
-                  child: Column(
-                    children: [
-                      BrandedTextField(
-                        controller: _titleCtrl,
-                        label: 'Título de la lección',
-                        prefixIcon: Icons.title,
-                      ),
-                      const SizedBox(height: 20),
-                      BrandedTextField(
-                        controller: _descriptionCtrl,
-                        label: 'Descripción (Opcional)',
-                        prefixIcon: Icons.description,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        children: [
-                          Expanded(
-                            child: BrandedTextField(
-                              controller: _moduleIdCtrl,
-                              label: 'ID del Módulo',
-                              keyboardType: TextInputType.number,
-                              prefixIcon: Icons.grid_view,
-                            ),
-                          ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: BrandedTextField(
-                              controller: _orderCtrl,
-                              label: 'Orden',
-                              keyboardType: TextInputType.number,
-                              prefixIcon: Icons.sort,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  child: PrimaryButton(
-                    label: 'Guardar Lección',
-                    loading: _isLoading,
-                    onPressed: _submit,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }

@@ -3,8 +3,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
-import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:jumpup_app/theme/colors.dart';
 
 class CreateModuleScreen extends ConsumerStatefulWidget {
   const CreateModuleScreen({super.key});
@@ -30,43 +28,37 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
   }
 
   Future<void> _submit() async {
-    if (_titleCtrl.text.trim().isEmpty || _selectedCourseId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Por favor ingresa un título y selecciona un curso'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa un título para el módulo')));
+      return;
+    }
+    if (_selectedCourseId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona un curso')));
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(adminCoursesProvider.notifier).addModule({
-        'title': _titleCtrl.text.trim(),
-        'description': _descriptionCtrl.text.trim(),
-        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
+      final data = <String, dynamic>{
+        'title': title,
         'course': _selectedCourseId,
-      });
+        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
+      };
+      // Solo incluir descripción si no está vacía
+      final desc = _descriptionCtrl.text.trim();
+      if (desc.isNotEmpty) data['description'] = desc;
+
+      await ref.read(adminCoursesProvider.notifier).addModule(data);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Módulo creado correctamente'),
-            backgroundColor: Colors.greenAccent,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Módulo creado correctamente')));
         Navigator.pop(context);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: $e'),
-            backgroundColor: Colors.redAccent,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -80,137 +72,54 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        title: const Text(
-          'Crear Nuevo Módulo',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-        ),
+        backgroundColor: const Color(0xFF1A1828),
+        title: const Text('Crear Módulo', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Stack(
-        children: [
-          // Background Blobs
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                boxShadow: [
-                  BoxShadow(
-                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                    blurRadius: 100,
-                  )
-                ],
-              ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Curso asociado', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            coursesAsync.when(
+              loading: () => const CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+              error: (e, _) => Text('Error al cargar cursos: $e', style: const TextStyle(color: Colors.redAccent)),
+              data: (courses) {
+                return DropdownButtonFormField<int>(
+                  dropdownColor: const Color(0xFF1A1828),
+                  style: const TextStyle(color: Colors.white),
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white12,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+                  ),
+                  initialValue: _selectedCourseId,
+                  hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
+                  items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
+                  onChanged: (val) => setState(() => _selectedCourseId = val),
+                );
+              },
             ),
-          ),
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            const SizedBox(height: 24),
+            Column(
               children: [
-                const Text(
-                  "Detalles del Módulo",
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
+                BrandedTextField(controller: _titleCtrl, label: 'Título del módulo'),
                 const SizedBox(height: 20),
-                GlassContainer(
-                  padding: const EdgeInsets.all(20),
-                  borderRadius: BorderRadius.circular(24),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        'Curso asociado',
-                        style: TextStyle(
-                            color: Colors.white70,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 13),
-                      ),
-                      const SizedBox(height: 12),
-                      coursesAsync.when(
-                        loading: () => const LinearProgressIndicator(
-                            color: AppColors.secondary),
-                        error: (e, _) => Text('Error al cargar cursos: $e',
-                            style: const TextStyle(color: Colors.redAccent)),
-                        data: (courses) {
-                          return DropdownButtonFormField<int>(
-                            dropdownColor: const Color(0xFF1A1828),
-                            style: const TextStyle(color: Colors.white),
-                            decoration: InputDecoration(
-                              labelText: 'Seleccionar curso',
-                              labelStyle:
-                                  const TextStyle(color: Colors.white70),
-                              prefixIcon: const Icon(Icons.book_rounded,
-                                  color: Colors.white70),
-                              enabledBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide:
-                                    const BorderSide(color: Colors.white12),
-                              ),
-                              focusedBorder: OutlineInputBorder(
-                                borderRadius: BorderRadius.circular(12),
-                                borderSide: const BorderSide(
-                                    color: AppColors.secondary),
-                              ),
-                            ),
-                            initialValue: _selectedCourseId,
-                            hint: const Text('Seleccionar curso...',
-                                style: TextStyle(color: Colors.white54)),
-                            items: courses
-                                .map((c) => DropdownMenuItem(
-                                    value: c.id, child: Text(c.title)))
-                                .toList(),
-                            onChanged: (val) =>
-                                setState(() => _selectedCourseId = val),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 24),
-                      BrandedTextField(
-                        controller: _titleCtrl,
-                        label: 'Título del módulo',
-                        prefixIcon: Icons.title,
-                      ),
-                      const SizedBox(height: 20),
-                      BrandedTextField(
-                        controller: _descriptionCtrl,
-                        label: 'Descripción (Opcional)',
-                        prefixIcon: Icons.description,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 20),
-                      BrandedTextField(
-                        controller: _orderCtrl,
-                        label: 'Orden (Ej. 1)',
-                        keyboardType: TextInputType.number,
-                        prefixIcon: Icons.sort,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 40),
-                SizedBox(
-                  width: double.infinity,
-                  child: PrimaryButton(
-                    label: 'Guardar Módulo',
-                    loading: _isLoading,
-                    onPressed: _submit,
-                  ),
-                ),
+                BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
+                const SizedBox(height: 20),
+                BrandedTextField(controller: _orderCtrl, label: 'Orden (Ej. 1)', keyboardType: TextInputType.number),
               ],
             ),
-          ),
-        ],
+            const SizedBox(height: 40),
+            PrimaryButton(
+              label: 'Guardar Módulo',
+              loading: _isLoading,
+              onPressed: _submit,
+            ),
+          ],
+        ),
       ),
     );
   }

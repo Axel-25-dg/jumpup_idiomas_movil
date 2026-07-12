@@ -1,97 +1,66 @@
-// lib/presentation/providers/course_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/data/repository/teacher_admin/course_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
-import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
+import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 
-final courseNotifierProvider = StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
-  final repository = ref.watch(teacherRepositoryProvider).courses;
-  return CourseNotifier(repository);
+import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+
+
+// Providers de admin — nombres con prefijo para evitar colisión con course_providers.dart
+final adminLanguagesProvider = FutureProvider<List<Language>>((ref) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  return repo.fetchLanguages();
 });
 
-final adminCoursesProvider = courseNotifierProvider;
+final adminCoursesProvider =
+    StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
+  return CourseNotifier(ref.read(teacherRepositoryProvider));
+});
 
 class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
-  final CourseRepository _repository;
+  final TeacherRepository _repo;
 
-  CourseNotifier(this._repository) : super(const AsyncValue.loading()) {
+  CourseNotifier(this._repo) : super(const AsyncValue.loading()) {
     fetchCourses();
   }
 
   Future<void> fetchCourses() async {
     state = const AsyncValue.loading();
-    try {
-      final courses = await _repository.fetchCourses();
-      state = AsyncValue.data(courses);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    state = await AsyncValue.guard(() => _repo.fetchCourses());
   }
 
   Future<void> addCourse(Map<String, dynamic> data) async {
-    try {
-      await _repository.createCourse(data);
-      await fetchCourses();
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    await _repo.createCourse(data);
+    await fetchCourses(); // Refresca la lista tras añadir
   }
 
   Future<void> editCourse(int id, Map<String, dynamic> data) async {
-    try {
-      await _repository.updateCourse(id, data);
-      await fetchCourses();
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
+    await _repo.updateCourse(id, data);
+    await fetchCourses(); // Refresca la lista tras editar
+  }
+  
+  Future<void> addModule(Map<String, dynamic> data) async {
+    await _repo.createModule(data);
+  }
+  
+  Future<void> addLesson(Map<String, dynamic> data) async {
+    await _repo.createLesson(data);
   }
 
   Future<void> deleteCourse(int id) async {
-    try {
-      await _repository.deleteCourse(id);
-      final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((c) => c.id != id).toList());
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-
-  Future<List<Course>> getCoursesByLanguage(int languageId) async {
-    try {
-      return await _repository.getCoursesByLanguage(languageId);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-      return [];
-    }
-  }
-
-  Future<Course?> getCourseById(int id) async {
-    try {
-      return await _repository.getCourseById(id);
-    } catch (e) {
-      return null;
-    }
-  }
-
-  Future<void> addModule(Map<String, dynamic> data) async {
-    try {
-      await _repository.createModule(data);
-      await fetchCourses();
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-
-  Future<void> addLesson(Map<String, dynamic> data) async {
-    try {
-      await _repository.createLesson(data);
-      await fetchCourses();
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
-    }
-  }
-
-  Future<void> refresh() async {
-    await fetchCourses();
+    await _repo.deleteCourse(id);
+    await fetchCourses(); // Refresca la lista tras eliminar
   }
 }
+
+// Provider para módulos de un curso (usado en CreateLessonScreen)
+final modulesForCourseProvider =
+    FutureProvider.family<List<Map<String, dynamic>>, int>(
+        (ref, courseId) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  try {
+    return await repo.fetchModulesForCourse(courseId);
+  } catch (_) {
+    return [];
+  }
+});
