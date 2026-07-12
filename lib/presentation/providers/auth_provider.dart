@@ -12,8 +12,10 @@ import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
+import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+import 'package:jumpup_app/presentation/providers/language_provider.dart';
+import 'package:jumpup_app/presentation/providers/admin_stats_provider.dart' as admin_stats;
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -260,7 +262,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
       dashboardSummaryProvider,
       classroomsListProvider,
       adminCoursesProvider,
-      adminStatsProvider,
+      admin_stats.adminStatsProvider,
       teacherStatsProvider,
       socialFeedProvider,
       chatThreadsProvider,

@@ -5,6 +5,7 @@ import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/language_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 

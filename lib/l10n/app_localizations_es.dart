@@ -384,4 +384,105 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get loadingLanguagesError => 'Error al cargar idiomas';
+
+  @override
+  String get adminStats => 'Estadísticas';
+
+  @override
+  String get adminPeople => 'Personas';
+
+  @override
+  String get adminContent => 'Contenido';
+
+  @override
+  String get adminOps => 'Operaciones';
+
+  @override
+  String get platformOverview => 'Resumen de la Plataforma';
+
+  @override
+  String get totalUsers => 'Usuarios Totales';
+
+  @override
+  String get studentCourses => 'Cursos';
+
+  @override
+  String get adminSubscriptions => 'Suscripciones';
+
+  @override
+  String get studentCertificates => 'Certificados';
+
+  @override
+  String get recentActivity => 'Actividad Reciente';
+
+  @override
+  String get systemAnnouncements => 'Anuncios del Sistema';
+
+  @override
+  String get manageAnnouncementsSubtitle =>
+      'Gestionar actualizaciones globales';
+
+  @override
+  String get peopleManagement => 'Gestión de Personas';
+
+  @override
+  String get usersAndRoles => 'Usuarios y Roles';
+
+  @override
+  String get manageUsersSubtitle => 'Gestionar cuentas de alumnos y profesores';
+
+  @override
+  String get monitorClassroomsSubtitle => 'Monitorear grupos y asignaciones';
+
+  @override
+  String get languageExperts => 'Expertos en Idiomas';
+
+  @override
+  String get manageLanguagesSubtitle => 'Gestionar activos de idiomas';
+
+  @override
+  String get contentAndCurriculum => 'Contenido y Currículo';
+
+  @override
+  String get courseCatalog => 'Catálogo de Cursos';
+
+  @override
+  String get editCoursesSubtitle => 'Editar sílabo, lecciones y módulos';
+
+  @override
+  String get exerciseBank => 'Banco de Ejercicios';
+
+  @override
+  String get manageExercisesSubtitle => 'Revisar y actualizar materiales';
+
+  @override
+  String get operationsAndBilling => 'Operaciones y Facturación';
+
+  @override
+  String get billingAndSubscriptions => 'Suscripciones y Facturación';
+
+  @override
+  String get monitorRevenueSubtitle => 'Monitorear ingresos y planes premium';
+
+  @override
+  String get contentReports => 'Reportes de Contenido';
+
+  @override
+  String get moderateReportsSubtitle => 'Moderar reportes de foro y social';
+
+  @override
+  String get adminProfile => 'Perfil de Admin';
+
+  @override
+  String get administrator => 'Administrador';
+
+  @override
+  String get superAdminAccess => 'Acceso Super Admin';
+
+  @override
+  String get securitySettings => 'Configuración de Seguridad';
+
+  @override
+  String get logoutAdminConfirm =>
+      '¿Estás seguro de que deseas salir del panel de administración?';
 }

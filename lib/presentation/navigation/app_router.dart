@@ -36,6 +36,7 @@ import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 
 // IMPORTACIONES TEACHER
 import 'package:jumpup_app/presentation/screens/admin/teacher_dashboard_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/admin_dashboard_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/manage_classroom_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_exercise_screen.dart';
@@ -47,16 +48,15 @@ import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart'
 import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_course_screen.dart';
 
-// IMPORTACIONES ADMIN (correcciones)
-import 'package:jumpup_app/presentation/screens/admin/correcciones/admin_dashboard_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
+// IMPORTACIONES ADMIN
+import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/classrooms_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/courses_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/exercises_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 
 abstract final class AppRoutes {
   // Auth

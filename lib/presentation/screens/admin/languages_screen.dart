@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/language_provider.dart';
+import 'package:jumpup_app/presentation/providers/language_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -35,64 +35,132 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
-      appBar: AppBar(
-        title: const Text('Language Assets',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
-            onPressed: () => _showAddEditDialog(context),
-            tooltip: 'Add Language',
-          ),
-        ],
-      ),
       body: Stack(
         children: [
+          // Background Blobs
           Positioned(
-            bottom: -100,
-            left: -100,
+            top: -100,
+            right: -50,
             child: Container(
               width: 300,
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                    blurRadius: 100,
+                  )
+                ],
               ),
             ),
           ),
-          RefreshIndicator(
-            color: const Color(0xFF7C4DFF),
-            onRefresh: () => notifier.refresh(),
-            child: languagesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              error: (error, stack) => _buildErrorView(error, notifier),
-              data: (languages) {
-                if (languages.isEmpty) {
-                  return EmptyState(
-                    title: 'No languages configured',
-                    subtitle: 'Add your first language to start localizing content',
-                    icon: Icons.translate_rounded,
-                    buttonText: 'Add Language',
-                    onButtonPressed: () => _showAddEditDialog(context),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                  itemCount: languages.length,
-                  itemBuilder: (context, index) {
-                    final language = languages[index];
-                    return _LanguageCard(
-                      language: language,
-                      onEdit: () => _showAddEditDialog(context, language: language),
-                      onDelete: () => _confirmDelete(context, language.id, notifier),
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                    blurRadius: 80,
+                  )
+                ],
+              ),
+            ),
+          ),
+          
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Language Assets',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
+                    onPressed: () => _showAddEditDialog(context),
+                    tooltip: 'Add Language',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                    onPressed: () => notifier.refresh(),
+                    tooltip: 'Refresh',
+                  ),
+                ],
+              ),
+
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                sliver: languagesAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  ),
+                  error: (error, stack) => SliverFillRemaining(
+                    child: _buildErrorView(error, notifier),
+                  ),
+                  data: (languages) {
+                    if (languages.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          title: 'No languages configured',
+                          subtitle: 'Add your first language to start localizing content',
+                          icon: Icons.translate_rounded,
+                          buttonText: 'Add Language',
+                          onButtonPressed: () => _showAddEditDialog(context),
+                        ),
+                      );
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final language = languages[index];
+                          return _LanguageCard(
+                            language: language,
+                            onEdit: () => _showAddEditDialog(context, language: language),
+                            onDelete: () => _confirmDelete(context, language.id, notifier),
+                          );
+                        },
+                        childCount: languages.length,
+                      ),
                     );
                   },
-                );
-              },
-            ),
+                ),
+              ),
+            ],
           ),
         ],
       ),

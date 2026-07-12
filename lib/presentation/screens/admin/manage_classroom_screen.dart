@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/classroom_provider.dart' hide enrollmentsProvider;
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 

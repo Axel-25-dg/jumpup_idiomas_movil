@@ -121,6 +121,22 @@ class StripePaymentNotifier extends StateNotifier<StripePaymentIntentState> {
     }
   }
 
+  /// Ejecuta un flujo de compra simulado (para desarrollo)
+  Future<bool> executeMockPurchase({required int subscriptionId}) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final success = await _service.mockPurchase(subscriptionId: subscriptionId);
+      state = state.copyWith(isLoading: false);
+      return success;
+    } catch (e) {
+      state = state.copyWith(
+        isLoading: false,
+        error: e.toString().replaceAll('Exception: ', ''),
+      );
+      return false;
+    }
+  }
+
   void reset() => state = const StripePaymentIntentState();
 }
 

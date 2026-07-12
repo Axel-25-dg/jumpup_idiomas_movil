@@ -32,13 +32,30 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
       backgroundColor: Colors.transparent,
       floatingActionButton: Padding(
         padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 80),
-        child: FloatingActionButton.extended(
-          backgroundColor: const Color(0xFF7C4DFF),
-          elevation: 4,
-          onPressed: () => _showCreateDialog(context, ref),
-          icon: const Icon(Icons.add_rounded, color: Colors.white),
-          label: Text('Nuevo Tema',
-              style: AppTextStyles.labelLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF2575FC).withValues(alpha: 0.4),
+                blurRadius: 16,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: FloatingActionButton.extended(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            onPressed: () => _showCreateDialog(context, ref),
+            icon: const Icon(Icons.add_rounded, color: Colors.white),
+            label: Text('NUEVO TEMA',
+                style: AppTextStyles.labelLarge.copyWith(
+                  color: Colors.white, 
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                )),
+          ),
         ),
       ),
       body: Column(
@@ -49,49 +66,45 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
             data: (categories) {
               if (categories.isEmpty) return const SizedBox.shrink();
               return SizedBox(
-                height: 56,
+                height: 64,
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   physics: const BouncingScrollPhysics(),
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
                       child: FilterChip(
                         label: Text('Todos',
                             style: AppTextStyles.labelMedium.copyWith(
                               color: _selectedCategoryId == null ? Colors.white : (isDark ? Colors.white38 : Colors.black45),
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             )),
                         selected: _selectedCategoryId == null,
                         onSelected: (_) => setState(() => _selectedCategoryId = null),
                         backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                        selectedColor: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
-                        checkmarkColor: Colors.white,
-                        side: BorderSide(
-                          color: _selectedCategoryId == null ? const Color(0xFF7C4DFF) : (isDark ? Colors.white12 : Colors.black12),
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        selectedColor: const Color(0xFF6A11CB),
+                        showCheckmark: false,
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     ),
                     ...categories.map((cat) => Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 12),
                       child: FilterChip(
                         label: Text(cat.name,
                             style: AppTextStyles.labelMedium.copyWith(
                               color: _selectedCategoryId == cat.id ? Colors.white : (isDark ? Colors.white38 : Colors.black45),
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w800,
                             )),
                         selected: _selectedCategoryId == cat.id,
                         onSelected: (_) => setState(() =>
                             _selectedCategoryId = _selectedCategoryId == cat.id ? null : cat.id),
                         backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-                        selectedColor: const Color(0xFF7C4DFF).withValues(alpha: 0.3),
-                        checkmarkColor: Colors.white,
-                        side: BorderSide(
-                          color: _selectedCategoryId == cat.id ? const Color(0xFF7C4DFF) : (isDark ? Colors.white12 : Colors.black12),
-                        ),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                        selectedColor: const Color(0xFF6A11CB),
+                        showCheckmark: false,
+                        side: BorderSide.none,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
                     )),
                   ],
@@ -101,7 +114,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
           ),
           Expanded(
             child: threadsAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF6A11CB))),
               error: (e, _) => Center(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
@@ -109,12 +122,22 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
                     Icon(Icons.wifi_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
                     const SizedBox(height: 12),
                     Text('Error al cargar el foro',
-                        style: AppTextStyles.titleMedium.copyWith(color: subtextColor)),
+                        style: AppTextStyles.titleMedium.copyWith(color: subtextColor, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 16),
-                    FilledButton(
-                      onPressed: () => ref.invalidate(forumThreadsProvider(_selectedCategoryId)),
-                      style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF), foregroundColor: Colors.white),
-                      child: const Text('Reintentar'),
+                    Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+                      ),
+                      child: FilledButton(
+                        onPressed: () => ref.invalidate(forumThreadsProvider(_selectedCategoryId)),
+                        style: FilledButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          shadowColor: Colors.transparent,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        child: const Text('Reintentar'),
+                      ),
                     ),
                   ],
                 ),
@@ -122,10 +145,10 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
               data: (threads) {
                 if (threads.isEmpty) return _buildEmpty(textColor, subtextColor);
                 return RefreshIndicator(
-                  color: const Color(0xFF7C4DFF),
+                  color: const Color(0xFF6A11CB),
                   onRefresh: () => ref.refresh(forumThreadsProvider(_selectedCategoryId).future),
                   child: ListView.separated(
-                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
                     physics: const BouncingScrollPhysics(),
                     itemCount: threads.length,
                     separatorBuilder: (_, __) => const SizedBox(height: 12),
@@ -152,13 +175,22 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
             padding: const EdgeInsets.all(28),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF6A11CB).withValues(alpha: 0.1),
+                  const Color(0xFF2575FC).withValues(alpha: 0.1),
+                ],
+              ),
             ),
-            child: const Icon(Icons.forum_outlined, size: 56, color: Color(0xFF7C4DFF)),
+            child: const Icon(Icons.forum_outlined, size: 56, color: Color(0xFF2575FC)),
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           Text('No hay temas aún',
-              style: AppTextStyles.titleMedium.copyWith(color: textColor, fontWeight: FontWeight.bold)),
+              style: AppTextStyles.headlineSmall.copyWith(
+                color: textColor, 
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.5,
+              )),
           const SizedBox(height: 8),
           Text('¡Crea el primer tema!',
               style: AppTextStyles.bodyMedium.copyWith(color: subtextColor)),
@@ -166,7 +198,6 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
       ),
     );
   }
-
   void _showCreateDialog(BuildContext context, WidgetRef ref) {
     showModalBottomSheet(
       context: context,
@@ -199,34 +230,44 @@ class _ForumThreadCard extends StatelessWidget {
     final statColor = isDark ? Colors.white38 : Colors.black38;
 
     return GlassContainer(
-      opacity: 0.08,
-      blur: 10,
+      opacity: isDark ? 0.06 : 0.08,
+      blur: 24,
       padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          radius: 24,
-          backgroundColor: thread.isPinned
-              ? const Color(0xFF00B4DB).withValues(alpha: 0.15)
-              : const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: thread.isPinned
+                  ? [const Color(0xFF00B4DB), const Color(0xFF0083B0)]
+                  : [const Color(0xFF6A11CB).withValues(alpha: 0.1), const Color(0xFF2575FC).withValues(alpha: 0.1)],
+            ),
+          ),
           child: Icon(
             thread.isPinned ? Icons.push_pin_rounded : Icons.forum_outlined,
-            size: 22,
-            color: thread.isPinned ? const Color(0xFF00B4DB) : const Color(0xFF7C4DFF),
+            size: 24,
+            color: thread.isPinned ? Colors.white : const Color(0xFF2575FC),
           ),
         ),
         title: Text(thread.title,
-            style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.bold, color: textColor)),
+            style: AppTextStyles.labelLarge.copyWith(
+              fontWeight: FontWeight.w800, 
+              color: textColor,
+              letterSpacing: -0.3,
+            )),
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 6),
+          padding: const EdgeInsets.only(top: 8),
           child: Row(
             children: [
               Flexible(
                 child: Text(thread.authorName,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w600, color: subtextColor)),
+                    style: AppTextStyles.bodySmall.copyWith(fontWeight: FontWeight.w700, color: subtextColor)),
               ),
               if (thread.categoryName.isNotEmpty) ...[
                 Text(' · ', style: AppTextStyles.bodySmall.copyWith(color: iconFadeColor)),
@@ -235,32 +276,21 @@ class _ForumThreadCard extends StatelessWidget {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.bodySmall.copyWith(
-                          color: const Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
+                          color: const Color(0xFF2575FC), fontWeight: FontWeight.w900)),
                 ),
               ],
               const SizedBox(width: 8),
               Icon(Icons.remove_red_eye_outlined, size: 14, color: iconFadeColor),
               const SizedBox(width: 4),
-              Text('${thread.views}', style: AppTextStyles.bodySmall.copyWith(color: statColor)),
+              Text('${thread.views}', style: AppTextStyles.bodySmall.copyWith(color: statColor, fontWeight: FontWeight.w600)),
               const SizedBox(width: 12),
               Icon(Icons.chat_bubble_outline_rounded, size: 14, color: iconFadeColor),
               const SizedBox(width: 4),
-              Text('${thread.postCount}', style: AppTextStyles.bodySmall.copyWith(color: statColor)),
+              Text('${thread.postCount}', style: AppTextStyles.bodySmall.copyWith(color: statColor, fontWeight: FontWeight.w600)),
             ],
           ),
         ),
-        trailing: thread.isPinned
-            ? Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF00B4DB).withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text('Fijado',
-                    style: AppTextStyles.labelSmall.copyWith(
-                        color: const Color(0xFF00B4DB), fontWeight: FontWeight.bold, fontSize: 10)),
-              )
-            : Icon(Icons.chevron_right_rounded, color: iconFadeColor),
+        trailing: Icon(Icons.chevron_right_rounded, color: iconFadeColor, size: 22),
         onTap: onTap,
       ),
     );
@@ -364,22 +394,33 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                 ),
                 const SizedBox(height: 32),
                 SizedBox(
-                  width: double.infinity, height: 56,
-                  child: ElevatedButton(
-                    onPressed: _loading ? null : _submit,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C4DFF),
-                      foregroundColor: Colors.white,
-                      disabledBackgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      elevation: 0,
+                  width: double.infinity, height: 58,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFF2575FC).withValues(alpha: 0.4),
+                          blurRadius: 16,
+                          offset: const Offset(0, 8),
+                        ),
+                      ],
                     ),
-                    child: _loading
-                        ? const SizedBox(width: 24, height: 24,
-                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                        : Text('PUBLICAR TEMA',
-                            style: AppTextStyles.labelLarge.copyWith(
-                                fontWeight: FontWeight.w800, color: Colors.white)),
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _submit,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      ),
+                      child: _loading
+                          ? const SizedBox(width: 24, height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, color: Colors.white))
+                          : Text('PUBLICAR TEMA',
+                              style: AppTextStyles.labelLarge.copyWith(
+                                  fontWeight: FontWeight.w900, color: Colors.white, letterSpacing: 1.2)),
+                    ),
                   ),
                 ),
               ],
@@ -393,17 +434,17 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
   InputDecoration _inputDecoration(String hint, IconData icon, bool isDark) {
     return InputDecoration(
       hintText: hint,
-      prefixIcon: Icon(icon, color: isDark ? Colors.white38 : Colors.black38, size: 20),
-      hintStyle: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white24 : Colors.black26),
+      prefixIcon: Icon(icon, color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5), size: 20),
+      hintStyle: AppTextStyles.bodyMedium.copyWith(color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3)),
       filled: true,
-      fillColor: isDark ? Colors.black.withValues(alpha: 0.2) : Colors.black.withValues(alpha: 0.04),
+      fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
       border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
       enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12)),
+          borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05))),
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: Color(0xFF7C4DFF), width: 1.5)),
+          borderSide: const BorderSide(color: Color(0xFF2575FC), width: 1.5)),
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
     );
   }

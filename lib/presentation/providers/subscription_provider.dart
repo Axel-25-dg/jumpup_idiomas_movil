@@ -2,7 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/subscription_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 final subscriptionNotifierProvider = StateNotifierProvider<SubscriptionNotifier, AsyncValue<List<Subscription>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).subscriptions;

@@ -42,9 +42,9 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       return;
     }
     await ref.read(classroomNotifierProvider.notifier).create(
-          _nameController.text.trim(),
-          _descController.text.trim(),
-          _selectedCourseId!,
+          name: _nameController.text.trim(),
+          description: _descController.text.trim(),
+          courseId: _selectedCourseId!,
         );
   }
 
@@ -58,7 +58,7 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
             .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
         return;
       }
-      final classroom = next.valueOrNull;
+      final classroom = next.valueOrNull?.last;
       if (classroom != null && previous?.isLoading == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

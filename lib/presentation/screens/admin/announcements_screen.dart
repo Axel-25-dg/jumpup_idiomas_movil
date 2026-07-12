@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/announcement_provider.dart';
+import 'package:jumpup_app/presentation/providers/announcement_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -162,15 +162,23 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                               announcement.id,
                               notifier,
                             ),
-                            onToggleStatus: () {
-                              notifier.updateAnnouncement(
-                                id: announcement.id,
-                                title: announcement.title,
-                                content: announcement.content,
-                                startDate: announcement.startDate,
-                                endDate: announcement.endDate,
-                                isActive: !announcement.isActive,
-                              );
+                            onToggleStatus: () async {
+                              try {
+                                await notifier.updateAnnouncement(
+                                  id: announcement.id,
+                                  title: announcement.title,
+                                  content: announcement.content,
+                                  startDate: announcement.startDate,
+                                  endDate: announcement.endDate,
+                                  isActive: !announcement.isActive,
+                                );
+                              } catch (e) {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Error: ${e.toString()}')),
+                                  );
+                                }
+                              }
                             },
                           );
                         },
@@ -326,32 +334,42 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           ),
           PrimaryButton(
             label: announcement != null ? 'Update' : 'Publish',
-            onPressed: () {
+            onPressed: () async { // Hacer asíncrono
               if (_formKey.currentState!.validate() &&
                   _startDate != null &&
                   _endDate != null) {
                 final notifier =
                     ref.read(announcementNotifierProvider.notifier);
 
-                if (announcement != null) {
-                  notifier.updateAnnouncement(
-                    id: announcement.id,
-                    title: _titleController.text.trim(),
-                    content: _contentController.text.trim(),
-                    startDate: _startDate!,
-                    endDate: _endDate!,
-                    isActive: _isActive,
-                  );
-                } else {
-                  notifier.createAnnouncement(
-                    title: _titleController.text.trim(),
-                    content: _contentController.text.trim(),
-                    startDate: _startDate!,
-                    endDate: _endDate!,
-                    isActive: _isActive,
-                  );
+                try {
+                  if (announcement != null) {
+                    await notifier.updateAnnouncement(
+                      id: announcement.id,
+                      title: _titleController.text.trim(),
+                      content: _contentController.text.trim(),
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                      isActive: _isActive,
+                    );
+                  } else {
+                    await notifier.createAnnouncement(
+                      title: _titleController.text.trim(),
+                      content: _contentController.text.trim(),
+                      startDate: _startDate!,
+                      endDate: _endDate!,
+                      isActive: _isActive,
+                    );
+                  }
+                  
+                  if (mounted) Navigator.pop(ctx);
+                } catch (e) {
+                  // Mostrar error si falla
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: ${e.toString()}')),
+                    );
+                  }
                 }
-                Navigator.pop(ctx);
               }
             },
           ),
@@ -383,9 +401,17 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           PrimaryButton(
             label: 'Delete',
             color: AppColors.error,
-            onPressed: () {
-              notifier.deleteAnnouncement(id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              try {
+                await notifier.deleteAnnouncement(id);
+                if (context.mounted) Navigator.pop(ctx);
+              } catch (e) {
+                if (context.mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error: ${e.toString()}')),
+                  );
+                }
+              }
             },
           ),
         ],

@@ -17,7 +17,7 @@ import 'package:jumpup_app/presentation/screens/admin/resource_library_screen.da
 import 'package:jumpup_app/presentation/screens/admin/teacher_inbox_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/manage_live_sessions_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/teacher_profile_screen.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
+import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';

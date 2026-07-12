@@ -1,42 +1,50 @@
+// lib/presentation/providers/resource_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/resource_repository.dart';
 import 'package:jumpup_app/domain/model/admin/resource_model.dart';
-import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
-final teacherRepositoryProvider =
-    Provider<TeacherRepository>((ref) => TeacherRepository());
+final resourceNotifierProvider = StateNotifierProvider<ResourceNotifier, AsyncValue<TeacherResource?>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).resources;
+  return ResourceNotifier(repository);
+});
 
-class ResourceUploadNotifier
-    extends StateNotifier<AsyncValue<TeacherResource?>> {
-  ResourceUploadNotifier(this._repository) : super(const AsyncValue.data(null));
+final resourceUploadProvider = resourceNotifierProvider;
 
-  final TeacherRepository _repository;
+class ResourceNotifier extends StateNotifier<AsyncValue<TeacherResource?>> {
+  final ResourceRepository _repository;
+
+  ResourceNotifier(this._repository) : super(const AsyncValue.data(null));
+
+  Future<void> uploadResource(Map<String, dynamic> resourceData) async {
+    state = const AsyncValue.loading();
+    try {
+      final resource = await _repository.createResource(resourceData);
+      state = AsyncValue.data(resource);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
 
   Future<void> create({
     required String title,
     required int courseId,
     required String fileUrl,
   }) async {
-    state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _repository.createResource({
-          'title': title,
-          'course': courseId,
-          'file_url': fileUrl,
-          'resource_type': 'pdf',
-          'is_public': true,
-        }));
+    await uploadResource({
+      'title': title,
+      'course_id': courseId,
+      'file_url': fileUrl,
+    });
+  }
+
+  void reset() {
+    state = const AsyncValue.data(null);
   }
 }
 
-final resourceUploadProvider =
-    StateNotifierProvider<ResourceUploadNotifier, AsyncValue<TeacherResource?>>(
-        (ref) {
-  return ResourceUploadNotifier(ref.read(teacherRepositoryProvider));
-});
-
-final resourceLoadingProvider =
-    Provider<bool>((ref) => ref.watch(resourceUploadProvider).isLoading);
-
 final resourcesListProvider = FutureProvider<List<TeacherResource>>((ref) async {
-  final repo = ref.read(teacherRepositoryProvider);
-  return repo.fetchResources();
+  final repository = ref.watch(teacherRepositoryProvider).resources;
+  return repository.fetchResources();
 });
+

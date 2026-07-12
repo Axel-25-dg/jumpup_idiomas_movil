@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/exercise_provider.dart';
+import 'package:jumpup_app/presentation/providers/exercise_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -26,11 +26,11 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   ExerciseModel? _editingExercise;
 
   final List<Map<String, dynamic>> _exerciseTypes = [
-    {'value': 'multiple_choice', 'label': 'Opción Múltiple', 'icon': Icons.list_alt_rounded},
-    {'value': 'translate', 'label': 'Traducción', 'icon': Icons.translate_rounded},
-    {'value': 'listen', 'label': 'Audición', 'icon': Icons.headphones_rounded},
-    {'value': 'fill_blank', 'label': 'Completar', 'icon': Icons.text_fields_rounded},
-    {'value': 'match', 'label': 'Emparejar', 'icon': Icons.compare_arrows_rounded},
+    {'value': 'multiple_choice', 'label': 'Multiple Choice', 'icon': Icons.list_alt_rounded},
+    {'value': 'translate', 'label': 'Translation', 'icon': Icons.translate_rounded},
+    {'value': 'listen', 'label': 'Listening', 'icon': Icons.headphones_rounded},
+    {'value': 'fill_blank', 'label': 'Fill the Blank', 'icon': Icons.text_fields_rounded},
+    {'value': 'match', 'label': 'Matching', 'icon': Icons.compare_arrows_rounded},
   ];
 
   @override
@@ -175,7 +175,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                                 } else {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Ingresa un ID de lección válido'),
+                                      content: Text('Please enter a valid Lesson ID'),
                                       backgroundColor: AppColors.error,
                                     ),
                                   );
@@ -621,11 +621,11 @@ class _ExercisesListSliver extends ConsumerWidget {
               const Icon(Icons.error_outline,
                   size: 48, color: AppColors.error),
               const SizedBox(height: 16),
-              const Text('Error al cargar ejercicios',
+              const Text('Error loading exercises',
                   style: TextStyle(color: Colors.white, fontSize: 18)),
               const SizedBox(height: 16),
               PrimaryButton(
-                label: 'Reintentar',
+                label: 'Retry',
                 onPressed: () => notifier.refresh(lessonId),
                 icon: Icons.refresh_rounded,
               ),

@@ -8,6 +8,8 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/core/services/biometric_service.dart';
 
+import 'package:jumpup_app/widgets/glass_container.dart';
+
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
@@ -15,17 +17,23 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderStateMixin {
   final _emailCtrl = TextEditingController();
   final _passCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _obscurePass = true;
   bool _biometricAvailable = false;
 
+  late AnimationController _blobController;
+
   @override
   void initState() {
     super.initState();
     _checkBiometric();
+    _blobController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
   }
 
   Future<void> _checkBiometric() async {
@@ -39,6 +47,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
   void dispose() {
     _emailCtrl.dispose();
     _passCtrl.dispose();
+    _blobController.dispose();
     super.dispose();
   }
 
@@ -96,16 +105,31 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         backgroundColor: Theme.of(context).scaffoldBackgroundColor,
         body: Stack(
           children: [
-            // Decorative Blobs
-            Positioned(
-              top: -100,
-              right: -50,
-              child: _BlurBlob(color: Colors.purple.withValues(alpha: isDark ? 0.15 : 0.08), size: 300),
-            ),
-            Positioned(
-              bottom: -50,
-              left: -50,
-              child: _BlurBlob(color: Colors.blue.withValues(alpha: isDark ? 0.1 : 0.05), size: 250),
+            // Decorative Animated Blobs
+            AnimatedBuilder(
+              animation: _blobController,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      top: -100 + (20 * _blobController.value),
+                      right: -50 + (30 * _blobController.value),
+                      child: _BlurBlob(
+                        color: const Color(0xFF6A11CB).withValues(alpha: isDark ? 0.25 : 0.15),
+                        size: 320,
+                      ),
+                    ),
+                    Positioned(
+                      bottom: -50 - (20 * _blobController.value),
+                      left: -50 - (30 * _blobController.value),
+                      child: _BlurBlob(
+                        color: const Color(0xFF2575FC).withValues(alpha: isDark ? 0.2 : 0.1),
+                        size: 300,
+                      ),
+                    ),
+                  ],
+                );
+              },
             ),
 
             SafeArea(
@@ -157,117 +181,111 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                         const SizedBox(height: 40),
 
                         // ── Glass Card ───────────────────────────────────
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(24),
-                          child: BackdropFilter(
-                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-                            child: Container(
-                              padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(
-                                color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
-                                borderRadius: BorderRadius.circular(24),
-                                border: Border.all(
-                                  color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
-                                  width: 1,
+                        GlassContainer(
+                          blur: 24,
+                          opacity: isDark ? 0.06 : 0.1,
+                          borderRadius: BorderRadius.circular(32),
+                          padding: const EdgeInsets.all(28),
+                          child: Column(
+                            children: [
+                              _CustomTextField(
+                                controller: _emailCtrl,
+                                hint: l10n.email,
+                                icon: Icons.email_outlined,
+                                keyboardType: TextInputType.emailAddress,
+                                validator: (v) {
+                                  if (v == null || v.trim().isEmpty) {
+                                    return 'Enter your email';
+                                  }
+                                  if (!v.contains('@')) return 'Invalid email';
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 20),
+                              _CustomTextField(
+                                controller: _passCtrl,
+                                hint: l10n.password,
+                                icon: Icons.lock_outline,
+                                obscureText: _obscurePass,
+                                onToggleObscure: () =>
+                                    setState(() => _obscurePass = !_obscurePass),
+                                validator: (v) {
+                                  if (v == null || v.isEmpty) {
+                                    return 'Enter your password';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 12),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: TextButton(
+                                  onPressed: () =>
+                                      context.push(AppRoutes.forgotPassword),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: const Color(0xFF2575FC),
+                                    padding: EdgeInsets.zero,
+                                    minimumSize: const Size(0, 30),
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  child: Text(
+                                    l10n.forgotPassword,
+                                    style: AppTextStyles.labelMedium.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
                                 ),
                               ),
-                              child: Column(
-                                children: [
-                                  _CustomTextField(
-                                    controller: _emailCtrl,
-                                    hint: l10n.email,
-                                    icon: Icons.email_outlined,
-                                    keyboardType: TextInputType.emailAddress,
-                                    validator: (v) {
-                                      if (v == null || v.trim().isEmpty) {
-                                        return 'Ingresa tu correo';
-                                      }
-                                      if (!v.contains('@')) return 'Correo inválido';
-                                      return null;
-                                    },
+                              const SizedBox(height: 28),
+
+                              // ── Main Button ──────────────────────────────
+                              Container(
+                                width: double.infinity,
+                                height: 58,
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(20),
+                                  gradient: const LinearGradient(
+                                    colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight,
                                   ),
-                                  const SizedBox(height: 16),
-                                  _CustomTextField(
-                                    controller: _passCtrl,
-                                    hint: l10n.password,
-                                    icon: Icons.lock_outline,
-                                    obscureText: _obscurePass,
-                                    onToggleObscure: () => setState(() => _obscurePass = !_obscurePass),
-                                    validator: (v) {
-                                      if (v == null || v.isEmpty) {
-                                        return 'Ingresa tu contraseña';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Align(
-                                    alignment: Alignment.centerRight,
-                                    child: TextButton(
-                                      onPressed: () => context.push(AppRoutes.forgotPassword),
-                                      style: TextButton.styleFrom(
-                                        foregroundColor: Colors.blueAccent,
-                                        padding: EdgeInsets.zero,
-                                        minimumSize: const Size(0, 30),
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                      ),
-                                      child: Text(
-                                        l10n.forgotPassword,
-                                        style: AppTextStyles.labelMedium.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: const Color(0xFF2575FC)
+                                          .withValues(alpha: 0.4),
+                                      blurRadius: 16,
+                                      offset: const Offset(0, 8),
+                                    ),
+                                  ],
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: isLoading ? null : _login,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(20),
                                     ),
                                   ),
-                                  const SizedBox(height: 24),
-                                  
-                                  // ── Main Button ──────────────────────────────
-                                  SizedBox(
-                                    width: double.infinity,
-                                    height: 54,
-                                    child: Container(
-                                      decoration: BoxDecoration(
-                                        borderRadius: BorderRadius.circular(16),
-                                        gradient: const LinearGradient(
-                                          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-                                        ),
-                                        boxShadow: [
-                                          BoxShadow(
-                                            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
-                                            blurRadius: 12,
-                                            offset: const Offset(0, 4),
-                                          ),
-                                        ],
-                                      ),
-                                      child: ElevatedButton(
-                                        onPressed: isLoading ? null : _login,
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.transparent,
-                                          shadowColor: Colors.transparent,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(16),
+                                  child: isLoading
+                                      ? const SizedBox(
+                                          width: 24,
+                                          height: 24,
+                                          child: CircularProgressIndicator(
+                                              color: Colors.white, strokeWidth: 2.5),
+                                        )
+                                      : Text(
+                                          l10n.loginButton.toUpperCase(),
+                                          style: AppTextStyles.buttonText.copyWith(
+                                            color: Colors.white,
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.w900,
+                                            letterSpacing: 1.2,
                                           ),
                                         ),
-                                        child: isLoading
-                                            ? const SizedBox(
-                                                width: 24,
-                                                height: 24,
-                                                child: CircularProgressIndicator(
-                                                    color: Colors.white, strokeWidth: 2),
-                                              )
-                                            : Text(
-                                                l10n.loginButton,
-                                                style: AppTextStyles.buttonText.copyWith(
-                                                  color: Colors.white,
-                                                  fontSize: 16,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
+                            ],
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -280,7 +298,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  'o usa biometría',
+                                  'or use biometrics',
                                   style: AppTextStyles.bodySmall.copyWith(
                                     color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
                                   ),
@@ -289,11 +307,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                               const Expanded(child: Divider(color: Colors.white10)),
                             ],
                           ),
-                          const SizedBox(height: 20),
-                          IconButton(
-                            onPressed: isLoading ? null : _loginWithBiometric,
-                            icon: const Icon(Icons.fingerprint_rounded, size: 48, color: Colors.blueAccent),
-                            padding: EdgeInsets.zero,
+                          const SizedBox(height: 24),
+                          Center(
+                            child: _BiometricButton(
+                              onTap: isLoading ? null : _loginWithBiometric,
+                              isLoading: isLoading,
+                            ),
                           ),
                         ],
                         
@@ -354,6 +373,99 @@ class _BlurBlob extends StatelessWidget {
             spreadRadius: 40,
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _BiometricButton extends StatefulWidget {
+  final VoidCallback? onTap;
+  final bool isLoading;
+
+  const _BiometricButton({this.onTap, this.isLoading = false});
+
+  @override
+  State<_BiometricButton> createState() => _BiometricButtonState();
+}
+
+class _BiometricButtonState extends State<_BiometricButton> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: widget.onTap,
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          return Container(
+            width: 80,
+            height: 80,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF2575FC).withValues(alpha: 0.2 + (0.1 * _pulseController.value)),
+                  const Color(0xFF6A11CB).withValues(alpha: 0.05 + (0.05 * _pulseController.value)),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              border: Border.all(
+                color: const Color(0xFF2575FC).withValues(alpha: 0.3 + (0.2 * _pulseController.value)),
+                width: 1.5,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2575FC).withValues(alpha: 0.15 + (0.15 * _pulseController.value)),
+                  blurRadius: 15 + (10 * _pulseController.value),
+                  spreadRadius: 1 + (2 * _pulseController.value),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(40),
+              child: BackdropFilter(
+                filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                child: Center(
+                  child: widget.isLoading
+                      ? const SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white70),
+                        )
+                      : ShaderMask(
+                          shaderCallback: (bounds) => const LinearGradient(
+                            colors: [Colors.white, Colors.blueAccent],
+                            begin: Alignment.topCenter,
+                            end: Alignment.bottomCenter,
+                          ).createShader(bounds),
+                          child: const Icon(
+                            Icons.fingerprint_rounded,
+                            size: 42,
+                            color: Colors.white,
+                          ),
+                        ),
+                ),
+              ),
+            ),
+          );
+        },
       ),
     );
   }

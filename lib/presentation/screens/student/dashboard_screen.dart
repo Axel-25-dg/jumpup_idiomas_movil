@@ -44,14 +44,13 @@ class _DashTokens {
   /// Superficie tipo "liquid glass": muy translúcida con leve tinte de marca.
   static Color glassFill(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.06 : 0.55);
+    return Colors.white.withValues(alpha: isDark ? 0.06 : 0.12);
   }
 
   static Color glassStroke(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return (isDark ? Colors.white : Colors.white)
-        .withValues(alpha: isDark ? 0.14 : 0.65);
+    return (isDark ? Colors.white : Colors.black)
+        .withValues(alpha: isDark ? 0.14 : 0.08);
   }
 }
 
@@ -274,9 +273,9 @@ class _NavButton extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.labelLarge.copyWith(
                             color: Colors.white,
-                            fontWeight: FontWeight.w800,
+                            fontWeight: FontWeight.w900,
                             fontSize: 10,
-                            letterSpacing: 0.1,
+                            letterSpacing: 0.2,
                           ),
                         ),
                       )
@@ -290,29 +289,63 @@ class _NavButton extends StatelessWidget {
   }
 }
 
-class _HomeTab extends ConsumerWidget {
+class _HomeTab extends ConsumerStatefulWidget {
   const _HomeTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_HomeTab> createState() => _HomeTabState();
+}
+
+class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixin {
+  late AnimationController _blobController;
+
+  @override
+  void initState() {
+    super.initState();
+    _blobController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 12),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _blobController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final userAsync = ref.watch(userProfileProvider);
     final summaryAsync = ref.watch(dashboardSummaryProvider);
     final statsAsync = ref.watch(userStatsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Stack(
       children: [
-        // Malla de color de fondo (blobs suaves).
-        const _BackgroundBlob(
-          top: -60,
-          left: -50,
-          size: 260,
-          color: _DashTokens.secondary,
-        ),
-        const _BackgroundBlob(
-          bottom: 120,
-          right: -60,
-          size: 220,
-          color: _DashTokens.primary,
+        // Malla de color de fondo (blobs suaves animados).
+        AnimatedBuilder(
+          animation: _blobController,
+          builder: (context, child) {
+            return Stack(
+              children: [
+                _BackgroundBlob(
+                  top: -60 + (30 * _blobController.value),
+                  left: -50 + (20 * _blobController.value),
+                  size: 300,
+                  color: _DashTokens.secondary,
+                  opacity: isDark ? 0.15 : 0.08,
+                ),
+                _BackgroundBlob(
+                  bottom: 120 - (40 * _blobController.value),
+                  right: -60 + (30 * _blobController.value),
+                  size: 280,
+                  color: _DashTokens.primary,
+                  opacity: isDark ? 0.12 : 0.06,
+                ),
+              ],
+            );
+          },
         ),
         RefreshIndicator(
           color: _DashTokens.primary,
@@ -329,15 +362,15 @@ class _HomeTab extends ConsumerWidget {
             slivers: [
               _SliverHeader(userAsync: userAsync, statsAsync: statsAsync),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
                     _SectionTitle(AppLocalizations.of(context)!.quickActions),
                     const SizedBox(height: 12),
                     const _QuickActionsGrid(),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 24),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -348,22 +381,27 @@ class _HomeTab extends ConsumerWidget {
                         TextButton(
                           onPressed: () =>
                               context.push(AppRoutes.studentClassrooms),
+                          style: TextButton.styleFrom(
+                            minimumSize: Size.zero,
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          ),
                           child: Text(
                             AppLocalizations.of(context)!.viewVirtualClasses,
                             style: const TextStyle(
                               color: _DashTokens.primary,
                               fontSize: 13,
-                              fontWeight: FontWeight.w700,
+                              fontWeight: FontWeight.w800,
                             ),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     _RecentCourseCard(summaryAsync: summaryAsync),
                     const SizedBox(height: 16),
                     const _TutorIABanner(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     _SubscriptionBanner(),
                   ]),
                 ),
@@ -387,14 +425,17 @@ class _SubscriptionBanner extends ConsumerWidget {
 
     return GlassContainer(
       borderRadius: BorderRadius.circular(24),
+      blur: 24,
+      opacity: isDark ? 0.06 : 0.08,
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: Colors.amberAccent.withValues(alpha: 0.12),
+              color: Colors.amberAccent.withValues(alpha: 0.15),
               shape: BoxShape.circle,
+              border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
             ),
             child: const Icon(Icons.star_rounded,
                 color: Colors.amberAccent, size: 24),
@@ -460,7 +501,7 @@ class _SectionTitle extends StatelessWidget {
         color: isDark ? Colors.white : Colors.black87,
         fontSize: 18,
         fontWeight: FontWeight.w900,
-        letterSpacing: -0.3,
+        letterSpacing: -0.5,
       ),
       maxLines: 1,
       overflow: TextOverflow.ellipsis,
@@ -476,6 +517,7 @@ class _BackgroundBlob extends StatelessWidget {
     this.bottom,
     this.left,
     this.right,
+    this.opacity = 0.18,
   });
 
   final double size;
@@ -484,6 +526,7 @@ class _BackgroundBlob extends StatelessWidget {
   final double? bottom;
   final double? left;
   final double? right;
+  final double opacity;
 
   @override
   Widget build(BuildContext context) {
@@ -498,9 +541,13 @@ class _BackgroundBlob extends StatelessWidget {
           height: size,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: color.withValues(alpha: 0.18),
+            color: color.withValues(alpha: opacity),
             boxShadow: [
-              BoxShadow(color: color.withValues(alpha: 0.22), blurRadius: 110),
+              BoxShadow(
+                color: color.withValues(alpha: opacity + 0.04),
+                blurRadius: 110,
+                spreadRadius: 20,
+              ),
             ],
           ),
         ),
@@ -526,7 +573,7 @@ class _SliverHeader extends StatelessWidget {
       elevation: 0,
       flexibleSpace: ClipRect(
         child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+          filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
           child: FlexibleSpaceBar(
             background: SafeArea(
               child: Padding(
@@ -567,7 +614,8 @@ class _SliverHeader extends StatelessWidget {
                               style: AppTextStyles.titleMedium.copyWith(
                                 color: isDark ? Colors.white : Colors.black87,
                                 fontWeight: FontWeight.w900,
-                                fontSize: 16,
+                                fontSize: 18,
+                                letterSpacing: -0.5,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
@@ -626,7 +674,9 @@ class _XPAndStreakBanner extends StatelessWidget {
     return statsAsync.when(
       data: (stats) => GlassContainer(
         borderRadius: BorderRadius.circular(24),
-        padding: const EdgeInsets.all(20),
+        blur: 24,
+        opacity: isDark ? 0.06 : 0.08,
+        padding: const EdgeInsets.all(22),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -641,10 +691,19 @@ class _XPAndStreakBanner extends StatelessWidget {
                   ),
                 ),
                 Container(
-                  width: 1,
-                  height: 40,
-                  color: (isDark ? Colors.white : Colors.black)
-                      .withValues(alpha: 0.1),
+                  width: 1.5,
+                  height: 44,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.transparent,
+                        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
+                        Colors.transparent,
+                      ],
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                    ),
+                  ),
                 ),
                 Expanded(
                   child: _StatBadgeItem(
@@ -656,7 +715,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -666,6 +725,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                     style: TextStyle(
                       color: isDark ? Colors.white70 : Colors.black54,
                       fontSize: 12,
+                      fontWeight: FontWeight.w600,
                     ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -677,29 +737,52 @@ class _XPAndStreakBanner extends StatelessWidget {
                   style: TextStyle(
                     color: isDark ? Colors.white : Colors.black87,
                     fontSize: 12,
-                    fontWeight: FontWeight.bold,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: LinearProgressIndicator(
-                value: stats.levelProgress,
-                backgroundColor: (isDark ? Colors.white : Colors.black)
-                    .withValues(alpha: 0.1),
-                valueColor: const AlwaysStoppedAnimation<Color>(
-                    Colors.purpleAccent),
-                minHeight: 10,
+            const SizedBox(height: 10),
+            Container(
+              height: 10,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Stack(
+                children: [
+                  FractionallySizedBox(
+                    alignment: Alignment.centerLeft,
+                    widthFactor: stats.levelProgress,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                        ),
+                        borderRadius: BorderRadius.circular(10),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+                            blurRadius: 4,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
-      loading: () => const GlassContainer(
+      loading: () => GlassContainer(
         height: 120,
-        child: Center(child: CircularProgressIndicator()),
+        blur: 24,
+        opacity: isDark ? 0.06 : 0.08,
+        borderRadius: BorderRadius.circular(24),
+        child: const Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const SizedBox.shrink(),
     );
@@ -786,6 +869,12 @@ class _QuickActionsGrid extends StatelessWidget {
         '/student/catalog',
       ),
       _QuickAction(
+        Icons.library_books_rounded,
+        'Biblioteca',
+        Colors.purpleAccent,
+        AppRoutes.studentResources,
+      ),
+      _QuickAction(
         Icons.videogame_asset_rounded,
         l10n.games,
         Colors.orangeAccent,
@@ -842,8 +931,9 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(route),
       child: GlassContainer(
-        borderRadius: BorderRadius.circular(20),
-        opacity: 0.08,
+        borderRadius: BorderRadius.circular(22),
+        blur: 24,
+        opacity: isDark ? 0.06 : 0.08,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         child: Row(
           children: [
@@ -852,14 +942,14 @@ class _QuickActionCard extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    color.withValues(alpha: 0.28),
-                    color.withValues(alpha: 0.08),
+                    color.withValues(alpha: 0.35),
+                    color.withValues(alpha: 0.1),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.3)),
+                border: Border.all(color: color.withValues(alpha: 0.3), width: 1.2),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
@@ -917,6 +1007,8 @@ class _RecentCourseCard extends ConsumerWidget {
           ),
           child: GlassContainer(
             borderRadius: BorderRadius.circular(24),
+            blur: 24,
+            opacity: isDark ? 0.06 : 0.08,
             padding: EdgeInsets.zero,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -945,7 +1037,7 @@ class _RecentCourseCard extends ConsumerWidget {
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withValues(alpha: 0.35),
+                              Colors.black.withValues(alpha: 0.45),
                             ],
                           ),
                         ),
@@ -1070,9 +1162,10 @@ class _TutorIABanner extends StatelessWidget {
         decoration: BoxDecoration(
           gradient: _DashTokens.brandGradient,
           borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
           boxShadow: [
             BoxShadow(
-              color: _DashTokens.brandGlow.withValues(alpha: 0.4),
+              color: _DashTokens.brandGlow.withValues(alpha: 0.35),
               blurRadius: 20,
               offset: const Offset(0, 10),
             ),
@@ -1091,13 +1184,14 @@ class _TutorIABanner extends StatelessWidget {
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
                       fontSize: 20,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 8),
                   Text(
                     l10n.aiTutorSubtitle,
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: Colors.white.withValues(alpha: 0.9),
+                      color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 13,
                     ),
                     maxLines: 2,
@@ -1124,7 +1218,7 @@ class _TutorIABanner extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(Icons.auto_awesome, size: 56, color: Colors.white38),
+            const Icon(Icons.auto_awesome, size: 56, color: Colors.white24),
           ],
         ),
       ),

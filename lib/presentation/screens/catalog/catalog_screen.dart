@@ -253,7 +253,7 @@ class _CourseCard extends StatelessWidget {
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                           minimumSize: const Size(0, 32),
                         ),
-                        child: const Text('Obtener acceso', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                        child: const Text('Comprar Ahora', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                       ),
                     ),
                   ],

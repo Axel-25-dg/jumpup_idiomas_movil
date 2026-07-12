@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/report_provider.dart';
+import 'package:jumpup_app/presentation/providers/report_provider.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';

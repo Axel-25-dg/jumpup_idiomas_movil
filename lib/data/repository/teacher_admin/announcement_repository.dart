@@ -13,17 +13,23 @@ class AnnouncementRepository extends BaseRepository {
   }
 
   // ➕ Crear anuncio
-  Future<void> createAnnouncement(Map<String, dynamic> data) {
-    return executeRequest(
-      () async => await dio.post('announcements/', data: data),
+  Future<Announcement> createAnnouncement(Map<String, dynamic> data) {
+    return handleRequest<Announcement>(
+      () async {
+        final response = await dio.post<Map<String, dynamic>>('announcements/', data: data);
+        return Announcement.fromJson(response.data!);
+      },
       message: 'Error al crear anuncio',
     );
   }
 
   // ✏️ Editar anuncio
-  Future<void> updateAnnouncement(int id, Map<String, dynamic> data) {
-    return executeRequest(
-      () async => await dio.patch('announcements/$id/', data: data),
+  Future<Announcement> updateAnnouncement(int id, Map<String, dynamic> data) {
+    return handleRequest<Announcement>(
+      () async {
+        final response = await dio.patch<Map<String, dynamic>>('announcements/$id/', data: data);
+        return Announcement.fromJson(response.data!);
+      },
       message: 'Error al actualizar anuncio',
     );
   }

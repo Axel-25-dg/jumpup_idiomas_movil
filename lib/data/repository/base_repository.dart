@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart'; // Añadir foundation
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
 
@@ -61,13 +62,22 @@ abstract class BaseRepository {
   // Correccion - Metodo para operaciones que no retornan datos (POST, PUT, PATCH, DELETE)
   
   Future<void> executeRequest(
-    Future<void> Function() request, {
+    Future<Response> Function() request, {
     String? message,
   }) async {
     try {
-      await request();
+      final response = await request();
+      // Debug log for checking status codes
+      debugPrint('API Request Success: ${response.statusCode} | Data: ${response.data}');
     } catch (error) {
       if (error is ApiException) rethrow;
+      
+      if (error is DioException) {
+        final statusCode = error.response?.statusCode;
+        debugPrint('API Request Failed: $statusCode | Error: ${error.message}');
+        throw ApiException(message ?? 'Ocurrió un error inesperado', statusCode, error);
+      }
+
       throw ApiException(message ?? 'Ocurrió un error inesperado', null, error);
     }
   }

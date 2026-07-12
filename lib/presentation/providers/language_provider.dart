@@ -2,7 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/language_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 final languageNotifierProvider = StateNotifierProvider<LanguageNotifier, AsyncValue<List<Language>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).languages;
@@ -74,3 +74,5 @@ final languageProvider = FutureProvider<List<Language>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).languages;
   return repository.fetchLanguages();
 });
+
+final adminLanguagesProvider = languageProvider;

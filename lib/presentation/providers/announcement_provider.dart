@@ -2,7 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/announcement_repository.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 final announcementNotifierProvider = StateNotifierProvider<AnnouncementNotifier, AsyncValue<List<Announcement>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).announcements;
@@ -46,6 +46,7 @@ class AnnouncementNotifier extends StateNotifier<AsyncValue<List<Announcement>>>
       await fetchAnnouncements();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow; // Lanzar para que la UI lo capture
     }
   }
 
@@ -70,6 +71,7 @@ class AnnouncementNotifier extends StateNotifier<AsyncValue<List<Announcement>>>
       await fetchAnnouncements();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow; // Lanzar para que la UI lo capture
     }
   }
 
@@ -81,6 +83,7 @@ class AnnouncementNotifier extends StateNotifier<AsyncValue<List<Announcement>>>
       state = AsyncValue.data(currentList.where((a) => a.id != id).toList());
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
+      rethrow;
     }
   }
 
