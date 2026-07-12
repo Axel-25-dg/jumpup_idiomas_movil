@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/lesson_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/module_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -17,25 +18,35 @@ class LessonsScreen extends ConsumerStatefulWidget {
 
 class _LessonsScreenState extends ConsumerState<LessonsScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _moduleIdController = TextEditingController();
+  final _searchController = TextEditingController();
   final _titleController = TextEditingController();
   final _orderController = TextEditingController();
   final _xpRewardController = TextEditingController();
+  String _searchQuery = '';
   String _selectedContentType = 'text';
-  int? _currentModuleId;
   LessonModel? _editingLesson;
+  int? _selectedModuleId;
 
   final List<Map<String, String>> _contentTypes = [
-    {'value': 'text', 'label': 'Texto'},
-    {'value': 'video', 'label': 'Video'},
-    {'value': 'audio', 'label': 'Audio'},
-    {'value': 'quiz', 'label': 'Quiz'},
-    {'value': 'interactive', 'label': 'Interactivo'},
-  ];
+  {'value': 'text', 'label': 'Texto'},
+  {'value': 'video', 'label': 'Video'},
+  {'value': 'audio', 'label': 'Audio'},
+  {'value': 'interactive', 'label': 'Interactivo'},
+];
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
 
   @override
   void dispose() {
-    _moduleIdController.dispose();
+    _searchController.dispose();
     _titleController.dispose();
     _orderController.dispose();
     _xpRewardController.dispose();
@@ -44,11 +55,9 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lessonsAsync = _currentModuleId != null
-        ? ref.watch(lessonsByModuleProvider(_currentModuleId!))
-        : const AsyncValue<List<LessonModel>>.loading();
-
+    final lessonsAsync = ref.watch(lessonNotifierProvider);
     final notifier = ref.read(lessonNotifierProvider.notifier);
+    final modulesAsync = ref.watch(moduleNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -60,126 +69,89 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: _currentModuleId != null
-                ? () => _showAddEditDialog(context)
-                : null,
+            onPressed: () => _showAddEditDialog(context, modulesAsync),
             tooltip: 'Crear lección',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _currentModuleId != null
-                ? () => notifier.refresh(_currentModuleId!)
-                : null,
+            onPressed: () => notifier.refresh(),
             tooltip: 'Refrescar',
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Campo de búsqueda por ID de Módulo
-              BrandedTextField(
-                controller: _moduleIdController,
-                label: 'ID de Módulo',
-                hint: 'Ej: 1, 2, 3...',
-                prefixIcon: Icons.view_module_rounded,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              PrimaryButton(
-                label: 'Buscar',
-                onPressed: () {
-                  final id = int.tryParse(_moduleIdController.text);
-                  if (id != null && id > 0) {
-                    setState(() => _currentModuleId = id);
-                    notifier.refresh(id);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Ingresa un ID de módulo válido'),
-                        backgroundColor: AppColors.error,
-                      ),
+      body: Column(
+        children: [
+          // Campo de búsqueda
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: BrandedTextField(
+              controller: _searchController,
+              label: 'Buscar lección',
+              hint: 'ID de módulo o nombre de la lección...',
+              prefixIcon: Icons.search_rounded,
+            ),
+          ),
+
+          // Lista de lecciones
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => notifier.refresh(),
+              child: lessonsAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => _buildErrorView(error, notifier),
+                data: (lessons) {
+                  // ✅ Filtrar por ID de módulo o nombre
+                  final filtered = lessons.where((lesson) {
+                    if (_searchQuery.isEmpty) return true;
+                    return lesson.module.toString().contains(_searchQuery) ||
+                        lesson.title.toLowerCase().contains(_searchQuery) ||
+                        lesson.moduleTitle.toLowerCase().contains(_searchQuery);
+                  }).toList();
+
+                  if (filtered.isEmpty) {
+                    return EmptyState(
+                      title: _searchQuery.isEmpty
+                          ? 'No hay lecciones creadas'
+                          : 'No se encontraron lecciones',
+                      subtitle: _searchQuery.isEmpty
+                          ? 'Crea tu primera lección para comenzar'
+                          : 'Intenta con otro término de búsqueda',
+                      icon: Icons.menu_book_rounded,
+                      buttonText: _searchQuery.isEmpty ? 'Crear lección' : 'Limpiar búsqueda',
+                      onButtonPressed: _searchQuery.isEmpty
+                          ? () => _showAddEditDialog(context, modulesAsync)
+                          : () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            },
                     );
                   }
-                },
-                icon: Icons.search_rounded,
-              ),
-              const SizedBox(height: 16),
 
-              // Lista de lecciones
-              Expanded(
-                child: _currentModuleId == null
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_rounded, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              'Busca un módulo para ver sus lecciones',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Ingresa el ID del módulo y presiona Buscar',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final lesson = filtered[index];
+                      return _LessonCard(
+                        lesson: lesson,
+                        onEdit: () => _showAddEditDialog(
+                          context,
+                          modulesAsync,
+                          lesson: lesson,
                         ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () => notifier.refresh(_currentModuleId!),
-                        child: lessonsAsync.when(
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (error, stack) => _buildErrorView(error, notifier),
-                          data: (lessons) {
-                            if (lessons.isEmpty) {
-                              return Center(
-                                child: EmptyState(
-                                  title: 'No hay lecciones',
-                                  subtitle: 'Crea la primera lección para este módulo',
-                                  icon: Icons.menu_book_rounded,
-                                  buttonText: 'Crear lección',
-                                  onButtonPressed: () => _showAddEditDialog(context),
-                                ),
-                              );
-                            }
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: lessons.length,
-                              itemBuilder: (context, index) {
-                                final lesson = lessons[index];
-                                return _LessonCard(
-                                  lesson: lesson,
-                                  onEdit: () => _showAddEditDialog(
-                                    context,
-                                    lesson: lesson,
-                                  ),
-                                  onDelete: () => _confirmDelete(
-                                    context,
-                                    lesson.id,
-                                    _currentModuleId!,
-                                    notifier,
-                                  ),
-                                );
-                              },
-                            );
-                          },
+                        onDelete: () => _confirmDelete(
+                          context,
+                          lesson.id,
+                          notifier,
                         ),
-                      ),
+                      );
+                    },
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -201,7 +173,7 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
-            onPressed: () => notifier.refresh(_currentModuleId!),
+            onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -209,7 +181,11 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {LessonModel? lesson}) {
+  void _showAddEditDialog(
+    BuildContext context,
+    AsyncValue<List<ModuleModel>> modulesAsync, {
+    LessonModel? lesson,
+  }) {
     _editingLesson = lesson;
     final isEditing = lesson != null;
 
@@ -218,136 +194,163 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
       _orderController.text = lesson.order.toString();
       _xpRewardController.text = lesson.xpReward.toString();
       _selectedContentType = lesson.contentType;
+      _selectedModuleId = lesson.module;
     } else {
       _titleController.clear();
       _orderController.clear();
       _xpRewardController.clear();
       _selectedContentType = 'text';
+      _selectedModuleId = null;
     }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Editar lección' : 'Crear lección'),
-        content: SizedBox(
-          width: 400,
-          child: Form(
-            key: _formKey,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BrandedTextField(
-                    controller: _titleController,
-                    label: 'Título de la lección',
-                    prefixIcon: Icons.title_rounded,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El título es obligatorio';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  DropdownButtonFormField<String>(
-                    value: _selectedContentType,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de contenido',
-                      prefixIcon: Icon(Icons.content_paste_rounded),
-                      border: OutlineInputBorder(),
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(isEditing ? 'Editar lección' : 'Crear lección'),
+              content: SizedBox(
+                width: 400,
+                child: Form(
+                  key: _formKey,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // ✅ Selector de módulo
+                        modulesAsync.when(
+                          loading: () => const CircularProgressIndicator(),
+                          error: (_, __) => const Text('Error al cargar módulos'),
+                          data: (modules) => DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              labelText: 'Módulo',
+                              prefixIcon: Icon(Icons.view_module_rounded),
+                              border: OutlineInputBorder(),
+                            ),
+                            hint: const Text('Selecciona un módulo'),
+                            value: _selectedModuleId,
+                            items: modules.map((module) {
+                              return DropdownMenuItem(
+                                value: module.id,
+                                child: Text('${module.title} (ID: ${module.id})'),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              _selectedModuleId = value;
+                              setDialogState(() {});
+                            },
+                            validator: (value) => value == null ? 'Selecciona un módulo' : null,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        BrandedTextField(
+                          controller: _titleController,
+                          label: 'Título de la lección',
+                          prefixIcon: Icons.title_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El título es obligatorio';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        DropdownButtonFormField<String>(
+                          value: _selectedContentType,
+                          decoration: const InputDecoration(
+                            labelText: 'Tipo de contenido',
+                            prefixIcon: Icon(Icons.content_paste_rounded),
+                            border: OutlineInputBorder(),
+                          ),
+                          items: _contentTypes.map((type) {
+                            return DropdownMenuItem(
+                              value: type['value'],
+                              child: Text(type['label']!),
+                            );
+                          }).toList(),
+                          onChanged: (value) {
+                            _selectedContentType = value!;
+                            setDialogState(() {});
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        BrandedTextField(
+                          controller: _orderController,
+                          label: 'Orden',
+                          hint: 'Ej: 1, 2, 3...',
+                          prefixIcon: Icons.sort_rounded,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El orden es obligatorio';
+                            }
+                            if (int.tryParse(value) == null) {
+                              return 'Ingresa un número válido';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+                        BrandedTextField(
+                          controller: _xpRewardController,
+                          label: 'XP por completar',
+                          hint: 'Ej: 10, 20, 50...',
+                          prefixIcon: Icons.star_rounded,
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'La XP es obligatoria';
+                            }
+                            if (int.tryParse(value) == null) {
+                              return 'Ingresa un número válido';
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
                     ),
-                    items: _contentTypes.map((type) {
-                      return DropdownMenuItem(
-                        value: type['value'],
-                        child: Text(type['label']!),
-                      );
-                    }).toList(),
-                    onChanged: (value) {
-                      if (value != null) {
-                        setState(() => _selectedContentType = value);
-                      }
-                    },
                   ),
-                  const SizedBox(height: 16),
-                  BrandedTextField(
-                    controller: _orderController,
-                    label: 'Orden',
-                    hint: 'Ej: 1, 2, 3...',
-                    prefixIcon: Icons.sort_rounded,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'El orden es obligatorio';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Ingresa un número válido';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  BrandedTextField(
-                    controller: _xpRewardController,
-                    label: 'XP por completar',
-                    hint: 'Ej: 10, 20, 50...',
-                    prefixIcon: Icons.star_rounded,
-                    keyboardType: TextInputType.number,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'La XP es obligatoria';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Ingresa un número válido';
-                      }
-                      return null;
-                    },
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: isEditing ? 'Actualizar' : 'Guardar',
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final notifier = ref.read(lessonNotifierProvider.notifier);
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                PrimaryButton(
+                  label: isEditing ? 'Actualizar' : 'Guardar',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() && _selectedModuleId != null) {
+                      final notifier = ref.read(lessonNotifierProvider.notifier);
 
-                final data = {
-                  'module_id': _currentModuleId!,
-                  'title': _titleController.text.trim(),
-                  'content_type': _selectedContentType,
-                  'order': int.parse(_orderController.text.trim()),
-                  'xp_reward': int.parse(_xpRewardController.text.trim()),
-                };
+                      // ✅ El backend espera 'module' (sin _id)
+                      final data = {
+                        'module': _selectedModuleId!,
+                        'title': _titleController.text.trim(),
+                        'content_type': _selectedContentType,
+                        'order': int.parse(_orderController.text.trim()),
+                        'xp_reward': int.parse(_xpRewardController.text.trim()),
+                      };
 
-                if (isEditing) {
-                  // ✅ ACTUALIZAR LECCIÓN
-                  notifier.updateLesson(_editingLesson!.id, data);
-                } else {
-                  // ✅ CREAR LECCIÓN
-                  notifier.addLesson(data);
-                }
-                Navigator.pop(ctx);
-              }
-            },
-          ),
-        ],
-      ),
+                      if (isEditing) {
+                        notifier.updateLesson(_editingLesson!.id, data);
+                      } else {
+                        notifier.addLesson(data);
+                      }
+                      Navigator.pop(ctx);
+                    }
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  void _confirmDelete(
-    BuildContext context,
-    int lessonId,
-    int moduleId,
-    LessonNotifier notifier,
-  ) {
+  void _confirmDelete(BuildContext context, int lessonId, LessonNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -364,7 +367,7 @@ class _LessonsScreenState extends ConsumerState<LessonsScreen> {
           PrimaryButton(
             label: 'Eliminar',
             onPressed: () {
-              notifier.deleteLesson(lessonId, moduleId);
+              notifier.deleteLesson(lessonId, 0);
               Navigator.pop(ctx);
             },
           ),
@@ -482,7 +485,7 @@ class _LessonCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Módulo: ${lesson.moduleTitle}',
+              'Módulo: ${lesson.moduleTitle} (ID: ${lesson.module})',
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.textSecondary,
               ),
