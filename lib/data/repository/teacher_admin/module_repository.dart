@@ -5,6 +5,16 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
 class ModuleRepository extends BaseRepository {
+  // 📥 Obtener TODOS los módulos (sin filtro)
+  Future<List<ModuleModel>> fetchAllModules() {
+    return getList<ModuleModel>(
+      'modules/',
+      (json) => ModuleModel.fromJson(json),
+      message: 'Error al cargar módulos',
+    );
+  }
+
+  // 📥 Obtener módulos por curso
   Future<List<ModuleModel>> getModulesByCourse(int courseId) {
     return getList<ModuleModel>(
       'modules/',
@@ -14,6 +24,7 @@ class ModuleRepository extends BaseRepository {
     );
   }
 
+  // ➕ Crear módulo
   Future<void> createModule(Map<String, dynamic> data) async {
     try {
       await dio.post('modules/', data: data);
@@ -22,6 +33,7 @@ class ModuleRepository extends BaseRepository {
     }
   }
 
+  // ✏️ Actualizar módulo
   Future<void> updateModule(int id, Map<String, dynamic> data) async {
     try {
       await dio.patch('modules/$id/', data: data);
@@ -30,6 +42,7 @@ class ModuleRepository extends BaseRepository {
     }
   }
 
+  // 🗑️ Eliminar módulo
   Future<void> deleteModule(int id) async {
     try {
       await dio.delete('modules/$id/');

@@ -13,7 +13,21 @@ final moduleNotifierProvider = StateNotifierProvider<ModuleNotifier, AsyncValue<
 class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
   final ModuleRepository _repository;
 
-  ModuleNotifier(this._repository) : super(const AsyncValue.loading());
+  ModuleNotifier(this._repository) : super(const AsyncValue.loading()) {
+    // ✅ Cargar TODOS los módulos al iniciar
+    fetchAllModules();
+  }
+
+  // 📥 Obtener TODOS los módulos
+  Future<void> fetchAllModules() async {
+    state = const AsyncValue.loading();
+    try {
+      final modules = await _repository.fetchAllModules();
+      state = AsyncValue.data(modules);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
 
   // 📥 Obtener módulos por curso
   Future<void> getModulesByCourse(int courseId) async {
@@ -30,8 +44,7 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
   Future<void> addModule(Map<String, dynamic> data) async {
     try {
       await _repository.createModule(data);
-      final courseId = data['course_id'] as int;
-      await getModulesByCourse(courseId);
+      await fetchAllModules(); // ✅ Recargar TODOS
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -41,8 +54,7 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
   Future<void> updateModule(int id, Map<String, dynamic> data) async {
     try {
       await _repository.updateModule(id, data);
-      final courseId = data['course_id'] as int;
-      await getModulesByCourse(courseId);
+      await fetchAllModules(); // ✅ Recargar TODOS
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -52,15 +64,15 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
   Future<void> deleteModule(int id, int courseId) async {
     try {
       await _repository.deleteModule(id);
-      await getModulesByCourse(courseId);
+      await fetchAllModules(); // ✅ Recargar TODOS
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
   }
 
-  // 🔄 Refrescar
-  Future<void> refresh(int courseId) async {
-    await getModulesByCourse(courseId);
+  // 🔄 Refrescar (recarga TODOS)
+  Future<void> refresh() async {
+    await fetchAllModules();
   }
 }
 

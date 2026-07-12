@@ -1,7 +1,9 @@
 // lib/presentation/screens/admin/modules_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/course_provider.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/module_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
@@ -17,15 +19,26 @@ class ModulesScreen extends ConsumerStatefulWidget {
 
 class _ModulesScreenState extends ConsumerState<ModulesScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _courseIdController = TextEditingController();
+  final _searchController = TextEditingController();
   final _titleController = TextEditingController();
   final _orderController = TextEditingController();
-  int? _currentCourseId;
+  String _searchQuery = '';
   ModuleModel? _editingModule;
+  int? _selectedCourseId;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
 
   @override
   void dispose() {
-    _courseIdController.dispose();
+    _searchController.dispose();
     _titleController.dispose();
     _orderController.dispose();
     super.dispose();
@@ -33,11 +46,9 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final modulesAsync = _currentCourseId != null
-        ? ref.watch(modulesByCourseProvider(_currentCourseId!))
-        : const AsyncValue<List<ModuleModel>>.loading();
-
+    final modulesAsync = ref.watch(moduleNotifierProvider);
     final notifier = ref.read(moduleNotifierProvider.notifier);
+    final coursesAsync = ref.watch(courseNotifierProvider);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -49,126 +60,97 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded),
-            onPressed: _currentCourseId != null
-                ? () => _showAddEditDialog(context)
-                : null,
+            onPressed: () => _showAddEditDialog(context, coursesAsync),
             tooltip: 'Crear módulo',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
-            onPressed: _currentCourseId != null
-                ? () => notifier.refresh(_currentCourseId!)
-                : null,
+            onPressed: () => notifier.refresh(),
             tooltip: 'Refrescar',
           ),
         ],
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Campo de búsqueda por ID de Curso
-              BrandedTextField(
-                controller: _courseIdController,
-                label: 'ID de Curso',
-                hint: 'Ej: 1, 2, 3...',
-                prefixIcon: Icons.menu_book_rounded,
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              PrimaryButton(
-                label: 'Buscar',
-                onPressed: () {
-                  final id = int.tryParse(_courseIdController.text);
-                  if (id != null && id > 0) {
-                    setState(() => _currentCourseId = id);
-                    notifier.refresh(id);
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Ingresa un ID de curso válido'),
-                        backgroundColor: AppColors.error,
-                      ),
+      body: Column(
+        children: [
+          // Campo de búsqueda
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: BrandedTextField(
+              controller: _searchController,
+              label: 'Buscar módulo',
+              hint: 'ID de curso o nombre del módulo...',
+              prefixIcon: Icons.search_rounded,
+            ),
+          ),
+
+          // Lista de módulos
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () => notifier.refresh(),
+              child: modulesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (error, stack) => _buildErrorView(error, notifier),
+                data: (modules) {
+                  final filtered =
+                      modules.where((module) {
+                        if (_searchQuery.isEmpty) return true;
+                        return module.course.toString().contains(
+                              _searchQuery,
+                            ) ||
+                            module.title.toLowerCase().contains(_searchQuery) ||
+                            module.courseTitle.toLowerCase().contains(
+                              _searchQuery,
+                            );
+                      }).toList();
+
+                  if (filtered.isEmpty) {
+                    return EmptyState(
+                      title:
+                          _searchQuery.isEmpty
+                              ? 'No hay módulos creados'
+                              : 'No se encontraron módulos',
+                      subtitle:
+                          _searchQuery.isEmpty
+                              ? 'Crea tu primer módulo para comenzar'
+                              : 'Intenta con otro término de búsqueda',
+                      icon: Icons.view_module_rounded,
+                      buttonText:
+                          _searchQuery.isEmpty
+                              ? 'Crear módulo'
+                              : 'Limpiar búsqueda',
+                      onButtonPressed:
+                          _searchQuery.isEmpty
+                              ? () => _showAddEditDialog(context, coursesAsync)
+                              : () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
                     );
                   }
-                },
-                icon: Icons.search_rounded,
-              ),
-              const SizedBox(height: 16),
 
-              // Lista de módulos
-              Expanded(
-                child: _currentCourseId == null
-                    ? const Center(
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.search_rounded, size: 64, color: Colors.grey),
-                            SizedBox(height: 16),
-                            Text(
-                              'Busca un curso para ver sus módulos',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
+                  return ListView.builder(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final module = filtered[index];
+                      return _ModuleCard(
+                        module: module,
+                        onEdit:
+                            () => _showAddEditDialog(
+                              context,
+                              coursesAsync,
+                              module: module,
                             ),
-                            SizedBox(height: 8),
-                            Text(
-                              'Ingresa el ID del curso y presiona Buscar',
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                    : RefreshIndicator(
-                        onRefresh: () => notifier.refresh(_currentCourseId!),
-                        child: modulesAsync.when(
-                          loading: () => const Center(child: CircularProgressIndicator()),
-                          error: (error, stack) => _buildErrorView(error, notifier),
-                          data: (modules) {
-                            if (modules.isEmpty) {
-                              return Center(
-                                child: EmptyState(
-                                  title: 'No hay módulos',
-                                  subtitle: 'Crea el primer módulo para este curso',
-                                  icon: Icons.view_module_rounded,
-                                  buttonText: 'Crear módulo',
-                                  onButtonPressed: () => _showAddEditDialog(context),
-                                ),
-                              );
-                            }
-                            return ListView.builder(
-                              padding: const EdgeInsets.all(16),
-                              itemCount: modules.length,
-                              itemBuilder: (context, index) {
-                                final module = modules[index];
-                                return _ModuleCard(
-                                  module: module,
-                                  onEdit: () => _showAddEditDialog(
-                                    context,
-                                    module: module,
-                                  ),
-                                  onDelete: () => _confirmDelete(
-                                    context,
-                                    module.id,
-                                    _currentCourseId!,
-                                    notifier,
-                                  ),
-                                );
-                              },
-                            );
-                          },
-                        ),
-                      ),
+                        onDelete:
+                            () => _confirmDelete(context, module.id, notifier),
+                      );
+                    },
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -184,13 +166,15 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodySmall.copyWith(
+              color: AppColors.textSecondary,
+            ),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
-            onPressed: () => notifier.refresh(_currentCourseId!),
+            onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -198,122 +182,170 @@ class _ModulesScreenState extends ConsumerState<ModulesScreen> {
     );
   }
 
-  void _showAddEditDialog(BuildContext context, {ModuleModel? module}) {
+  void _showAddEditDialog(
+    BuildContext context,
+    AsyncValue<List<Course>> coursesAsync, {
+    ModuleModel? module,
+  }) {
     _editingModule = module;
     final isEditing = module != null;
 
     if (isEditing) {
       _titleController.text = module.title;
       _orderController.text = module.order.toString();
+      _selectedCourseId = module.course;
     } else {
       _titleController.clear();
       _orderController.clear();
+      _selectedCourseId = null;
     }
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Editar módulo' : 'Crear módulo'),
-        content: SizedBox(
-          width: 400,
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BrandedTextField(
-                  controller: _titleController,
-                  label: 'Título del módulo',
-                  prefixIcon: Icons.title_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El título es obligatorio';
-                    }
-                    return null;
-                  },
+      builder: (ctx) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(isEditing ? 'Editar módulo' : 'Crear módulo'),
+              content: SizedBox(
+                width: 400,
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // ✅ Selector de curso con Dropdown
+                      coursesAsync.when(
+                        loading: () => const CircularProgressIndicator(),
+                        error: (_, __) => const Text('Error al cargar cursos'),
+                        data:
+                            (courses) => DropdownButtonFormField<int>(
+                              decoration: const InputDecoration(
+                                labelText: 'Curso',
+                                prefixIcon: Icon(Icons.menu_book_rounded),
+                                border: OutlineInputBorder(),
+                              ),
+                              hint: const Text('Selecciona un curso'),
+                              value: _selectedCourseId,
+                              items:
+                                  courses.map((course) {
+                                    return DropdownMenuItem(
+                                      value: course.id,
+                                      child: Text(
+                                        '${course.title} (ID: ${course.id})',
+                                      ),
+                                    );
+                                  }).toList(),
+                              onChanged: (value) {
+                                _selectedCourseId = value;
+                                setDialogState(() {});
+                              },
+                              validator:
+                                  (value) =>
+                                      value == null
+                                          ? 'Selecciona un curso'
+                                          : null,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _titleController,
+                        label: 'Título del módulo',
+                        prefixIcon: Icons.title_rounded,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El título es obligatorio';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      BrandedTextField(
+                        controller: _orderController,
+                        label: 'Orden',
+                        hint: 'Ej: 1, 2, 3...',
+                        prefixIcon: Icons.sort_rounded,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El orden es obligatorio';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Ingresa un número válido';
+                          }
+                          return null;
+                        },
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _orderController,
-                  label: 'Orden',
-                  hint: 'Ej: 1, 2, 3...',
-                  prefixIcon: Icons.sort_rounded,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El orden es obligatorio';
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  child: const Text('Cancelar'),
+                ),
+                PrimaryButton(
+                  label: isEditing ? 'Actualizar' : 'Guardar',
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() &&
+                        _selectedCourseId != null) {
+                      final notifier = ref.read(
+                        moduleNotifierProvider.notifier,
+                      );
+
+                      final data = {
+                        'course':
+                            _selectedCourseId!, // Cambiado de 'course_id' a 'course'
+                        'title': _titleController.text.trim(),
+                        'order': int.parse(_orderController.text.trim()),
+                      };
+
+                      if (isEditing) {
+                        notifier.updateModule(_editingModule!.id, data);
+                      } else {
+                        notifier.addModule(data);
+                      }
+                      Navigator.pop(ctx);
                     }
-                    if (int.tryParse(value) == null) {
-                      return 'Ingresa un número válido';
-                    }
-                    return null;
                   },
                 ),
               ],
-            ),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: isEditing ? 'Actualizar' : 'Guardar',
-            onPressed: () {
-              if (_formKey.currentState!.validate()) {
-                final notifier = ref.read(moduleNotifierProvider.notifier);
-
-                final data = {
-                  'course_id': _currentCourseId!,
-                  'title': _titleController.text.trim(),
-                  'order': int.parse(_orderController.text.trim()),
-                };
-
-                if (isEditing) {
-                  // ✅ ACTUALIZAR MÓDULO
-                  notifier.updateModule(_editingModule!.id, data);
-                } else {
-                  // ✅ CREAR MÓDULO
-                  notifier.addModule(data);
-                }
-                Navigator.pop(ctx);
-              }
-            },
-          ),
-        ],
-      ),
+            );
+          },
+        );
+      },
     );
   }
 
   void _confirmDelete(
     BuildContext context,
     int moduleId,
-    int courseId,
     ModuleNotifier notifier,
   ) {
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar módulo'),
-        content: const Text(
-          '¿Estás seguro de que deseas eliminar este módulo?\n'
-          'Esta acción eliminará todas las lecciones asociadas.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+      builder:
+          (ctx) => AlertDialog(
+            title: const Text('Eliminar módulo'),
+            content: const Text(
+              '¿Estás seguro de que deseas eliminar este módulo?\n'
+              'Esta acción eliminará todas las lecciones asociadas.',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancelar'),
+              ),
+              PrimaryButton(
+                label: 'Eliminar',
+                onPressed: () {
+                  notifier.deleteModule(moduleId, 0);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
           ),
-          PrimaryButton(
-            label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteModule(moduleId, courseId);
-              Navigator.pop(ctx);
-            },
-          ),
-        ],
-      ),
     );
   }
 }
@@ -370,7 +402,7 @@ class _ModuleCard extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Curso: ${module.courseTitle}',
+              'Curso: ${module.courseTitle} (ID: ${module.course})',
               style: AppTextStyles.bodySmall.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -379,7 +411,10 @@ class _ModuleCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
@@ -394,7 +429,10 @@ class _ModuleCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 2,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),

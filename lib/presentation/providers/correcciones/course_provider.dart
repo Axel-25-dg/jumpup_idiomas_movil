@@ -4,6 +4,7 @@ import 'package:jumpup_app/data/repository/teacher_admin/course_repository.dart'
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
 
+
 final courseNotifierProvider = StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).courses;
   return CourseNotifier(repository);
@@ -75,3 +76,9 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
     await fetchCourses();
   }
 }
+
+// ✅ Provider de solo lectura para usar en otros screens
+final coursesProvider = FutureProvider<List<Course>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).courses;
+  return repository.fetchCourses();
+});
