@@ -22,6 +22,14 @@ class ModuleRepository extends BaseRepository {
     }
   }
 
+  Future<void> updateModule(int id, Map<String, dynamic> data) async {
+    try {
+      await dio.patch('modules/$id/', data: data);
+    } on DioException catch (e) {
+      throw ApiException('Error al actualizar módulo', e.response?.statusCode, e);
+    }
+  }
+
   Future<void> deleteModule(int id) async {
     try {
       await dio.delete('modules/$id/');

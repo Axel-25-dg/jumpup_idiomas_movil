@@ -4,6 +4,7 @@ import 'package:jumpup_app/data/repository/teacher_admin/module_repository.dart'
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
 
+
 final moduleNotifierProvider = StateNotifierProvider<ModuleNotifier, AsyncValue<List<ModuleModel>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).modules;
   return ModuleNotifier(repository);
@@ -14,6 +15,7 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
 
   ModuleNotifier(this._repository) : super(const AsyncValue.loading());
 
+  // 📥 Obtener módulos por curso
   Future<void> getModulesByCourse(int courseId) async {
     state = const AsyncValue.loading();
     try {
@@ -24,10 +26,10 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
     }
   }
 
+  // ➕ Crear módulo
   Future<void> addModule(Map<String, dynamic> data) async {
     try {
       await _repository.createModule(data);
-      // Recargar módulos del curso actual
       final courseId = data['course_id'] as int;
       await getModulesByCourse(courseId);
     } catch (e, stack) {
@@ -35,6 +37,18 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
     }
   }
 
+  // ✏️ Actualizar módulo
+  Future<void> updateModule(int id, Map<String, dynamic> data) async {
+    try {
+      await _repository.updateModule(id, data);
+      final courseId = data['course_id'] as int;
+      await getModulesByCourse(courseId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // 🗑️ Eliminar módulo
   Future<void> deleteModule(int id, int courseId) async {
     try {
       await _repository.deleteModule(id);
@@ -44,6 +58,7 @@ class ModuleNotifier extends StateNotifier<AsyncValue<List<ModuleModel>>> {
     }
   }
 
+  // 🔄 Refrescar
   Future<void> refresh(int courseId) async {
     await getModulesByCourse(courseId);
   }

@@ -4,7 +4,9 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
+
 class LessonRepository extends BaseRepository {
+  // 📥 Obtener lecciones por módulo
   Future<List<LessonModel>> getLessonsByModule(int moduleId) {
     return getList<LessonModel>(
       'lessons/',
@@ -14,6 +16,7 @@ class LessonRepository extends BaseRepository {
     );
   }
 
+  // 📥 Obtener lección por ID
   Future<LessonModel> getLessonById(int lessonId) {
     return getOne<LessonModel>(
       'lessons/$lessonId/',
@@ -22,6 +25,7 @@ class LessonRepository extends BaseRepository {
     );
   }
 
+  // ➕ Crear lección
   Future<void> createLesson(Map<String, dynamic> data) async {
     try {
       await dio.post('lessons/', data: data);
@@ -30,6 +34,16 @@ class LessonRepository extends BaseRepository {
     }
   }
 
+  // ✏️ Actualizar lección
+  Future<void> updateLesson(int id, Map<String, dynamic> data) async {
+    try {
+      await dio.patch('lessons/$id/', data: data);
+    } on DioException catch (e) {
+      throw ApiException('Error al actualizar lección', e.response?.statusCode, e);
+    }
+  }
+
+  // 🗑️ Eliminar lección
   Future<void> deleteLesson(int id) async {
     try {
       await dio.delete('lessons/$id/');

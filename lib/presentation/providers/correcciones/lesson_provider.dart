@@ -14,6 +14,7 @@ class LessonNotifier extends StateNotifier<AsyncValue<List<LessonModel>>> {
 
   LessonNotifier(this._repository) : super(const AsyncValue.loading());
 
+  // 📥 Obtener lecciones por módulo
   Future<void> getLessonsByModule(int moduleId) async {
     state = const AsyncValue.loading();
     try {
@@ -24,6 +25,16 @@ class LessonNotifier extends StateNotifier<AsyncValue<List<LessonModel>>> {
     }
   }
 
+  // 📥 Obtener lección por ID
+  Future<LessonModel> getLessonById(int id) async {
+    try {
+      return await _repository.getLessonById(id);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  // ➕ Crear lección
   Future<void> addLesson(Map<String, dynamic> data) async {
     try {
       await _repository.createLesson(data);
@@ -34,6 +45,18 @@ class LessonNotifier extends StateNotifier<AsyncValue<List<LessonModel>>> {
     }
   }
 
+  // ✏️ Actualizar lección
+  Future<void> updateLesson(int id, Map<String, dynamic> data) async {
+    try {
+      await _repository.updateLesson(id, data);
+      final moduleId = data['module_id'] as int;
+      await getLessonsByModule(moduleId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // 🗑️ Eliminar lección
   Future<void> deleteLesson(int id, int moduleId) async {
     try {
       await _repository.deleteLesson(id);
@@ -43,14 +66,7 @@ class LessonNotifier extends StateNotifier<AsyncValue<List<LessonModel>>> {
     }
   }
 
-  Future<LessonModel> getLessonById(int id) async {
-    try {
-      return await _repository.getLessonById(id);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
+  // 🔄 Refrescar
   Future<void> refresh(int moduleId) async {
     await getLessonsByModule(moduleId);
   }

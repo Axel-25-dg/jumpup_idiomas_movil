@@ -9,6 +9,8 @@ import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_sc
 import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/lesson_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/modules_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
@@ -237,6 +239,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                     ),
 
+                    // ✅ Idiomas
+                    _ActionCard(
+                      icon: Icons.translate_rounded,
+                      title: 'Gestión de Idiomas',
+                      subtitle: 'Administrar idiomas disponibles',
+                      color: const Color(0xFF0D47A1),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const LanguagesScreen(),
+                        ),
+                      ),
+                    ),
+
                     // ✅ Cursos
                     _ActionCard(
                       icon: Icons.menu_book_rounded,
@@ -250,33 +265,33 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // ✅ Idiomas
+                    // ✅ Módulos (NUEVO)
                     _ActionCard(
-                      icon: Icons.translate_rounded,
-                      title: 'Gestión de Idiomas',
-                      subtitle: 'Administrar idiomas disponibles en la plataforma',
-                      color: const Color(0xFF0D47A1),
+                      icon: Icons.view_module_rounded,
+                      title: 'Gestión de Módulos',
+                      subtitle: 'Crear y gestionar módulos por curso',
+                      color: const Color(0xFF6A1B9A),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const LanguagesScreen(),
+                          builder: (_) => const ModulesScreen(),
                         ),
                       ),
                     ),
 
-                    // ✅ Aulas (NUEVO)
+                    // ✅ Lecciones (NUEVO)
                     _ActionCard(
-                      icon: Icons.class_rounded,
-                      title: 'Gestión de Aulas',
-                      subtitle: 'Crear y gestionar aulas',
-                      color: const Color(0xFFE65100),
+                      icon: Icons.menu_book_rounded,
+                      title: 'Gestión de Lecciones',
+                      subtitle: 'Crear y gestionar lecciones por módulo',
+                      color: const Color(0xFF00897B),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => const ClassroomsScreen(),
+                          builder: (_) => const LessonsScreen(),
                         ),
                       ),
                     ),
 
-                    // ✅ Ejercicios (NUEVO)
+                    // ✅ Ejercicios
                     _ActionCard(
                       icon: Icons.edit_note_rounded,
                       title: 'Gestión de Ejercicios',
@@ -285,6 +300,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ExercisesScreen(),
+                        ),
+                      ),
+                    ),
+
+                    // ✅ Aulas
+                    _ActionCard(
+                      icon: Icons.class_rounded,
+                      title: 'Gestión de Aulas',
+                      subtitle: 'Crear y gestionar aulas',
+                      color: const Color(0xFFE65100),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const ClassroomsScreen(),
                         ),
                       ),
                     ),
@@ -319,7 +347,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                     _ActionCard(
                       icon: Icons.workspace_premium_rounded,
                       title: 'Suscripciones y Pagos',
-                      subtitle: 'Gestionar planes premium y estado de facturación',
+                      subtitle: 'Gestionar planes premium y facturación',
                       color: const Color(0xFF6A1B9A),
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
