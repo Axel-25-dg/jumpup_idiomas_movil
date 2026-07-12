@@ -55,7 +55,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
   Widget build(BuildContext context) {
     final coursesAsync = ref.watch(courseNotifierProvider);
     final notifier = ref.read(courseNotifierProvider.notifier);
-    final languagesAsync = ref.watch(languageProvider);
+    final languagesAsync = ref.watch(languageNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),

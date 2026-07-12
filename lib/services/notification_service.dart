@@ -16,9 +16,8 @@ class NotificationService {
   NotificationService._internal();
 
   Future<void> initialize() async {
-    // Si Firebase no está inicializado, no podemos continuar con FCM
     if (Firebase.apps.isEmpty) {
-      debugPrint('NotificationService: Firebase no inicializado. Abortando.');
+      debugPrint('NotificationService: Firebase no inicializado.');
       return;
     }
 
@@ -33,13 +32,15 @@ class NotificationService {
       debugPrint('Usuario otorgó permiso para notificaciones');
     }
 
+    // Configuración inicial
     const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosInit = DarwinInitializationSettings();
     const InitializationSettings initSettings = InitializationSettings(
       android: androidInit,
       iOS: iosInit,
     );
-
+ 
+    // Inicialización del plugin
     await _localNotifications.initialize(
       settings: initSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
@@ -59,20 +60,13 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
 
-    // Escuchar mensajes en primer plano
+    // Escuchar mensajes
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      debugPrint('Mensaje recibido en primer plano: ${message.notification?.title}');
       if (message.notification != null) {
         _showLocalNotification(message.notification!);
       }
     });
 
-    // Manejar notificaciones cuando la app está en segundo plano pero abierta
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      debugPrint('App abierta desde notificación: ${message.notification?.title}');
-    });
-
-    // Obtener token para depuración
     getToken().then((token) => debugPrint('FCM Token: $token'));
   }
 
@@ -83,8 +77,8 @@ class NotificationService {
       channelDescription: 'Este canal se usa para notificaciones importantes.',
       importance: Importance.max,
       priority: Priority.high,
-      showWhen: true,
     );
+    
     const NotificationDetails platformDetails = NotificationDetails(
       android: androidDetails,
       iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),

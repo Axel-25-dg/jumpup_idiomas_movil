@@ -69,10 +69,11 @@ class LanguageNotifier extends StateNotifier<AsyncValue<List<Language>>> {
   }
 }
 
-// Provider de solo lectura
-final languageProvider = FutureProvider<List<Language>>((ref) {
+// Provider de solo lectura para compatibilidad
+final languageListProvider = FutureProvider<List<Language>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).languages;
   return repository.fetchLanguages();
 });
 
-final adminLanguagesProvider = languageProvider;
+final adminLanguagesProvider = languageListProvider;
+final languageProvider = languageNotifierProvider;

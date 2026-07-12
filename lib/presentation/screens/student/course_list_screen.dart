@@ -6,6 +6,8 @@ import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
+import 'package:jumpup_app/domain/model/user_model.dart';
 
 import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
@@ -40,9 +42,19 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
   Widget build(BuildContext context) {
     final coursesAsync = ref.watch(coursesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final user = ref.watch(authProvider).user;
+    final canCreate = user?.role == UserRole.admin || user?.role == UserRole.teacher;
 
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      floatingActionButton: canCreate
+          ? FloatingActionButton.extended(
+              onPressed: () => context.push(AppRoutes.adminCreateCourse),
+              backgroundColor: Colors.blueAccent,
+              icon: const Icon(Icons.add, color: Colors.white),
+              label: const Text('Crear Curso', style: TextStyle(color: Colors.white)),
+            )
+          : null,
       body: Stack(
         children: [
           Positioned(top: -100, left: -100, child: _blob(Colors.blueAccent, 300)),

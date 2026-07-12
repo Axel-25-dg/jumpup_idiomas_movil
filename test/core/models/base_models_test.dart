@@ -12,15 +12,17 @@ void main() {
     test('serializa y deserializa correctamente', () {
       const user = UserModel(
         id: '1',
-        name: 'Ana',
+        username: 'ana_dev',
         email: 'ana@example.com',
+        firstName: 'Ana',
+        lastName: 'Perez',
       );
 
       final json = user.toJson();
       final decoded = UserModel.fromJson(json);
 
       expect(decoded.id, '1');
-      expect(decoded.name, 'Ana');
+      expect(decoded.firstName, 'Ana');
       expect(decoded.email, 'ana@example.com');
     });
   });

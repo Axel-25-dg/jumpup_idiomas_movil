@@ -1,10 +1,11 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
-import 'package:jumpup_app/data/repository/auth/classroom_service.dart';
+import 'package:jumpup_app/domain/model/live_session.dart';
+import 'package:jumpup_app/data/repository/auth/classroom_repository_impl.dart';
 
-final classroomServiceProvider = Provider<ClassroomService>((ref) {
-  return const ClassroomService();
+final classroomServiceProvider = Provider<ClassroomRepositoryImpl>((ref) {
+  return const ClassroomRepositoryImpl();
 });
 
 // ── Mis aulas virtuales ─────────────────────────────────────────────────────
@@ -16,7 +17,7 @@ final myClassroomsProvider = FutureProvider<List<ClassroomModel>>((ref) async {
 // ── Sesiones en vivo ────────────────────────────────────────────────────────
 
 final classroomLiveSessionsProvider =
-    FutureProvider<List<VirtualClassModel>>((ref) async {
+    FutureProvider<List<LiveSession>>((ref) async {
   return ref.watch(classroomServiceProvider).getLiveSessions();
 });
 
@@ -34,7 +35,7 @@ enum JoinClassroomStatus { idle, loading, success, failure }
 class JoinClassroomNotifier extends StateNotifier<JoinClassroomStatus> {
   JoinClassroomNotifier(this._service) : super(JoinClassroomStatus.idle);
 
-  final ClassroomService _service;
+  final ClassroomRepositoryImpl _service;
   String? errorMessage;
   ClassroomModel? joinedClassroom;
 

@@ -7,8 +7,8 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 /// Separa claramente los dos recursos del backend:
 ///   - /api/classrooms/  → Aulas con código de acceso
 ///   - /api/live-sessions/ → Sesiones de videotutoría en vivo
-class ClassroomService extends BaseRepository {
-  const ClassroomService();
+class ClassroomRepositoryImpl extends BaseRepository {
+  const ClassroomRepositoryImpl();
 
   // ── Aulas virtuales ─────────────────────────────────────────────────────
 

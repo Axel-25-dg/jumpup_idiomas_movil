@@ -1,10 +1,10 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/ecommerce_models.dart';
-import 'package:jumpup_app/data/repository/auth/ecommerce_service.dart';
+import 'package:jumpup_app/data/repository/auth/ecommerce_repository_impl.dart';
 
 // --- Proveedor del Servicio de Ecommerce ---
-final ecommerceServiceProvider = Provider<EcommerceService>((ref) {
-  return const EcommerceService();
+final ecommerceServiceProvider = Provider<EcommerceRepositoryImpl>((ref) {
+  return const EcommerceRepositoryImpl();
 });
 
 // --- Proveedor del Carrito ---
@@ -26,7 +26,7 @@ final cartActionsProvider = Provider<CartActions>((ref) {
 });
 
 class CartActions {
-  final EcommerceService _service;
+  final EcommerceRepositoryImpl _service;
   final Ref _ref;
 
   CartActions(this._service, this._ref);

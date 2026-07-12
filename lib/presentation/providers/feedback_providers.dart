@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/data/repository/auth/feedback_service.dart';
+import 'package:jumpup_app/data/repository/auth/feedback_repository_impl.dart';
 
 final feedbackServiceProvider = Provider<FeedbackService>((ref) {
   return const FeedbackService();

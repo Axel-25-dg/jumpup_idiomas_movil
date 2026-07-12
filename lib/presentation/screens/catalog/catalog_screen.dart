@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
-import 'package:jumpup_app/data/repository/auth/ecommerce_service.dart';
+import 'package:jumpup_app/data/repository/auth/ecommerce_repository_impl.dart';
 import 'package:jumpup_app/domain/model/ecommerce_models.dart';
 
 // --- Proveedor de Catálogo ---

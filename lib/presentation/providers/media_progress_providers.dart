@@ -1,9 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/media_progress_model.dart';
-import 'package:jumpup_app/data/repository/auth/media_progress_service.dart';
+import 'package:jumpup_app/data/repository/auth/media_progress_repository_impl.dart';
 
-final mediaProgressServiceProvider = Provider<MediaProgressService>((ref) {
-  return const MediaProgressService();
+final mediaProgressServiceProvider = Provider<MediaProgressRepositoryImpl>((ref) {
+  return const MediaProgressRepositoryImpl();
 });
 
 final mediaProgressProvider =
@@ -16,7 +16,7 @@ class MediaProgressNotifier
     extends StateNotifier<AsyncValue<MediaProgressModel?>> {
   MediaProgressNotifier(this._service) : super(const AsyncValue.data(null));
 
-  final MediaProgressService _service;
+  final MediaProgressRepositoryImpl _service;
   int? _currentLessonId;
 
   Future<void> loadProgress(int lessonId) async {

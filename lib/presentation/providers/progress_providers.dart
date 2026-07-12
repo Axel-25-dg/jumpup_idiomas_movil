@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
-import 'package:jumpup_app/data/repository/auth/progress_service.dart';
+import 'package:jumpup_app/data/repository/auth/progress_repository_impl.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 
 final progressServiceProvider = Provider<ProgressService>((ref) {

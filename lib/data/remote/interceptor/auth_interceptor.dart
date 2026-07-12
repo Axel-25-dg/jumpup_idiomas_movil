@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 
@@ -10,9 +10,9 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 ///   2. Si recibe un 401, intenta renovar el token usando el refresh token.
 ///   3. Si el refresh falla, limpia la sesión y propaga el error.
 class AuthInterceptor extends Interceptor {
-  AuthInterceptor(this._tokenStorage);
+  AuthInterceptor(this._secureStorage);
 
-  final TokenStorage _tokenStorage;
+  final SecureStorage _secureStorage;
 
   // ── onRequest ──────────────────────────────────────────────────────────────
 
@@ -26,7 +26,7 @@ class AuthInterceptor extends Interceptor {
       options.path = options.path.substring(1);
     }
 
-    final token = await _tokenStorage.getAccessToken();
+    final token = await _secureStorage.getAccessToken();
     if (token != null && token.isNotEmpty) {
       options.headers['Authorization'] = 'Bearer $token';
     }
@@ -42,7 +42,7 @@ class AuthInterceptor extends Interceptor {
     ErrorInterceptorHandler handler,
   ) async {
     if (err.response?.statusCode == 401) {
-      final refreshToken = await _tokenStorage.getRefreshToken();
+      final refreshToken = await _secureStorage.getRefreshToken();
 
       if (refreshToken != null && refreshToken.isNotEmpty) {
         try {
@@ -60,7 +60,7 @@ class AuthInterceptor extends Interceptor {
           final newRefresh = data['refresh'] as String?;
 
           if (newAccess != null) {
-            await _tokenStorage.saveTokens(
+            await _secureStorage.saveTokens(
               accessToken: newAccess,
               refreshToken: newRefresh ?? refreshToken,
             );
@@ -79,7 +79,7 @@ class AuthInterceptor extends Interceptor {
           }
         } catch (_) {
           // El refresh falló — limpiar sesión
-          await _tokenStorage.clearTokens();
+          await _secureStorage.clearTokens();
         }
       }
     }

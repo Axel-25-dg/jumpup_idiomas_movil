@@ -410,7 +410,8 @@ bool isProtectedRoute(String location) {
   if (location == AppRoutes.splash ||
       location == AppRoutes.login ||
       location == AppRoutes.register ||
-      location == AppRoutes.forgotPassword) {
+      location == AppRoutes.forgotPassword ||
+      location == AppRoutes.studentCatalog) {
     return false;
   }
   return true;

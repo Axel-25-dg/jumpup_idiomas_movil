@@ -1,15 +1,15 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
-import 'package:jumpup_app/data/repository/auth/virtual_class_service.dart';
-import 'package:jumpup_app/data/repository/auth/classroom_service.dart';
+import 'package:jumpup_app/data/repository/auth/virtual_class_repository_impl.dart';
+import 'package:jumpup_app/data/repository/auth/classroom_repository_impl.dart';
 
-final virtualClassServiceProvider = Provider<VirtualClassService>((ref) {
-  return const VirtualClassService();
+final virtualClassServiceProvider = Provider<VirtualClassRepositoryImpl>((ref) {
+  return const VirtualClassRepositoryImpl();
 });
 
-final classroomServiceProvider = Provider<ClassroomService>((ref) {
-  return const ClassroomService();
+final classroomServiceProvider = Provider<ClassroomRepositoryImpl>((ref) {
+  return const ClassroomRepositoryImpl();
 });
 
 final virtualClassesProvider =
@@ -26,7 +26,7 @@ enum JoinClassStatus { idle, loading, success, failure }
 
 class JoinClassNotifier extends StateNotifier<JoinClassStatus> {
   JoinClassNotifier(this._service) : super(JoinClassStatus.idle);
-  final VirtualClassService _service;
+  final VirtualClassRepositoryImpl _service;
   String? errorMessage;
 
   Future<VirtualClassRegistrationModel?> joinClass(int classId) async {
@@ -63,7 +63,7 @@ enum ClassroomEnrollStatus { idle, loading, success, failure }
 
 class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
   ClassroomEnrollNotifier(this._service) : super(ClassroomEnrollStatus.idle);
-  final ClassroomService _service;
+  final ClassroomRepositoryImpl _service;
   String? errorMessage;
 
   Future<bool> enrollByCode(String code) async {

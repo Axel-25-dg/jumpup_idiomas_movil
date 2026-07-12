@@ -1,13 +1,13 @@
 import 'package:dio/dio.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 
 /// Wrapper de compatibilidad sobre DioClient.
 /// Todas las pantallas que aún usen ApiService() ahora usan
-/// el mismo Dio y el mismo TokenStorage que DioClient.
+/// el mismo Dio y el mismo SecureStorage que DioClient.
 class ApiService {
   static final ApiService _instance = ApiService._internal();
-  final TokenStorage _tokenStorage = TokenStorage();
+  final SecureStorage _tokenStorage = SecureStorage();
   late final Dio _dio;
 
   factory ApiService() => _instance;

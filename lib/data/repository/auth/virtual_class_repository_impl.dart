@@ -1,8 +1,8 @@
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
-class VirtualClassService extends BaseRepository {
-  const VirtualClassService();
+class VirtualClassRepositoryImpl extends BaseRepository {
+  const VirtualClassRepositoryImpl();
 
   Future<List<VirtualClassModel>> getVirtualClasses() async {
     return getList('live-sessions/', VirtualClassModel.fromJson,

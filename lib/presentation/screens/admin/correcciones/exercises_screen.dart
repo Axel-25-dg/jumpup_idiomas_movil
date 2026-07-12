@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/exercise_provider.dart';
+import 'package:jumpup_app/presentation/providers/exercise_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/loading_overlay.dart';

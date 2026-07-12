@@ -1,8 +1,8 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 /// Almacena y recupera el JWT de forma segura en el Keychain / Keystore del SO.
-class TokenStorage {
-  TokenStorage() : _storage = const FlutterSecureStorage();
+class SecureStorage {
+  SecureStorage() : _storage = const FlutterSecureStorage();
 
   final FlutterSecureStorage _storage;
 

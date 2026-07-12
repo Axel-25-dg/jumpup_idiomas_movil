@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:jumpup_app/services/ai_chat_service.dart';
 import 'package:jumpup_app/domain/model/chat_message.dart';
@@ -41,14 +41,14 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
   AiChatNotifier() : super(AiChatState());
 
   WebSocketChannel? _channel;
-  final _tokenStorage = TokenStorage();
+  final _storage = SecureStorage();
   int? _threadId;
 
   Future<void> initChat() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
-      final token = await _tokenStorage.getAccessToken();
+      final token = await _storage.getAccessToken();
       if (token == null || token.isEmpty) {
         throw Exception('Sesión no encontrada. Por favor inicia sesión nuevamente.');
       }
@@ -184,7 +184,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
           state = state.copyWith(error: 'Conexión cerrada. Reconectando...', isConnecting: true);
           Future.delayed(const Duration(seconds: 5), () async {
             if (!mounted) return;
-            final t = await _tokenStorage.getAccessToken();
+            final t = await _storage.getAccessToken();
             if (!mounted) return;
             if (t != null) _connect(t);
           });
@@ -205,7 +205,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
 
     Future.delayed(const Duration(seconds: 5), () async {
       if (!mounted) return;
-      final token = await _tokenStorage.getAccessToken();
+      final token = await _storage.getAccessToken();
       if (!mounted) return;
       if (token != null && token.isNotEmpty) _connect(token);
     });

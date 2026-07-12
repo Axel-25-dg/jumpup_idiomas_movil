@@ -582,7 +582,7 @@ class _ExerciseCard extends StatelessWidget {
               IconButton(
                 icon: const Icon(Icons.delete_outline_rounded, size: 20),
                 onPressed: onDelete,
-                color: AppColors.error.withValues(alpha: 0.7),
+                color: Colors.redAccent.withValues(alpha: 0.7),
                 tooltip: 'Delete',
               ),
             ],
@@ -619,7 +619,7 @@ class _ExercisesListSliver extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               const Icon(Icons.error_outline,
-                  size: 48, color: AppColors.error),
+                  size: 48, color: Colors.redAccent),
               const SizedBox(height: 16),
               const Text('Error loading exercises',
                   style: TextStyle(color: Colors.white, fontSize: 18)),

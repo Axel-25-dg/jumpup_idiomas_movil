@@ -13,7 +13,7 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
 
@@ -55,7 +55,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
     if (picked == null) return;
 
-    final token = await TokenStorage().getAccessToken();
+    final token = await SecureStorage().getAccessToken();
     if (token == null) return;
 
     final uploadUrl = '${AppConfig.baseUrl}auth/me/';

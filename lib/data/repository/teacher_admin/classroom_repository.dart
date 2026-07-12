@@ -72,7 +72,7 @@ class ClassroomRepository extends BaseRepository {
     };
 
     return executeRequest(
-      () async => await dio.patch('classrooms/$id/', data: payload),
+      () => dio.patch('classrooms/$id/', data: payload),
       message: 'Error al actualizar aula',
     );
   }
@@ -87,6 +87,7 @@ class ClassroomRepository extends BaseRepository {
         final res = await dio.delete('classrooms/$id/');
         // ignore: avoid_print
         print('ClassroomRepository.deleteClassroom: response status=${res.statusCode}');
+        return res;
       } catch (e) {
         // ignore: avoid_print
         print('ClassroomRepository.deleteClassroom: error=$e');
@@ -119,11 +120,19 @@ class ClassroomRepository extends BaseRepository {
     required int studentId,
   }) {
     return executeRequest(
-      () async => await dio.post(
+      () => dio.post(
         'classrooms/$classroomId/remove-student/',
         data: {'student_id': studentId},
       ),
       message: 'Error al dar de baja al alumno',
+    );
+  }
+
+  Future<void> addClassroom(Map<String, dynamic> data) async {
+    await createClassroom(
+      name: data['name'] as String,
+      description: data['description'] as String,
+      courseId: data['course'] as int,
     );
   }
 }

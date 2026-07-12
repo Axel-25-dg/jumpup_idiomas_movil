@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/data/remote/interceptor/auth_interceptor.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 
@@ -13,7 +13,7 @@ class DioClient {
   static final DioClient _singleton = DioClient._();
   static DioClient get instance => _singleton;
 
-  final TokenStorage _tokenStorage = TokenStorage();
+  final SecureStorage _secureStorage = SecureStorage();
 
   late final Dio _dio = _buildDio();
 
@@ -34,7 +34,7 @@ class DioClient {
 
     // ── Interceptores ──────────────────────────────────────────────────────
     // 1. Auth: adjunta Bearer token, maneja 401 y renueva con refresh token
-    dio.interceptors.add(AuthInterceptor(_tokenStorage));
+    dio.interceptors.add(AuthInterceptor(_secureStorage));
 
     // 2. Log: visible solo en modo debug
     dio.interceptors.add(
@@ -53,11 +53,11 @@ class DioClient {
     required String accessToken,
     required String refreshToken,
   }) {
-    return _tokenStorage.saveTokens(
+    return _secureStorage.saveTokens(
       accessToken: accessToken,
       refreshToken: refreshToken,
     );
   }
 
-  Future<void> clearTokens() => _tokenStorage.clearTokens();
+  Future<void> clearTokens() => _secureStorage.clearTokens();
 }

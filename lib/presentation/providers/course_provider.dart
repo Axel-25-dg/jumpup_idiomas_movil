@@ -2,20 +2,17 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
-
-import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 
 // Providers de admin — nombres con prefijo para evitar colisión con course_providers.dart
-final adminLanguagesProvider = FutureProvider<List<Language>>((ref) async {
-  final repo = ref.read(teacherRepositoryProvider);
-  return repo.fetchLanguages();
-});
-
 final adminCoursesProvider =
     StateNotifierProvider<CourseNotifier, AsyncValue<List<Course>>>((ref) {
   return CourseNotifier(ref.read(teacherRepositoryProvider));
 });
+
+// Alias para compatibilidad con código antiguo
+final courseNotifierProvider = adminCoursesProvider;
 
 class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
   final TeacherRepository _repo;
@@ -50,6 +47,10 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
   Future<void> deleteCourse(int id) async {
     await _repo.deleteCourse(id);
     await fetchCourses(); // Refresca la lista tras eliminar
+  }
+
+  Future<void> refresh() async {
+    await fetchCourses();
   }
 }
 

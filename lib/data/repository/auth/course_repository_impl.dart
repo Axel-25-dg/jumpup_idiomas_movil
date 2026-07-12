@@ -1,9 +1,10 @@
 import 'package:dio/dio.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
+import 'package:jumpup_app/data/remote/dto/course_dto.dart';
 
-class CourseService extends BaseRepository {
-  const CourseService({Dio? dio}) : super(dio);
+class CourseRepositoryImpl extends BaseRepository {
+  const CourseRepositoryImpl({Dio? dio}) : super(dio);
 
   Future<List<LanguageModel>> getLanguages() async {
     return getList('languages/', LanguageModel.fromJson,
@@ -24,9 +25,39 @@ class CourseService extends BaseRepository {
     if (difficultyLevel != null) params['difficulty_level'] = difficultyLevel;
     if (languageId != null) params['language'] = languageId;
     if (search != null) params['search'] = search;
-    return getList('courses/', CourseModel.fromJson,
+    
+    // Usando DTO para la capa de datos
+    return handleRequest<List<CourseModel>>(() async {
+      final response = await dio.get<dynamic>(
+        'courses/',
         queryParameters: params.isNotEmpty ? params : null,
-        message: 'No se pudieron cargar los cursos');
+      );
+      
+      final List<dynamic> list;
+      if (response.data is List) {
+        list = response.data as List;
+      } else if (response.data is Map && response.data['results'] is List) {
+        list = response.data['results'] as List;
+      } else {
+        list = [];
+      }
+
+      return list.map((json) {
+        final dto = CourseDto.fromJson(json as Map<String, dynamic>);
+        return CourseModel(
+          id: dto.id,
+          language: dto.language,
+          languageName: dto.languageName,
+          title: dto.title,
+          description: dto.description,
+          difficultyLevel: dto.difficultyLevel,
+          imageUrl: dto.imageUrl,
+          modulesCount: dto.modulesCount,
+          lessonsCount: dto.lessonsCount,
+          totalXpReward: dto.totalXpReward,
+        );
+      }).toList();
+    }, message: 'No se pudieron cargar los cursos');
   }
 
   Future<CourseModel> getCourseById(int courseId) async {

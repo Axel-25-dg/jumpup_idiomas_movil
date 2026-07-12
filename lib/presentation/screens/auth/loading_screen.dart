@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/data/repository/auth/auth_service.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
+import 'package:jumpup_app/data/repository/auth/auth_repository_impl.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 
-class LoadingScreen extends StatefulWidget {
+class LoadingScreen extends ConsumerStatefulWidget {
   const LoadingScreen({super.key});
 
   @override
-  State<LoadingScreen> createState() => _LoadingScreenState();
+  ConsumerState<LoadingScreen> createState() => _LoadingScreenState();
 }
 
-class _LoadingScreenState extends State<LoadingScreen>
+class _LoadingScreenState extends ConsumerState<LoadingScreen>
     with SingleTickerProviderStateMixin {
   late final AnimationController _pulseCtrl;
 
@@ -37,13 +39,13 @@ class _LoadingScreenState extends State<LoadingScreen>
     if (!mounted) return;
 
     try {
-      final authService = AuthService();
-      final user = await authService.getProfile();
+      final authRepo = AuthRepositoryImpl();
+      final user = await authRepo.getProfile();
       if (!mounted) return;
       context.go(routeForRole(user.role));
     } catch (_) {
       if (!mounted) return;
-      await TokenStorage().clearTokens();
+      await SecureStorage().clearTokens();
       if (!mounted) return;
       context.go(AppRoutes.login);
     }

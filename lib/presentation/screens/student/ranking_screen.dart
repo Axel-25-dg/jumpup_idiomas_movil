@@ -120,32 +120,38 @@ class RankingScreen extends ConsumerWidget {
                     child: SafeArea(
                       child: Column(
                         children: [
-                          const SizedBox(height: 60),
-                          // Title Section
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(
-                                Icons.emoji_events_rounded,
-                                color: Colors.amber.shade600,
-                                size: 32,
+                          const SizedBox(height: 40),
+                          // Title Section - Responsive
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.emoji_events_rounded,
+                                    color: Colors.amber.shade600,
+                                    size: 28,
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Ranking Global',
+                                    style: TextStyle(
+                                      color: isDark ? Colors.white : Colors.black87,
+                                      fontSize: 26,
+                                      fontWeight: FontWeight.w900,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Icon(
+                                    Icons.emoji_events_rounded,
+                                    color: Colors.amber.shade600,
+                                    size: 28,
+                                  ),
+                                ],
                               ),
-                              const SizedBox(width: 12),
-                              Text(
-                                'Ranking Global',
-                                style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black87,
-                                  fontSize: 28,
-                                  fontWeight: FontWeight.w900,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Icon(
-                                Icons.emoji_events_rounded,
-                                color: Colors.amber.shade600,
-                                size: 32,
-                              ),
-                            ],
+                            ),
                           ),
                           const SizedBox(height: 8),
                           Container(
@@ -153,6 +159,7 @@ class RankingScreen extends ConsumerWidget {
                               horizontal: 16,
                               vertical: 6,
                             ),
+                            margin: const EdgeInsets.symmetric(horizontal: 20),
                             decoration: BoxDecoration(
                               color: (isDark ? Colors.white : Colors.black)
                                   .withValues(alpha: 0.05),
@@ -160,19 +167,20 @@ class RankingScreen extends ConsumerWidget {
                             ),
                             child: Text(
                               'Los estudiantes más dedicados de la semana',
+                              textAlign: TextAlign.center,
                               style: TextStyle(
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.6)
                                     : Colors.black54,
-                                fontSize: 13,
+                                fontSize: 12,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          // My position
+                          const SizedBox(height: 16),
+                          // My position - Compact
                           Container(
                             margin: const EdgeInsets.symmetric(horizontal: 24),
-                            padding: const EdgeInsets.all(16),
+                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
                                 colors: [
@@ -180,7 +188,7 @@ class RankingScreen extends ConsumerWidget {
                                   Colors.purpleAccent.withValues(alpha: 0.1),
                                 ],
                               ),
-                              borderRadius: BorderRadius.circular(20),
+                              borderRadius: BorderRadius.circular(16),
                               border: Border.all(
                                 color: Colors.blueAccent.withValues(alpha: 0.2),
                               ),
@@ -188,8 +196,8 @@ class RankingScreen extends ConsumerWidget {
                             child: Row(
                               children: [
                                 Container(
-                                  width: 48,
-                                  height: 48,
+                                  width: 40,
+                                  height: 40,
                                   decoration: BoxDecoration(
                                     shape: BoxShape.circle,
                                     color: Colors.blueAccent.withValues(alpha: 0.2),
@@ -200,30 +208,29 @@ class RankingScreen extends ConsumerWidget {
                                       style: const TextStyle(
                                         color: Colors.blueAccent,
                                         fontWeight: FontWeight.w900,
-                                        fontSize: 20,
+                                        fontSize: 16,
                                       ),
                                     ),
                                   ),
                                 ),
-                                const SizedBox(width: 16),
+                                const SizedBox(width: 12),
                                 Expanded(
                                   child: Column(
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'Tu posición',
+                                        'Tu posición actual',
                                         style: TextStyle(
                                           color: isDark ? Colors.white54 : Colors.black54,
-                                          fontSize: 12,
+                                          fontSize: 11,
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
                                       Text(
                                         'Nivel ${data.myLevel} • ${data.myXp} XP',
                                         style: TextStyle(
                                           color: isDark ? Colors.white : Colors.black87,
                                           fontWeight: FontWeight.w700,
-                                          fontSize: 16,
+                                          fontSize: 14,
                                         ),
                                       ),
                                     ],
@@ -232,7 +239,7 @@ class RankingScreen extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 20),
                           if (data.ranking.length >= 3)
                             _PodiumWidget(ranking: data.ranking, isDark: isDark)
                           else
@@ -242,44 +249,41 @@ class RankingScreen extends ConsumerWidget {
                     ),
                   ),
                 ),
-                // Stats Summary
+                // Stats Summary - Responsive Row
                 if (data.ranking.length >= 3)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
-                        vertical: 16,
+                        horizontal: 16,
+                        vertical: 12,
                       ),
                       child: Row(
                         children: [
                           Expanded(
                             child: _StatCard(
                               icon: Icons.people,
-                              label: 'Participantes',
+                              label: 'Total',
                               value: '${data.ranking.length}',
                               color: Colors.blueAccent,
                               isDark: isDark,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: _StatCard(
                               icon: Icons.flash_on_rounded,
-                              label: 'XP Total',
+                              label: 'XP',
                               value: '${_calculateTotalXp(data.ranking)}',
                               color: Colors.amber,
                               isDark: isDark,
                             ),
                           ),
-                          const SizedBox(width: 12),
+                          const SizedBox(width: 8),
                           Expanded(
                             child: _StatCard(
                               icon: Icons.emoji_events,
-                              label: 'Top 3',
-                              value: data.ranking
-                                  .sublist(0, 3)
-                                  .map((e) => e.username as String? ?? 'N/A')
-                                  .join(', '),
+                              label: 'Líder',
+                              value: data.ranking[0].username ?? 'Top 1',
                               color: Colors.purpleAccent,
                               isDark: isDark,
                             ),
@@ -291,17 +295,17 @@ class RankingScreen extends ConsumerWidget {
                 // Section Header
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
+                    padding: const EdgeInsets.fromLTRB(20, 8, 20, 12),
                     child: Row(
                       children: [
                         Icon(
                           Icons.format_list_numbered,
                           color: isDark ? Colors.white54 : Colors.black54,
-                          size: 20,
+                          size: 18,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          'Todos los participantes',
+                          'Clasificación',
                           style: TextStyle(
                             color: isDark ? Colors.white : Colors.black87,
                             fontSize: 18,
@@ -319,10 +323,11 @@ class RankingScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${data.ranking.length} total',
+                            'Top ${data.ranking.length}',
                             style: const TextStyle(
                               color: Colors.blueAccent,
-                              fontSize: 12,
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
                         ),
@@ -332,7 +337,7 @@ class RankingScreen extends ConsumerWidget {
                 ),
                 // Ranking list
                 SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 0, 20, 100),
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 100),
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, i) {
@@ -357,20 +362,22 @@ class RankingScreen extends ConsumerWidget {
               child: GestureDetector(
                 onTap: () => Navigator.of(context).pop(),
                 child: Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: (isDark ? Colors.white : Colors.black)
-                        .withValues(alpha: 0.1),
+                    color: (isDark ? Colors.black : Colors.white)
+                        .withValues(alpha: 0.5),
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: (isDark ? Colors.white : Colors.black)
-                          .withValues(alpha: 0.1),
-                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.1),
+                        blurRadius: 10,
+                      )
+                    ],
                   ),
                   child: Icon(
                     Icons.arrow_back_rounded,
                     color: isDark ? Colors.white : Colors.black87,
-                    size: 24,
+                    size: 22,
                   ),
                 ),
               ),
@@ -467,9 +474,9 @@ class _StatCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(12),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 12),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: isDark ? 0.05 : 0.08),
+        color: color.withValues(alpha: isDark ? 0.08 : 0.05),
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: color.withValues(alpha: 0.1),
@@ -478,24 +485,26 @@ class _StatCard extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, color: color, size: 20),
-          const SizedBox(height: 8),
+          Icon(icon, color: color, size: 18),
+          const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
               color: isDark ? Colors.white : Colors.black87,
               fontWeight: FontWeight.w900,
-              fontSize: 14,
+              fontSize: 13,
             ),
             overflow: TextOverflow.ellipsis,
             maxLines: 1,
+            textAlign: TextAlign.center,
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 2),
           Text(
             label,
             style: TextStyle(
               color: isDark ? Colors.white54 : Colors.black54,
-              fontSize: 10,
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
@@ -511,41 +520,49 @@ class _PodiumWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 240,
+    return Container(
+      height: 360, // Increased height to prevent vertical overflow
+      padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
           // 2nd place
-          _PodiumItem(
-            entry: ranking[1],
-            position: 2,
-            height: 130,
-            color: Colors.grey.shade300,
-            accentColor: Colors.grey.shade600,
-            isDark: isDark,
+          Expanded(
+            child: _PodiumItem(
+              entry: ranking[1],
+              position: 2,
+              height: 110,
+              color: Colors.grey.shade300,
+              accentColor: Colors.grey.shade600,
+              isDark: isDark,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           // 1st place
-          _PodiumItem(
-            entry: ranking[0],
-            position: 1,
-            height: 180,
-            color: Colors.amberAccent,
-            accentColor: Colors.amber.shade700,
-            isFirst: true,
-            isDark: isDark,
+          Expanded(
+            flex: 1,
+            child: _PodiumItem(
+              entry: ranking[0],
+              position: 1,
+              height: 160,
+              color: Colors.amberAccent,
+              accentColor: Colors.amber.shade700,
+              isFirst: true,
+              isDark: isDark,
+            ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: 8),
           // 3rd place
-          _PodiumItem(
-            entry: ranking[2],
-            position: 3,
-            height: 100,
-            color: Colors.brown.shade300,
-            accentColor: Colors.brown.shade700,
-            isDark: isDark,
+          Expanded(
+            child: _PodiumItem(
+              entry: ranking[2],
+              position: 3,
+              height: 80,
+              color: Colors.brown.shade300,
+              accentColor: Colors.brown.shade700,
+              isDark: isDark,
+            ),
           ),
         ],
       ),
@@ -583,39 +600,29 @@ class _PodiumItem extends StatelessWidget {
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
-        // Medal icon for first place
-        if (isFirst)
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: Colors.amber.withValues(alpha: 0.2),
-            ),
-            child: Icon(
-              Icons.workspace_premium_rounded,
-              color: Colors.amber.shade600,
-              size: 28,
-            ),
-          )
-        else
-          Icon(
-            position == 2
-                ? Icons.workspace_premium_outlined
-                : Icons.emoji_events_outlined,
-            color: position == 2 ? Colors.grey.shade400 : Colors.brown.shade400,
-            size: 28,
-          ),
-        const SizedBox(height: 8),
+        // Icon
+        Icon(
+          isFirst
+              ? Icons.workspace_premium_rounded
+              : (position == 2
+                  ? Icons.workspace_premium_outlined
+                  : Icons.emoji_events_outlined),
+          color: isFirst
+              ? Colors.amber.shade600
+              : (position == 2 ? Colors.grey.shade400 : Colors.brown.shade400),
+          size: isFirst ? 30 : 24,
+        ),
+        const SizedBox(height: 6),
         // Avatar with glow
         Container(
-          padding: const EdgeInsets.all(3),
+          padding: const EdgeInsets.all(2),
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(
-                color: color.withValues(alpha: 0.5),
-                blurRadius: 12,
-                spreadRadius: 2,
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 8,
+                spreadRadius: 1,
               ),
             ],
           ),
@@ -627,25 +634,23 @@ class _PodiumItem extends StatelessWidget {
               style: TextStyle(
                 color: isDark ? color : accentColor,
                 fontWeight: FontWeight.bold,
-                fontSize: isFirst ? 22 : 18,
+                fontSize: isFirst ? 20 : 16,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 8),
-        // Name
-        Container(
-          constraints: const BoxConstraints(maxWidth: 80),
-          child: Text(
-            entry.username ?? entry.fullName ?? 'Usuario',
-            style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87,
-              fontSize: isFirst ? 13 : 11,
-              fontWeight: FontWeight.w700,
-            ),
-            overflow: TextOverflow.ellipsis,
-            textAlign: TextAlign.center,
+        const SizedBox(height: 6),
+        // Name - Using Flexible/Ellipsis
+        Text(
+          entry.username ?? entry.fullName ?? 'Usuario',
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black87,
+            fontSize: isFirst ? 13 : 11,
+            fontWeight: FontWeight.w700,
           ),
+          overflow: TextOverflow.ellipsis,
+          textAlign: TextAlign.center,
+          maxLines: 1,
         ),
         const SizedBox(height: 4),
         // XP Badge
@@ -659,7 +664,7 @@ class _PodiumItem extends StatelessWidget {
             '${entry.totalXp ?? 0} XP',
             style: TextStyle(
               color: isDark ? color : accentColor,
-              fontSize: 11,
+              fontSize: 10,
               fontWeight: FontWeight.w800,
             ),
           ),
@@ -667,7 +672,7 @@ class _PodiumItem extends StatelessWidget {
         const SizedBox(height: 8),
         // Podium block
         Container(
-          width: isFirst ? 90 : 75,
+          width: double.infinity,
           height: height,
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -678,55 +683,28 @@ class _PodiumItem extends StatelessWidget {
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
             ),
-            borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(16)),
-            boxShadow: [
-              BoxShadow(
-                color: color.withValues(alpha: 0.3),
-                blurRadius: 10,
-                offset: const Offset(0, -5),
-              ),
-            ],
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
           ),
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Decorative lines
-              Positioned(
-                top: 20,
-                child: Container(
-                  width: 30,
-                  height: 2,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.3),
-                    borderRadius: BorderRadius.circular(1),
+              Text(
+                '#$position',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w900,
+                  fontSize: isFirst ? 24 : 20,
+                ),
+              ),
+              if (isFirst)
+                const Text(
+                  'TOP',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 8,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
-              Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      '#$position',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: isFirst ? 28 : 22,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      position == 1 ? 'CAMPEÓN' : 'PUESTO',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.8),
-                        fontSize: 9,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
             ],
           ),
         ),
@@ -758,7 +736,7 @@ class _RankingRow extends StatelessWidget {
       tween: Tween(begin: 0.0, end: 1.0),
       builder: (context, value, child) {
         return Transform.translate(
-          offset: Offset(0, 50 * (1 - value)),
+          offset: Offset(0, 30 * (1 - value)),
           child: Opacity(
             opacity: value,
             child: child,
@@ -766,19 +744,19 @@ class _RankingRow extends StatelessWidget {
         );
       },
       child: GlassContainer(
-        margin: const EdgeInsets.only(bottom: 12),
-        borderRadius: BorderRadius.circular(20),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        margin: const EdgeInsets.only(bottom: 8),
+        borderRadius: BorderRadius.circular(16),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
         opacity: isDark ? 0.1 : 0.05,
         child: Row(
           children: [
             // Position number
             Container(
-              width: 36,
-              height: 36,
+              width: 32,
+              height: 32,
               decoration: BoxDecoration(
                 color: _getPositionColor(position).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(10),
               ),
               child: Center(
                 child: Text(
@@ -786,43 +764,31 @@ class _RankingRow extends StatelessWidget {
                   style: TextStyle(
                     color: _getPositionColor(position),
                     fontWeight: FontWeight.w900,
-                    fontSize: 14,
+                    fontSize: 13,
                   ),
                 ),
               ),
             ),
-            const SizedBox(width: 14),
-            // Avatar with gradient border
-            Container(
-              padding: const EdgeInsets.all(2),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: LinearGradient(
-                  colors: [
-                    _getPositionColor(position).withValues(alpha: 0.5),
-                    _getPositionColor(position).withValues(alpha: 0.2),
-                  ],
-                ),
-              ),
-              child: CircleAvatar(
-                radius: 22,
-                backgroundColor: isDark
-                    ? const Color(0xFF1A1A2E)
-                    : Colors.grey.shade100,
-                child: Text(
-                  (entry.username != null && entry.username!.isNotEmpty)
-                      ? entry.username![0].toUpperCase()
-                      : 'U',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
+            const SizedBox(width: 12),
+            // Avatar
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: isDark
+                  ? const Color(0xFF1A1A2E)
+                  : Colors.grey.shade100,
+              child: Text(
+                (entry.username != null && entry.username!.isNotEmpty)
+                    ? entry.username![0].toUpperCase()
+                    : 'U',
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                 ),
               ),
             ),
-            const SizedBox(width: 14),
-            // User info
+            const SizedBox(width: 12),
+            // User info - Flexible to avoid overflow
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -832,44 +798,47 @@ class _RankingRow extends StatelessWidget {
                     style: TextStyle(
                       color: isDark ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                      fontSize: 14,
                     ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 2),
                   Row(
                     children: [
-                      // Status badge
                       Container(
                         padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 2,
+                          horizontal: 6,
+                          vertical: 1,
                         ),
                         decoration: BoxDecoration(
                           color: statusColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(6),
+                          borderRadius: BorderRadius.circular(4),
                         ),
                         child: Text(
                           status,
                           style: TextStyle(
                             color: statusColor,
-                            fontSize: 10,
+                            fontSize: 9,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      // Level
+                      const SizedBox(width: 6),
                       Icon(
                         Icons.trending_up,
                         color: isDark ? Colors.white38 : Colors.black38,
-                        size: 12,
+                        size: 10,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        'Nivel $level',
-                        style: TextStyle(
-                          color: isDark ? Colors.white38 : Colors.black38,
-                          fontSize: 11,
+                      const SizedBox(width: 2),
+                      Flexible(
+                        child: Text(
+                          'Nivel $level',
+                          style: TextStyle(
+                            color: isDark ? Colors.white38 : Colors.black38,
+                            fontSize: 10,
+                          ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -877,19 +846,15 @@ class _RankingRow extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
             // XP container
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blueAccent.withValues(alpha: isDark ? 0.15 : 0.08),
-                    Colors.purpleAccent.withValues(alpha: isDark ? 0.15 : 0.08),
-                  ],
-                ),
-                borderRadius: BorderRadius.circular(12),
+                color: Colors.blueAccent.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(10),
                 border: Border.all(
-                  color: Colors.blueAccent.withValues(alpha: 0.2),
+                  color: Colors.blueAccent.withValues(alpha: 0.1),
                 ),
               ),
               child: Row(
@@ -898,24 +863,15 @@ class _RankingRow extends StatelessWidget {
                   const Icon(
                     Icons.local_fire_department,
                     color: Colors.amber,
-                    size: 16,
+                    size: 14,
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
                   Text(
                     '$xp',
                     style: const TextStyle(
                       color: Colors.blueAccent,
                       fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                    ),
-                  ),
-                  const SizedBox(width: 2),
-                  const Text(
-                    'XP',
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 11,
+                      fontSize: 14,
                     ),
                   ),
                 ],
@@ -929,7 +885,7 @@ class _RankingRow extends StatelessWidget {
 
   Color _getPositionColor(int pos) {
     if (pos <= 5) return const Color(0xFFFFD700);
-    if (pos <= 10) return const Color(0xFFE0E0E0);
+    if (pos <= 10) return const Color(0xFF9E9E9E);
     if (pos <= 20) return const Color(0xFFCD7F32);
     return Colors.blueGrey;
   }

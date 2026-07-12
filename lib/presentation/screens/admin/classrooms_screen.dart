@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/loading_overlay.dart';
@@ -287,6 +288,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                     id: classroom.id,
                     name: _nameController.text.trim(),
                     description: _descriptionController.text.trim(),
+                    courseId: int.tryParse(_courseIdController.text.trim()),
                   );
                 } else {
                   notifier.addClassroom(
@@ -413,7 +415,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                       onPressed: () {
                         final notifier =
                             ref.read(classroomNotifierProvider.notifier);
-                        notifier.removeStudent(enrollment.id);
+                        notifier.removeStudent(classroomId, enrollment.studentId);
                         ref.invalidate(enrollmentsProvider(classroomId));
                         if (mounted) {
                           Navigator.pop(ctx);

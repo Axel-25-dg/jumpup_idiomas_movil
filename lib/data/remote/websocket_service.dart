@@ -3,7 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
-import 'package:jumpup_app/data/local/token_storage.dart';
+import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 /// Servicio genérico para conexiones WebSocket contra el VPS Hetzner.
@@ -27,7 +27,7 @@ class WebSocketService {
   /// ID de sala/conversación, si aplica.
   final String? roomId;
 
-  final TokenStorage _tokenStorage = TokenStorage();
+  final SecureStorage _storage = SecureStorage();
 
   WebSocketChannel? _channel;
   StreamSubscription<dynamic>? _subscription;
@@ -46,7 +46,7 @@ class WebSocketService {
   Future<void> connect() async {
     if (_connected) return;
 
-    final token = await _tokenStorage.getAccessToken();
+    final token = await _storage.getAccessToken();
     if (token == null || token.isEmpty) {
       debugPrint('[WS] Sin token JWT — no se puede conectar a /$path');
       return;

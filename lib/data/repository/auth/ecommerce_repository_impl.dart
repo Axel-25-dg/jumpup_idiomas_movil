@@ -1,8 +1,8 @@
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/ecommerce_models.dart';
 
-class EcommerceService extends BaseRepository {
-  const EcommerceService();
+class EcommerceRepositoryImpl extends BaseRepository {
+  const EcommerceRepositoryImpl();
 
   // ── Catalogo ───────────────────────────────────────────────────────────────
 
