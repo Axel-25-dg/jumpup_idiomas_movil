@@ -4,6 +4,7 @@ import 'package:jumpup_app/data/repository/teacher_admin/user_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
 
+
 final userNotifierProvider = StateNotifierProvider<UserNotifier, AsyncValue<List<User>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).users;
   return UserNotifier(repository);
@@ -13,23 +14,24 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   final UserRepository _repository;
 
   UserNotifier(this._repository) : super(const AsyncValue.loading()) {
-    fetchUsers();
+    fetchAllUsers();
   }
 
-  Future<void> fetchUsers() async {
-    state = const AsyncValue.loading();
+  // ─── STAFF ──────────────────────────────────────────────────────
+
+  Future<List<User>> fetchUsers() async {
     try {
       final users = await _repository.fetchUsers();
-      state = AsyncValue.data(users);
-    } catch (e, stack) {
-      state = AsyncValue.error(e, stack);
+      return users;
+    } catch (e) {
+      rethrow;
     }
   }
 
-  Future<void> addUser(Map<String, dynamic> data) async {
+  Future<void> createUser(Map<String, dynamic> data) async {
     try {
       await _repository.createUser(data);
-      await fetchUsers();
+      await fetchAllUsers();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -38,7 +40,7 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   Future<void> updateUser(int id, Map<String, dynamic> data) async {
     try {
       await _repository.updateUser(id, data);
-      await fetchUsers();
+      await fetchAllUsers();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -47,8 +49,50 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   Future<void> deleteUser(int id) async {
     try {
       await _repository.deleteUser(id);
-      final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((u) => u.id != id).toList());
+      await fetchAllUsers();
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // ─── ESTUDIANTES ──────────────────────────────────────────────────
+
+  Future<List<User>> fetchStudents() async {
+    try {
+      final students = await _repository.fetchStudents();
+      return students;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> updateStudent(int id, Map<String, dynamic> data) async {
+    try {
+      await _repository.updateStudent(id, data);
+      await fetchAllUsers();
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> deleteStudent(int id) async {
+    try {
+      await _repository.deleteStudent(id);
+      await fetchAllUsers();
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // ─── COMUNES ──────────────────────────────────────────────────────
+
+  Future<void> fetchAllUsers() async {
+    state = const AsyncValue.loading();
+    try {
+      final staff = await _repository.fetchUsers();
+      final students = await _repository.fetchStudents();
+      final allUsers = [...staff, ...students];
+      state = AsyncValue.data(allUsers);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -57,7 +101,7 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   Future<void> toggleUserStatus(int id, bool isActive) async {
     try {
       await _repository.toggleUserStatus(id, isActive);
-      await fetchUsers();
+      await fetchAllUsers();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -66,7 +110,7 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   Future<void> changeUserRole(int id, int roleId) async {
     try {
       await _repository.changeUserRole(id, roleId);
-      await fetchUsers();
+      await fetchAllUsers();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -81,12 +125,17 @@ class UserNotifier extends StateNotifier<AsyncValue<List<User>>> {
   }
 
   Future<void> refresh() async {
-    await fetchUsers();
+    await fetchAllUsers();
   }
 }
 
-// Provider de solo lectura
+// Providers de solo lectura
 final usersProvider = FutureProvider<List<User>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).users;
   return repository.fetchUsers();
+});
+
+final studentsProvider = FutureProvider<List<User>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).users;
+  return repository.fetchStudents();
 });

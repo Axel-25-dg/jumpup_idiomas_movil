@@ -8,6 +8,7 @@ import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 
+
 class UsersScreen extends ConsumerStatefulWidget {
   const UsersScreen({super.key});
 
@@ -23,7 +24,6 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
   @override
   void initState() {
     super.initState();
-    // ✅ Agregar listener para el search
     _searchController.addListener(() {
       setState(() {
         _searchQuery = _searchController.text.toLowerCase();
@@ -50,6 +50,11 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.add_rounded),
+            onPressed: () => _showCreateUserDialog(context),
+            tooltip: 'Crear usuario (Admin/Profesor)',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded),
             onPressed: () => notifier.refresh(),
@@ -83,9 +88,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: 'Estudiantes',
-                    selected: _roleFilter == 'Student',
-                    onSelected: () => setState(() => _roleFilter = 'Student'),
+                    label: 'Administradores',
+                    selected: _roleFilter == 'Admin',
+                    onSelected: () => setState(() => _roleFilter = 'Admin'),
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
@@ -95,9 +100,9 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                   ),
                   const SizedBox(width: 8),
                   _FilterChip(
-                    label: 'Admin',
-                    selected: _roleFilter == 'Admin',
-                    onSelected: () => setState(() => _roleFilter = 'Admin'),
+                    label: 'Estudiantes',
+                    selected: _roleFilter == 'Student',
+                    onSelected: () => setState(() => _roleFilter = 'Student'),
                   ),
                 ],
               ),
@@ -117,7 +122,7 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                       title: 'No se encontraron usuarios',
                       subtitle: _searchQuery.isNotEmpty || _roleFilter != 'TODOS'
                           ? 'Intenta con otros filtros de búsqueda'
-                          : 'No hay usuarios registrados en la plataforma',
+                          : 'No hay usuarios registrados',
                       icon: Icons.people_outline_rounded,
                       buttonText: _searchQuery.isNotEmpty ? 'Limpiar búsqueda' : null,
                       onButtonPressed: _searchQuery.isNotEmpty
@@ -133,12 +138,14 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
                       final user = filtered[index];
+                      final isStudent = user.roleName.toLowerCase() == 'student';
                       return _UserCard(
                         user: user,
                         onToggleStatus: () {
                           notifier.toggleUserStatus(user.id, !user.isActive);
                         },
-                        onEdit: () => _showEditDialog(context, user, notifier),
+                        onEdit: () => _showEditDialog(context, user, notifier, isStudent),
+                        isStudent: isStudent,
                       );
                     },
                   );
@@ -194,7 +201,182 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
     );
   }
 
-  void _showEditDialog(BuildContext context, User user, UserNotifier notifier) {
+  // ─── CREAR USUARIO (SOLO ADMIN Y TEACHER) ──────────────────────
+
+  void _showCreateUserDialog(BuildContext context) {
+    final formKey = GlobalKey<FormState>();
+    final emailController = TextEditingController();
+    final usernameController = TextEditingController();
+    final firstNameController = TextEditingController();
+    final lastNameController = TextEditingController();
+    final passwordController = TextEditingController();
+    String selectedRole = 'teacher';
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Crear usuario'),
+        content: SizedBox(
+          width: 400,
+          child: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BrandedTextField(
+                  controller: emailController,
+                  label: 'Email',
+                  prefixIcon: Icons.email_rounded,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El email es obligatorio';
+                    }
+                    if (!value.contains('@')) {
+                      return 'Email inválido';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                BrandedTextField(
+                  controller: usernameController,
+                  label: 'Usuario',
+                  prefixIcon: Icons.person_rounded,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El usuario es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                BrandedTextField(
+                  controller: firstNameController,
+                  label: 'Nombre',
+                  prefixIcon: Icons.person_outline_rounded,
+                ),
+                const SizedBox(height: 12),
+                BrandedTextField(
+                  controller: lastNameController,
+                  label: 'Apellido',
+                  prefixIcon: Icons.person_outline_rounded,
+                ),
+                const SizedBox(height: 12),
+                BrandedTextField(
+                  controller: passwordController,
+                  label: 'Contraseña',
+                  prefixIcon: Icons.lock_rounded,
+                  obscureText: true,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'La contraseña es obligatoria';
+                    }
+                    if (value.length < 6) {
+                      return 'Mínimo 6 caracteres';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                DropdownButtonFormField<String>(
+                  value: selectedRole,
+                  decoration: const InputDecoration(
+                    labelText: 'Rol',
+                    prefixIcon: Icon(Icons.admin_panel_settings_rounded),
+                    border: OutlineInputBorder(),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: 'teacher', child: Text('Profesor')),
+                    DropdownMenuItem(value: 'admin', child: Text('Administrador')),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) {
+                      selectedRole = value;
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.blue.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline, size: 16, color: Colors.blue),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          'Los estudiantes se crean desde el registro público.',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.blue[700],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancelar'),
+          ),
+          PrimaryButton(
+            label: 'Crear usuario',
+            onPressed: () {
+              if (formKey.currentState!.validate()) {
+                final notifier = ref.read(userNotifierProvider.notifier);
+
+                int roleId;
+                switch (selectedRole) {
+                  case 'admin':
+                    roleId = 2; // ✅ ID correcto para admin
+                    break;
+                  case 'teacher':
+                  default:
+                    roleId = 4; // ✅ ID correcto para teacher
+                    break;
+                }
+
+                notifier.createUser({
+                  'username': usernameController.text.trim(),
+                  'email': emailController.text.trim(),
+                  'first_name': firstNameController.text.trim(),
+                  'last_name': lastNameController.text.trim(),
+                  'password': passwordController.text,
+                  'role_id': roleId,
+                  'is_active': true,
+                });
+
+                Navigator.pop(ctx);
+
+                ScaffoldMessenger.of(ctx).showSnackBar(
+                  const SnackBar(
+                    content: Text('✅ Usuario creado exitosamente'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+
+                Future.delayed(const Duration(milliseconds: 500), () {
+                  notifier.refresh();
+                });
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  // ─── EDITAR USUARIO ──────────────────────────────────────────────
+
+  void _showEditDialog(BuildContext context, User user, UserNotifier notifier, bool isStudent) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -213,58 +395,60 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
               valueColor: user.isActive ? Colors.green : Colors.red,
             ),
             const Divider(height: 24),
-            const Text(
-              'Cambiar rol:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Expanded(
-                  child: PrimaryButton(
+
+            if (isStudent) ...[
+              const Text(
+                'Opciones para estudiantes:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              PrimaryButton(
+                label: user.isActive ? 'Desactivar' : 'Activar',
+                onPressed: () {
+                  notifier.toggleUserStatus(user.id, !user.isActive);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ] else ...[
+              const Text(
+                'Cambiar rol:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  _RoleButton(
                     label: 'Admin',
+                    color: Colors.purple,
                     onPressed: user.roleName == 'Admin'
-                        ? null
-                        : () {
-                            notifier.changeUserRole(user.id, 1);
-                            Navigator.pop(ctx);
-                          },
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: PrimaryButton(
-                    label: 'Profesor',
-                    onPressed: user.roleName == 'Teacher'
                         ? null
                         : () {
                             notifier.changeUserRole(user.id, 2);
                             Navigator.pop(ctx);
                           },
                   ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: PrimaryButton(
-                    label: 'Estudiante',
-                    onPressed: user.roleName == 'Student'
+                  _RoleButton(
+                    label: 'Profesor',
+                    color: Colors.orange,
+                    onPressed: user.roleName == 'Teacher'
                         ? null
                         : () {
-                            notifier.changeUserRole(user.id, 3);
+                            notifier.changeUserRole(user.id, 4);
                             Navigator.pop(ctx);
                           },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            PrimaryButton(
-              label: user.isActive ? 'Desactivar' : 'Activar',
-              onPressed: () {
-                notifier.toggleUserStatus(user.id, !user.isActive);
-                Navigator.pop(ctx);
-              },
-            ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              PrimaryButton(
+                label: user.isActive ? 'Desactivar' : 'Activar',
+                onPressed: () {
+                  notifier.toggleUserStatus(user.id, !user.isActive);
+                  Navigator.pop(ctx);
+                },
+              ),
+            ],
           ],
         ),
         actions: [
@@ -273,6 +457,41 @@ class _UsersScreenState extends ConsumerState<UsersScreen> {
             child: const Text('Cerrar'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ─── WIDGETS ──────────────────────────────────────────────────────
+
+class _RoleButton extends StatelessWidget {
+  const _RoleButton({
+    required this.label,
+    required this.color,
+    required this.onPressed,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback? onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 80,
+      height: 36,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: color,
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+          textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Text(label),
       ),
     );
   }
@@ -341,11 +560,13 @@ class _UserCard extends StatelessWidget {
     required this.user,
     required this.onToggleStatus,
     required this.onEdit,
+    this.isStudent = false,
   });
 
   final User user;
   final VoidCallback onToggleStatus;
   final VoidCallback onEdit;
+  final bool isStudent;
 
   Color _getRoleColor(String roleName) {
     switch (roleName.toLowerCase()) {
@@ -427,7 +648,7 @@ class _UserCard extends StatelessWidget {
             Switch(
               value: user.isActive,
               onChanged: (_) => onToggleStatus(),
-              activeThumbColor: Colors.green,
+              activeColor: Colors.green,
             ),
             IconButton(
               icon: const Icon(Icons.edit_rounded, size: 20),

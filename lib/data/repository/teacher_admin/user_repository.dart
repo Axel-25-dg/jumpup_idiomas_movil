@@ -4,7 +4,11 @@ import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 
+
 class UserRepository extends BaseRepository {
+  // ─── STAFF (Admin/Teacher) ──────────────────────────────────────
+
+  // 📥 Listar Staff
   Future<List<User>> fetchUsers() {
     return getList<User>(
       'users/',
@@ -13,6 +17,7 @@ class UserRepository extends BaseRepository {
     );
   }
 
+  // 📥 Obtener Staff por ID
   Future<User?> getUserById(int id) async {
     try {
       final response = await dio.get<Map<String, dynamic>>('users/$id/');
@@ -23,13 +28,7 @@ class UserRepository extends BaseRepository {
     }
   }
 
-  Future<void> updateUser(int id, Map<String, dynamic> data) {
-    return executeRequest(
-      () async => await dio.patch('users/$id/', data: data),
-      message: 'Error al actualizar usuario',
-    );
-  }
-
+  // ➕ Crear Staff
   Future<void> createUser(Map<String, dynamic> data) {
     return executeRequest(
       () async => await dio.post('users/', data: data),
@@ -37,6 +36,15 @@ class UserRepository extends BaseRepository {
     );
   }
 
+  // ✏️ Editar Staff
+  Future<void> updateUser(int id, Map<String, dynamic> data) {
+    return executeRequest(
+      () async => await dio.patch('users/$id/', data: data),
+      message: 'Error al actualizar usuario',
+    );
+  }
+
+  // 🗑️ Eliminar Staff
   Future<void> deleteUser(int id) {
     return executeRequest(
       () async => await dio.delete('users/$id/'),
@@ -44,6 +52,36 @@ class UserRepository extends BaseRepository {
     );
   }
 
+  // ─── ESTUDIANTES ──────────────────────────────────────────────────
+
+  // 📥 Listar Estudiantes
+  Future<List<User>> fetchStudents() {
+    return getList<User>(
+      'admin-students/',
+      (json) => User.fromJson(json),
+      message: 'Error al cargar estudiantes',
+    );
+  }
+
+  // ✏️ Editar Estudiante
+  Future<void> updateStudent(int id, Map<String, dynamic> data) {
+    return executeRequest(
+      () async => await dio.patch('admin-students/$id/', data: data),
+      message: 'Error al actualizar estudiante',
+    );
+  }
+
+  // 🗑️ Eliminar Estudiante
+  Future<void> deleteStudent(int id) {
+    return executeRequest(
+      () async => await dio.delete('admin-students/$id/'),
+      message: 'Error al eliminar estudiante',
+    );
+  }
+
+  // ─── COMUNES ──────────────────────────────────────────────────────
+
+  // 🔄 Activar/Desactivar (funciona para ambos)
   Future<void> toggleUserStatus(int id, bool isActive) {
     return executeRequest(
       () async => await dio.patch('users/$id/', data: {'is_active': isActive}),
@@ -51,6 +89,7 @@ class UserRepository extends BaseRepository {
     );
   }
 
+  // 🔄 Cambiar rol (solo para Staff)
   Future<void> changeUserRole(int id, int roleId) {
     return executeRequest(
       () async => await dio.patch('users/$id/', data: {'role_id': roleId}),
