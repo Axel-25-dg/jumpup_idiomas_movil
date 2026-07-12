@@ -172,4 +172,51 @@ void main() {
       expect(result.first.title, 'Curso de inglés B1');
     });
   });
+
+  group('SocialMediaRepository — Comments', () {
+    test('fetchComments retorna lista de SocialComment', () async {
+      const json = '''
+      [{
+        "id": 1,
+        "post": 10,
+        "author_name": "Juan",
+        "body": "¡Excelente post!",
+        "created_at": "2026-07-07T18:30:00.000Z"
+      }]
+      ''';
+
+      final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
+      dio.httpClientAdapter = _JsonAdapter({'social-comments/': json});
+
+      final repo = SocialMediaRepository(dio: dio);
+      final result = await repo.fetchComments(10);
+
+      expect(result.length, 1);
+      expect(result.first.body, '¡Excelente post!');
+      expect(result.first.authorName, 'Juan');
+    });
+
+    test('createComment envía los datos correctos y retorna SocialComment', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://test.local'));
+      
+      // Mocking POST response
+      const responseJson = '''
+      {
+        "id": 2,
+        "post": 10,
+        "author_name": "Juan",
+        "body": "Nuevo comentario",
+        "created_at": "2026-07-07T18:40:00.000Z"
+      }
+      ''';
+      
+      dio.httpClientAdapter = _JsonAdapter({'social-comments/': responseJson});
+
+      final repo = SocialMediaRepository(dio: dio);
+      final result = await repo.createComment(postId: 10, body: 'Nuevo comentario');
+
+      expect(result.id, 2);
+      expect(result.body, 'Nuevo comentario');
+    });
+  });
 }

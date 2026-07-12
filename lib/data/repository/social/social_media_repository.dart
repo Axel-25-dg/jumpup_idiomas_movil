@@ -113,12 +113,16 @@ class SocialMediaRepository extends BaseRepository {
   }
 
   Future<ForumThread> createForumThread({
-    required int categoryId,
+    int? categoryId,
     required String title,
     required String body,
   }) async {
     return createOne('forum-threads/', ForumThread.fromJson,
-        data: {'category': categoryId, 'title': title, 'body': body},
+        data: {
+          if (categoryId != null) 'category': categoryId,
+          'title': title,
+          'body': body,
+        },
         message: 'No se pudo crear el hilo');
   }
 

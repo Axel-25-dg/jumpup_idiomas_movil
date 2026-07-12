@@ -77,4 +77,20 @@ class CourseRepository extends BaseRepository {
       throw ApiException('Error al obtener curso', e.response?.statusCode, e);
     }
   }
+
+  Future<void> createModule(Map<String, dynamic> data) async {
+    try {
+      await dio.post('modules/', data: data);
+    } on DioException catch (e) {
+      throw ApiException('Error al crear módulo', e.response?.statusCode, e);
+    }
+  }
+
+  Future<void> createLesson(Map<String, dynamic> data) async {
+    try {
+      await dio.post('lessons/', data: data);
+    } on DioException catch (e) {
+      throw ApiException('Error al crear lección', e.response?.statusCode, e);
+    }
+  }
 }

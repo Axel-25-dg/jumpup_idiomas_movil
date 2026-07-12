@@ -11,4 +11,12 @@ class ResourceRepository extends BaseRepository {
       message: 'Error al subir el recurso',
     );
   }
+
+  Future<List<TeacherResource>> fetchResources() {
+    return getList<TeacherResource>(
+      'resources/',
+      (json) => TeacherResource.fromJson(json),
+      message: 'Error al obtener los recursos',
+    );
+  }
 }

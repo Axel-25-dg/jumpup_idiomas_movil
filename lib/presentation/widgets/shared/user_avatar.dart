@@ -18,25 +18,41 @@ class UserAvatar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final initials = _getInitials(fullName);
+    final theme = Theme.of(context);
     
     return GestureDetector(
       onTap: onTap,
-      child: CircleAvatar(
-        radius: radius,
-        backgroundColor: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-        backgroundImage: (imageUrl != null && imageUrl!.isNotEmpty)
-            ? CachedNetworkImageProvider(imageUrl!)
-            : null,
-        child: (imageUrl == null || imageUrl!.isEmpty)
-            ? Text(
-                initials,
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontWeight: FontWeight.bold,
-                  fontSize: radius * 0.8,
+      child: Container(
+        width: radius * 2,
+        height: radius * 2,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: theme.primaryColor.withValues(alpha: 0.1),
+        ),
+        child: ClipOval(
+          child: (imageUrl != null && imageUrl!.isNotEmpty)
+              ? CachedNetworkImage(
+                  imageUrl: imageUrl!,
+                  fit: BoxFit.cover,
+                  memCacheWidth: (radius * 4).toInt(),
+                  memCacheHeight: (radius * 4).toInt(),
+                  placeholder: (context, url) => _InitialsWidget(
+                    initials: initials,
+                    radius: radius,
+                    color: theme.primaryColor,
+                  ),
+                  errorWidget: (context, url, error) => _InitialsWidget(
+                    initials: initials,
+                    radius: radius,
+                    color: theme.primaryColor,
+                  ),
+                )
+              : _InitialsWidget(
+                  initials: initials,
+                  radius: radius,
+                  color: theme.primaryColor,
                 ),
-              )
-            : null,
+        ),
       ),
     );
   }
@@ -49,5 +65,31 @@ class UserAvatar extends StatelessWidget {
       return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
     return trimmedName.isNotEmpty ? trimmedName[0].toUpperCase() : 'U';
+  }
+}
+
+class _InitialsWidget extends StatelessWidget {
+  final String initials;
+  final double radius;
+  final Color color;
+
+  const _InitialsWidget({
+    required this.initials,
+    required this.radius,
+    required this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Text(
+        initials,
+        style: TextStyle(
+          color: color,
+          fontWeight: FontWeight.bold,
+          fontSize: radius * 0.7,
+        ),
+      ),
+    );
   }
 }

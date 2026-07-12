@@ -2,7 +2,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/lesson_repository.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/teacher_repository_provider.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 final lessonNotifierProvider = StateNotifierProvider<LessonNotifier, AsyncValue<List<LessonModel>>>((ref) {
   final repository = ref.watch(teacherRepositoryProvider).lessons;

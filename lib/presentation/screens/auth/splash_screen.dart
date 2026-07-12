@@ -13,8 +13,9 @@ class SplashScreen extends ConsumerStatefulWidget {
 }
 
 class _SplashScreenState extends ConsumerState<SplashScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   late final AnimationController _ctrl;
+  late final AnimationController _shimmerController;
   late final Animation<double> _fadeAnim;
   late final Animation<double> _scaleAnim;
   late final Animation<Offset> _slideAnim;
@@ -30,15 +31,20 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1600),
+      duration: const Duration(milliseconds: 1800),
     );
+
+    _shimmerController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
 
     _fadeAnim = CurvedAnimation(
       parent: _ctrl,
       curve: const Interval(0.0, 0.6, curve: Curves.easeIn),
     );
 
-    _scaleAnim = Tween<double>(begin: 0.6, end: 1.0).animate(
+    _scaleAnim = Tween<double>(begin: 0.5, end: 1.0).animate(
       CurvedAnimation(
         parent: _ctrl,
         curve: const Interval(0.0, 0.7, curve: Curves.elasticOut),
@@ -46,12 +52,12 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
     );
 
     _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.3),
+      begin: const Offset(0, 0.4),
       end: Offset.zero,
     ).animate(
       CurvedAnimation(
         parent: _ctrl,
-        curve: const Interval(0.2, 0.8, curve: Curves.easeOutCubic),
+        curve: const Interval(0.3, 0.9, curve: Curves.easeOutQuart),
       ),
     );
 
@@ -78,8 +84,10 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void dispose() {
     _ctrl.dispose();
+    _shimmerController.dispose();
     super.dispose();
   }
+
 
   void _safeGo(BuildContext context, String route) {
     if (mounted) {
@@ -119,108 +127,192 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         width: double.infinity,
         height: double.infinity,
         decoration: const BoxDecoration(
-          gradient: AppColors.primaryGradient,
+          color: Color(0xFF0F111A), // Dark Deep Background
         ),
-        child: SafeArea(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ScaleTransition(
-                scale: _scaleAnim,
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: _LogoWidget(),
-                ),
-              ),
-              const SizedBox(height: 32),
-              SlideTransition(
-                position: _slideAnim,
-                child: FadeTransition(
-                  opacity: _fadeAnim,
-                  child: Column(
-                    children: [
-                      Text(
-                        'JumpUp',
-                        style: AppTextStyles.displayMedium.copyWith(
-                          color: Colors.white,
-                          fontSize: 48,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1,
+        child: Stack(
+          children: [
+            // Background Blobs
+            Positioned(
+              top: -100,
+              right: -50,
+              child: _BlurBlob(color: const Color(0xFF6A11CB).withValues(alpha: 0.25), size: 400),
+            ),
+            Positioned(
+              bottom: -50,
+              left: -50,
+              child: _BlurBlob(color: const Color(0xFF2575FC).withValues(alpha: 0.2), size: 350),
+            ),
+            
+            SafeArea(
+              child: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ScaleTransition(
+                      scale: _scaleAnim,
+                      child: FadeTransition(
+                        opacity: _fadeAnim,
+                        child: AnimatedBuilder(
+                          animation: _shimmerController,
+                          builder: (context, child) {
+                            return _LogoWidget(shimmerValue: _shimmerController.value);
+                          },
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Aprende idiomas sin límites',
-                        style: AppTextStyles.bodyLarge.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              FadeTransition(
-                opacity: _fadeAnim,
-                child: Text(
-                  'Universidad UTE',
-                  style: AppTextStyles.labelMedium.copyWith(
-                    color: Colors.white.withValues(alpha: 0.65),
-                    letterSpacing: 2,
-                    fontSize: 12,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 80),
-              FadeTransition(
-                opacity: _fadeAnim,
-                child: SizedBox(
-                  width: 32,
-                  height: 32,
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2.5,
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Colors.white.withValues(alpha: 0.7),
                     ),
-                  ),
+                    const SizedBox(height: 48),
+                    SlideTransition(
+                      position: _slideAnim,
+                      child: FadeTransition(
+                        opacity: _fadeAnim,
+                        child: Column(
+                          children: [
+                            Text(
+                              'JumpUp',
+                              style: AppTextStyles.displayMedium.copyWith(
+                                color: Colors.white,
+                                fontSize: 52,
+                                fontWeight: FontWeight.w900,
+                                letterSpacing: -1.5,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'APRENDE IDIOMAS SIN LÍMITES',
+                              style: AppTextStyles.labelLarge.copyWith(
+                                color: Colors.white.withValues(alpha: 0.5),
+                                letterSpacing: 3,
+                                fontSize: 10,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 100),
+                    FadeTransition(
+                      opacity: _fadeAnim,
+                      child: Column(
+                        children: [
+                          const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(Colors.white30),
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            'UNIVERSIDAD UTE',
+                            style: AppTextStyles.labelSmall.copyWith(
+                              color: Colors.white24,
+                              letterSpacing: 4,
+                              fontSize: 9,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
 
-class _LogoWidget extends StatelessWidget {
+class _BlurBlob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _BlurBlob({required this.color, required this.size});
+
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 120,
-      height: 120,
+      width: size,
+      height: size,
       decoration: BoxDecoration(
-        color: Colors.white,
         shape: BoxShape.circle,
+        color: color,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 100,
+            spreadRadius: 20,
           ),
         ],
       ),
-      child: Center(
-        child: ShaderMask(
-          shaderCallback: (bounds) =>
-              AppColors.primaryGradient.createShader(bounds),
-          child: const Icon(
+    );
+  }
+}
+
+class _LogoWidget extends StatelessWidget {
+  final double shimmerValue;
+  const _LogoWidget({required this.shimmerValue});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 140,
+      height: 140,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+            blurRadius: 32,
+            offset: const Offset(0, 12),
+          ),
+          BoxShadow(
+            color: Colors.white.withValues(alpha: 0.1),
+            blurRadius: 1,
+            spreadRadius: 1,
+          ),
+        ],
+      ),
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          const Icon(
             Icons.translate_rounded,
-            size: 60,
+            size: 70,
             color: Colors.white,
           ),
-        ),
+          // Shimmer Effect
+          Positioned.fill(
+            child: ClipOval(
+              child: Transform.translate(
+                offset: Offset(280 * (shimmerValue - 0.5), 0),
+                child: Transform.rotate(
+                  angle: 0.5,
+                  child: Container(
+                    width: 40,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withValues(alpha: 0),
+                          Colors.white.withValues(alpha: 0.3),
+                          Colors.white.withValues(alpha: 0),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

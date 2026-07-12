@@ -1,6 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Permisos de red -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
 
     <!-- Permisos de autenticación biométrica -->
     <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
@@ -9,8 +10,23 @@
     <!-- Permiso para notificaciones (Android 13+) -->
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
-    <!-- Permiso para acceder a la cámara (selector de imagen) -->
+    <!-- Permiso para acceder a la cámara -->
     <uses-permission android:name="android.permission.CAMERA"/>
+
+    <!-- Permiso para grabación de audio (Speech-to-text / Tutor IA) -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+
+    <!-- Permiso para vibración (Feedback háptico) -->
+    <uses-permission android:name="android.permission.VIBRATE"/>
+
+    <!-- Permisos de almacenamiento (Android 10 y anteriores) -->
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
+
+    <!-- Permisos de archivos multimedia (Android 13+) -->
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <queries>
         <intent>
             <action android:name="android.intent.action.VIEW" />

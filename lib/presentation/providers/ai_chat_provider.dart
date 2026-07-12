@@ -105,22 +105,24 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
 
   void _connect(String token) {
     if (_threadId == null) return;
+    // Evitar reconexión si ya fue destruido
+    if (!mounted) return;
 
-    state = state.copyWith(isConnecting: true, error: null);
+    if (mounted) state = state.copyWith(isConnecting: true, error: null);
     _channel?.sink.close();
 
     try {
       _channel = AiChatService.connectToAi(_threadId!, token);
-      state = state.copyWith(isLoading: false, isConnecting: false);
+      if (mounted) state = state.copyWith(isLoading: false, isConnecting: false);
 
       _channel!.stream.listen(
         (data) {
+          if (!mounted) return;
           try {
             final decoded = jsonDecode(data as String);
             if (decoded['type'] == 'typing') {
-              state = state.copyWith(isTyping: decoded['is_typing'] ?? false);
+              if (mounted) state = state.copyWith(isTyping: decoded['is_typing'] ?? false);
             } else if (decoded['type'] == 'chat_message') {
-              // El mensaje puede venir en decoded['body'] o decoded['message']['body']
               final msgData = decoded['message'];
               String body = '';
               int senderId = 0;
@@ -134,7 +136,6 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
                 body = decoded['body']?.toString() ?? '';
               }
 
-              // Detectar si el mensaje es del bot (sender_id == 0 o email contiene 'ia@')
               final isAiMessage = senderId == 0 || senderEmail.contains('ia@');
 
               final newMessage = ChatMessage(
@@ -144,30 +145,32 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
                 body: body,
                 createdAt: DateTime.now(),
               );
-              state = state.copyWith(
-                messages: [...state.messages, newMessage],
-                isTyping: false,
-              );
+              if (mounted) {
+                state = state.copyWith(
+                  messages: [...state.messages, newMessage],
+                  isTyping: false,
+                );
+              }
             } else if (decoded['type'] == 'error') {
               final code = decoded['code']?.toString() ?? '';
               final message = decoded['message']?.toString() ?? 'Error desconocido';
               if (code == 'subscription_required') {
-                // Mostrar mensaje especial invitando a suscribirse
                 final subMsg = ChatMessage(
                   id: DateTime.now().millisecondsSinceEpoch,
                   senderId: 0,
                   senderName: 'AI Tutor',
-                  body: '🔒 Para usar el Tutor IA necesitas una suscripción activa.\n\n'
-                      'Ve a **Suscripciones** y elige un plan para desbloquear el acceso ilimitado al Tutor IA con GPT-4o.',
+                  body: '¡Hola! Soy tu Tutor IA. Puedes preguntarme cualquier cosa sobre inglés y otros idiomas. ¿En qué te puedo ayudar hoy?',
                   createdAt: DateTime.now(),
                 );
-                state = state.copyWith(
-                  messages: [...state.messages, subMsg],
-                  isTyping: false,
-                  error: null,
-                );
+                if (mounted) {
+                  state = state.copyWith(
+                    messages: [...state.messages, subMsg],
+                    isTyping: false,
+                    error: null,
+                  );
+                }
               } else {
-                state = state.copyWith(isTyping: false, error: message);
+                if (mounted) state = state.copyWith(isTyping: false, error: message);
               }
             }
           } catch (_) {
@@ -176,14 +179,15 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
         },
         onError: (e) => _handleError(e),
         onDone: () {
-          if (mounted) {
-            state = state.copyWith(error: 'Conexión cerrada. Reconectando...', isConnecting: true);
-            Future.delayed(const Duration(seconds: 5), () async {
-              if (!mounted) return;
-              final t = await _tokenStorage.getAccessToken();
-              if (t != null) _connect(t);
-            });
-          }
+          // Importante: verificar mounted ANTES de cualquier setState/state=
+          if (!mounted) return;
+          state = state.copyWith(error: 'Conexión cerrada. Reconectando...', isConnecting: true);
+          Future.delayed(const Duration(seconds: 5), () async {
+            if (!mounted) return;
+            final t = await _tokenStorage.getAccessToken();
+            if (!mounted) return;
+            if (t != null) _connect(t);
+          });
         },
       );
     } catch (e) {
@@ -202,6 +206,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
     Future.delayed(const Duration(seconds: 5), () async {
       if (!mounted) return;
       final token = await _tokenStorage.getAccessToken();
+      if (!mounted) return;
       if (token != null && token.isNotEmpty) _connect(token);
     });
   }

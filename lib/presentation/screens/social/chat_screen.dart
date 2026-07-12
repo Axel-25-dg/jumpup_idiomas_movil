@@ -26,13 +26,13 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with AutomaticKeepAlive
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: threadsAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF6A11CB))),
         error: (e, _) => _buildError(ref, isDark),
         data: (threads) {
           if (threads.isEmpty) return _buildEmpty(isDark);
           return RefreshIndicator(
-            color: const Color(0xFF7C4DFF),
-            backgroundColor: isDark ? const Color(0xFF1A1B2E) : Colors.white,
+            color: const Color(0xFF6A11CB),
+            backgroundColor: isDark ? const Color(0xFF0F111A) : Colors.white,
             onRefresh: () => ref.refresh(chatThreadsProvider.future),
             child: ListView.separated(
               padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -55,12 +55,22 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with AutomaticKeepAlive
           Icon(Icons.wifi_off_rounded, size: 48, color: isDark ? Colors.white24 : Colors.black26),
           const SizedBox(height: 12),
           Text('Error al cargar mensajes',
-              style: AppTextStyles.titleMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
+              style: AppTextStyles.titleMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54, fontWeight: FontWeight.w600)),
           const SizedBox(height: 16),
-          FilledButton(
-            onPressed: () => ref.invalidate(chatThreadsProvider),
-            style: FilledButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF), foregroundColor: Colors.white),
-            child: const Text('Reintentar'),
+          Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(12),
+              gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+            ),
+            child: FilledButton(
+              onPressed: () => ref.invalidate(chatThreadsProvider),
+              style: FilledButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Reintentar'),
+            ),
           ),
         ],
       ),
@@ -76,16 +86,23 @@ class _ChatScreenState extends ConsumerState<ChatScreen> with AutomaticKeepAlive
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+              gradient: LinearGradient(
+                colors: [
+                  const Color(0xFF6A11CB).withValues(alpha: 0.1),
+                  const Color(0xFF2575FC).withValues(alpha: 0.1),
+                ],
+              ),
             ),
             child: const Icon(Icons.chat_bubble_outline_rounded,
-                size: 56, color: Color(0xFF7C4DFF)),
+                size: 56, color: Color(0xFF2575FC)),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 20),
           Text('Sin conversaciones',
-              style: AppTextStyles.titleMedium.copyWith(
-                  color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.bold)),
-          const SizedBox(height: 4),
+              style: AppTextStyles.headlineSmall.copyWith(
+                  color: isDark ? Colors.white : Colors.black87, 
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.5)),
+          const SizedBox(height: 8),
           Text('Inicia un nuevo chat desde el foro',
               style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white54 : Colors.black54)),
         ],
@@ -109,61 +126,72 @@ class _ThreadTile extends StatelessWidget {
         : '?';
 
     return GlassContainer(
-      opacity: 0.08,
-      blur: 10,
+      opacity: isDark ? 0.06 : 0.08,
+      blur: 24,
       padding: EdgeInsets.zero,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(24),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: CircleAvatar(
-          radius: 26,
-          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
-          backgroundImage: thread.participantAvatar != null
-              ? NetworkImage(thread.participantAvatar!)
-              : null,
-          child: thread.participantAvatar == null
-              ? Text(initial,
-                  style: AppTextStyles.titleMedium.copyWith(
-                    color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w900,
-                  ))
-              : null,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        leading: Container(
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: const Color(0xFF6A11CB).withValues(alpha: 0.3),
+              width: 2,
+            ),
+          ),
+          child: CircleAvatar(
+            radius: 28,
+            backgroundColor: const Color(0xFF6A11CB).withValues(alpha: 0.1),
+            backgroundImage: thread.participantAvatar != null
+                ? NetworkImage(thread.participantAvatar!)
+                : null,
+            child: thread.participantAvatar == null
+                ? Text(initial,
+                    style: AppTextStyles.titleLarge.copyWith(
+                      color: const Color(0xFF6A11CB), fontWeight: FontWeight.w900,
+                    ))
+                : null,
+          ),
         ),
         title: Text(thread.subject.isNotEmpty ? thread.subject : thread.participantName,
             style: AppTextStyles.labelLarge.copyWith(
-              fontWeight: thread.unreadCount > 0 ? FontWeight.w900 : FontWeight.bold,
+              fontWeight: thread.unreadCount > 0 ? FontWeight.w900 : FontWeight.w800,
               color: textColor,
+              letterSpacing: -0.3,
             )),
         subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
+          padding: const EdgeInsets.only(top: 6),
           child: Text(
             thread.lastMessageBody ?? 'Sin mensajes',
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
             style: AppTextStyles.bodySmall.copyWith(
               color: thread.unreadCount > 0 ? textColor : subtextColor,
-              fontWeight: thread.unreadCount > 0 ? FontWeight.w600 : FontWeight.normal,
+              fontWeight: thread.unreadCount > 0 ? FontWeight.w700 : FontWeight.normal,
             ),
           ),
         ),
         trailing: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             if (thread.unreadCount > 0)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF7C4DFF),
+                  gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
                   borderRadius: BorderRadius.circular(12),
                   boxShadow: [
-                    BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.4), blurRadius: 8)
+                    BoxShadow(color: const Color(0xFF2575FC).withValues(alpha: 0.4), blurRadius: 8)
                   ],
                 ),
                 child: Text('${thread.unreadCount}',
                     style: AppTextStyles.labelSmall.copyWith(
                         color: Colors.white, fontWeight: FontWeight.w900, fontSize: 10)),
-              ),
-            const SizedBox(height: 4),
-            Icon(Icons.chevron_right_rounded, color: iconFadeColor, size: 20),
+              )
+            else
+              Icon(Icons.chevron_right_rounded, color: iconFadeColor, size: 22),
           ],
         ),
         onTap: () => Navigator.push(

@@ -1,7 +1,11 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class TriviaGame extends ConsumerStatefulWidget {
   const TriviaGame({super.key});
@@ -58,7 +62,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
       }
     });
 
-    Future.delayed(const Duration(milliseconds: 1000), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) {
         setState(() {
           _selected = null;
@@ -77,15 +81,14 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 4, // Placeholder para Trivia
+            lessonId: 1, 
             status: 'completed',
             score: _score.toDouble(),
           );
       ref.invalidate(userStatsProvider);
-      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
-      debugPrint('Error al subir puntuación: $e');
+      debugPrint('[Trivia] Error: $e');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -93,69 +96,178 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
 
   @override
   Widget build(BuildContext context) {
-    if (_done) return _ResultScreen(score: _score, total: _questions.length * 20, isSubmitting: _submitting);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgColor = isDark ? const Color(0xFF0D0D15) : Colors.grey[50]!;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
+    if (_done) return _ResultScreen(score: _score, total: _questions.length * 20, isSubmitting: _submitting, isDark: isDark);
     
     final q = _questions[_current];
     final options = q['options'] as List<String>;
     final correct = q['correct'] as int;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        iconTheme: const IconThemeData(color: Colors.white),
-        title: Text('❓ Trivia ${_current + 1}/${_questions.length}', style: const TextStyle(color: Colors.white)),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            LinearProgressIndicator(
-              value: (_current + 1) / _questions.length,
-              backgroundColor: Colors.white12,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-            ),
-            const SizedBox(height: 32),
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(colors: [Color(0xFF1E1E2E), Color(0xFF2A2A3D)]),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Text(q['q'] as String, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600, height: 1.5)),
-            ),
-            const SizedBox(height: 32),
-            ...List.generate(options.length, (i) {
-              Color bg = const Color(0xFF2A2A3D);
-              if (_selected != null) {
-                if (i == correct) {
-                  bg = Colors.green.withValues(alpha: 0.4);
-                } else if (i == _selected) {
-                  bg = Colors.red.withValues(alpha: 0.4);
-                }
-              }
-              return GestureDetector(
-                onTap: () => _answer(i),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(14)),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 28, height: 28,
-                        decoration: const BoxDecoration(color: Colors.white12, shape: BoxShape.circle),
-                        child: Center(child: Text('ABCD'[i], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold))),
-                      ),
-                      const SizedBox(width: 14),
-                      Text(options[i], style: const TextStyle(color: Colors.white, fontSize: 15)),
-                    ],
+      backgroundColor: bgColor,
+      body: Stack(
+        children: [
+          if (isDark) ...[
+            Positioned(top: -100, right: -50, child: _BlurBlob(color: const Color(0xFF6A11CB).withValues(alpha: 0.1), size: 300)),
+            Positioned(bottom: -50, left: -50, child: _BlurBlob(color: const Color(0xFF2575FC).withValues(alpha: 0.1), size: 250)),
+          ],
+          SafeArea(
+            child: Column(
+              children: [
+                _buildAppBar(context, textColor),
+                _buildProgressHeader(textColor),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        _buildQuestionCard(q['q'] as String, isDark, textColor),
+                        const SizedBox(height: 40),
+                        ...List.generate(options.length, (i) => _buildOptionTile(i, options[i], correct, isDark, textColor)),
+                      ],
+                    ),
                   ),
                 ),
-              );
-            }),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAppBar(BuildContext context, Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: Icon(Icons.close_rounded, color: textColor),
+          ),
+          const Text(
+            '❓ TRIVIA QUIZ',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+          ),
+          const SizedBox(width: 48),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressHeader(Color textColor) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('PREGUNTA ${_current + 1}/${_questions.length}', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+              Text('$_score XP', style: const TextStyle(color: Color(0xFF2575FC), fontWeight: FontWeight.bold, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: (_current + 1) / _questions.length,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+              minHeight: 8,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuestionCard(String question, bool isDark, Color textColor) {
+    return GlassContainer(
+      padding: const EdgeInsets.all(32),
+      borderRadius: BorderRadius.circular(24),
+      child: Text(
+        question,
+        textAlign: TextAlign.center,
+        style: TextStyle(
+          color: textColor,
+          fontSize: 22,
+          fontWeight: FontWeight.w700,
+          height: 1.4,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOptionTile(int index, String text, int correctIndex, bool isDark, Color textColor) {
+    bool isSelected = _selected == index;
+    bool showCorrect = _selected != null && index == correctIndex;
+    bool showWrong = _selected == index && index != correctIndex;
+
+    Color borderColor = isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05);
+    Color bgColor = isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white;
+
+    if (showCorrect) {
+      borderColor = Colors.greenAccent;
+      bgColor = Colors.greenAccent.withValues(alpha: 0.1);
+    } else if (showWrong) {
+      borderColor = Colors.redAccent;
+      bgColor = Colors.redAccent.withValues(alpha: 0.1);
+    } else if (isSelected) {
+      borderColor = const Color(0xFF2575FC);
+    }
+
+    return GestureDetector(
+      onTap: () => _answer(index),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: borderColor, width: 2),
+          boxShadow: [
+            if (isSelected) BoxShadow(color: borderColor.withValues(alpha: 0.2), blurRadius: 10)
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 32, height: 32,
+              decoration: BoxDecoration(
+                color: isSelected ? borderColor : (isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[200]),
+                shape: BoxShape.circle,
+              ),
+              child: Center(
+                child: Text(
+                  'ABCD'[index],
+                  style: TextStyle(
+                    color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                text,
+                style: TextStyle(
+                  color: showCorrect ? Colors.greenAccent : (showWrong ? Colors.redAccent : textColor),
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ),
+            if (showCorrect) const Icon(Icons.check_circle_rounded, color: Colors.greenAccent),
+            if (showWrong) const Icon(Icons.cancel_rounded, color: Colors.redAccent),
           ],
         ),
       ),
@@ -166,40 +278,83 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
 class _ResultScreen extends StatelessWidget {
   final int score, total;
   final bool isSubmitting;
-  const _ResultScreen({required this.score, required this.total, required this.isSubmitting});
+  final bool isDark;
+  const _ResultScreen({required this.score, required this.total, required this.isSubmitting, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     final pct = score / total;
+    final textColor = isDark ? Colors.white : Colors.black87;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: isDark ? const Color(0xFF0D0D15) : Colors.grey[50]!,
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            if (isSubmitting) ...[
-              const CircularProgressIndicator(),
-              const SizedBox(height: 20),
-              const Text('Guardando progreso...', style: TextStyle(color: Colors.white70)),
-            ] else ...[
-              Text(pct >= 0.8 ? '🏆' : pct >= 0.5 ? '⭐' : '💪', style: const TextStyle(fontSize: 80)),
-              const SizedBox(height: 20),
-              Text('$score / $total XP', style: const TextStyle(color: Colors.white, fontSize: 36, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Text(pct >= 0.8 ? '¡Excelente!' : pct >= 0.5 ? '¡Bien hecho!' : 'Sigue practicando', style: const TextStyle(color: Colors.white70, fontSize: 18)),
-              const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: () => Navigator.pop(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: GlassContainer(
+          margin: const EdgeInsets.all(32),
+          padding: const EdgeInsets.all(40),
+          borderRadius: BorderRadius.circular(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (isSubmitting) ...[
+                const CircularProgressIndicator(color: Color(0xFF2575FC)),
+                const SizedBox(height: 24),
+                Text('Sincronizando XP...', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
+              ] else ...[
+                Text(pct >= 0.8 ? '🏆' : pct >= 0.5 ? '⭐' : '💪', style: const TextStyle(fontSize: 80)),
+                const SizedBox(height: 24),
+                Text('$score / $total XP', style: TextStyle(color: textColor, fontSize: 42, fontWeight: FontWeight.w900)),
+                const SizedBox(height: 8),
+                Text(
+                  pct >= 0.8 ? '¡PERFECTO!' : pct >= 0.5 ? '¡MUY BIEN!' : 'SIGUE ASÍ',
+                  style: TextStyle(color: textColor.withValues(alpha: 0.5), fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 2),
                 ),
-                child: const Text('Volver a Juegos', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-              ),
-            ]
-          ],
+                const SizedBox(height: 48),
+                ElevatedButton(
+                  onPressed: () => Navigator.pop(context),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFF2575FC),
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size(double.infinity, 56),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  child: const Text('FINALIZAR', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                ),
+                const SizedBox(height: 16),
+                TextButton.icon(
+                  onPressed: () => context.push(AppRoutes.studentRanking),
+                  icon: const Icon(Icons.emoji_events_rounded, color: Colors.amber),
+                  label: const Text('VER RANKING GLOBAL', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                ),
+              ]
+            ],
+          ),
         ),
+      ),
+    );
+  }
+}
+
+class _BlurBlob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _BlurBlob({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 100,
+            spreadRadius: 20,
+          ),
+        ],
       ),
     );
   }

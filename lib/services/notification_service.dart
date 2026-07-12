@@ -22,8 +22,16 @@ class NotificationService {
       return;
     }
 
-    // Solicitar permisos en iOS
-    await _firebaseMessaging.requestPermission();
+    // Solicitar permisos
+    NotificationSettings settings = await _firebaseMessaging.requestPermission(
+      alert: true,
+      badge: true,
+      sound: true,
+    );
+
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('Usuario otorgó permiso para notificaciones');
+    }
 
     const AndroidInitializationSettings androidInit = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings iosInit = DarwinInitializationSettings();
@@ -34,24 +42,53 @@ class NotificationService {
 
     await _localNotifications.initialize(
       settings: initSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) {
+        debugPrint('Notificación clickeada: ${response.payload}');
+      },
     );
+
+    // Canal para Android 8.0+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'high_importance_channel',
+      'High Importance Notifications',
+      description: 'Este canal se usa para notificaciones importantes.',
+      importance: Importance.max,
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
 
     // Escuchar mensajes en primer plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      debugPrint('Mensaje recibido en primer plano: ${message.notification?.title}');
       if (message.notification != null) {
         _showLocalNotification(message.notification!);
       }
     });
+
+    // Manejar notificaciones cuando la app está en segundo plano pero abierta
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      debugPrint('App abierta desde notificación: ${message.notification?.title}');
+    });
+
+    // Obtener token para depuración
+    getToken().then((token) => debugPrint('FCM Token: $token'));
   }
 
   Future<void> _showLocalNotification(RemoteNotification notification) async {
     const AndroidNotificationDetails androidDetails = AndroidNotificationDetails(
-      'main_channel',
-      'Main Channel',
+      'high_importance_channel',
+      'High Importance Notifications',
+      channelDescription: 'Este canal se usa para notificaciones importantes.',
       importance: Importance.max,
       priority: Priority.high,
+      showWhen: true,
     );
-    const NotificationDetails platformDetails = NotificationDetails(android: androidDetails);
+    const NotificationDetails platformDetails = NotificationDetails(
+      android: androidDetails,
+      iOS: DarwinNotificationDetails(presentAlert: true, presentBadge: true, presentSound: true),
+    );
     
     await _localNotifications.show(
       id: notification.hashCode,

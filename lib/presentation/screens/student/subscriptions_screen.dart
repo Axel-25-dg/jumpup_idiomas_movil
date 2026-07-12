@@ -204,86 +204,121 @@ class _PlanCard extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final isPopular = (plan.name ?? '').toLowerCase().contains('pro') || (plan.durationDays ?? 0) == 30;
+    final isPopular = plan.name.toLowerCase().contains('pro') && plan.durationDays <= 30;
+    final isBestValue = plan.durationDays >= 365;
+    final mySubAsync = ref.watch(mySubscriptionProvider);
+    final isCurrentPlan = mySubAsync.value?.subscription.id == plan.id && 
+                         mySubAsync.value?.isActive == true;
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final cardColor = isDark ? const Color(0xFF1E1E2E) : Colors.white;
     final nameColor = isDark ? Colors.white : Colors.black87;
     final subColor = isDark ? Colors.white.withValues(alpha: 0.7) : Colors.black54;
+    final highlight = isPopular || isBestValue;
+
+    void onSelect() {
+      if (isCurrentPlan) return;
+      HapticFeedback.mediumImpact();
+      ref.read(cartProvider.notifier).addItem(plan);
+      context.push('/cart');
+    }
 
     return GestureDetector(
-      onTap: () {
-        HapticFeedback.lightImpact();
-        ref.read(cartProvider.notifier).addItem(plan);
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('${plan.name} añadido al carrito'),
-          backgroundColor: Colors.blueAccent,
-          action: SnackBarAction(
-            label: 'Ver Carrito',
-            textColor: Colors.white,
-            onPressed: () => context.push('/cart'),
-          ),
-        ));
-      },
+      onTap: onSelect,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
         decoration: BoxDecoration(
-          gradient: isPopular
-              ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)], begin: Alignment.topLeft, end: Alignment.bottomRight)
+          gradient: highlight
+              ? LinearGradient(
+                  colors: isBestValue 
+                      ? [const Color(0xFFF2994A), const Color(0xFFF2C94C)] 
+                      : [const Color(0xFF6A11CB), const Color(0xFF2575FC)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight
+                )
               : null,
-          color: isPopular ? null : cardColor,
+          color: highlight ? null : cardColor,
           borderRadius: BorderRadius.circular(24),
-          border: isPopular ? null : Border.all(color: isDark ? Colors.white12 : Colors.black12),
-          boxShadow: isPopular
-              ? [BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))]
+          border: highlight ? null : Border.all(color: isDark ? Colors.white12 : Colors.black12),
+          boxShadow: highlight
+              ? [BoxShadow(color: (isBestValue ? Colors.orange : Colors.blueAccent).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8))]
               : [BoxShadow(color: Colors.black.withValues(alpha: 0.06), blurRadius: 12, offset: const Offset(0, 4))],
         ),
         padding: const EdgeInsets.all(24),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (isPopular)
+            if (highlight)
               Container(
+                margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(20)),
-                child: const Text('⭐ Más Popular', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)),
+                child: Text(
+                  isBestValue ? '💎 Mejor Valor' : '⭐ Más Popular', 
+                  style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold)
+                ),
               ),
-            if (isPopular) const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(plan.name ?? 'Plan Pro', style: TextStyle(color: isPopular ? Colors.white : nameColor, fontSize: 20, fontWeight: FontWeight.bold)),
-                    Text(plan.durationLabel ?? '${plan.durationDays ?? 30} días', style: TextStyle(color: isPopular ? Colors.white.withValues(alpha: 0.7) : subColor, fontSize: 13)),
+                    Text(plan.name, style: TextStyle(color: highlight ? Colors.white : nameColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                    Text(plan.durationLabel, style: TextStyle(color: highlight ? Colors.white.withValues(alpha: 0.7) : subColor, fontSize: 13)),
                   ],
                 ),
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(plan.formattedPrice ?? '\$${plan.price}', style: TextStyle(color: isPopular ? Colors.white : nameColor, fontSize: 28, fontWeight: FontWeight.w900)),
-                    Text('/ período', style: TextStyle(color: isPopular ? Colors.white54 : subColor, fontSize: 11)),
+                    Text(plan.formattedPrice, style: TextStyle(color: highlight ? Colors.white : nameColor, fontSize: 28, fontWeight: FontWeight.w900)),
+                    Text('/ período', style: TextStyle(color: highlight ? Colors.white54 : subColor, fontSize: 11)),
                   ],
                 ),
               ],
             ),
             const SizedBox(height: 20),
+            if (plan.features.isNotEmpty) ...[
+              ...plan.features.take(4).map((f) => Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.check_circle_outline_rounded, 
+                      color: highlight ? Colors.white70 : Colors.blueAccent, 
+                      size: 16
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        f, 
+                        style: TextStyle(
+                          color: highlight ? Colors.white.withValues(alpha: 0.9) : subColor,
+                          fontSize: 13
+                        )
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 12),
+            ],
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  HapticFeedback.mediumImpact();
-                  ref.read(cartProvider.notifier).addItem(plan);
-                  context.push('/cart');
-                },
+                onPressed: isCurrentPlan ? null : onSelect,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: isPopular ? Colors.white : Colors.blueAccent,
-                  foregroundColor: isPopular ? const Color(0xFF6A11CB) : Colors.white,
+                  backgroundColor: isCurrentPlan 
+                      ? Colors.grey.withValues(alpha: 0.2)
+                      : (highlight ? Colors.white : Colors.blueAccent),
+                  foregroundColor: isCurrentPlan
+                      ? Colors.grey
+                      : (highlight ? (isBestValue ? Colors.orange.shade800 : const Color(0xFF6A11CB)) : Colors.white),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
                 child: Text(
-                  isPopular ? 'Suscribirse Ahora' : 'Seleccionar Plan',
+                  isCurrentPlan ? 'Plan Actual' : (highlight ? 'Suscribirse Ahora' : 'Seleccionar Plan'),
                   style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
                 ),
               ),

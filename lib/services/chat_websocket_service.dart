@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -15,11 +16,11 @@ class ChatWebSocketService {
       throw Exception('Token no encontrado. Debes iniciar sesión.');
     }
 
-    // Usamos AppConfig para obtener una URL de WebSocket válida y segura
-    final wsBase = AppConfig.wsBaseUrl;
-    final wsUrl = Uri.parse('$wsBase/chat/$threadId/?token=$token');
+    // Usamos el generador centralizado de AppConfig para evitar el error de puerto :0
+    final wsUrl = AppConfig.buildWsUrl('chat/$threadId/', token: token);
+    debugPrint('[ChatWS] Conectando a: $wsUrl');
     
-    _channel = WebSocketChannel.connect(wsUrl);
+    _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
   }
 
   // Stream para escuchar los mensajes entrantes (incluidos los de la IA)

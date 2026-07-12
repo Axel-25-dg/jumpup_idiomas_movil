@@ -381,4 +381,105 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get loadingLanguagesError => 'Error loading languages';
+
+  @override
+  String get adminStats => 'Stats';
+
+  @override
+  String get adminPeople => 'People';
+
+  @override
+  String get adminContent => 'Content';
+
+  @override
+  String get adminOps => 'Ops';
+
+  @override
+  String get platformOverview => 'Platform Overview';
+
+  @override
+  String get totalUsers => 'Total Users';
+
+  @override
+  String get studentCourses => 'Courses';
+
+  @override
+  String get adminSubscriptions => 'Subscriptions';
+
+  @override
+  String get studentCertificates => 'Certificates';
+
+  @override
+  String get recentActivity => 'Recent Activity';
+
+  @override
+  String get systemAnnouncements => 'System Announcements';
+
+  @override
+  String get manageAnnouncementsSubtitle => 'Manage global platform updates';
+
+  @override
+  String get peopleManagement => 'People Management';
+
+  @override
+  String get usersAndRoles => 'Users & Roles';
+
+  @override
+  String get manageUsersSubtitle => 'Manage all student and teacher accounts';
+
+  @override
+  String get monitorClassroomsSubtitle =>
+      'Monitor active groups and assignments';
+
+  @override
+  String get languageExperts => 'Language Experts';
+
+  @override
+  String get manageLanguagesSubtitle => 'Manage platform language assets';
+
+  @override
+  String get contentAndCurriculum => 'Content & Curriculum';
+
+  @override
+  String get courseCatalog => 'Course Catalog';
+
+  @override
+  String get editCoursesSubtitle => 'Edit syllabus, lessons and modules';
+
+  @override
+  String get exerciseBank => 'Exercise Bank';
+
+  @override
+  String get manageExercisesSubtitle => 'Review and update practice materials';
+
+  @override
+  String get operationsAndBilling => 'Operations & Billing';
+
+  @override
+  String get billingAndSubscriptions => 'Subscriptions & Billing';
+
+  @override
+  String get monitorRevenueSubtitle => 'Monitor revenue and premium plans';
+
+  @override
+  String get contentReports => 'Content Reports';
+
+  @override
+  String get moderateReportsSubtitle => 'Moderate forum and social reports';
+
+  @override
+  String get adminProfile => 'Admin Profile';
+
+  @override
+  String get administrator => 'Administrator';
+
+  @override
+  String get superAdminAccess => 'Super Admin Access';
+
+  @override
+  String get securitySettings => 'Security Settings';
+
+  @override
+  String get logoutAdminConfirm =>
+      'Are you sure you want to exit the admin panel?';
 }

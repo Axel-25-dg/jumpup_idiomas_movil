@@ -6,10 +6,15 @@ import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 import 'package:jumpup_app/presentation/screens/student/games/hangman_game.dart';
-import 'package:jumpup_app/presentation/screens/student/games/flashcard_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/matching_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/trivia_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/word_scramble_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/memory_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/fast_type_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/sentence_builder_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/verb_blitz_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/flashcard_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/image_match_game.dart';
 
 import '../../navigation/app_router.dart';
 
@@ -107,13 +112,23 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🃏 Flashcards',
-                      subtitle: 'Memoriza vocabulario con tarjetas',
-                      description: 'Voltea las tarjetas y refuerza tu memoria visual',
+                      title: '🧠 Memoria',
+                      subtitle: 'Encuentra las parejas',
+                      description: 'Entrena tu retentiva visual con emojis coloridos',
                       gradient: const [Color(0xFF6A11CB), Color(0xFFAB47BC)],
-                      xp: 30,
+                      xp: 40,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlashcardGame())),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryGame())),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '⚡ Velocidad',
+                      subtitle: 'Escribe rápido y sin errores',
+                      description: '¿Qué tan rápido puedes teclear estas palabras?',
+                      gradient: const [Color(0xFF00C853), Color(0xFFB2FF59)],
+                      xp: 75,
+                      difficulty: 'Medio',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FastTypeGame())),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -142,10 +157,51 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Desordena y reordena',
                       description: 'Ordena las letras para formar la palabra correcta',
                       gradient: const [Color(0xFFC62828), Color(0xFFEF5350)],
-                      xp: 125,
+                      xp: 90,
+                      difficulty: 'Medio',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WordScrambleGame())),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🏗️ Constructor',
+                      subtitle: 'Forma oraciones correctas',
+                      description: 'Arrastra las palabras para construir la frase',
+                      gradient: const [Color(0xFF00B0FF), Color(0xFF00E5FF)],
+                      xp: 120,
                       difficulty: 'Avanzado',
                       isLocked: !isPro,
-                      onTap: () => _handleGameTap(context, isPro, const WordScrambleGame()),
+                      onTap: () => _handleGameTap(context, isPro, const SentenceBuilderGame()),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '⚡ Verb Blitz',
+                      subtitle: 'Pasados y participios',
+                      description: 'Domina los verbos irregulares a toda velocidad',
+                      gradient: const [Color(0xFF6200EA), Color(0xFFD500F9)],
+                      xp: 150,
+                      difficulty: 'Difícil',
+                      isLocked: !isPro,
+                      onTap: () => _handleGameTap(context, isPro, const VerbBlitzGame()),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🃏 Flashcards',
+                      subtitle: 'Repaso rápido',
+                      description: 'Voltea las tarjetas y comprueba tu conocimiento',
+                      gradient: const [Color(0xFF0091EA), Color(0xFF00B8D4)],
+                      xp: 35,
+                      difficulty: 'Fácil',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlashcardGame())),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🖼️ Identificar',
+                      subtitle: 'Vocabulario visual',
+                      description: 'Selecciona el nombre correcto del objeto mostrado',
+                      gradient: const [Color(0xFFFF4081), Color(0xFFFF80AB)],
+                      xp: 45,
+                      difficulty: 'Fácil',
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageMatchGame())),
                     ),
                   ]),
                 ),
@@ -217,7 +273,10 @@ class _StatsBanner extends StatelessWidget {
         children: [
           _MiniStat(icon: '🔥', value: streak, label: 'Racha'),
           _MiniStat(icon: '⭐', value: xp, label: 'XP Total'),
-          _MiniStat(icon: '🏆', value: ranking, label: 'Ranking'),
+          GestureDetector(
+            onTap: () => context.push(AppRoutes.studentRanking),
+            child: _MiniStat(icon: '🏆', value: ranking, label: 'Ranking'),
+          ),
         ],
       ),
     );
@@ -237,6 +296,11 @@ class _MiniStat extends StatelessWidget {
         const SizedBox(height: 6),
         Text(value, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
         Text(label, style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 11)),
+        if (label == 'Ranking')
+          const Padding(
+            padding: EdgeInsets.only(top: 4),
+            child: Text('Ver más 🏆', style: TextStyle(color: Colors.blueAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+          ),
       ],
     );
   }

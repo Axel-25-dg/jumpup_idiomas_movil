@@ -73,6 +73,24 @@ class SubscriptionService extends BaseRepository {
         message: 'No se pudieron cargar las órdenes');
   }
 
+  /// Simula una compra exitosa para pruebas (Mock)
+  Future<bool> mockPurchase({required int subscriptionId}) async {
+    return handleRequest<bool>(() async {
+      // Simulamos una demora de red
+      await Future.delayed(const Duration(seconds: 1));
+      
+      // En un escenario real, esto llamaría a un endpoint de "test-purchase"
+      // o simplemente activaría el plan directamente en el perfil del usuario.
+      // Por ahora, simulamos el éxito.
+      final response = await dio.post<dynamic>(
+        'my-subscriptions/activate-mock/',
+        data: {'subscription_id': subscriptionId},
+      );
+      
+      return response.statusCode == 200 || response.statusCode == 201;
+    }, message: 'Error en la compra simulada');
+  }
+
   /// Crea un PaymentIntent en Stripe a través del backend.
   /// Retorna { client_secret, publishable_key, order_id }
   Future<Map<String, dynamic>> createPaymentIntent({

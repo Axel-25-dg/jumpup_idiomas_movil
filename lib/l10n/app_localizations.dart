@@ -805,6 +805,204 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Error loading languages'**
   String get loadingLanguagesError;
+
+  /// No description provided for @adminStats.
+  ///
+  /// In en, this message translates to:
+  /// **'Stats'**
+  String get adminStats;
+
+  /// No description provided for @adminPeople.
+  ///
+  /// In en, this message translates to:
+  /// **'People'**
+  String get adminPeople;
+
+  /// No description provided for @adminContent.
+  ///
+  /// In en, this message translates to:
+  /// **'Content'**
+  String get adminContent;
+
+  /// No description provided for @adminOps.
+  ///
+  /// In en, this message translates to:
+  /// **'Ops'**
+  String get adminOps;
+
+  /// No description provided for @platformOverview.
+  ///
+  /// In en, this message translates to:
+  /// **'Platform Overview'**
+  String get platformOverview;
+
+  /// No description provided for @totalUsers.
+  ///
+  /// In en, this message translates to:
+  /// **'Total Users'**
+  String get totalUsers;
+
+  /// No description provided for @studentCourses.
+  ///
+  /// In en, this message translates to:
+  /// **'Courses'**
+  String get studentCourses;
+
+  /// No description provided for @adminSubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions'**
+  String get adminSubscriptions;
+
+  /// No description provided for @studentCertificates.
+  ///
+  /// In en, this message translates to:
+  /// **'Certificates'**
+  String get studentCertificates;
+
+  /// No description provided for @recentActivity.
+  ///
+  /// In en, this message translates to:
+  /// **'Recent Activity'**
+  String get recentActivity;
+
+  /// No description provided for @systemAnnouncements.
+  ///
+  /// In en, this message translates to:
+  /// **'System Announcements'**
+  String get systemAnnouncements;
+
+  /// No description provided for @manageAnnouncementsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage global platform updates'**
+  String get manageAnnouncementsSubtitle;
+
+  /// No description provided for @peopleManagement.
+  ///
+  /// In en, this message translates to:
+  /// **'People Management'**
+  String get peopleManagement;
+
+  /// No description provided for @usersAndRoles.
+  ///
+  /// In en, this message translates to:
+  /// **'Users & Roles'**
+  String get usersAndRoles;
+
+  /// No description provided for @manageUsersSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage all student and teacher accounts'**
+  String get manageUsersSubtitle;
+
+  /// No description provided for @monitorClassroomsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor active groups and assignments'**
+  String get monitorClassroomsSubtitle;
+
+  /// No description provided for @languageExperts.
+  ///
+  /// In en, this message translates to:
+  /// **'Language Experts'**
+  String get languageExperts;
+
+  /// No description provided for @manageLanguagesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Manage platform language assets'**
+  String get manageLanguagesSubtitle;
+
+  /// No description provided for @contentAndCurriculum.
+  ///
+  /// In en, this message translates to:
+  /// **'Content & Curriculum'**
+  String get contentAndCurriculum;
+
+  /// No description provided for @courseCatalog.
+  ///
+  /// In en, this message translates to:
+  /// **'Course Catalog'**
+  String get courseCatalog;
+
+  /// No description provided for @editCoursesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Edit syllabus, lessons and modules'**
+  String get editCoursesSubtitle;
+
+  /// No description provided for @exerciseBank.
+  ///
+  /// In en, this message translates to:
+  /// **'Exercise Bank'**
+  String get exerciseBank;
+
+  /// No description provided for @manageExercisesSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Review and update practice materials'**
+  String get manageExercisesSubtitle;
+
+  /// No description provided for @operationsAndBilling.
+  ///
+  /// In en, this message translates to:
+  /// **'Operations & Billing'**
+  String get operationsAndBilling;
+
+  /// No description provided for @billingAndSubscriptions.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscriptions & Billing'**
+  String get billingAndSubscriptions;
+
+  /// No description provided for @monitorRevenueSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Monitor revenue and premium plans'**
+  String get monitorRevenueSubtitle;
+
+  /// No description provided for @contentReports.
+  ///
+  /// In en, this message translates to:
+  /// **'Content Reports'**
+  String get contentReports;
+
+  /// No description provided for @moderateReportsSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Moderate forum and social reports'**
+  String get moderateReportsSubtitle;
+
+  /// No description provided for @adminProfile.
+  ///
+  /// In en, this message translates to:
+  /// **'Admin Profile'**
+  String get adminProfile;
+
+  /// No description provided for @administrator.
+  ///
+  /// In en, this message translates to:
+  /// **'Administrator'**
+  String get administrator;
+
+  /// No description provided for @superAdminAccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Super Admin Access'**
+  String get superAdminAccess;
+
+  /// No description provided for @securitySettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Security Settings'**
+  String get securitySettings;
+
+  /// No description provided for @logoutAdminConfirm.
+  ///
+  /// In en, this message translates to:
+  /// **'Are you sure you want to exit the admin panel?'**
+  String get logoutAdminConfirm;
 }
 
 class _AppLocalizationsDelegate

@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 import '../../../services/auth_service.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
@@ -11,7 +12,7 @@ class ForgotPasswordScreen extends StatefulWidget {
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with TickerProviderStateMixin {
   final _authService = AuthService();
   final _emailCtrl = TextEditingController();
   final _codeCtrl = TextEditingController();
@@ -20,6 +21,27 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   int _step = 1; // 1=enviar email, 2=ingresar PIN, 3=nueva contraseña
   String _email = '';
   bool _isLoading = false;
+
+  late AnimationController _blobController;
+
+  @override
+  void initState() {
+    super.initState();
+    _blobController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 10),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _emailCtrl.dispose();
+    _codeCtrl.dispose();
+    _passCtrl.dispose();
+    _pass2Ctrl.dispose();
+    _blobController.dispose();
+    super.dispose();
+  }
 
   Future<void> _requestPin() async {
     if (_emailCtrl.text.isEmpty) return;
@@ -58,7 +80,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F111A) : Colors.white,
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -70,15 +92,37 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       ),
       body: Stack(
         children: [
-          Positioned(
-            top: -100,
-            right: -50,
-            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: 0.1), size: 300),
+          // Decorative Animated Blobs
+          AnimatedBuilder(
+            animation: _blobController,
+            builder: (context, child) {
+              return Stack(
+                children: [
+                  Positioned(
+                    top: -100 + (20 * _blobController.value),
+                    right: -50 + (30 * _blobController.value),
+                    child: _BlurBlob(
+                      color: const Color(0xFF6A11CB).withValues(alpha: isDark ? 0.25 : 0.15),
+                      size: 320,
+                    ),
+                  ),
+                  Positioned(
+                    bottom: -50 - (20 * _blobController.value),
+                    left: -50 - (30 * _blobController.value),
+                    child: _BlurBlob(
+                      color: const Color(0xFF2575FC).withValues(alpha: isDark ? 0.2 : 0.1),
+                      size: 300,
+                    ),
+                  ),
+                ],
+              );
+            },
           ),
+
           SafeArea(
             child: Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(28),
+                padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 24),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -90,8 +134,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         l10n.forgotPasswordInstructions,
                       ),
                       const SizedBox(height: 32),
-                      _buildGlassContainer(
-                        context,
+                      GlassContainer(
+                        blur: 24,
+                        opacity: isDark ? 0.06 : 0.1,
+                        borderRadius: BorderRadius.circular(32),
+                        padding: const EdgeInsets.all(28),
                         child: Column(
                           children: [
                             _CustomTextField(
@@ -102,7 +149,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                             const SizedBox(height: 24),
                             _buildMainButton(
-                              text: l10n.sendCode,
+                              text: l10n.sendCode.toUpperCase(),
                               onPressed: _requestPin,
                               isLoading: _isLoading,
                             ),
@@ -118,8 +165,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         l10n.verifyEmailInstructions(_email),
                       ),
                       const SizedBox(height: 32),
-                      _buildGlassContainer(
-                        context,
+                      GlassContainer(
+                        blur: 24,
+                        opacity: isDark ? 0.06 : 0.1,
+                        borderRadius: BorderRadius.circular(32),
+                        padding: const EdgeInsets.all(28),
                         child: Column(
                           children: [
                             _CustomTextField(
@@ -144,7 +194,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             ),
                             const SizedBox(height: 24),
                             _buildMainButton(
-                              text: l10n.resetPassword,
+                              text: l10n.resetPassword.toUpperCase(),
                               onPressed: _confirmPin,
                               isLoading: _isLoading,
                             ),
@@ -162,7 +212,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       ),
                       const SizedBox(height: 40),
                       _buildMainButton(
-                        text: l10n.backToStart,
+                        text: l10n.backToStart.toUpperCase(),
                         onPressed: () => Navigator.pop(context),
                       ),
                     ],
@@ -176,80 +226,97 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     );
   }
 
-  Widget _buildHeader(BuildContext context, IconData icon, String title, String subtitle, {Color iconColor = Colors.blueAccent}) {
+  Widget _buildHeader(BuildContext context, IconData icon, String title, String subtitle, {Color? iconColor}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = iconColor ?? const Color(0xFF2575FC);
+
     return Column(
       children: [
         Container(
-          padding: const EdgeInsets.all(20),
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
+            gradient: LinearGradient(
+              colors: [color.withValues(alpha: 0.8), color],
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          child: Icon(icon, size: 48, color: iconColor),
+          child: Icon(icon, size: 40, color: Colors.white),
         ),
         const SizedBox(height: 24),
         Text(
           title,
           textAlign: TextAlign.center,
-          style: AppTextStyles.headlineSmall.copyWith(color: isDark ? Colors.white : Colors.black87, fontWeight: FontWeight.w800),
+          style: AppTextStyles.headlineSmall.copyWith(
+            color: isDark ? Colors.white : Colors.black87,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.5,
+          ),
         ),
         const SizedBox(height: 12),
-        Text(
-          subtitle,
-          textAlign: TextAlign.center,
-          style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white.withValues(alpha: 0.6) : Colors.black54),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+          child: Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.bodyMedium.copyWith(
+              color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.6),
+            ),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildGlassContainer(BuildContext context, {required Widget child}) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(24),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-        child: Container(
-          padding: const EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1)),
-          ),
-          child: child,
-        ),
-      ),
-    );
-  }
+  // Removed _buildGlassContainer as we now use the standard GlassContainer widget
 
   Widget _buildMainButton({required String text, required VoidCallback onPressed, bool isLoading = false}) {
-    return SizedBox(
+    return Container(
       width: double.infinity,
-      height: 54,
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFF2575FC).withValues(alpha: 0.3),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
+      height: 58,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        gradient: const LinearGradient(
+          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        child: ElevatedButton(
-          onPressed: isLoading ? null : onPressed,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.transparent,
-            shadowColor: Colors.transparent,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF2575FC).withValues(alpha: 0.4),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
           ),
-          child: isLoading
-              ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
-              : Text(text, style: AppTextStyles.buttonText.copyWith(color: Colors.white, fontSize: 16)),
+        ],
+      ),
+      child: ElevatedButton(
+        onPressed: isLoading ? null : onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.transparent,
+          shadowColor: Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         ),
+        child: isLoading
+            ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+            : Text(
+                text,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.buttonText.copyWith(
+                  color: Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
       ),
     );
   }
@@ -302,15 +369,18 @@ class _CustomTextField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
-      style: TextStyle(color: isDark ? Colors.white : Colors.black87),
+      style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 15),
       decoration: InputDecoration(
         hintText: hint,
-        hintStyle: TextStyle(color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38),
-        prefixIcon: Icon(icon, color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black45, size: 20),
+        hintStyle: TextStyle(color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3)),
+        prefixIcon: Icon(icon, color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5), size: 20),
         filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),

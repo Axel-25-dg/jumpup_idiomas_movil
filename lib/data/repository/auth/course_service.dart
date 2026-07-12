@@ -1,8 +1,9 @@
+import 'package:dio/dio.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
 class CourseService extends BaseRepository {
-  const CourseService();
+  const CourseService({Dio? dio}) : super(dio);
 
   Future<List<LanguageModel>> getLanguages() async {
     return getList('languages/', LanguageModel.fromJson,

@@ -1,22 +1,67 @@
+// lib/presentation/providers/exercise_provider.dart
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/exercise_repository.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
-/// Notificador para crear ejercicios
-class ExerciseNotifier extends StateNotifier<AsyncValue<void>> {
-  ExerciseNotifier(this._ref) : super(const AsyncValue.data(null));
+final exerciseNotifierProvider = StateNotifierProvider<ExerciseNotifier, AsyncValue<List<ExerciseModel>>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).exercises;
+  return ExerciseNotifier(repository);
+});
 
-  final Ref _ref;
+class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
+  final ExerciseRepository _repository;
 
-  Future<void> createExercise(Map<String, dynamic> data) async {
+  ExerciseNotifier(this._repository) : super(const AsyncValue.loading());
+
+  Future<void> getExercisesByLesson(int lessonId) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final repo = _ref.read(teacherRepositoryProvider);
-      await repo.createExercise(data);
-    });
+    try {
+      final exercises = await _repository.getExercisesByLesson(lessonId);
+      state = AsyncValue.data(exercises);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> addExercise(Map<String, dynamic> data) async {
+    try {
+      await _repository.createExercise(data);
+      final lessonId = data['lesson'] as int;
+      await getExercisesByLesson(lessonId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // Alias para compatibilidad con UI existente
+  Future<void> createExercise(Map<String, dynamic> data) => addExercise(data);
+
+  Future<void> deleteExercise(int id, int lessonId) async {
+    try {
+      await _repository.deleteExercise(id);
+      await getExercisesByLesson(lessonId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+  Future<void> updateExercise(int id, Map<String, dynamic> data) async {
+  try {
+    await _repository.updateExercise(id, data);
+    final lessonId = data['lesson'] as int;
+    await getExercisesByLesson(lessonId);
+  } catch (e, stack) {
+    state = AsyncValue.error(e, stack);
   }
 }
 
-final exerciseNotifierProvider =
-    StateNotifierProvider<ExerciseNotifier, AsyncValue<void>>((ref) {
-  return ExerciseNotifier(ref);
+  Future<void> refresh(int lessonId) async {
+    await getExercisesByLesson(lessonId);
+  }
+}
+
+// Provider con parámetro
+final exercisesByLessonProvider = FutureProvider.family<List<ExerciseModel>, int>((ref, lessonId) {
+  final repository = ref.watch(teacherRepositoryProvider).exercises;
+  return repository.getExercisesByLesson(lessonId);
 });
