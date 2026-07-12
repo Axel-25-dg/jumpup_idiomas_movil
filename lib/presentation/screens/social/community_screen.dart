@@ -302,89 +302,88 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
     final sheetBg = isDark ? const Color(0xFF1E1E2E).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.97);
     final textColor = isDark ? Colors.white : Colors.black87;
 
-    return BackdropFilter(
-      filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
       child: Container(
-        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 32),
         decoration: BoxDecoration(
           color: sheetBg,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black12),
         ),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40, height: 4,
-                  decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black12,
-                    borderRadius: BorderRadius.circular(10),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40, height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black12,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 24),
-              Text('Nuevo Tema',
-                  style: AppTextStyles.headlineSmall.copyWith(
-                      fontWeight: FontWeight.w900, color: textColor, letterSpacing: -0.5)),
-              const SizedBox(height: 8),
-              Text('Comparte tus dudas o conocimientos con la comunidad.',
-                  style: AppTextStyles.bodyMedium.copyWith(
-                      color: isDark ? Colors.white54 : Colors.black54)),
-              const SizedBox(height: 32),
-              categoriesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (_, __) => const Text('Error cargando categorías',
-                    style: TextStyle(color: Colors.redAccent)),
-                data: (categories) => categories.isEmpty
-                    ? const SizedBox.shrink()
-                    : DropdownButtonFormField<int>(
-                  initialValue: _categoryId,
-                  dropdownColor: isDark ? const Color(0xFF2A2D3E) : Colors.white,
+                const SizedBox(height: 24),
+                Text('Nuevo Tema',
+                    style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w900, color: textColor, letterSpacing: -0.5)),
+                const SizedBox(height: 8),
+                Text('Comparte tus dudas o conocimientos con la comunidad.',
+                    style: AppTextStyles.bodyMedium.copyWith(
+                        color: isDark ? Colors.white54 : Colors.black54)),
+                const SizedBox(height: 32),
+                categoriesAsync.when(
+                  loading: () => const Center(child: CircularProgressIndicator()),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (categories) => categories.isEmpty
+                      ? const SizedBox.shrink()
+                      : DropdownButtonFormField<int>(
+                          initialValue: _categoryId,
+                          dropdownColor: isDark ? const Color(0xFF2A2D3E) : Colors.white,
+                          style: AppTextStyles.bodyMedium.copyWith(color: textColor),
+                          decoration: _inputDecoration('Categoría (opcional)', Icons.category_outlined, isDark),
+                          items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
+                          onChanged: (v) => setState(() => _categoryId = v),
+                        ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _titleCtrl,
                   style: AppTextStyles.bodyMedium.copyWith(color: textColor),
-                  decoration: _inputDecoration('Categoría (opcional)', Icons.category_outlined, isDark),
-                  items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
-                  onChanged: (v) => setState(() => _categoryId = v),
+                  decoration: _inputDecoration('Título del tema', Icons.title_rounded, isDark),
                 ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _titleCtrl,
-                style: AppTextStyles.bodyMedium.copyWith(color: textColor),
-                decoration: _inputDecoration('Título del tema', Icons.title_rounded, isDark),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _bodyCtrl,
-                maxLines: 4,
-                style: AppTextStyles.bodyMedium.copyWith(color: textColor),
-                decoration: _inputDecoration('Escribe tu mensaje...', Icons.text_fields_rounded, isDark),
-              ),
-              const SizedBox(height: 32),
-              SizedBox(
-                width: double.infinity, height: 56,
-                child: ElevatedButton(
-                  onPressed: (_loading || _titleCtrl.text.trim().isEmpty)
-                      ? null
-                      : _submit,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
-                    foregroundColor: Colors.white,
-                    disabledBackgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    elevation: 0,
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _bodyCtrl,
+                  maxLines: 4,
+                  style: AppTextStyles.bodyMedium.copyWith(color: textColor),
+                  decoration: _inputDecoration('Escribe tu mensaje...', Icons.text_fields_rounded, isDark),
+                ),
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity, height: 56,
+                  child: ElevatedButton(
+                    onPressed: _loading ? null : _submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF7C4DFF),
+                      foregroundColor: Colors.white,
+                      disabledBackgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 0,
+                    ),
+                    child: _loading
+                        ? const SizedBox(width: 24, height: 24,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                        : Text('PUBLICAR TEMA',
+                            style: AppTextStyles.labelLarge.copyWith(
+                                fontWeight: FontWeight.w800, color: Colors.white)),
                   ),
-                  child: _loading
-                      ? const SizedBox(width: 24, height: 24,
-                          child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Text('PUBLICAR TEMA',
-                          style: AppTextStyles.labelLarge.copyWith(
-                              fontWeight: FontWeight.w800, color: Colors.white)),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),

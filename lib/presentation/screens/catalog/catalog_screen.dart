@@ -95,7 +95,7 @@ class _CatalogHeader extends StatelessWidget {
         centerTitle: false,
         titlePadding: const EdgeInsetsDirectional.only(start: 20, bottom: 16),
         title: Text(
-          'Explorar Cursos',
+          'Tienda',
           style: AppTextStyles.headlineSmall.copyWith(
             color: isDark ? Colors.white : Colors.black87,
             fontWeight: FontWeight.w800,
@@ -145,119 +145,122 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 10,
-            offset: const Offset(0, 5),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: Stack(
-                children: [
-                  ProductImage(
-                    imageUrl: course.imageUrl,
-                    height: double.infinity,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                  ),
-                  Positioned(
-                    top: 10,
-                    right: 10,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.5),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        course.languageName,
-                        style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    course.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: isDark ? Colors.white : Colors.black87, 
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      const Icon(Icons.bar_chart_rounded, size: 14, color: Colors.blueAccent),
-                      const SizedBox(width: 4),
-                      Text(
-                        course.difficultyLevel,
-                        style: TextStyle(
-                          color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54, 
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            context.push('/student/course/${course.id}');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
-                            foregroundColor: Colors.blueAccent,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(vertical: 0),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            minimumSize: const Size(0, 36),
-                          ),
-                          child: const Text('Ver más', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton(
-                        onPressed: () {
-                          context.push('/student/subscriptions');
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blueAccent,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          minimumSize: const Size(0, 36),
-                        ),
-                        child: const Icon(Icons.shopping_cart_outlined, size: 16),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+    return GestureDetector(
+      onTap: () => context.push('/student/course/${course.id}'),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05)),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
             ),
           ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(
+                child: Stack(
+                  children: [
+                    ProductImage(
+                      imageUrl: course.imageUrl,
+                      height: double.infinity,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                    ),
+                    Positioned(
+                      top: 10,
+                      left: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          gradient: const LinearGradient(
+                            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                          ),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Text(
+                          'PRO',
+                          style: TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          course.languageName,
+                          style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      course.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: isDark ? Colors.white : Colors.black87,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(Icons.bar_chart_rounded, size: 12, color: Colors.blueAccent),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            course.difficultyLevel,
+                            style: TextStyle(
+                              color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54,
+                              fontSize: 10,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: () => context.push('/student/subscriptions'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF2575FC),
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(vertical: 0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          minimumSize: const Size(0, 32),
+                        ),
+                        child: const Text('Obtener acceso', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

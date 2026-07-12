@@ -329,15 +329,15 @@ class _HomeTab extends ConsumerWidget {
             slivers: [
               _SliverHeader(userAsync: userAsync, statsAsync: statsAsync),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 100),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
-                    const SizedBox(height: 24),
-                    _SectionTitle(AppLocalizations.of(context)!.quickActions),
                     const SizedBox(height: 16),
+                    _SectionTitle(AppLocalizations.of(context)!.quickActions),
+                    const SizedBox(height: 12),
                     const _QuickActionsGrid(),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 20),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -359,11 +359,11 @@ class _HomeTab extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 6),
                     _RecentCourseCard(summaryAsync: summaryAsync),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     const _TutorIABanner(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 12),
                     _SubscriptionBanner(),
                   ]),
                 ),
@@ -809,7 +809,7 @@ class _QuickActionsGrid extends StatelessWidget {
       crossAxisCount: 2,
       mainAxisSpacing: 12,
       crossAxisSpacing: 12,
-      childAspectRatio: 2.2,
+      childAspectRatio: 2.8,
       children: [
         for (final a in actions)
           _QuickActionCard(
