@@ -12,6 +12,8 @@ class GlassContainer extends StatelessWidget {
   final double? width;
   final BoxConstraints? constraints;
   final VoidCallback? onTap;
+  final Color? color;
+  final BoxBorder? border;
 
   const GlassContainer({
     super.key,
@@ -25,16 +27,19 @@ class GlassContainer extends StatelessWidget {
     this.width,
     this.constraints,
     this.onTap,
+    this.color,
+    this.border,
   });
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // In dark mode: white overlay. In light mode: dark overlay for visibility.
-    final overlayColor = isDark
+    
+    // Default colors if not provided
+    final defaultOverlayColor = isDark
         ? Colors.white.withValues(alpha: opacity)
         : Colors.black.withValues(alpha: opacity * 0.4);
-    final borderColor = isDark
+    final defaultBorderColor = isDark
         ? Colors.white.withValues(alpha: 0.15)
         : Colors.black.withValues(alpha: 0.08);
 
@@ -45,10 +50,10 @@ class GlassContainer extends StatelessWidget {
       width: width,
       constraints: constraints,
       decoration: BoxDecoration(
-        color: overlayColor,
+        color: color ?? defaultOverlayColor,
         borderRadius: borderRadius,
-        border: Border.all(
-          color: borderColor,
+        border: border ?? Border.all(
+          color: defaultBorderColor,
           width: 1.5,
         ),
       ),

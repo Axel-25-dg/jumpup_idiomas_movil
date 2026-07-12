@@ -139,23 +139,25 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
       appBar: _buildAppBar(isDark),
       body: Stack(
         children: [
-          // Background Gradient
-          if (isDark)
+          // Background Blobs similar to Games/Social
+          if (isDark) ...[
             Positioned(
-              top: -100,
-              right: -100,
-              child: Container(
-                width: 300,
-                height: 300,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: Colors.blueAccent.withValues(alpha: 0.15),
-                  boxShadow: [
-                    BoxShadow(color: Colors.blueAccent.withValues(alpha: 0.3), blurRadius: 100),
-                  ],
-                ),
+              top: -80,
+              left: -60,
+              child: _BlurBlob(
+                color: const Color(0xFF6A11CB).withValues(alpha: 0.15),
+                size: 280,
               ),
             ),
+            Positioned(
+              bottom: 150,
+              right: -70,
+              child: _BlurBlob(
+                color: const Color(0xFF2575FC).withValues(alpha: 0.12),
+                size: 250,
+              ),
+            ),
+          ],
           Column(
             children: [
               if (chatState.error != null)
@@ -305,6 +307,31 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   }
 }
 
+class _BlurBlob extends StatelessWidget {
+  final Color color;
+  final double size;
+  const _BlurBlob({required this.color, required this.size});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: color,
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.4),
+            blurRadius: 100,
+            spreadRadius: 20,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _ChatBubble extends StatelessWidget {
   const _ChatBubble({required this.isBot, required this.text, required this.timestamp});
   final bool isBot;
@@ -327,22 +354,19 @@ class _ChatBubble extends StatelessWidget {
           crossAxisAlignment: isBot ? CrossAxisAlignment.start : CrossAxisAlignment.end,
           children: [
             if (isBot)
-              Container(
-                decoration: BoxDecoration(
-                  color: botBubbleColor,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                    bottomRight: Radius.circular(20),
-                    bottomLeft: Radius.circular(4),
-                  ),
-                  border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.06)),
-                  boxShadow: isDark ? null : [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 8, offset: const Offset(0, 2))],
+              GlassContainer(
+                opacity: isDark ? 0.08 : 0.05,
+                blur: 20,
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(24),
+                  topRight: Radius.circular(24),
+                  bottomRight: Radius.circular(24),
+                  bottomLeft: Radius.circular(4),
                 ),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Text(
                   text,
-                  style: TextStyle(color: botTextColor, height: 1.5, fontSize: 15),
+                  style: TextStyle(color: botTextColor, height: 1.6, fontSize: 15, fontWeight: FontWeight.w500),
                 ),
               )
             else
@@ -354,23 +378,23 @@ class _ChatBubble extends StatelessWidget {
                     end: Alignment.bottomRight,
                   ),
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(20),
-                    topRight: Radius.circular(20),
-                    bottomLeft: Radius.circular(20),
+                    topLeft: Radius.circular(24),
+                    topRight: Radius.circular(24),
+                    bottomLeft: Radius.circular(24),
                     bottomRight: Radius.circular(4),
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: const Color(0xFF2575FC).withValues(alpha: 0.2),
-                      blurRadius: 10,
+                      color: const Color(0xFF2575FC).withValues(alpha: 0.3),
+                      blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(18),
                 child: Text(
                   text,
-                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500, fontSize: 15),
+                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 15),
                 ),
               ),
             const SizedBox(height: 6),
@@ -421,31 +445,31 @@ class _TypingIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bgColor = isDark ? const Color(0xFF232336) : Colors.black.withValues(alpha: 0.05);
 
     return Align(
       alignment: Alignment.centerLeft,
       child: Container(
-        margin: const EdgeInsets.only(bottom: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
-        decoration: BoxDecoration(
-          color: bgColor,
+        margin: const EdgeInsets.only(bottom: 20),
+        child: GlassContainer(
+          opacity: isDark ? 0.08 : 0.05,
+          blur: 20,
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20),
             topRight: Radius.circular(20),
             bottomRight: Radius.circular(20),
             bottomLeft: Radius.circular(4),
           ),
-        ),
-        child: const Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _Dot(delay: 0),
-            SizedBox(width: 4),
-            _Dot(delay: 200),
-            SizedBox(width: 4),
-            _Dot(delay: 400),
-          ],
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: const Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _Dot(delay: 0),
+              SizedBox(width: 4),
+              _Dot(delay: 200),
+              SizedBox(width: 4),
+              _Dot(delay: 400),
+            ],
+          ),
         ),
       ),
     );

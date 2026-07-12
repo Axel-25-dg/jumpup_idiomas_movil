@@ -307,11 +307,14 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
             ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
             : Text(
                 text,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.buttonText.copyWith(
                   color: Colors.white,
-                  fontSize: 15,
+                  fontSize: 14,
                   fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
+                  letterSpacing: 0.5,
                 ),
               ),
       ),

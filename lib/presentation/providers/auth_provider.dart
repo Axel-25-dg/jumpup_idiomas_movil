@@ -239,18 +239,30 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Logout ─────────────────────────────────────────────────────────────────
 
   Future<void> logout() async {
-    await _authService.logout();
-    await GoogleAuthService.instance.signOut();
+    // 1. Limpiar tokens locales inmediatamente para invalidar cualquier petición futura
+    await _tokenStorage.clearTokens();
+    
+    try {
+      // 2. Cerrar sesión en Google si aplica
+      await GoogleAuthService.instance.signOut();
+    } catch (_) {}
+
     final hasBiometric = await _tokenStorage.hasBiometricStored();
     
-    // Invalida todos los proveedores de datos al cerrar sesión
+    // 3. Invalida todos los proveedores de datos al cerrar sesión
     _invalidateAllDataProviders();
 
+    // 4. Actualizar el estado a no autenticado inmediatamente
     state = state.copyWith(
       status: AuthStatus.unauthenticated,
       user: null,
       canUseBiometrics: hasBiometric,
     );
+
+    // 5. Notificar al servidor (opcional, sin esperar si es lento)
+    try {
+      await _authService.logout().timeout(const Duration(seconds: 2));
+    } catch (_) {}
   }
 
   /// Invalida globalmente los proveedores que almacenan datos específicos

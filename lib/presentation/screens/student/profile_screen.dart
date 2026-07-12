@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:jumpup_app/widgets/logout_dialog.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
 import 'package:jumpup_app/presentation/providers/images/image_upload_provider.dart';
@@ -130,6 +131,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     LogoutDialog.show(context);
   }
 
+  void _shareProfile(String fullName) {
+    Share.share(
+      '¡Hola! Te invito a unirte a JumpUp y aprender idiomas conmigo. Mi nombre es $fullName. Descarga la app aquí: https://jumpup.app',
+      subject: 'Únete a JumpUp',
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
@@ -184,6 +192,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                   }
                 },
                 onSettingsTap: () => context.push('/student/settings'),
+                onShareTap: () => _shareProfile(displayFullName),
                 isSaving: isSaving,
               ),
               Padding(
@@ -234,6 +243,7 @@ class _ProfileHeader extends StatelessWidget {
   final VoidCallback? onAvatarTap;
   final VoidCallback onEditTap;
   final VoidCallback onSettingsTap;
+  final VoidCallback onShareTap;
 
   const _ProfileHeader({
     required this.fullName,
@@ -244,6 +254,7 @@ class _ProfileHeader extends StatelessWidget {
     this.onAvatarTap,
     required this.onEditTap,
     required this.onSettingsTap,
+    required this.onShareTap,
     required this.isSaving,
   });
 
@@ -257,10 +268,17 @@ class _ProfileHeader extends StatelessWidget {
         gradient: LinearGradient(
           colors: isDark 
             ? [const Color(0xFF1A0533), const Color(0xFF0F111A)]
-            : [Colors.purpleAccent.withValues(alpha: 0.1), Theme.of(context).scaffoldBackgroundColor],
+            : [const Color(0xFF6A11CB).withValues(alpha: 0.15), Theme.of(context).scaffoldBackgroundColor],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
         borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
@@ -315,10 +333,15 @@ class _ProfileHeader extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: isDark ? const Color(0xFF1E1E2E) : Colors.white,
                     ),
-                    child: UserAvatar(
-                      imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
-                      fullName: fullName,
-                      radius: 48,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        UserAvatar(
+                          imageUrl: avatarUrl.isNotEmpty ? avatarUrl : null,
+                          fullName: fullName,
+                          radius: 48,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -413,7 +436,7 @@ class _ProfileHeader extends StatelessWidget {
                     child: _ActionButton(
                       icon: Icons.share_outlined,
                       label: l10n.share,
-                      onTap: () {},
+                      onTap: onShareTap,
                       isPrimary: false,
                     ),
                   ),

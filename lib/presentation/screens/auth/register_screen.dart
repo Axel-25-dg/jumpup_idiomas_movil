@@ -23,7 +23,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
   final _confirmPassCtrl = TextEditingController();
   bool _obscurePass = true;
   bool _obscureConfirm = true;
-  String _selectedRole = 'student';
 
   @override
   void dispose() {
@@ -44,7 +43,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           username: _usernameCtrl.text.trim(),
           email: _emailCtrl.text.trim(),
           password: _passCtrl.text,
-          role: _selectedRole,
+          role: 'student',
         );
   }
 
@@ -85,12 +84,12 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
           Positioned(
             top: -50,
             left: -50,
-            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: isDark ? 0.1 : 0.05), size: 200),
+            child: _BlurBlob(color: Colors.blueAccent.withValues(alpha: isDark ? 0.15 : 0.08), size: 200),
           ),
           Positioned(
             bottom: 50,
             right: -100,
-            child: _BlurBlob(color: Colors.purpleAccent.withValues(alpha: isDark ? 0.1 : 0.05), size: 300),
+            child: _BlurBlob(color: Colors.purpleAccent.withValues(alpha: isDark ? 0.15 : 0.08), size: 300),
           ),
 
           SafeArea(
@@ -126,7 +125,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                         child: Container(
                           padding: const EdgeInsets.all(24),
                           decoration: BoxDecoration(
-                            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                            color: isDark ? Colors.white.withValues(alpha: 0.12) : Colors.white.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(24),
                             border: Border.all(
                               color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
@@ -135,67 +134,6 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                           ),
                           child: Column(
                             children: [
-                              // ── Role Selector ──────────────────────────
-                              Container(
-                                padding: const EdgeInsets.all(4),
-                                decoration: BoxDecoration(
-                                  color: isDark ? Colors.white10 : Colors.black12,
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _selectedRole = 'student'),
-                                        child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          padding: const EdgeInsets.symmetric(vertical: 12),
-                                          decoration: BoxDecoration(
-                                            gradient: _selectedRole == 'student'
-                                                ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)])
-                                                : null,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            'Estudiante',
-                                            style: TextStyle(
-                                              color: _selectedRole == 'student' ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    Expanded(
-                                      child: GestureDetector(
-                                        onTap: () => setState(() => _selectedRole = 'teacher'),
-                                        child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          padding: const EdgeInsets.symmetric(vertical: 12),
-                                          decoration: BoxDecoration(
-                                            gradient: _selectedRole == 'teacher'
-                                                ? const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)])
-                                                : null,
-                                            borderRadius: BorderRadius.circular(12),
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: Text(
-                                            'Profesor',
-                                            style: TextStyle(
-                                              color: _selectedRole == 'teacher' ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
-                                              fontWeight: FontWeight.bold,
-                                              fontSize: 14,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 24),
                               Row(
                                 children: [
                                   Expanded(

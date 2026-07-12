@@ -84,7 +84,7 @@ class _AdminBottomNav extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     final items = [
-      (Icons.dashboard_rounded, l10n.adminStats),
+      (Icons.dashboard_rounded, 'Menú'),
       (Icons.people_rounded, l10n.adminPeople),
       (Icons.library_books_rounded, l10n.adminContent),
       (Icons.settings_suggest_rounded, l10n.adminOps),
@@ -237,15 +237,15 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   statsAsync.when(
                     loading: () => const _LoadingMetrics(),
                     error: (e, _) => _ErrorCard(message: e.toString()),
                     data: (stats) => GridView.count(
                       crossAxisCount: 2,
-                      mainAxisSpacing: 16,
-                      crossAxisSpacing: 16,
-                      childAspectRatio: 1.5,
+                      mainAxisSpacing: 12,
+                      crossAxisSpacing: 12,
+                      childAspectRatio: 1.6,
                       shrinkWrap: true,
                       physics: const NeverScrollableScrollPhysics(),
                       children: [
@@ -276,7 +276,7 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                       ],
                     ),
                   ),
-                  const SizedBox(height: 32),
+                  const SizedBox(height: 24),
                   Text(
                     l10n.recentActivity,
                     style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
@@ -619,24 +619,43 @@ class _MetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassContainer(
       blur: 24,
-      opacity: 0.06,
-      borderRadius: BorderRadius.circular(28),
-      padding: const EdgeInsets.all(18),
+      opacity: 0.08,
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              shape: BoxShape.circle,
-              border: Border.all(color: color.withValues(alpha: 0.3)),
-            ),
-            child: Icon(icon, color: color, size: 18),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                  border: Border.all(color: color.withValues(alpha: 0.3)),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const Icon(Icons.trending_up, color: Colors.white24, size: 14),
+            ],
           ),
           const Spacer(),
-          Text(value.toString(), style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
-          Text(title.toUpperCase(), style: TextStyle(color: Colors.white54, fontSize: 10, fontWeight: FontWeight.w800)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(
+              value.toString(),
+              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, height: 1),
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            title.toUpperCase(),
+            style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
         ],
       ),
     );

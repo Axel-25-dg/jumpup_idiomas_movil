@@ -349,7 +349,7 @@ class _PostCard extends StatelessWidget {
                       icon: Icons.chat_bubble_outline_rounded,
                       label: '${post.commentCount}',
                       color: iconFadeColor,
-                      onTap: () {},
+                      onTap: () => _showComments(context, post),
                     ),
                     const Spacer(),
                     IconButton(
@@ -363,6 +363,15 @@ class _PostCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  void _showComments(BuildContext context, SocialPost post) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) => _PostCommentsSheet(post: post),
     );
   }
 
@@ -382,6 +391,174 @@ class _PostCard extends StatelessWidget {
       case 'achievement': return 'Logro';
       default: return 'General';
     }
+  }
+}
+
+class _PostCommentsSheet extends ConsumerStatefulWidget {
+  final SocialPost post;
+  const _PostCommentsSheet({required this.post});
+
+  @override
+  ConsumerState<_PostCommentsSheet> createState() => _PostCommentsSheetState();
+}
+
+class _PostCommentsSheetState extends ConsumerState<_PostCommentsSheet> {
+  final _commentController = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _commentController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _sendComment() async {
+    final text = _commentController.text.trim();
+    if (text.isEmpty) return;
+    setState(() => _sending = true);
+    try {
+      await ref.read(socialRepositoryProvider).createComment(
+        postId: widget.post.id,
+        body: text,
+      );
+      if (mounted) {
+        _commentController.clear();
+        ref.invalidate(postCommentsProvider(widget.post.id));
+        ref.invalidate(socialFeedProvider);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final commentsAsync = ref.watch(postCommentsProvider(widget.post.id));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sheetBg = isDark ? const Color(0xFF1E1E2E) : Colors.white;
+    final textColor = isDark ? Colors.white : Colors.black87;
+    final subtextColor = isDark ? Colors.white54 : Colors.black54;
+
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.75,
+      decoration: BoxDecoration(
+        color: sheetBg,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      ),
+      child: Column(
+        children: [
+          const SizedBox(height: 12),
+          Container(
+            width: 40, height: 4,
+            decoration: BoxDecoration(
+              color: isDark ? Colors.white12 : Colors.black12,
+              borderRadius: BorderRadius.circular(2),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text('Comentarios',
+              style: AppTextStyles.titleLarge.copyWith(color: textColor, fontWeight: FontWeight.w900)),
+          const SizedBox(height: 8),
+          const Divider(),
+          Expanded(
+            child: commentsAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF6A11CB))),
+              error: (e, _) => Center(child: Text('Error: $e', style: TextStyle(color: subtextColor))),
+              data: (comments) => comments.isEmpty
+                  ? Center(
+                      child: Text('Sin comentarios aún',
+                          style: AppTextStyles.bodyMedium.copyWith(color: subtextColor)))
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(20),
+                      itemCount: comments.length,
+                      separatorBuilder: (_, __) => const SizedBox(height: 16),
+                      itemBuilder: (ctx, i) {
+                        final comment = comments[i];
+                        final initial = comment.authorName.isNotEmpty ? comment.authorName[0].toUpperCase() : '?';
+                        return Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            CircleAvatar(
+                              radius: 18,
+                              backgroundColor: const Color(0xFF6A11CB).withValues(alpha: 0.1),
+                              backgroundImage: comment.authorAvatar != null ? NetworkImage(comment.authorAvatar!) : null,
+                              child: comment.authorAvatar == null
+                                  ? Text(initial,
+                                      style: AppTextStyles.labelSmall.copyWith(
+                                          color: const Color(0xFF6A11CB), fontWeight: FontWeight.bold))
+                                  : null,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(comment.authorName,
+                                      style: AppTextStyles.labelSmall.copyWith(
+                                          color: textColor, fontWeight: FontWeight.w900)),
+                                  const SizedBox(height: 4),
+                                  Text(comment.body,
+                                      style: AppTextStyles.bodyMedium.copyWith(color: textColor.withValues(alpha: 0.8))),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('dd MMM, HH:mm').format(comment.createdAt),
+                                    style: AppTextStyles.labelSmall.copyWith(color: subtextColor, fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+            ),
+          ),
+          Padding(
+            padding: EdgeInsets.fromLTRB(16, 8, 16, MediaQuery.of(context).viewInsets.bottom + 20),
+            child: Row(
+              children: [
+                Expanded(
+                  child: GlassContainer(
+                    opacity: isDark ? 0.05 : 0.08,
+                    blur: 0,
+                    borderRadius: BorderRadius.circular(24),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: TextField(
+                      controller: _commentController,
+                      style: AppTextStyles.bodyMedium.copyWith(color: textColor),
+                      decoration: InputDecoration(
+                        hintText: 'Escribe un comentario...',
+                        hintStyle: AppTextStyles.bodyMedium.copyWith(color: subtextColor),
+                        border: InputBorder.none,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+                  ),
+                  child: IconButton(
+                    onPressed: _sending ? null : _sendComment,
+                    icon: _sending
+                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        : const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

@@ -7,6 +7,7 @@ import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 
+import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class CourseListScreen extends ConsumerStatefulWidget {
@@ -181,7 +182,7 @@ class _SliverAppBar extends StatelessWidget {
         fontSize: 28
       )),
       bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(70),
+        preferredSize: const Size.fromHeight(80),
         child: Padding(
           padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
           child: Row(
@@ -292,71 +293,92 @@ class _CourseListItem extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              height: 140,
-              decoration: const BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [Color(0xFF2575FC), Color(0xFF6A11CB)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-              ),
-              child: Stack(
-                children: [
-                  Positioned(
-                    right: -20,
-                    bottom: -20,
-                    child: Icon(Icons.language_rounded, size: 160, color: Colors.white.withValues(alpha: 0.1)),
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                  child: ProductImage(
+                    imageUrl: course.imageUrl,
+                    height: 160,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: [
-                        DifficultyBadge(level: course.difficultyLevel),
-                        const SizedBox(height: 12),
-                        Text(
-                          course.title,
-                          style: AppTextStyles.titleLarge.copyWith(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 24),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ],
+                ),
+                Positioned.fill(
+                  child: DecoratedBox(
+                    decoration: BoxDecoration(
+                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withValues(alpha: 0.6),
+                        ],
+                      ),
                     ),
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: 16,
+                  bottom: 16,
+                  right: 16,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      DifficultyBadge(level: course.difficultyLevel),
+                      const SizedBox(height: 8),
+                      Text(
+                        course.title,
+                        style: AppTextStyles.titleLarge.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 22,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
             Padding(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
                     course.description,
-                    style: AppTextStyles.bodyMedium.copyWith(color: isDark ? Colors.white70 : Colors.black87),
-                    maxLines: 3,
+                    style: AppTextStyles.bodyMedium.copyWith(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontSize: 13,
+                    ),
+                    maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 16),
                   Row(
                     children: [
                       _InfoItem(icon: Icons.layers_outlined, label: '${course.modulesCount} Módulos'),
-                      const SizedBox(width: 20),
+                      const SizedBox(width: 16),
                       _InfoItem(icon: Icons.menu_book_outlined, label: '${course.lessonsCount} Lecciones'),
                       const Spacer(),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.blueAccent.withValues(alpha: 0.15),
-                          borderRadius: BorderRadius.circular(10),
+                          borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
                         ),
                         child: Text(
                           '${course.totalXpReward} XP',
-                          style: AppTextStyles.labelLarge.copyWith(color: Colors.blueAccent, fontWeight: FontWeight.w900),
+                          style: AppTextStyles.labelLarge.copyWith(
+                            color: Colors.blueAccent,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 12,
+                          ),
                         ),
                       ),
                     ],

@@ -31,7 +31,7 @@ class _CommunityScreenState extends ConsumerState<CommunityScreen> with Automati
     return Scaffold(
       backgroundColor: Colors.transparent,
       floatingActionButton: Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 80),
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom + 100),
         child: Container(
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(20),
@@ -530,39 +530,40 @@ class _ForumThreadDetailScreenState
         children: [
           Column(
             children: [
-              Container(
-                width: double.infinity,
+              GlassContainer(
+                opacity: isDark ? 0.08 : 0.05,
+                blur: 20,
+                borderRadius: BorderRadius.zero,
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF1E1E2E).withValues(alpha: 0.5)
-                      : Colors.black.withValues(alpha: 0.03),
-                  border: Border(
-                      bottom: BorderSide(
-                          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12)),
-                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(widget.thread.body,
-                        style: AppTextStyles.bodyLarge.copyWith(color: textColor, height: 1.6)),
+                        style: AppTextStyles.bodyLarge.copyWith(color: textColor, height: 1.6, fontWeight: FontWeight.w500)),
                     const SizedBox(height: 20),
                     Row(
                       children: [
-                        CircleAvatar(
-                          radius: 12,
-                          backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                          child: const Icon(Icons.person_outline, size: 14, color: Color(0xFF7C4DFF)),
+                        Container(
+                          padding: const EdgeInsets.all(1.5),
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
+                          ),
+                          child: CircleAvatar(
+                            radius: 12,
+                            backgroundColor: isDark ? Colors.black26 : Colors.white,
+                            child: const Icon(Icons.person_rounded, size: 14, color: Color(0xFF6A11CB)),
+                          ),
                         ),
                         const SizedBox(width: 8),
                         Text(widget.thread.authorName,
                             style: AppTextStyles.bodySmall.copyWith(
-                                fontWeight: FontWeight.w600, color: subtextColor)),
+                                fontWeight: FontWeight.w800, color: subtextColor)),
                         const Spacer(),
                         Icon(Icons.remove_red_eye_outlined, size: 14, color: fadeColor),
                         const SizedBox(width: 4),
                         Text('${widget.thread.views} vistas',
-                            style: AppTextStyles.bodySmall.copyWith(color: statColor)),
+                            style: AppTextStyles.bodySmall.copyWith(color: statColor, fontWeight: FontWeight.w600)),
                       ],
                     ),
                   ],
@@ -688,65 +689,67 @@ class _ForumPostCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cardColor = isDark ? const Color(0xFF1E1E2E) : Colors.white;
     final textColor = isDark ? Colors.white : Colors.black87;
     final bodyColor = isDark ? Colors.white.withValues(alpha: 0.8) : Colors.black87;
-    final borderColor = isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black12;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: borderColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 14,
-                backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
-                child: Text(
-                  post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?',
-                  style: AppTextStyles.labelSmall.copyWith(
-                      color: const Color(0xFF7C4DFF), fontWeight: FontWeight.w800),
-                ),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                child: Text(post.authorName,
-                    style: AppTextStyles.labelMedium.copyWith(
-                        fontWeight: FontWeight.w700, color: textColor)),
-              ),
-              if (post.reactionCount > 0)
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        opacity: isDark ? 0.05 : 0.08,
+        blur: 20,
+        borderRadius: BorderRadius.circular(24),
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.03)
-                        : Colors.black.withValues(alpha: 0.04),
-                    borderRadius: BorderRadius.circular(8),
+                  padding: const EdgeInsets.all(2),
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
                   ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.thumb_up_alt_rounded, size: 12, color: Colors.blueAccent),
-                      const SizedBox(width: 4),
-                      Text('${post.reactionCount}',
-                          style: AppTextStyles.labelSmall.copyWith(
-                              color: isDark ? Colors.white54 : Colors.black54,
-                              fontWeight: FontWeight.bold)),
-                    ],
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: isDark ? Colors.black26 : Colors.white,
+                    child: Text(
+                      post.authorName.isNotEmpty ? post.authorName[0].toUpperCase() : '?',
+                      style: AppTextStyles.labelSmall.copyWith(
+                          color: const Color(0xFF6A11CB), fontWeight: FontWeight.w900),
+                    ),
                   ),
                 ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(post.body,
-              style: AppTextStyles.bodyMedium.copyWith(height: 1.5, color: bodyColor)),
-        ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Text(post.authorName,
+                      style: AppTextStyles.labelMedium.copyWith(
+                          fontWeight: FontWeight.w900, color: textColor)),
+                ),
+                if (post.reactionCount > 0)
+                  GlassContainer(
+                    opacity: 0.1,
+                    blur: 0,
+                    borderRadius: BorderRadius.circular(10),
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.favorite_rounded, size: 12, color: Colors.redAccent),
+                        const SizedBox(width: 4),
+                        Text('${post.reactionCount}',
+                            style: AppTextStyles.labelSmall.copyWith(
+                                color: textColor,
+                                fontWeight: FontWeight.w900)),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(post.body,
+                style: AppTextStyles.bodyMedium.copyWith(height: 1.6, color: bodyColor, fontWeight: FontWeight.w500)),
+          ],
+        ),
       ),
     );
   }

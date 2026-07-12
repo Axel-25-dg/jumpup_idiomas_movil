@@ -362,15 +362,15 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
             slivers: [
               _SliverHeader(userAsync: userAsync, statsAsync: statsAsync),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 120),
+                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 14),
                     _SectionTitle(AppLocalizations.of(context)!.quickActions),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     const _QuickActionsGrid(),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -399,9 +399,9 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
                     ),
                     const SizedBox(height: 4),
                     _RecentCourseCard(summaryAsync: summaryAsync),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     const _TutorIABanner(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 14),
                     _SubscriptionBanner(),
                   ]),
                 ),
@@ -567,7 +567,7 @@ class _SliverHeader extends StatelessWidget {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return SliverAppBar(
-      expandedHeight: 96,
+      expandedHeight: 88,
       pinned: true,
       backgroundColor: _DashTokens.background(context).withValues(alpha: 0.6),
       elevation: 0,
@@ -578,7 +578,7 @@ class _SliverHeader extends StatelessWidget {
             background: SafeArea(
               child: Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
                 child: userAsync.when(
                   data: (user) => Row(
                     children: [
@@ -676,7 +676,7 @@ class _XPAndStreakBanner extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         blur: 24,
         opacity: isDark ? 0.06 : 0.08,
-        padding: const EdgeInsets.all(22),
+        padding: const EdgeInsets.all(20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -692,7 +692,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
                 Container(
                   width: 1.5,
-                  height: 44,
+                  height: 40,
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
@@ -715,7 +715,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -742,7 +742,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 8),
             Container(
               height: 10,
               width: double.infinity,
@@ -931,14 +931,14 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(route),
       child: GlassContainer(
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         blur: 24,
         opacity: isDark ? 0.06 : 0.08,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(9),
+              padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -1046,7 +1046,7 @@ class _RecentCourseCard extends ConsumerWidget {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.all(16),
+                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -1085,7 +1085,7 @@ class _RecentCourseCard extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 10),
                       Text(
                         course.title,
                         style: TextStyle(
@@ -1096,7 +1096,7 @@ class _RecentCourseCard extends ConsumerWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 8),
+                      const SizedBox(height: 6),
                       Text(
                         course.description,
                         maxLines: 2,
@@ -1106,7 +1106,7 @@ class _RecentCourseCard extends ConsumerWidget {
                           fontSize: 12,
                         ),
                       ),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: 12),
                       Row(
                         children: [
                           const Icon(Icons.play_circle_fill_rounded,

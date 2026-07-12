@@ -94,14 +94,6 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 12),
           _buildGlassTile(
             context: context,
-            title: l10n.learningLanguages,
-            subtitle: l10n.manageCourses,
-            icon: Icons.language_rounded,
-            onTap: () => context.push(AppRoutes.studentProfile),
-          ),
-          const SizedBox(height: 12),
-          _buildGlassTile(
-            context: context,
             title: l10n.security,
             subtitle: l10n.securitySubtitle,
             icon: Icons.lock_outline_rounded,

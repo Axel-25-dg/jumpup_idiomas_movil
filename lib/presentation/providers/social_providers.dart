@@ -20,6 +20,11 @@ final socialFeedProvider = FutureProvider<List<SocialPost>>((ref) async {
   return ref.watch(socialRepositoryProvider).fetchSocialFeed();
 });
 
+final postCommentsProvider =
+    FutureProvider.family<List<SocialComment>, int>((ref, postId) async {
+  return ref.watch(socialRepositoryProvider).fetchComments(postId);
+});
+
 // ── Chat ─────────────────────────────────────────────────────────────────────
 
 final chatThreadsProvider = FutureProvider<List<MessageThread>>((ref) async {
