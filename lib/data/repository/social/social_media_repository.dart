@@ -31,26 +31,17 @@ class SocialMediaRepository extends BaseRepository {
 
   Future<void> reactToPost(int postId, {String reaction = 'like'}) async {
     await handleRequest<void>(() async {
-      await dio.post<dynamic>('social-reactions/', data: {
-        'post': postId,
-        'reaction': reaction,
+      await dio.post<dynamic>('social-posts/$postId/reaccionar/', data: {
+        'tipo_reaccion': reaction,
       });
     }, message: 'No se pudo reaccionar');
   }
 
   Future<void> removeReaction(int postId) async {
     await handleRequest<void>(() async {
-      final resp = await dio.get<dynamic>('social-reactions/',
-          queryParameters: {'post': postId});
-      final list = resp.data is List
-          ? resp.data as List
-          : (resp.data is Map && resp.data['results'] is List)
-              ? resp.data['results'] as List
-              : [];
-      if (list.isNotEmpty) {
-        final reactionId = list.first['id'];
-        await dio.delete<dynamic>('social-reactions/$reactionId/');
-      }
+      await dio.post<dynamic>('social-posts/$postId/reaccionar/', data: {
+        'tipo_reaccion': 'none', // O lo que espere el backend para quitar reaccion
+      });
     }, message: 'No se pudo quitar la reacción');
   }
 
@@ -119,7 +110,7 @@ class SocialMediaRepository extends BaseRepository {
   }) async {
     return createOne('forum-threads/', ForumThread.fromJson,
         data: {
-          if (categoryId != null) 'category': categoryId,
+          'category': categoryId,
           'title': title,
           'body': body,
         },
@@ -128,7 +119,7 @@ class SocialMediaRepository extends BaseRepository {
 
   Future<List<ForumPost>> fetchForumPosts(int threadId) async {
     return getList('forum-posts/', ForumPost.fromJson,
-        queryParameters: {'thread': threadId},
+        queryParameters: {'thread': threadId, 'ordering': 'created_at'},
         message: 'No se pudieron cargar las respuestas');
   }
 

@@ -87,6 +87,7 @@ class _MatchingGameState extends ConsumerState<MatchingGame> {
             score: _xp.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');

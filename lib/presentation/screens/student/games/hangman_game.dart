@@ -15,18 +15,37 @@ class HangmanGame extends ConsumerStatefulWidget {
 }
 
 class _HangmanGameState extends ConsumerState<HangmanGame> {
-  final _words = [
-    {'word': 'FLUTTER', 'hint': 'Framework de UI moderna'},
-    {'word': 'LANGUAGE', 'hint': 'Sistema de comunicación'},
-    {'word': 'COMPUTER', 'hint': 'Máquina para procesar datos'},
-    {'word': 'KEYBOARD', 'hint': 'Periférico de entrada con teclas'},
-    {'word': 'MORNING', 'hint': 'Primera parte del día'},
-    {'word': 'SUCCESS', 'hint': 'Logro de un objetivo'},
-    {'word': 'LEARNING', 'hint': 'Proceso de adquirir conocimiento'},
-    {'word': 'DEVELOPER', 'hint': 'Persona que escribe código'},
-    {'word': 'INTERNET', 'hint': 'Red global de computadoras'},
-    {'word': 'MOBILE', 'hint': 'Dispositivo portátil'},
-  ];
+  final Map<int, List<Map<String, String>>> _levelPool = {
+    1: [ // Básico: 3-5 letras
+      {'word': 'CAT', 'hint': 'Animal que maúlla'},
+      {'word': 'DOG', 'hint': 'El mejor amigo del hombre'},
+      {'word': 'SUN', 'hint': 'Estrella que nos da calor'},
+      {'word': 'BOOK', 'hint': 'Objeto con páginas para leer'},
+      {'word': 'RED', 'hint': 'Color de la sangre'},
+      {'word': 'BLUE', 'hint': 'Color del cielo despejado'},
+      {'word': 'FAST', 'hint': 'Contrario de lento'},
+    ],
+    2: [ // Intermedio: 6-8 letras
+      {'word': 'FLUTTER', 'hint': 'Framework de Google para apps'},
+      {'word': 'LANGUAGE', 'hint': 'Sistema de comunicación humana'},
+      {'word': 'COMPUTER', 'hint': 'Dispositivo para procesar datos'},
+      {'word': 'KEYBOARD', 'hint': 'Periférico con muchas teclas'},
+      {'word': 'MORNING', 'hint': 'Cuando sale el sol'},
+      {'word': 'SUCCESS', 'hint': 'Logro de un objetivo'},
+    ],
+    3: [ // Avanzado: 9+ letras o palabras complejas
+      {'word': 'DEVELOPER', 'hint': 'Persona que crea software'},
+      {'word': 'EXPERIENCE', 'hint': 'Conocimiento ganado con el tiempo'},
+      {'word': 'CHALLENGE', 'hint': 'Algo difícil de lograr'},
+      {'word': 'KNOWLEDGE', 'hint': 'Información que posees'},
+      {'word': 'IMAGINATION', 'hint': 'Capacidad de crear imágenes mentales'},
+    ]
+  };
+
+  int _currentLevel = 1;
+  int _consecutiveWins = 0;
+  List<Map<String, String>> _usedWords = [];
+  
   late String _word, _hint;
   Set<String> _guessed = {};
   int _errors = 0;
@@ -41,7 +60,24 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
   }
 
   void _newWord() {
-    final pick = _words[Random().nextInt(_words.length)];
+    // 1. Filtrar palabras del nivel actual que no hayan sido usadas
+    final pool = _levelPool[_currentLevel]!;
+    final available = pool.where((w) => !_usedWords.contains(w)).toList();
+
+    // 2. Si se acabaron las palabras del nivel, subimos o reiniciamos el pool del nivel
+    if (available.isEmpty) {
+      if (_currentLevel < 3) {
+        _currentLevel++;
+        _newWord();
+        return;
+      } else {
+        _usedWords.removeWhere((w) => pool.contains(w)); // Resetear solo el nivel avanzado
+      }
+    }
+
+    final pick = (available..shuffle()).first;
+    _usedWords.add(pick);
+
     setState(() {
       _word = pick['word']!.toUpperCase();
       _hint = pick['hint']!;
@@ -65,7 +101,15 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
       }
       if (_word.split('').every((l) => _guessed.contains(l) || l == ' ')) {
         _won = true;
-        _xpEarned = max(10, 50 - _errors * 5);
+        _consecutiveWins++;
+        
+        // Subir de nivel cada 2 victorias consecutivas
+        if (_consecutiveWins >= 2 && _currentLevel < 3) {
+          _currentLevel++;
+          _consecutiveWins = 0;
+        }
+
+        _xpEarned = (_currentLevel * 15) + max(5, 20 - _errors * 3);
         _submitScore();
       }
     });
@@ -80,6 +124,7 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
             score: _xpEarned.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');

@@ -15,7 +15,13 @@ class MemoryGame extends ConsumerStatefulWidget {
 }
 
 class _MemoryGameState extends ConsumerState<MemoryGame> {
-  final List<String> _items = ['🍎', '🍌', '🍇', '🍓', '🍒', '🍍', '🥝', '🍉'];
+  final Map<int, List<String>> _levelThemes = {
+    1: ['🍎', '🍌', '🍇', '🍓', '🍒', '🍍', '🥝', '🍉'], // Frutas
+    2: ['🐶', '🐱', '🐭', '🐹', '🐰', '🦊', '🐻', '🐼', '🦁', '🐯'], // Animales
+    3: ['🚗', '🚕', '🚙', '🚌', '🚎', '🏎️', '🚓', '🚑', '🚒', '🚐', '🚚', '🚛'], // Vehículos
+  };
+
+  int _currentLevel = 1;
   late List<String> _cards;
   late List<bool> _flipped;
   late List<bool> _matched;
@@ -29,11 +35,16 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
   @override
   void initState() {
     super.initState();
-    _setupGame();
+    _setupLevel();
   }
 
-  void _setupGame() {
-    _cards = [..._items, ..._items];
+  void _setupLevel() {
+    final theme = _levelThemes[_currentLevel]!;
+    // En nivel 1 usamos 6 pares, nivel 2 usamos 8 pares, nivel 3 usamos 10 pares
+    int pairsCount = _currentLevel == 1 ? 6 : (_currentLevel == 2 ? 8 : 10);
+    final selectedEmojis = (theme..shuffle()).take(pairsCount).toList();
+    
+    _cards = [...selectedEmojis, ...selectedEmojis];
     _cards.shuffle();
     _flipped = List.filled(_cards.length, false);
     _matched = List.filled(_cards.length, false);
@@ -43,6 +54,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
     _matchesFound = 0;
     _won = false;
     _submitting = false;
+    setState(() {});
   }
 
   void _onCardTap(int index) {
@@ -62,9 +74,18 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
           _matchesFound++;
           _firstIndex = null;
           _busy = false;
-          if (_matchesFound == _items.length) {
+          
+          int totalPairs = _cards.length ~/ 2;
+          if (_matchesFound == totalPairs) {
             _won = true;
-            _submitScore();
+            if (_currentLevel < 3) {
+              Future.delayed(const Duration(seconds: 2), () {
+                _currentLevel++;
+                _setupLevel();
+              });
+            } else {
+              _submitScore();
+            }
           }
         } else {
           Timer(const Duration(milliseconds: 1000), () {
@@ -93,6 +114,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
             score: xp.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');
@@ -169,7 +191,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
           ),
           IconButton(
-            onPressed: () => setState(_setupGame),
+            onPressed: () => _setupLevel(),
             icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2575FC)),
           ),
         ],
@@ -194,7 +216,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
             child: GlassContainer(
               padding: const EdgeInsets.all(16),
               borderRadius: BorderRadius.circular(20),
-              child: _StatItem(label: 'PAREJAS', value: '$_matchesFound/${_items.length}', textColor: textColor),
+              child: _StatItem(label: 'PAREJAS', value: '$_matchesFound/${_cards.length ~/ 2}', textColor: textColor),
             ),
           ),
         ],

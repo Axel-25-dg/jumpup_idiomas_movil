@@ -87,6 +87,7 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
             score: _score.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (_) {}
     if (mounted) setState(() => _submitting = false);

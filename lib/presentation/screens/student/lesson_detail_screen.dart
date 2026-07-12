@@ -1,6 +1,8 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/colors.dart';
@@ -114,7 +116,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
             children: [
               _buildReadingTab(lesson),
               _buildAudioTab(lesson),
-              _buildMaterialTab(lesson),
+              _buildMaterialTab(lesson.id),
             ],
           ),
         ),
@@ -190,7 +192,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
     );
   }
 
-  Widget _buildReadingTab(dynamic lesson) {
+  Widget _buildReadingTab(LessonModel lesson) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: FadeIn(
@@ -211,7 +213,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                       const Icon(Icons.timer_outlined, size: 16, color: Colors.blueAccent),
                       const SizedBox(width: 6),
                       Text(
-                        'Lectura de 5 min',
+                        'Lectura sugerida',
                         style: AppTextStyles.labelSmall.copyWith(
                           color: Colors.blueAccent,
                           fontWeight: FontWeight.bold,
@@ -251,22 +253,12 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Contenido de la Lección',
+                    lesson.title,
                     style: AppTextStyles.titleLarge.copyWith(fontWeight: FontWeight.w800, color: Colors.white),
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    '¡Bienvenido a esta lección práctica! En esta sesión aprenderás conceptos clave del idioma, prestando especial atención a las estructuras conversacionales básicas. Estudia detenidamente los siguientes enunciados:\n\n'
-                    '1. Greeting people (Saludar a las personas):\n'
-                    '   • "Hello, how are you?" (Hola, ¿cómo estás?)\n'
-                    '   • "I am doing well, thank you." (Estoy bien, gracias.)\n\n'
-                    '2. Introducing yourself (Presentarte):\n'
-                    '   • "My name is Carlos." (Mi nombre es Carlos.)\n'
-                    '   • "Nice to meet you." (Gusto en conocerte.)\n\n'
-                    '3. Farwells (Despedidas):\n'
-                    '   • "Goodbye! Have a nice day." (¡Adiós! Que tengas un buen día.)\n'
-                    '   • "See you later." (Te veo luego.)\n\n'
-                    'Consejo: Recuerda practicar la entonación y repasar el vocabulario en voz alta para afianzar tu racha de aprendizaje diaria.',
+                    lesson.contentBody ?? 'No hay contenido disponible para esta lección.',
                     style: AppTextStyles.bodyLarge.copyWith(
                       height: 1.8,
                       color: Colors.white.withValues(alpha: 0.9),
@@ -282,7 +274,23 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
     );
   }
 
-  Widget _buildAudioTab(dynamic lesson) {
+  Widget _buildAudioTab(LessonModel lesson) {
+    if (lesson.audioUrl == null || lesson.audioUrl!.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.music_off_rounded, size: 64, color: Colors.white24),
+            const SizedBox(height: 16),
+            Text(
+              'No hay audio disponible',
+              style: AppTextStyles.titleMedium.copyWith(color: Colors.white54),
+            ),
+          ],
+        ),
+      );
+    }
+
     return Center(
       child: SingleChildScrollView(
         padding: const EdgeInsets.all(32),
@@ -342,7 +350,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
               ),
               const SizedBox(height: 12),
               Text(
-                'Escucha la pronunciación correcta por hablantes nativos y mejora tu acento.',
+                'Escucha la pronunciación correcta y mejora tu acento.',
                 textAlign: TextAlign.center,
                 style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
               ),
@@ -372,54 +380,92 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
     );
   }
 
-  Widget _buildMaterialTab(dynamic lesson) {
-    final pdfFiles = [
-      {'name': 'Guía de Vocabulario Oficial', 'size': '1.4 MB'},
-      {'name': 'Ejercicios Adicionales Resueltos', 'size': '920 KB'},
-      {'name': 'Lista de Verbos Irregulares', 'size': '2.1 MB'},
-    ];
+  Widget _buildMaterialTab(int lessonId) {
+    return Consumer(
+      builder: (context, ref, child) {
+        final resourcesAsync = ref.watch(lessonResourcesProvider(lessonId));
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(24),
-      itemCount: pdfFiles.length,
-      itemBuilder: (context, i) {
-        final pdf = pdfFiles[i];
-        return FadeInRight(
-          delay: Duration(milliseconds: i * 100),
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 16),
-            child: GlassContainer(
-              padding: EdgeInsets.zero,
-              child: ListTile(
-                onTap: () {
-                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Abriendo ${pdf['name']}...'),
-                      backgroundColor: const Color(0xFF1E1E2E),
-                      behavior: SnackBarBehavior.floating,
-                    ),
-                  );
-                },
-                leading: Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: const Icon(Icons.picture_as_pdf_rounded, color: Colors.redAccent, size: 24),
-                ),
-                title: Text(
-                  pdf['name']!,
-                  style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
-                ),
-                subtitle: Text(
-                  pdf['size']!,
-                  style: AppTextStyles.bodySmall.copyWith(color: Colors.white54),
-                ),
-                trailing: const Icon(Icons.download_for_offline_rounded, color: Colors.blueAccent),
-              ),
-            ),
+        return resourcesAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
+          error: (err, _) => Center(
+            child: Text('Error al cargar recursos', style: AppTextStyles.bodyMedium.copyWith(color: Colors.white54)),
           ),
+          data: (resources) {
+            if (resources.isEmpty) {
+              return Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.folder_open_rounded, size: 64, color: Colors.white24),
+                    const SizedBox(height: 16),
+                    Text(
+                      'No hay materiales adicionales',
+                      style: AppTextStyles.titleMedium.copyWith(color: Colors.white54),
+                    ),
+                  ],
+                ),
+              );
+            }
+
+            return ListView.builder(
+              padding: const EdgeInsets.all(24),
+              itemCount: resources.length,
+              itemBuilder: (context, i) {
+                final resource = resources[i];
+                return FadeInRight(
+                  delay: Duration(milliseconds: i * 100),
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 16),
+                    child: GlassContainer(
+                      padding: EdgeInsets.zero,
+                      child: ListTile(
+                        onTap: () {
+                          if (resource.fileUrl != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('Abriendo ${resource.title}...'),
+                                backgroundColor: const Color(0xFF1E1E2E),
+                                behavior: SnackBarBehavior.floating,
+                              ),
+                            );
+                          }
+                        },
+                        leading: Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: (resource.resourceType.toLowerCase() == 'pdf' 
+                                ? Colors.redAccent 
+                                : Colors.blueAccent).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            resource.resourceType.toLowerCase() == 'pdf' 
+                                ? Icons.picture_as_pdf_rounded 
+                                : Icons.insert_drive_file_rounded, 
+                            color: resource.resourceType.toLowerCase() == 'pdf' 
+                                ? Colors.redAccent 
+                                : Colors.blueAccent, 
+                            size: 24
+                          ),
+                        ),
+                        title: Text(
+                          resource.title,
+                          style: AppTextStyles.labelLarge.copyWith(fontWeight: FontWeight.w700, color: Colors.white),
+                        ),
+                        subtitle: Text(
+                          resource.description,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.bodySmall.copyWith(color: Colors.white54),
+                        ),
+                        trailing: const Icon(Icons.download_for_offline_rounded, color: Colors.blueAccent),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            );
+          },
         );
       },
     );

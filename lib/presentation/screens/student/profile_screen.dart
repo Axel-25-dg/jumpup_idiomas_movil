@@ -201,6 +201,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                 padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
                 child: Column(
                   children: [
+                    _StatsSection(),
+                    const SizedBox(height: 24),
                     _ProfileInfoSection(
                       isEditing: _isEditing,
                       firstName: displayFirstName,
@@ -210,6 +212,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       firstNameController: _firstNameController,
                       lastNameController: _lastNameController,
                     ),
+                    const SizedBox(height: 24),
+                    _AchievementsSection(),
                     const SizedBox(height: 24),
                     _ProgressByLanguageSection(),
                     const SizedBox(height: 24),
@@ -233,6 +237,289 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 100)],
         ),
       );
+}
+
+class _StatsSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(progressSummaryProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+            child: Text(
+              'Estadísticas',
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          progressAsync.when(
+            data: (summary) => Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _StatItem(
+                        label: 'Nivel',
+                        value: summary.level.toString(),
+                        icon: '⭐',
+                        isDark: isDark,
+                      ),
+                      _StatItem(
+                        label: 'XP Total',
+                        value: summary.totalXp.toString(),
+                        icon: '💎',
+                        isDark: isDark,
+                      ),
+                      _StatItem(
+                        label: 'Racha',
+                        value: summary.currentStreak.toString(),
+                        icon: '🔥',
+                        isDark: isDark,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  // XP Progress Bar
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            'Progreso al siguiente nivel',
+                            style: TextStyle(
+                              color: isDark ? Colors.white70 : Colors.black54,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            '${summary.xpProgressInLevel} / ${summary.xpForNextLevel}',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: LinearProgressIndicator(
+                          value: summary.xpForNextLevel > 0
+                              ? summary.xpProgressInLevel / summary.xpForNextLevel
+                              : 0,
+                          backgroundColor: (isDark ? Colors.white : Colors.black)
+                              .withValues(alpha: 0.08),
+                          valueColor: const AlwaysStoppedAnimation<Color>(
+                            Colors.blueAccent,
+                          ),
+                          minHeight: 10,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            loading: () => const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20.0),
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+            ),
+            error: (e, __) => const SizedBox(),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _StatItem extends StatelessWidget {
+  final String label;
+  final String value;
+  final String icon;
+  final bool isDark;
+
+  const _StatItem({
+    required this.label,
+    required this.value,
+    required this.icon,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.blueAccent.withValues(alpha: 0.3),
+              width: 2,
+            ),
+          ),
+          child: Center(
+            child: Text(icon, style: const TextStyle(fontSize: 28)),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.w800,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: isDark ? Colors.white54 : Colors.black54,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _AchievementsSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final achievementsAsync = ref.watch(myAchievementsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Mis Logros',
+                  style: AppTextStyles.titleMedium.copyWith(
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : Colors.black87,
+                  ),
+                ),
+                GestureDetector(
+                  onTap: () => context.push('/student/achievements'),
+                  child: Text(
+                    'Ver todos',
+                    style: TextStyle(
+                      color: Colors.blueAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          achievementsAsync.when(
+            data: (list) {
+              if (list.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text('¡Aún no tienes logros! Sigue practicando.',
+                      style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 13)),
+                );
+              }
+              // Mostrar solo los últimos 3 logros obtenidos
+              final displayList = list.take(3).toList();
+              return Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: displayList.map((userAch) => _AchievementItem(
+                    icon: userAch.achievement.iconUrl ?? '🏆',
+                    name: userAch.achievement.name,
+                    isDark: isDark,
+                  )).toList(),
+                ),
+              );
+            },
+            loading: () => const Center(child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(strokeWidth: 2),
+            )),
+            error: (e, __) => const SizedBox(),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+}
+
+class _AchievementItem extends StatelessWidget {
+  final String icon;
+  final String name;
+  final bool isDark;
+
+  const _AchievementItem({required this.icon, required this.name, required this.isDark});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Container(
+          width: 56,
+          height: 56,
+          decoration: BoxDecoration(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.amber.withValues(alpha: 0.3), width: 2),
+          ),
+          child: Center(
+            child: Text(icon, style: const TextStyle(fontSize: 28)),
+          ),
+        ),
+        const SizedBox(height: 8),
+        SizedBox(
+          width: 80,
+          child: Text(
+            name,
+            textAlign: TextAlign.center,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 }
 
 class _ProgressByLanguageSection extends ConsumerWidget {

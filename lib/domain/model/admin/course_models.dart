@@ -144,6 +144,8 @@ class LessonModel {
     required this.contentType,
     required this.order,
     required this.xpReward,
+    this.contentBody,
+    this.audioUrl,
     this.exercisesCount = 0,
   });
 
@@ -154,6 +156,8 @@ class LessonModel {
   final String contentType;
   final int order;
   final int xpReward;
+  final String? contentBody;
+  final String? audioUrl;
   final int exercisesCount;
 
   factory LessonModel.fromJson(Map<String, dynamic> json) {
@@ -165,6 +169,8 @@ class LessonModel {
       contentType: json['content_type']?.toString() ?? '',
       order: json['order'] as int? ?? 0,
       xpReward: json['xp_reward'] as int? ?? 0,
+      contentBody: json['content_body']?.toString(),
+      audioUrl: json['audio_url']?.toString(),
       exercisesCount: json['exercises_count'] as int? ?? 0,
     );
   }
@@ -177,6 +183,8 @@ class LessonModel {
         'content_type': contentType,
         'order': order,
         'xp_reward': xpReward,
+        'content_body': contentBody,
+        'audio_url': audioUrl,
         'exercises_count': exercisesCount,
       };
 }

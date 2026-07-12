@@ -1,5 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/data/remote/dto/course_dto.dart';
 
@@ -98,6 +99,12 @@ class CourseRepositoryImpl extends BaseRepository {
   Future<LessonModel> getLessonById(int lessonId) async {
     return getOne('lessons/$lessonId/', LessonModel.fromJson,
         message: 'No se pudo obtener la lección');
+  }
+
+  Future<List<TeacherResource>> getLessonResources(int lessonId) async {
+    return getList('resources/', TeacherResource.fromJson,
+        queryParameters: {'lesson': lessonId},
+        message: 'No se pudieron cargar los recursos de la lección');
   }
 
   Future<List<ExerciseModel>> getExercisesByLesson(int lessonId) async {

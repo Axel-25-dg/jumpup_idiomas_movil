@@ -65,6 +65,7 @@ class _SentenceBuilderGameState extends ConsumerState<SentenceBuilderGame> {
             score: 60.0,
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');

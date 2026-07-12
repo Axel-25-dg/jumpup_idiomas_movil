@@ -94,6 +94,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       // Si el login ya trajo el perfil del usuario, lo usamos directamente
       // sin hacer una segunda llamada a /auth/me/
       final user = result.user ?? await _authService.getProfile();
+      
+      // Intentar registrar biometría automáticamente tras un login exitoso por password
+      // para que esté disponible la próxima vez.
+      registerBiometric();
+
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -120,6 +125,11 @@ class AuthNotifier extends StateNotifier<AuthState> {
       }
       final result = await _authService.loginWithGoogle(idToken);
       final user = result.user ?? await _authService.getProfile();
+      
+      // Intentar registrar biometría automáticamente tras un login exitoso por password
+      // para que esté disponible la próxima vez.
+      registerBiometric();
+
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(
@@ -136,12 +146,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
 
   // ── Login biométrico ───────────────────────────────────────────────────────
 
-  Future<void> loginWithBiometric({
-    String? deviceId,
-    String? biometricToken,
-  }) async {
+  Future<void> loginWithBiometric() async {
     state = const AuthState(status: AuthStatus.loading);
     try {
+      // 1. Verificar disponibilidad y autenticar localmente (huella/cara)
       final authenticated = await BiometricService.instance.authenticate();
       if (!authenticated) {
         state = const AuthState(
@@ -150,28 +158,54 @@ class AuthNotifier extends StateNotifier<AuthState> {
         );
         return;
       }
-      // If biometric login is not fully implemented, just simulate success
-      // For now, let's skip biometric login and just check session
-      final hasToken = await _secureStorage.hasToken();
-      if (hasToken) {
-        final user = await _authService.getProfile();
+
+      // 2. Obtener datos persistidos
+      final biometricToken = await _secureStorage.getBiometricToken();
+      final deviceId = await _secureStorage.getDeviceId();
+
+      if (biometricToken != null && deviceId != null) {
+        // 3. Login contra el servidor usando el token biométrico
+        final result = await _authService.biometricLogin(
+          deviceId: deviceId,
+          biometricToken: biometricToken,
+        );
+        final user = result.user ?? await _authService.getProfile();
         state = AuthState(status: AuthStatus.authenticated, user: user);
       } else {
-        state = const AuthState(
-          status: AuthStatus.error,
-          errorMessage: 'No hay sesión guardada para biometría.',
-        );
+        // Fallback: Si no hay token biométrico pero hay token normal (sesión no cerrada)
+        final hasToken = await _secureStorage.hasToken();
+        if (hasToken) {
+          final user = await _authService.getProfile();
+          state = AuthState(status: AuthStatus.authenticated, user: user);
+        } else {
+          state = const AuthState(
+            status: AuthStatus.error,
+            errorMessage: 'La huella no está vinculada. Ingresa con tu clave primero.',
+          );
+        }
       }
     } on ApiException catch (e) {
-      state = AuthState(
-        status: AuthStatus.error,
-        errorMessage: e.message,
-      );
-    } catch (_) {
+      state = AuthState(status: AuthStatus.error, errorMessage: e.message);
+    } catch (e) {
       state = const AuthState(
         status: AuthStatus.error,
-        errorMessage: 'Error al autenticar con huella dactilar.',
+        errorMessage: 'Error al procesar la huella dactilar.',
       );
+    }
+  }
+
+  /// Vincula la huella actual del dispositivo con la cuenta del usuario.
+  Future<void> registerBiometric() async {
+    try {
+      final deviceId = await BiometricService.instance.getDeviceId();
+      final biometricToken = await _authService.registerBiometric(deviceId);
+      
+      await _secureStorage.saveBiometricData(
+        biometricToken: biometricToken,
+        deviceId: deviceId,
+      );
+    } catch (e) {
+      // Error silencioso o loggear
     }
   }
 

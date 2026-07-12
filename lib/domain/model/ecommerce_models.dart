@@ -77,11 +77,24 @@ class CarritoModel {
 
   factory CarritoModel.fromJson(Map<String, dynamic> json) {
     final list = json['items'] as List? ?? [];
+    final items = list.map((i) => CarritoItemModel.fromJson(i as Map<String, dynamic>)).toList();
+    
+    double calculatedTotal = double.tryParse(json['total']?.toString() ?? '0.0') ?? 0.0;
+    
+    // Si el backend devuelve 0 pero tenemos items, calculamos el total localmente
+    if (calculatedTotal == 0 && items.isNotEmpty) {
+      for (var item in items) {
+        if (item.producto != null) {
+          calculatedTotal += (item.producto!.precio * item.cantidad);
+        }
+      }
+    }
+
     return CarritoModel(
       id: json['id'] as int? ?? 0,
       estudianteEmail: json['estudiante_email']?.toString() ?? '',
-      items: list.map((i) => CarritoItemModel.fromJson(i as Map<String, dynamic>)).toList(),
-      total: double.tryParse(json['total']?.toString() ?? '0.0') ?? 0.0,
+      items: items,
+      total: calculatedTotal,
     );
   }
 }

@@ -283,32 +283,39 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
     );
   }
 
-  void _submitAnswer(ExerciseModel exercise) {
-    bool correct;
-    if (exercise.exerciseType == 'match') {
-      correct = _selectedAnswer == 'completed';
-    } else {
-      correct = _selectedAnswer?.toLowerCase().trim() == exercise.correctAnswer.toLowerCase().trim();
-    }
-
-    if (correct) {
-      HapticFeedback.mediumImpact();
-    } else {
-      HapticFeedback.vibrate();
-    }
-
+  void _submitAnswer(ExerciseModel exercise) async {
     setState(() {
-      _hasAnswered = true;
-      _isCorrect = correct;
-      if (correct) _correctCount++;
+      _hasAnswered = false; // Reset just in case or show loading if needed
     });
 
-    // Submit to backend for XP tracking (fire and forget)
-    if (_selectedAnswer != null) {
-      ref.read(exerciseSubmitNotifierProvider.notifier).submitExercise(
+    try {
+      final result = await ref.read(exerciseSubmitNotifierProvider.notifier).submitExercise(
             exerciseId: exercise.id,
-            answer: _selectedAnswer!,
+            answer: _selectedAnswer ?? '',
           );
+
+      if (result == null) return;
+
+      final bool correct = result['es_correcta'] == true;
+      final String feedback = result['feedback']?.toString() ?? '';
+      
+      if (correct) {
+        HapticFeedback.mediumImpact();
+      } else {
+        HapticFeedback.vibrate();
+      }
+
+      setState(() {
+        _hasAnswered = true;
+        _isCorrect = correct;
+        if (correct) _correctCount++;
+      });
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al validar: $e'), backgroundColor: Colors.redAccent),
+        );
+      }
     }
   }
 

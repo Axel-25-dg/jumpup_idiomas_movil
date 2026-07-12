@@ -3,9 +3,11 @@ import 'dart:ui';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -514,138 +516,146 @@ class _MyClassroomCard extends StatelessWidget {
     final textPrimary = _ClassTokens.textPrimary(context);
     final textSecondary = _ClassTokens.textSecondary(context);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(22),
-        gradient: LinearGradient(
-          colors: [
-            _ClassTokens.primary.withValues(alpha: isDark ? 0.25 : 0.12),
-            _ClassTokens.accent.withValues(alpha: isDark ? 0.18 : 0.06),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        border: Border.all(
-          color: _ClassTokens.primary.withValues(alpha: 0.35),
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: _ClassTokens.primary.withValues(alpha: 0.12),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+    return InkWell(
+      onTap: () {
+        context.pushNamed(
+          'studentResources',
+          pathParameters: {'classroomId': classroom.id.toString()},
+        );
+      },
+      borderRadius: BorderRadius.circular(22),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            colors: [
+              _ClassTokens.primary.withValues(alpha: isDark ? 0.25 : 0.12),
+              _ClassTokens.accent.withValues(alpha: isDark ? 0.18 : 0.06),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Container(
-                  width: 48,
-                  height: 48,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: _ClassTokens.primary.withValues(alpha: 0.25),
+          border: Border.all(
+            color: _ClassTokens.primary.withValues(alpha: 0.35),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: _ClassTokens.primary.withValues(alpha: 0.12),
+              blurRadius: 16,
+              offset: const Offset(0, 8),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: _ClassTokens.primary.withValues(alpha: 0.25),
+                    ),
+                    child: const Icon(
+                      Icons.class_rounded,
+                      color: _ClassTokens.primary,
+                      size: 28,
+                    ),
                   ),
-                  child: const Icon(
-                    Icons.class_rounded,
-                    color: _ClassTokens.primary,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        classroom.name,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          fontWeight: FontWeight.w900,
-                          color: textPrimary,
-                        ),
-                      ),
-                      if (classroom.courseName != null)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 4),
-                          child: Text(
-                            classroom.courseName!,
-                            style: AppTextStyles.bodySmall.copyWith(
-                              color: textSecondary,
-                              fontWeight: FontWeight.w600,
-                            ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          classroom.name,
+                          style: AppTextStyles.titleMedium.copyWith(
+                            fontWeight: FontWeight.w900,
+                            color: textPrimary,
                           ),
                         ),
-                    ],
+                        if (classroom.courseName != null)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Text(
+                              classroom.courseName!,
+                              style: AppTextStyles.bodySmall.copyWith(
+                                color: textSecondary,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
                   ),
-                ),
-                if (classroom.isActive)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _ClassTokens.live.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      'Activo',
-                      style: AppTextStyles.labelSmall.copyWith(
-                        color: _ClassTokens.live,
-                        fontWeight: FontWeight.w900,
+                  if (classroom.isActive)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: _ClassTokens.live.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        'Activo',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: _ClassTokens.live,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                  ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            if (classroom.description.isNotEmpty)
-              Text(
-                classroom.description,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: textSecondary,
-                  height: 1.4,
-                ),
+                ],
               ),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Icon(
-                  Icons.person_outline_rounded,
-                  color: textSecondary,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
+              const SizedBox(height: 12),
+              if (classroom.description.isNotEmpty)
                 Text(
-                  classroom.teacherName,
+                  classroom.description,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: textSecondary,
-                    fontWeight: FontWeight.w600,
+                    height: 1.4,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Icon(
-                  Icons.group_outlined,
-                  color: textSecondary,
-                  size: 16,
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  '${classroom.studentsCount} estudiantes',
-                  style: AppTextStyles.bodySmall.copyWith(
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Icon(
+                    Icons.person_outline_rounded,
                     color: textSecondary,
+                    size: 16,
                   ),
-                ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: 6),
+                  Text(
+                    classroom.teacherName,
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(
+                    Icons.group_outlined,
+                    color: textSecondary,
+                    size: 16,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    '${classroom.studentsCount} estudiantes',
+                    style: AppTextStyles.bodySmall.copyWith(
+                      color: textSecondary,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

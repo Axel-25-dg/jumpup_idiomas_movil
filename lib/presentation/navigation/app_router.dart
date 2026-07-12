@@ -80,7 +80,7 @@ abstract final class AppRoutes {
   static const studentAchievements = '/student/achievements';
   static const studentCertificates = '/student/certificates';
   static const studentClassrooms = '/student/classrooms';
-  static const studentResources = '/student/resources';
+  static const studentResources = '/student/classroom/:classroomId/resources';
   static const studentAiTutor = '/student/ai-tutor';
   static const studentDailyChallenges = '/student/daily-challenges';
   static const studentSettings = '/student/settings';
@@ -243,7 +243,9 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.studentResources,
         name: 'studentResources',
-        builder: (_, __) => const ClassroomResourcesScreen(),
+        builder: (_, state) => ClassroomResourcesScreen(
+          classroomId: int.parse(state.pathParameters['classroomId']!),
+        ),
       ),
       GoRoute(
         path: AppRoutes.studentAiTutor,

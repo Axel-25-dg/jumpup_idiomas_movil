@@ -468,6 +468,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
             title: _titleCtrl.text.trim(),
             body: _bodyCtrl.text.trim(),
           );
+      ref.invalidate(forumThreadsProvider(widget.selectedCategoryId));
       widget.onCreated?.call();
       if (mounted) Navigator.pop(context);
     } catch (e) {

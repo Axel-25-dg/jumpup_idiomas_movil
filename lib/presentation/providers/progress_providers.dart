@@ -90,15 +90,22 @@ class ExerciseSubmitNotifier extends StateNotifier<AsyncValue<Map<String, dynami
 
   final ProgressService _service;
 
-  Future<void> submitExercise({
+  Future<Map<String, dynamic>?> submitExercise({
     required int exerciseId,
     required String answer,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.submitExercise(
-          exerciseId: exerciseId,
-          answer: answer,
-        ));
+    try {
+      final result = await _service.submitExercise(
+        exerciseId: exerciseId,
+        answer: answer,
+      );
+      state = AsyncValue.data(result);
+      return result;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      rethrow;
+    }
   }
 }
 

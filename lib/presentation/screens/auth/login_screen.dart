@@ -302,7 +302,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                         const SizedBox(height: 24),
 
                         // ── Alternative Login ──────────────────────────────
-                        if (_biometricAvailable && authState.canUseBiometrics) ...[
+                        if (_biometricAvailable) ...[
                           Row(
                             children: [
                               const Expanded(child: Divider(color: Colors.white10)),

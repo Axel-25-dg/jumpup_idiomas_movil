@@ -14,49 +14,62 @@ class TriviaGame extends ConsumerStatefulWidget {
 }
 
 class _TriviaGameState extends ConsumerState<TriviaGame> {
-  final _questions = [
-    {
-      'q': 'What is the plural of "child"?',
-      'options': ['Childs', 'Children', 'Childes', 'Childrens'],
-      'correct': 1,
-    },
-    {
-      'q': '"She ___ to school every day." (go)',
-      'options': ['go', 'going', 'goes', 'gone'],
-      'correct': 2,
-    },
-    {
-      'q': 'Which is NOT a vowel?',
-      'options': ['A', 'E', 'R', 'I'],
-      'correct': 2,
-    },
-    {
-      'q': 'The past tense of "run" is:',
-      'options': ['Runned', 'Ran', 'Run', 'Running'],
-      'correct': 1,
-    },
-    {
-      'q': 'Which word is a synonym of "Happy"?',
-      'options': ['Sad', 'Angry', 'Joyful', 'Tired'],
-      'correct': 2,
-    },
-  ];
+  final Map<int, List<Map<String, dynamic>>> _questionPool = {
+    1: [ // Básico
+      {'q': 'What is the plural of "child"?', 'options': ['Childs', 'Children', 'Childes', 'Childrens'], 'correct': 1},
+      {'q': 'Which is NOT a vowel?', 'options': ['A', 'E', 'R', 'I'], 'correct': 2},
+      {'q': '"She ___ to school every day."', 'options': ['go', 'going', 'goes', 'gone'], 'correct': 2},
+      {'q': 'Opposite of "Hot" is:', 'options': ['Warm', 'Cold', 'Ice', 'Sun'], 'correct': 1},
+    ],
+    2: [ // Intermedio
+      {'q': 'Which sentence is correct?', 'options': ['I has a car', 'He have a car', 'They has a car', 'She has a car'], 'correct': 3},
+      {'q': 'Past tense of "Buy":', 'options': ['Buyed', 'Bought', 'Boughten', 'Buying'], 'correct': 1},
+      {'q': 'A person who cooks is a:', 'options': ['Cooker', 'Chef', 'Chicken', 'Kitchen'], 'correct': 1},
+    ],
+    3: [ // Avanzado
+      {'q': 'If I ___ you, I would study more.', 'options': ['was', 'am', 'were', 'be'], 'correct': 2},
+      {'q': 'Meaning of "Break a leg":', 'options': ['Get hurt', 'Good luck', 'Dance', 'Fail'], 'correct': 1},
+      {'q': 'Which is a synonym of "Fastidious"?', 'options': ['Quick', 'Boring', 'Meticulous', 'Funny'], 'correct': 2},
+    ]
+  };
 
+  List<Map<String, dynamic>> _sessionQuestions = [];
   int _current = 0;
   int? _selected;
   int _score = 0;
+  int _level = 1;
   bool _done = false;
   bool _submitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupGame();
+  }
+
+  void _setupGame() {
+    // Seleccionar 2 preguntas de cada nivel para una partida de 6 preguntas
+    _sessionQuestions = [
+      ...(_questionPool[1]!..shuffle()).take(2),
+      ...(_questionPool[2]!..shuffle()).take(2),
+      ...(_questionPool[3]!..shuffle()).take(2),
+    ];
+    _current = 0;
+    _score = 0;
+    _done = false;
+  }
 
   void _answer(int idx) {
     if (_selected != null || _submitting) return;
     
-    final correct = _questions[_current]['correct'] as int;
+    final correct = _sessionQuestions[_current]['correct'] as int;
     setState(() {
       _selected = idx;
       if (idx == correct) {
         HapticFeedback.mediumImpact();
-        _score += 20;
+        // Más puntos por niveles altos
+        int points = (_current < 2) ? 10 : (_current < 4 ? 20 : 35);
+        _score += points;
       } else {
         HapticFeedback.vibrate();
       }
@@ -66,7 +79,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
       if (mounted) {
         setState(() {
           _selected = null;
-          if (_current < _questions.length - 1) {
+          if (_current < _sessionQuestions.length - 1) {
             _current++;
           } else {
             _done = true;
@@ -86,6 +99,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
             score: _score.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('[Trivia] Error: $e');
@@ -100,9 +114,9 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
     final bgColor = isDark ? const Color(0xFF0D0D15) : Colors.grey[50]!;
     final textColor = isDark ? Colors.white : Colors.black87;
 
-    if (_done) return _ResultScreen(score: _score, total: _questions.length * 20, isSubmitting: _submitting, isDark: isDark);
+    if (_done) return _ResultScreen(score: _score, total: _sessionQuestions.length * 20, isSubmitting: _submitting, isDark: isDark);
     
-    final q = _questions[_current];
+    final q = _sessionQuestions[_current];
     final options = q['options'] as List<String>;
     final correct = q['correct'] as int;
 
@@ -169,7 +183,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('PREGUNTA ${_current + 1}/${_questions.length}', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+              Text('PREGUNTA ${_current + 1}/${_sessionQuestions.length}', style: TextStyle(color: textColor.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
               Text('$_score XP', style: const TextStyle(color: Color(0xFF2575FC), fontWeight: FontWeight.bold, fontSize: 12)),
             ],
           ),
@@ -177,7 +191,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
             child: LinearProgressIndicator(
-              value: (_current + 1) / _questions.length,
+              value: (_current + 1) / _sessionQuestions.length,
               backgroundColor: Colors.white.withValues(alpha: 0.1),
               valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
               minHeight: 8,

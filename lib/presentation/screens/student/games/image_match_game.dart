@@ -85,6 +85,7 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
             score: _score.toDouble(),
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');

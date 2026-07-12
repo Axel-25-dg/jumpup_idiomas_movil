@@ -56,8 +56,15 @@ abstract class BaseRepository {
   }) async {
     return handleRequest<T>(() async {
       final response =
-          await dio.post<Map<String, dynamic>>(endpoint, data: data);
-      return fromJson(response.data!);
+          await dio.post<dynamic>(endpoint, data: data);
+      
+      // Manejar respuestas vacías o sin cuerpo como un objeto vacío si es necesario
+      final responseData = response.data;
+      if (responseData == null || (responseData is String && responseData.isEmpty)) {
+        return fromJson({});
+      }
+      
+      return fromJson(_mapFrom(responseData));
     }, message: message ?? 'No se pudo crear');
   }
 

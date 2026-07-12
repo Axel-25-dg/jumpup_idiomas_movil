@@ -12,7 +12,6 @@ import 'package:jumpup_app/presentation/screens/student/games/memory_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/fast_type_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/sentence_builder_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/verb_blitz_game.dart';
-import 'package:jumpup_app/presentation/screens/student/games/flashcard_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/image_match_game.dart';
 
 import '../../navigation/app_router.dart';
@@ -26,7 +25,7 @@ class GamesScreen extends ConsumerWidget {
     final rankingPositionAsync = ref.watch(myRankingPositionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     // En el nuevo sistema, los juegos se desbloquean por nivel o XP
-    final isPro = statsAsync.value != null && statsAsync.value!.level >= 2; 
+    const isPro = true; // Desbloqueado por petición del usuario
 
     // Theme-aware colors
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -184,16 +183,6 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🃏 Flashcards',
-                      subtitle: 'Repaso rápido',
-                      description: 'Voltea las tarjetas y comprueba tu conocimiento',
-                      gradient: const [Color(0xFF0091EA), Color(0xFF00B8D4)],
-                      xp: 35,
-                      difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FlashcardGame())),
-                    ),
-                    const SizedBox(height: 16),
-                    _GameCard(
                       title: '🖼️ Identificar',
                       subtitle: 'Vocabulario visual',
                       description: 'Selecciona el nombre correcto del objeto mostrado',
@@ -201,6 +190,39 @@ class GamesScreen extends ConsumerWidget {
                       xp: 45,
                       difficulty: 'Fácil',
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageMatchGame())),
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🔠 Sopa de Letras',
+                      subtitle: 'Próximamente',
+                      description: 'Encuentra las palabras ocultas en la cuadrícula',
+                      gradient: const [Color(0xFF455A64), Color(0xFF78909C)],
+                      xp: 50,
+                      difficulty: 'Medio',
+                      isLocked: true,
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🧩 Crucigrama',
+                      subtitle: 'Próximamente',
+                      description: 'Completa las palabras cruzadas con pistas',
+                      gradient: const [Color(0xFF3E2723), Color(0xFF5D4037)],
+                      xp: 60,
+                      difficulty: 'Medio',
+                      isLocked: true,
+                      onTap: () {},
+                    ),
+                    const SizedBox(height: 16),
+                    _GameCard(
+                      title: '🎭 Roleplay AI',
+                      subtitle: 'En proceso',
+                      description: 'Practica situaciones reales con inteligencia artificial (No disponible)',
+                      gradient: const [Color(0xFF37474F), Color(0xFF546E7A)],
+                      xp: 150,
+                      difficulty: 'Difícil',
+                      isLocked: true,
+                      onTap: () {},
                     ),
                   ]),
                 ),

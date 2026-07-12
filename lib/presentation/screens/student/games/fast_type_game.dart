@@ -65,6 +65,7 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
             score: _score.toDouble() * 5,
           );
       ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
     } catch (e) {
       debugPrint('Error: $e');
@@ -159,7 +160,8 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
               ),
               if (_score > 0) ...[
                 const SizedBox(height: 24),
-                Text('Último Puntaje: $_score palabras', style: const TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.bold)),
+                Text('Último Puntaje: $_score palabras (+${_score * 5} XP)', 
+                  style: const TextStyle(color: Color(0xFF00C853), fontWeight: FontWeight.bold, fontSize: 16)),
               ],
             ],
           ),
@@ -193,7 +195,7 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _StatBox(label: 'TIEMPO', value: '$_timeLeft', color: _timeLeft < 10 ? Colors.redAccent : const Color(0xFF00C853)),
-            _StatBox(label: 'PUNTOS', value: '$_score', color: const Color(0xFFB2FF59)),
+            _StatBox(label: 'XP GANADO', value: '${_score * 5}', color: const Color(0xFFB2FF59)),
           ],
         ),
         const SizedBox(height: 60),

@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/data/repository/auth/course_repository_impl.dart';
 
 final courseServiceProvider = Provider<CourseRepositoryImpl>((ref) {
@@ -128,6 +129,12 @@ final lessonDetailsProvider =
     FutureProvider.family<LessonModel, int>((ref, lessonId) async {
   final service = ref.watch(courseServiceProvider);
   return service.getLessonById(lessonId);
+});
+
+final lessonResourcesProvider =
+    FutureProvider.family<List<TeacherResource>, int>((ref, lessonId) async {
+  final service = ref.watch(courseServiceProvider);
+  return service.getLessonResources(lessonId);
 });
 
 final teacherResourcesProvider =

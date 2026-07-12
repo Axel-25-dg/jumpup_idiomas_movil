@@ -7,7 +7,9 @@ import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 
 class ClassroomResourcesScreen extends ConsumerWidget {
-  const ClassroomResourcesScreen({super.key});
+  const ClassroomResourcesScreen({super.key, required this.classroomId});
+
+  final int classroomId;
 
   FileType _parseFileType(String? typeStr) {
     switch (typeStr?.toLowerCase()) {
@@ -25,7 +27,7 @@ class ClassroomResourcesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final resourcesAsync =
-        ref.watch(teacherResourcesProvider(1)); // Demo classroomId = 1
+        ref.watch(teacherResourcesProvider(classroomId));
 
     return Scaffold(
       backgroundColor: AppColors.background,

@@ -138,6 +138,7 @@ class _MessageDetailScreenState extends ConsumerState<MessageDetailScreen> {
           body: text,
         );
       }
+      ref.invalidate(chatThreadsProvider);
     } catch (e) {
       if (mounted) {
         setState(() {
