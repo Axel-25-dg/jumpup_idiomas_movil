@@ -9,6 +9,8 @@ import 'package:jumpup_app/presentation/widgets/loading_overlay.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 
+import 'package:jumpup_app/widgets/glass_container.dart';
+
 class ClassroomsScreen extends ConsumerStatefulWidget {
   const ClassroomsScreen({super.key});
 
@@ -36,67 +38,134 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     final notifier = ref.read(classroomNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Gestión de Aulas'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context),
-            tooltip: 'Crear aula',
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
+        children: [
+          // Background Decorative Blobs
+          Positioned(
+            top: -50,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFFD600).withValues(alpha: 0.1),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => notifier.refresh(),
-            tooltip: 'Refrescar',
+          Positioned(
+            bottom: -100,
+            left: -50,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Virtual Classrooms',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_rounded, color: Color(0xFFFFD600)),
+                    onPressed: () => _showAddEditDialog(context),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                    onPressed: () => notifier.refresh(),
+                  ),
+                ],
+              ),
+              SliverFillRemaining(
+                child: RefreshIndicator(
+                  color: const Color(0xFF7C4DFF),
+                  onRefresh: () => notifier.refresh(),
+                  child: LoadingOverlay(
+                    isLoading: classroomsAsync.isLoading,
+                    child: classroomsAsync.when(
+                      loading: () => const Center(
+                        child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+                      ),
+                      error: (error, stack) => Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: _buildErrorView(error, notifier),
+                      ),
+                      data: (classrooms) {
+                        if (classrooms.isEmpty) {
+                          return EmptyState(
+                            title: 'No classrooms created',
+                            subtitle: 'Start by creating your first virtual group',
+                            icon: Icons.class_rounded,
+                            buttonText: 'Create Classroom',
+                            onButtonPressed: () => _showAddEditDialog(context),
+                          );
+                        }
+                        return ListView.builder(
+                          padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                          itemCount: classrooms.length,
+                          itemBuilder: (context, index) {
+                            final classroom = classrooms[index];
+                            return _ClassroomCard(
+                              classroom: classroom,
+                              onEdit: () => _showAddEditDialog(
+                                context,
+                                classroom: classroom,
+                              ),
+                              onDelete: () => _confirmDelete(
+                                context,
+                                classroom.id,
+                                notifier,
+                              ),
+                              onViewStudents: () => _showStudentsDialog(
+                                context,
+                                classroom.id,
+                                classroom.name,
+                              ),
+                            );
+                          },
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => notifier.refresh(),
-        child: LoadingOverlay(
-          isLoading: classroomsAsync.isLoading,
-          child: classroomsAsync.when(
-            loading: () => const Center(child: CircularProgressIndicator()),
-            error: (error, stack) => _buildErrorView(error, notifier),
-            data: (classrooms) {
-              if (classrooms.isEmpty) {
-                return const EmptyState(
-                  title: 'No hay aulas creadas',
-                  subtitle: 'Crea tu primera aula para comenzar',
-                  icon: Icons.class_rounded,
-                );
-              }
-              return ListView.builder(
-                padding: const EdgeInsets.all(16),
-                itemCount: classrooms.length,
-                itemBuilder: (context, index) {
-                  final classroom = classrooms[index];
-                  return _ClassroomCard(
-                    classroom: classroom,
-                    onEdit: () => _showAddEditDialog(
-                      context,
-                      classroom: classroom,
-                    ),
-                    onDelete: () => _confirmDelete(
-                      context,
-                      classroom.id,
-                      notifier,
-                    ),
-                    onViewStudents: () => _showStudentsDialog(
-                      context,
-                      classroom.id,
-                      classroom.name,
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
       ),
     );
   }
@@ -108,11 +177,12 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text('Error al cargar aulas', style: AppTextStyles.titleMedium),
+          const Text('Error al cargar aulas',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -140,7 +210,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(classroom != null ? 'Editar aula' : 'Crear aula'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(classroom != null ? 'Editar aula' : 'Crear aula',
+            style: const TextStyle(color: Colors.white)),
         content: SingleChildScrollView(
           child: Form(
             key: _formKey,
@@ -188,7 +261,8 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
             label: classroom != null ? 'Actualizar' : 'Crear',
@@ -222,15 +296,20 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar aula'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Eliminar aula',
+            style: TextStyle(color: Colors.white)),
         content: const Text(
           '¿Estás seguro de que deseas eliminar esta aula?\n'
           'Esta acción eliminará todas las inscripciones asociadas.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
             label: 'Eliminar',
@@ -244,13 +323,17 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  void _showStudentsDialog(BuildContext context, int classroomId, String className) {
+  void _showStudentsDialog(
+      BuildContext context, int classroomId, String className) {
     final enrollmentsAsync = ref.watch(enrollmentsProvider(classroomId));
 
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('Alumnos de $className'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('Alumnos de $className',
+            style: const TextStyle(color: Colors.white)),
         content: SizedBox(
           width: 400,
           height: 400,
@@ -259,22 +342,21 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
             error: (error, _) => Center(
               child: Text(
                 'Error al cargar alumnos: $error',
-                style: AppTextStyles.bodyMedium.copyWith(color: AppColors.error),
+                style: const TextStyle(color: AppColors.error),
               ),
             ),
             data: (enrollments) {
               if (enrollments.isEmpty) {
-                return Center(
+                return const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.people_outline_rounded, size: 48, color: Colors.grey[300]),
-                      const SizedBox(height: 12),
+                      Icon(Icons.people_outline_rounded,
+                          size: 48, color: Colors.white10),
+                      SizedBox(height: 12),
                       Text(
                         'No hay alumnos inscritos',
-                        style: AppTextStyles.bodyMedium.copyWith(
-                          color: AppColors.textSecondary,
-                        ),
+                        style: TextStyle(color: Colors.white38),
                       ),
                     ],
                   ),
@@ -286,33 +368,37 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                   final enrollment = enrollments[index];
                   return ListTile(
                     leading: CircleAvatar(
-                      backgroundColor: AppColors.primary.withValues(alpha: 0.1),
+                      backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
                       child: Text(
                         enrollment.studentUsername.isNotEmpty
                             ? enrollment.studentUsername[0].toUpperCase()
                             : '?',
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          color: AppColors.primary,
+                          color: Color(0xFF7C4DFF),
                         ),
                       ),
                     ),
                     title: Text(
                       enrollment.studentUsername,
-                      style: AppTextStyles.bodyMedium.copyWith(
+                      style: const TextStyle(
                         fontWeight: FontWeight.w600,
+                        color: Colors.white,
                       ),
                     ),
                     subtitle: Text(
                       enrollment.studentEmail,
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textSecondary,
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 12,
                       ),
                     ),
                     trailing: IconButton(
-                      icon: const Icon(Icons.remove_circle_rounded, color: AppColors.error),
+                      icon: const Icon(Icons.remove_circle_rounded,
+                          color: AppColors.error),
                       onPressed: () {
-                        final notifier = ref.read(classroomNotifierProvider.notifier);
+                        final notifier =
+                            ref.read(classroomNotifierProvider.notifier);
                         notifier.removeStudent(enrollment.id);
                         ref.invalidate(enrollmentsProvider(classroomId));
                         if (mounted) {
@@ -331,7 +417,8 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cerrar'),
+            child:
+                const Text('Cerrar', style: TextStyle(color: Colors.white38)),
           ),
         ],
       ),
@@ -354,127 +441,125 @@ class _ClassroomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
+    final accentColor = const Color(0xFF7C4DFF);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(
+              Icons.class_rounded,
+              color: accentColor,
+            ),
           ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFFE65100).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+          title: Text(
+            classroom.name,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
           ),
-          child: const Icon(
-            Icons.class_rounded,
-            color: Color(0xFFE65100),
-          ),
-        ),
-        title: Text(
-          classroom.name,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (classroom.description.isNotEmpty) ...[
-              Text(
-                classroom.description,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: AppColors.textSecondary,
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (classroom.description.isNotEmpty) ...[
+                Text(
+                  classroom.description,
+                  style: const TextStyle(
+                    color: Colors.white54,
+                    fontSize: 12,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 4),
-            ],
-            Wrap(
-              spacing: 8,
-              runSpacing: 4,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'ID Curso: ${classroom.courseId}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.primary,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: classroom.isActive
-                        ? Colors.green.withValues(alpha: 0.1)
-                        : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    classroom.isActive ? 'Activo' : 'Inactivo',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: classroom.isActive ? Colors.green : Colors.red,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    'Código: ${classroom.accessCode}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: Colors.blue,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
+                const SizedBox(height: 4),
               ],
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.people_rounded, size: 20),
-              onPressed: onViewStudents,
-              color: Colors.blue,
-              tooltip: 'Ver alumnos',
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 20),
-              onPressed: onEdit,
-              color: AppColors.primary,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              onPressed: onDelete,
-              color: AppColors.error,
-            ),
-          ],
+              Wrap(
+                spacing: 8,
+                runSpacing: 4,
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppColors.secondary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'ID Curso: ${classroom.courseId}',
+                      style: const TextStyle(
+                        color: AppColors.secondary,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: classroom.isActive
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      classroom.isActive ? 'Activo' : 'Inactivo',
+                      style: TextStyle(
+                        color: classroom.isActive ? Colors.green : Colors.red,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      'Código: ${classroom.accessCode}',
+                      style: const TextStyle(
+                        color: Colors.blue,
+                        fontSize: 10,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.people_rounded, size: 20),
+                onPressed: onViewStudents,
+                color: Colors.blue,
+                tooltip: 'Ver alumnos',
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: onEdit,
+                color: Colors.white38,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                onPressed: onDelete,
+                color: AppColors.error.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
         ),
       ),
     );

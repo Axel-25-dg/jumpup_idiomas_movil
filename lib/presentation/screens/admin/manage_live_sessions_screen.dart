@@ -15,6 +15,110 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final liveAsync = ref.watch(liveSessionsProvider);
 
+    final content = Stack(
+      children: [
+        // Decorative Blobs
+        if (embedded) ...[
+          Positioned(
+            top: -100,
+            right: -100,
+            child: _blob(const Color(0xFF7C4DFF), 300),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -50,
+            child: _blob(const Color(0xFF00E5FF), 250),
+          ),
+        ],
+
+        RefreshIndicator(
+          color: const Color(0xFF7C4DFF),
+          onRefresh: () async => ref.invalidate(liveSessionsProvider),
+          child: CustomScrollView(
+            physics: const BouncingScrollPhysics(),
+            slivers: [
+              if (embedded)
+                const SliverAppBar(
+                  expandedHeight: 120,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    title: Text(
+                      'Live Sessions',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    centerTitle: false,
+                  ),
+                ),
+              
+              liveAsync.when(
+                loading: () => const SliverFillRemaining(
+                  child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                ),
+                error: (e, stack) {
+                  debugPrint('Live Sessions Error: $e\n$stack');
+                  return SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.redAccent.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                        ),
+                        child: const Text(
+                          'Error al cargar sesiones en vivo. Por favor, intenta de nuevo.',
+                          style: TextStyle(color: Colors.white70),
+                        ),
+                      ),
+                    ),
+                  );
+                },
+                data: (sessions) {
+                  if (sessions.isEmpty) {
+                    return const SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.videocam_off_outlined, size: 64, color: Colors.white30),
+                            SizedBox(height: 12),
+                            Text('No hay sesiones programadas',
+                                style: TextStyle(color: Colors.white, fontSize: 18)),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+
+                  return SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                    sliver: SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) => _SessionManagementCard(session: sessions[index]),
+                        childCount: sessions.length,
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    if (embedded) return content;
+
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
@@ -22,13 +126,6 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
         elevation: 0,
         title: const Text('Gestión de Videotutorías', style: TextStyle(color: Colors.white)),
         iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(liveSessionsProvider),
-          ),
-          const SizedBox(width: 8),
-        ],
       ),
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF7C4DFF),
@@ -38,52 +135,19 @@ class ManageLiveSessionsScreen extends ConsumerWidget {
               MaterialPageRoute(builder: (_) => const CreateLiveSessionScreen()));
         },
       ),
-      body: liveAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-              const SizedBox(height: 12),
-              Text('Error: $e', style: const TextStyle(color: Colors.redAccent)),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF7C4DFF)),
-                onPressed: () => ref.invalidate(liveSessionsProvider),
-                child: const Text('Reintentar', style: TextStyle(color: Colors.white)),
-              ),
-            ],
-          ),
-        ),
-        data: (sessions) {
-          if (sessions.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.videocam_off_outlined, size: 64, color: Colors.white30),
-                  SizedBox(height: 12),
-                  Text('No hay sesiones programadas', style: TextStyle(color: Colors.white, fontSize: 18)),
-                  SizedBox(height: 8),
-                  Text('Tus sesiones en vivo aparecerán aquí.', style: TextStyle(color: Colors.white54)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: sessions.length,
-            itemBuilder: (context, index) {
-              final session = sessions[index];
-              return _SessionManagementCard(session: session);
-            },
-          );
-        },
-      ),
+      body: content,
     );
   }
+
+  Widget _blob(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: 0.05),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 80)],
+        ),
+      );
 }
 
 class _SessionManagementCard extends ConsumerWidget {

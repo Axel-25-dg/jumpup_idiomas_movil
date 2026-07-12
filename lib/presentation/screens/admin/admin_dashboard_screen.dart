@@ -101,19 +101,23 @@ class AdminDashboardScreen extends ConsumerWidget {
                         statsAsync.when(
                           loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF2575FC))),
                           error: (e, _) => _ErrorCard(message: e.toString()),
-                          data: (stats) => GridView.count(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: 12,
-                            crossAxisSpacing: 12,
-                            childAspectRatio: 1.5,
-                            shrinkWrap: true,
-                            physics: const NeverScrollableScrollPhysics(),
-                            children: [
-                              _MetricCard(title: 'Usuarios', value: stats.totalUsers, icon: Icons.people_rounded, color: const Color(0xFF6A11CB)),
-                              _MetricCard(title: 'Profesores', value: stats.teachers, icon: Icons.school_rounded, color: const Color(0xFF2575FC)),
-                              _MetricCard(title: 'Cursos', value: stats.courses, icon: Icons.auto_stories_rounded, color: const Color(0xFF00C853)),
-                              _MetricCard(title: 'Ingresos', value: stats.payments, icon: Icons.payments_rounded, color: const Color(0xFFFFAB00)),
-                            ],
+                          data: (stats) => LayoutBuilder(
+                            builder: (context, constraints) {
+                              return GridView.count(
+                                crossAxisCount: 2,
+                                mainAxisSpacing: 12,
+                                crossAxisSpacing: 12,
+                                childAspectRatio: 1.6,
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                children: [
+                                  _MetricCard(title: 'Usuarios', value: stats.totalUsers, icon: Icons.people_rounded, color: const Color(0xFF6A11CB)),
+                                  _MetricCard(title: 'Profesores', value: stats.teachers, icon: Icons.school_rounded, color: const Color(0xFF2575FC)),
+                                  _MetricCard(title: 'Cursos', value: stats.courses, icon: Icons.auto_stories_rounded, color: const Color(0xFF00C853)),
+                                  _MetricCard(title: 'Ingresos', value: stats.payments, icon: Icons.payments_rounded, color: const Color(0xFFFFAB00)),
+                                ],
+                              );
+                            },
                           ),
                         ),
                         const SizedBox(height: 32),
@@ -217,19 +221,31 @@ class _MetricCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return GlassContainer(
       borderRadius: BorderRadius.circular(20),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
-            child: Icon(icon, color: color, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(6),
+                decoration: BoxDecoration(color: color.withValues(alpha: 0.1), shape: BoxShape.circle),
+                child: Icon(icon, color: color, size: 18),
+              ),
+              const Icon(Icons.trending_up, color: Colors.white24, size: 14),
+            ],
           ),
           const Spacer(),
-          Text(value.toString(), style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
-          Text(title, style: const TextStyle(color: Colors.white54, fontSize: 12, fontWeight: FontWeight.w600)),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Text(value.toString(), 
+                style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, letterSpacing: -1)),
+          ),
+          Text(title, 
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(color: Colors.white54, fontSize: 11, fontWeight: FontWeight.w600)),
         ],
       ),
     );

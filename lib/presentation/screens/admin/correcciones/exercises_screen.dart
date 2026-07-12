@@ -5,9 +5,9 @@ import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/exercise_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
-import 'package:jumpup_app/presentation/widgets/loading_overlay.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
   const ExercisesScreen({super.key});
@@ -43,101 +43,196 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   @override
   Widget build(BuildContext context) {
-
-
     final notifier = ref.read(exerciseNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Gestión de Ejercicios'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: _currentLessonId != null
-                ? () => _showAddEditDialog(context)
-                : null,
-            tooltip: 'Crear ejercicio',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: _currentLessonId != null
-                ? () => notifier.refresh(_currentLessonId!)
-                : null,
-            tooltip: 'Refrescar',
-          ),
-        ],
-      ),
-      body: Column(
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
         children: [
-          // Filtro por ID de Lección
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: BrandedTextField(
-                    controller: _lessonIdController,
-                    label: 'ID de Lección',
-                    prefixIcon: Icons.book_rounded,
-                    keyboardType: TextInputType.number,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                PrimaryButton(
-                  label: 'Buscar',
-                  onPressed: () {
-                    final id = int.tryParse(_lessonIdController.text);
-                    if (id != null && id > 0) {
-                      setState(() => _currentLessonId = id);
-                      notifier.refresh(id);
-                    } else {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Ingresa un ID de lección válido'),
-                          backgroundColor: AppColors.error,
-                        ),
-                      );
-                    }
-                  },
-                  icon: Icons.search_rounded,
-                ),
-              ],
+          // Background Blobs
+          Positioned(
+            top: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                    blurRadius: 100,
+                  )
+                ],
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                    blurRadius: 80,
+                  )
+                ],
+              ),
             ),
           ),
 
-          Expanded(
-            child: _currentLessonId == null
-                ? Center(
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Exercise Bank',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  if (_currentLessonId != null) ...[
+                    IconButton(
+                      icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
+                      onPressed: () => _showAddEditDialog(context),
+                      tooltip: 'Crear ejercicio',
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                      onPressed: () => notifier.refresh(_currentLessonId!),
+                      tooltip: 'Refrescar',
+                    ),
+                  ],
+                ],
+              ),
+              
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                  child: GlassContainer(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Filter by Lesson',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: BrandedTextField(
+                                controller: _lessonIdController,
+                                label: 'Lesson ID',
+                                prefixIcon: Icons.book_rounded,
+                                keyboardType: TextInputType.number,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
+                            PrimaryButton(
+                              label: 'Search',
+                              onPressed: () {
+                                final id = int.tryParse(_lessonIdController.text);
+                                if (id != null && id > 0) {
+                                  setState(() => _currentLessonId = id);
+                                  notifier.getExercisesByLesson(id);
+                                } else {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text('Ingresa un ID de lección válido'),
+                                      backgroundColor: AppColors.error,
+                                    ),
+                                  );
+                                }
+                              },
+                              icon: Icons.search_rounded,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              if (_currentLessonId == null)
+                SliverFillRemaining(
+                  hasScrollBody: false,
+                  child: Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.search_rounded, size: 64, color: Colors.grey[300]),
+                        Icon(Icons.search_off_rounded,
+                            size: 80, color: Colors.white.withValues(alpha: 0.1)),
                         const SizedBox(height: 16),
-                        Text(
-                          'Busca una lección para ver sus ejercicios',
-                          style: AppTextStyles.titleMedium.copyWith(
-                            color: AppColors.textSecondary,
+                        const Text(
+                          'Enter a Lesson ID to manage exercises',
+                          style: TextStyle(
+                            color: Colors.white70,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Ingresa el ID de la lección y presiona Buscar',
-                          style: AppTextStyles.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
+                          'Exercises will appear here once you search',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.3),
+                            fontSize: 13,
                           ),
                         ),
                       ],
                     ),
-                  )
-                : _ExercisesList(
-                    lessonId: _currentLessonId!,
-                    onEdit: (exercise) => _showAddEditDialog(context, exercise: exercise),
-                    onDelete: (exerciseId, lessonId, notifier) => _confirmDelete(context, exerciseId, lessonId, notifier),
                   ),
+                )
+              else
+                SliverPadding(
+                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                  sliver: _ExercisesListSliver(
+                    lessonId: _currentLessonId!,
+                    onEdit: (exercise) =>
+                        _showAddEditDialog(context, exercise: exercise),
+                    onDelete: (exerciseId, lessonId, notifier) =>
+                        _confirmDelete(context, exerciseId, lessonId, notifier),
+                  ),
+                ),
+            ],
           ),
         ],
       ),
@@ -161,47 +256,58 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(isEditing ? 'Editar ejercicio' : 'Crear ejercicio'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(isEditing ? 'Edit Exercise' : 'Create Exercise',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: SizedBox(
-          width: 400,
+          width: 450,
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   if (!isEditing) ...[
                     BrandedTextField(
                       controller: _lessonIdController,
-                      label: 'ID de Lección',
+                      label: 'Lesson ID',
                       prefixIcon: Icons.book_rounded,
                       keyboardType: TextInputType.number,
-                      validator: (value) {
-                        if (value == null || value.isEmpty) {
-                          return 'El ID de lección es obligatorio';
-                        }
-                        if (int.tryParse(value) == null) {
-                          return 'Ingresa un número válido';
-                        }
-                        return null;
-                      },
+                      enabled: false, // Already selected in the screen
                     ),
                     const SizedBox(height: 16),
                   ],
+                  const Text('Exercise Type', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
                     initialValue: _selectedType,
                     isExpanded: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Tipo de ejercicio',
-                      prefixIcon: Icon(Icons.category_rounded),
-                      border: OutlineInputBorder(),
+                    dropdownColor: const Color(0xFF1E1E2A),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      prefixIcon:
+                          const Icon(Icons.category_rounded, color: Color(0xFF7C4DFF)),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
                     ),
                     items: _exerciseTypes.map<DropdownMenuItem<String>>((type) {
                       return DropdownMenuItem<String>(
                         value: type['value'] as String,
                         child: Row(
                           children: [
-                            Icon(type['icon'] as IconData, size: 20, color: AppColors.primary),
+                            Icon(type['icon'] as IconData,
+                                size: 20, color: const Color(0xFF7C4DFF)),
                             const SizedBox(width: 12),
                             Text(type['label'] as String),
                           ],
@@ -214,15 +320,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                       }
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   BrandedTextField(
                     controller: _questionController,
-                    label: 'Enunciado / Pregunta',
-                    prefixIcon: Icons.question_mark_rounded,
+                    label: 'Question / Instruction',
+                    prefixIcon: Icons.quiz_rounded,
                     maxLines: 3,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'El enunciado es obligatorio';
+                        return 'Question text is required';
                       }
                       return null;
                     },
@@ -230,60 +336,14 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                   const SizedBox(height: 16),
                   BrandedTextField(
                     controller: _answerController,
-                    label: 'Respuesta Correcta',
+                    label: 'Correct Answer',
                     prefixIcon: Icons.check_circle_rounded,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'La respuesta es obligatoria';
+                        return 'Answer is required';
                       }
                       return null;
                     },
-                  ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                      ),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _exerciseTypes.firstWhere(
-                            (t) => t['value'] == _selectedType,
-                            orElse: () => const {'icon': Icons.help_rounded},
-                          )['icon'] as IconData,
-                          color: AppColors.primary,
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Tipo seleccionado:',
-                                style: AppTextStyles.bodySmall.copyWith(
-                                  color: AppColors.textSecondary,
-                                ),
-                              ),
-                              Text(
-                                _exerciseTypes.firstWhere(
-                                  (t) => t['value'] == _selectedType,
-                                  orElse: () => const {'label': 'No definido'},
-                                )['label'] as String,
-                                style: AppTextStyles.titleSmall.copyWith(
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
                   ),
                 ],
               ),
@@ -293,10 +353,11 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: isEditing ? 'Actualizar' : 'Guardar',
+            label: isEditing ? 'Update' : 'Save',
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 final notifier = ref.read(exerciseNotifierProvider.notifier);
@@ -335,18 +396,24 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar ejercicio'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Exercise',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: const Text(
-          '¿Estás seguro de que deseas eliminar este ejercicio?\n'
-          'Esta acción no se puede deshacer.',
+          'Are you sure you want to delete this exercise?\n'
+          'This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: 'Eliminar',
+            label: 'Delete',
+            color: AppColors.error,
             onPressed: () {
               notifier.deleteExercise(exerciseId, lessonId);
               Navigator.pop(ctx);
@@ -372,15 +439,15 @@ class _ExerciseCard extends StatelessWidget {
   String _getTypeLabel(String type) {
     switch (type) {
       case 'multiple_choice':
-        return 'Opción Múltiple';
+        return 'Multiple Choice';
       case 'translate':
-        return 'Traducción';
+        return 'Translation';
       case 'listen':
-        return 'Audición';
+        return 'Listening';
       case 'fill_blank':
-        return 'Completar';
+        return 'Fill the blank';
       case 'match':
-        return 'Emparejar';
+        return 'Matching';
       default:
         return type;
     }
@@ -406,15 +473,15 @@ class _ExerciseCard extends StatelessWidget {
   Color _getTypeColor(String type) {
     switch (type) {
       case 'multiple_choice':
-        return Colors.blue;
+        return const Color(0xFF00E5FF);
       case 'translate':
-        return Colors.purple;
+        return const Color(0xFF7C4DFF);
       case 'listen':
-        return Colors.green;
+        return const Color(0xFF00C853);
       case 'fill_blank':
-        return Colors.orange;
+        return const Color(0xFFFFAB40);
       case 'match':
-        return Colors.red;
+        return const Color(0xFFFF5252);
       default:
         return Colors.grey;
     }
@@ -424,113 +491,110 @@ class _ExerciseCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final typeColor = _getTypeColor(exercise.exerciseType);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: typeColor.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: typeColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            _getTypeIcon(exercise.exerciseType),
-            color: typeColor,
-          ),
-        ),
-        title: Text(
-          exercise.questionText,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: typeColor.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Text(
-                    _getTypeLabel(exercise.exerciseType),
-                    style: TextStyle(
-                      fontSize: 10,
-                      color: typeColor,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    'ID Lección: ${exercise.lesson}',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                    ),
-                  ),
-                ),
-              ],
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          leading: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: typeColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(color: typeColor.withValues(alpha: 0.2)),
             ),
-            const SizedBox(height: 4),
-            Text(
-              'Respuesta: ${exercise.correctAnswer}',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: Colors.green,
-                fontSize: 11,
+            child: Icon(
+              _getTypeIcon(exercise.exerciseType),
+              color: typeColor,
+              size: 24,
+            ),
+          ),
+          title: Text(
+            exercise.questionText,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 15,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: typeColor.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _getTypeLabel(exercise.exerciseType).toUpperCase(),
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: typeColor,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 20),
-              onPressed: onEdit,
-              color: AppColors.primary,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              onPressed: onDelete,
-              color: AppColors.error,
-            ),
-          ],
+              const SizedBox(height: 6),
+              RichText(
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                text: TextSpan(
+                  children: [
+                    const TextSpan(
+                      text: 'Correct: ',
+                      style: TextStyle(color: Colors.white38, fontSize: 11),
+                    ),
+                    TextSpan(
+                      text: exercise.correctAnswer,
+                      style: const TextStyle(
+                        color: Color(0xFF00E676),
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: onEdit,
+                color: Colors.white38,
+                tooltip: 'Edit',
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                onPressed: onDelete,
+                color: AppColors.error.withValues(alpha: 0.7),
+                tooltip: 'Delete',
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _ExercisesList extends ConsumerWidget {
-  const _ExercisesList({
+class _ExercisesListSliver extends ConsumerWidget {
+  const _ExercisesListSliver({
     required this.lessonId,
     required this.onEdit,
     required this.onDelete,
@@ -542,62 +606,67 @@ class _ExercisesList extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final exercisesAsync = ref.watch(exercisesByLessonProvider(lessonId));
+    final exercisesAsync = ref.watch(exerciseNotifierProvider);
     final notifier = ref.read(exerciseNotifierProvider.notifier);
 
-    return RefreshIndicator(
-      onRefresh: () => notifier.refresh(lessonId),
-      child: LoadingOverlay(
-        isLoading: exercisesAsync.isLoading,
-        child: exercisesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-                const SizedBox(height: 16),
-                Text('Error al cargar ejercicios', style: AppTextStyles.titleMedium),
-                const SizedBox(height: 8),
-                Text(
-                  error.toString(),
-                  style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                PrimaryButton(
-                  label: 'Reintentar',
-                  onPressed: () => notifier.refresh(lessonId),
-                  icon: Icons.refresh_rounded,
-                ),
-              ],
-            ),
+    return exercisesAsync.when(
+      loading: () => const SliverFillRemaining(
+        child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+      ),
+      error: (error, stack) => SliverFillRemaining(
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline,
+                  size: 48, color: AppColors.error),
+              const SizedBox(height: 16),
+              const Text('Error al cargar ejercicios',
+                  style: TextStyle(color: Colors.white, fontSize: 18)),
+              const SizedBox(height: 16),
+              PrimaryButton(
+                label: 'Reintentar',
+                onPressed: () => notifier.refresh(lessonId),
+                icon: Icons.refresh_rounded,
+              ),
+            ],
           ),
-          data: (exercises) {
-            if (exercises.isEmpty) {
-              return EmptyState(
-                title: 'No hay ejercicios',
-                subtitle: 'Crea el primer ejercicio para esta lección',
-                icon: Icons.edit_note_rounded,
-                buttonText: 'Crear ejercicio',
-                onButtonPressed: () {}, 
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: exercises.length,
-              itemBuilder: (context, index) {
-                final exercise = exercises[index];
-                return _ExerciseCard(
-                  exercise: exercise,
-                  onEdit: () => onEdit(exercise),
-                  onDelete: () => onDelete(exercise.id, lessonId, notifier),
-                );
-              },
-            );
-          },
         ),
       ),
+      data: (exercises) {
+        if (exercises.isEmpty) {
+          return SliverFillRemaining(
+            hasScrollBody: false,
+            child: EmptyState(
+              title: 'No exercises found',
+              subtitle: 'Create the first exercise for this lesson',
+              icon: Icons.note_add_rounded,
+              buttonText: 'Create Exercise',
+              onButtonPressed: () => onEdit(ExerciseModel(
+                id: 0,
+                lesson: lessonId,
+                lessonTitle: '',
+                questionText: '',
+                exerciseType: 'multiple_choice',
+                correctAnswer: '',
+              )), 
+            ),
+          );
+        }
+        return SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, index) {
+              final exercise = exercises[index];
+              return _ExerciseCard(
+                exercise: exercise,
+                onEdit: () => onEdit(exercise),
+                onDelete: () => onDelete(exercise.id, lessonId, notifier),
+              );
+            },
+            childCount: exercises.length,
+          ),
+        );
+      },
     );
   }
 }

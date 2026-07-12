@@ -10,6 +10,8 @@ import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 
+import 'package:jumpup_app/widgets/glass_container.dart';
+
 class CoursesScreen extends ConsumerStatefulWidget {
   const CoursesScreen({super.key});
 
@@ -46,62 +48,128 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
     final languagesAsync = ref.watch(languageProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Gestión de Cursos'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context, languagesAsync),
-            tooltip: 'Agregar curso',
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
+        children: [
+          // Background Decorative Blobs
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => notifier.refresh(),
-            tooltip: 'Refrescar',
+          Positioned(
+            bottom: 100,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Educational Content',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
+                    onPressed: () => _showAddEditDialog(context, languagesAsync),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                    onPressed: () => notifier.refresh(),
+                  ),
+                ],
+              ),
+              SliverFillRemaining(
+                child: RefreshIndicator(
+                  color: const Color(0xFF7C4DFF),
+                  onRefresh: () => notifier.refresh(),
+                  child: coursesAsync.when(
+                    loading: () => const Center(
+                      child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+                    ),
+                    error: (error, stack) => Padding(
+                      padding: const EdgeInsets.all(20),
+                      child: _buildErrorView(error, notifier),
+                    ),
+                    data: (courses) {
+                      if (courses.isEmpty) {
+                        return EmptyState(
+                          title: 'No courses found',
+                          subtitle: 'Create your first course to begin',
+                          icon: Icons.menu_book_rounded,
+                          buttonText: 'Create Course',
+                          onButtonPressed: () =>
+                              _showAddEditDialog(context, languagesAsync),
+                        );
+                      }
+                      return ListView.builder(
+                        padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                        itemCount: courses.length,
+                        itemBuilder: (context, index) {
+                          final course = courses[index];
+                          return _CourseCard(
+                            course: course,
+                            onEdit: () => _showAddEditDialog(
+                              context,
+                              languagesAsync,
+                              course: course,
+                            ),
+                            onDelete: () => _confirmDelete(
+                              context,
+                              course.id,
+                              notifier,
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => notifier.refresh(),
-        child: coursesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => _buildErrorView(error, notifier),
-          data: (courses) {
-            if (courses.isEmpty) {
-              return EmptyState(
-                title: 'No hay cursos creados',
-                subtitle: 'Crea tu primer curso para comenzar',
-                icon: Icons.menu_book_rounded,
-                buttonText: 'Crear curso',
-                onButtonPressed: () => _showAddEditDialog(context, languagesAsync),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: courses.length,
-              itemBuilder: (context, index) {
-                final course = courses[index];
-                return _CourseCard(
-                  course: course,
-                  onEdit: () => _showAddEditDialog(
-                    context,
-                    languagesAsync,
-                    course: course,
-                  ),
-                  onDelete: () => _confirmDelete(
-                    context,
-                    course.id,
-                    notifier,
-                  ),
-                );
-              },
-            );
-          },
-        ),
       ),
     );
   }
@@ -113,11 +181,12 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text('Error al cargar cursos', style: AppTextStyles.titleMedium),
+          Text('Error al cargar cursos',
+              style: const TextStyle(color: Colors.white, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -153,89 +222,114 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(course != null ? 'Editar curso' : 'Agregar curso'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(course != null ? 'Editar curso' : 'Agregar curso',
+            style: const TextStyle(color: Colors.white)),
         content: SizedBox(
           width: 400,
           child: Form(
             key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // Idioma
-                languagesAsync.when(
-                  loading: () => const CircularProgressIndicator(),
-                  error: (_, __) => const Text('Error al cargar idiomas'),
-                  data: (languages) => DropdownButtonFormField<int>(
-                    decoration: const InputDecoration(
-                      labelText: 'Idioma',
-                      prefixIcon: Icon(Icons.language_rounded),
-                      border: OutlineInputBorder(),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Idioma
+                  languagesAsync.when(
+                    loading: () => const CircularProgressIndicator(),
+                    error: (_, __) => const Text('Error al cargar idiomas',
+                        style: TextStyle(color: Colors.red)),
+                    data: (languages) => DropdownButtonFormField<int>(
+                      dropdownColor: const Color(0xFF1E1E2A),
+                      style: const TextStyle(color: Colors.white),
+                      decoration: InputDecoration(
+                        labelText: 'Idioma',
+                        labelStyle: const TextStyle(color: Colors.white70),
+                        prefixIcon: const Icon(Icons.language_rounded,
+                            color: Colors.white70),
+                        filled: true,
+                        fillColor: Colors.white.withValues(alpha: 0.05),
+                        border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            borderSide: BorderSide.none),
+                      ),
+                      initialValue: _selectedLanguageId,
+                      items: languages.map((lang) {
+                        return DropdownMenuItem(
+                          value: lang.id,
+                          child: Text(lang.name),
+                        );
+                      }).toList(),
+                      onChanged: (value) => _selectedLanguageId = value,
+                      validator: (value) =>
+                          value == null ? 'Selecciona un idioma' : null,
                     ),
-                    initialValue: _selectedLanguageId,
-                    items: languages.map((lang) {
+                  ),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _titleController,
+                    label: 'Título del curso',
+                    prefixIcon: Icons.title_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El título es obligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _descriptionController,
+                    label: 'Descripción',
+                    prefixIcon: Icons.description_rounded,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<String>(
+                    dropdownColor: const Color(0xFF1E1E2A),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      labelText: 'Nivel de dificultad',
+                      labelStyle: const TextStyle(color: Colors.white70),
+                      prefixIcon: const Icon(Icons.signal_cellular_alt_rounded,
+                          color: Colors.white70),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none),
+                    ),
+                    initialValue: _selectedDifficulty,
+                    items: _difficultyLevels.map((level) {
                       return DropdownMenuItem(
-                        value: lang.id,
-                        child: Text(lang.name),
+                        value: level['value'],
+                        child: Text(level['label']!),
                       );
                     }).toList(),
-                    onChanged: (value) => _selectedLanguageId = value,
-                    validator: (value) => value == null ? 'Selecciona un idioma' : null,
+                    onChanged: (value) => _selectedDifficulty = value,
                   ),
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _titleController,
-                  label: 'Título del curso',
-                  prefixIcon: Icons.title_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El título es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _descriptionController,
-                  label: 'Descripción',
-                  prefixIcon: Icons.description_rounded,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  decoration: const InputDecoration(
-                    labelText: 'Nivel de dificultad',
-                    prefixIcon: Icon(Icons.signal_cellular_alt_rounded),
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _imageUrlController,
+                    label: 'URL de la imagen (opcional)',
+                    prefixIcon: Icons.image_rounded,
                   ),
-                  initialValue: _selectedDifficulty,
-                  items: _difficultyLevels.map((level) {
-                    return DropdownMenuItem(
-                      value: level['value'],
-                      child: Text(level['label']!),
-                    );
-                  }).toList(),
-                  onChanged: (value) => _selectedDifficulty = value,
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _imageUrlController,
-                  label: 'URL de la imagen (opcional)',
-                  prefixIcon: Icons.image_rounded,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
             label: course != null ? 'Actualizar' : 'Guardar',
             onPressed: () {
-              if (_formKey.currentState!.validate() && _selectedLanguageId != null) {
+              if (_formKey.currentState!.validate() &&
+                  _selectedLanguageId != null) {
                 final notifier = ref.read(courseNotifierProvider.notifier);
 
                 final data = {
@@ -264,15 +358,20 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar curso'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Eliminar curso',
+            style: TextStyle(color: Colors.white)),
         content: const Text(
           '¿Estás seguro de que deseas eliminar este curso?\n'
           'Esta acción eliminará todos los módulos y lecciones asociadas.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
             label: 'Eliminar',
@@ -326,90 +425,86 @@ class _CourseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFF2E7D32).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: course.imageUrl.isNotEmpty
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    course.imageUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => const Icon(
-                      Icons.menu_book_rounded,
-                      color: Color(0xFF2E7D32),
-                    ),
-                  ),
-                )
-              : const Icon(Icons.menu_book_rounded, color: Color(0xFF2E7D32)),
-        ),
-        title: Text(
-          course.title,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Idioma: ${course.languageName}',
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
-              ),
+    final accentColor = const Color(0xFF7C4DFF);
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          leading: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
             ),
-            const SizedBox(height: 4),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              decoration: BoxDecoration(
-                color: _getDifficultyColor(course.difficultyLevel).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Text(
-                _getDifficultyLabel(course.difficultyLevel),
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: _getDifficultyColor(course.difficultyLevel),
-                  fontSize: 10,
+            child: course.imageUrl.isNotEmpty
+                ? ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      course.imageUrl,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.menu_book_rounded,
+                        color: accentColor,
+                      ),
+                    ),
+                  )
+                : Icon(Icons.menu_book_rounded, color: accentColor),
+          ),
+          title: Text(
+            course.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.w600,
+              color: Colors.white,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Idioma: ${course.languageName}',
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 12,
                 ),
               ),
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 20),
-              onPressed: onEdit,
-              color: AppColors.primary,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              onPressed: onDelete,
-              color: AppColors.error,
-            ),
-          ],
+              const SizedBox(height: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: _getDifficultyColor(course.difficultyLevel)
+                      .withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  _getDifficultyLabel(course.difficultyLevel),
+                  style: TextStyle(
+                    color: _getDifficultyColor(course.difficultyLevel),
+                    fontSize: 10,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: onEdit,
+                color: Colors.white38,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                onPressed: onDelete,
+                color: AppColors.error.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
         ),
       ),
     );

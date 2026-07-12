@@ -248,10 +248,16 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
 
       // 5. Pago confirmado — esperar al webhook y refrescar
       setState(() => _statusText = 'Activando suscripción...');
-      await Future.delayed(const Duration(seconds: 2));
+      
+      // Intentar refrescar varias veces para dar tiempo al webhook
+      for (int i = 0; i < 3; i++) {
+        await Future.delayed(const Duration(seconds: 2));
+        ref.invalidate(mySubscriptionProvider);
+        final sub = await ref.read(mySubscriptionProvider.future);
+        if (sub?.isActive == true) break;
+      }
 
       ref.read(cartProvider.notifier).clear();
-      ref.invalidate(mySubscriptionProvider);
       ref.read(stripePaymentProvider.notifier).reset();
 
       if (mounted) _showSuccess(plan.name.isNotEmpty ? plan.name : 'Pro');

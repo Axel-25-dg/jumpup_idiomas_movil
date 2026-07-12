@@ -105,12 +105,12 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     final actionState = ref.watch(enrollmentNotifierProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F111A),
+      backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        title: const Text('Administrar Aula', 
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
+        title: const Text('Administrar Aula',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 24)),
         iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           if (classroom != null) ...[
@@ -124,43 +124,23 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
               tooltip: 'Eliminar Aula',
               onPressed: _deleteClassroom,
             ),
+            const SizedBox(width: 8),
           ]
         ],
       ),
       body: Stack(
         children: [
-          Positioned(
-            bottom: -30,
-            right: -30,
-            child: Container(
-              width: 180,
-              height: 180,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF7C4DFF).withValues(alpha: 0.05),
-              ),
-            ),
-          ),
-          Positioned(
-            top: -50,
-            left: -50,
-            child: Container(
-              width: 150,
-              height: 150,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(0xFF00B4DB).withValues(alpha: 0.05),
-              ),
-            ),
-          ),
+          // Background Blobs
+          Positioned(top: -50, right: -50, child: _blob(const Color(0xFF7C4DFF), 200)),
+          Positioned(bottom: -50, left: -50, child: _blob(const Color(0xFF00B4DB), 200)),
+
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (classroom != null)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  padding: const EdgeInsets.all(20),
                   child: GlassContainer(
-                    opacity: 0.08,
                     padding: const EdgeInsets.all(20),
                     borderRadius: BorderRadius.circular(24),
                     child: Column(
@@ -183,11 +163,11 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                               decoration: BoxDecoration(
                                 color: classroom.isActive
-                                    ? const Color(0xFF00E676).withValues(alpha: 0.15)
+                                    ? const Color(0xFF00E676).withValues(alpha: 0.1)
                                     : Colors.white10,
                                 borderRadius: BorderRadius.circular(12),
                                 border: Border.all(
-                                  color: classroom.isActive ? const Color(0xFF00E676).withValues(alpha: 0.3) : Colors.white10,
+                                  color: classroom.isActive ? const Color(0xFF00E676).withValues(alpha: 0.2) : Colors.white10,
                                 ),
                               ),
                               child: Text(
@@ -201,37 +181,40 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 8),
                         if (classroom.description.isNotEmpty)
                           Text(
                             classroom.description,
                             style: const TextStyle(color: Colors.white54, fontSize: 13),
                           ),
-                        const SizedBox(height: 16),
+                        const SizedBox(height: 20),
                         Row(
                           children: [
                             const Text(
                               'Código de acceso: ',
                               style: TextStyle(color: Colors.white70, fontSize: 12),
                             ),
+                            const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
-                                borderRadius: BorderRadius.circular(8),
+                                color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(color: const Color(0xFF7C4DFF).withValues(alpha: 0.2)),
                               ),
                               child: Text(
                                 classroom.accessCode,
                                 style: const TextStyle(
                                   color: Color(0xFFB388FF),
                                   fontWeight: FontWeight.bold,
-                                  fontSize: 14,
-                                  letterSpacing: 1.2,
+                                  fontSize: 16,
+                                  letterSpacing: 1.5,
                                 ),
                               ),
                             ),
+                            const SizedBox(width: 4),
                             IconButton(
-                              icon: const Icon(Icons.copy_rounded, color: Colors.white60, size: 18),
+                              icon: const Icon(Icons.copy_rounded, color: Colors.white60, size: 20),
                               tooltip: 'Copiar código',
                               onPressed: () {
                                 Clipboard.setData(ClipboardData(text: classroom.accessCode));
@@ -239,7 +222,6 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                                   const SnackBar(
                                     content: Text('Código de acceso copiado al portapapeles'),
                                     backgroundColor: Color(0xFF7C4DFF),
-                                    duration: Duration(seconds: 2),
                                   ),
                                 );
                               },
@@ -250,37 +232,40 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                     ),
                   ),
                 ),
+              
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Container(
-                  height: 48,
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
-                  ),
-                  child: TextField(
-                    onChanged: (val) => setState(() => _searchQuery = val.toLowerCase().trim()),
-                    style: const TextStyle(color: Colors.white, fontSize: 14),
-                    decoration: const InputDecoration(
-                      prefixIcon: Icon(Icons.search_rounded, color: Colors.white54, size: 20),
-                      hintText: 'Buscar estudiantes por nombre o correo...',
-                      hintStyle: TextStyle(color: Colors.white30, fontSize: 13),
-                      border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(vertical: 12),
-                    ),
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: TextField(
+                  onChanged: (val) => setState(() => _searchQuery = val.toLowerCase().trim()),
+                  decoration: const InputDecoration(
+                    prefixIcon: Icon(Icons.search_rounded),
+                    hintText: 'Buscar estudiantes...',
                   ),
                 ),
               ),
+              
               Padding(
-                padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
-                child: Text('Lista de Estudiantes Inscritos', 
-                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14, fontWeight: FontWeight.w600)),
+                padding: const EdgeInsets.fromLTRB(20, 24, 20, 12),
+                child: Row(
+                  children: [
+                    const Text('Estudiantes Inscritos',
+                        style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+                    const Spacer(),
+                    enrollments.maybeWhen(
+                      data: (s) => Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(10)),
+                        child: Text('${s.length}', style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                      ),
+                      orElse: () => const SizedBox.shrink(),
+                    ),
+                  ],
+                ),
               ),
               Expanded(
                 child: enrollments.when(
                   loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-                  error: (error, _) => Center(child: Text('Error: $error', style: const TextStyle(color: Colors.redAccent))),
+                  error: (error, _) => Center(child: _ErrorCard(message: error.toString())),
                   data: (students) {
                     final filteredStudents = students.where((student) {
                       return student.studentUsername.toLowerCase().contains(_searchQuery) ||
@@ -295,43 +280,50 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                             Icon(Icons.people_outline_rounded, size: 64, color: Colors.white.withValues(alpha: 0.1)),
                             const SizedBox(height: 16),
                             Text(
-                              students.isEmpty ? 'No hay estudiantes en esta aula' : 'No se encontraron estudiantes',
+                              students.isEmpty ? 'No hay estudiantes en esta aula' : 'No se encontraron resultados',
                               style: const TextStyle(color: Colors.white30),
                             ),
                           ],
                         ),
                       );
                     }
-                    return ListView.separated(
+                    return ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       itemCount: filteredStudents.length,
-                      separatorBuilder: (_, __) => const SizedBox(height: 12),
                       itemBuilder: (context, index) {
                         final student = filteredStudents[index];
-                        return GlassContainer(
-                          opacity: 0.05,
-                          padding: const EdgeInsets.all(12),
-                          borderRadius: BorderRadius.circular(16),
-                          child: ListTile(
-                            leading: CircleAvatar(
-                              backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),
-                              child: Text(student.studentUsername[0].toUpperCase(), 
-                                style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold)),
-                            ),
-                            title: Text(student.studentUsername, 
-                              style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                            subtitle: Text(student.studentEmail, 
-                              style: const TextStyle(color: Colors.white54, fontSize: 12)),
-                            trailing: actionState.isLoading
-                                ? const SizedBox(
-                                    height: 20,
-                                    width: 20,
-                                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.redAccent),
-                                  )
-                                : IconButton(
-                                    icon: const Icon(Icons.person_remove_rounded, color: Colors.redAccent, size: 22),
-                                    onPressed: () => _removeStudent(student.id),
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: GlassContainer(
+                            padding: const EdgeInsets.all(12),
+                            borderRadius: BorderRadius.circular(20),
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
+                              leading: Container(
+                                width: 48,
+                                height: 48,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Center(
+                                  child: Text(
+                                    student.studentUsername[0].toUpperCase(),
+                                    style: const TextStyle(color: Color(0xFF7C4DFF), fontWeight: FontWeight.bold, fontSize: 18),
                                   ),
+                                ),
+                              ),
+                              title: Text(student.studentUsername,
+                                  style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                              subtitle: Text(student.studentEmail,
+                                  style: const TextStyle(color: Colors.white38, fontSize: 12)),
+                              trailing: actionState.isLoading
+                                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                                  : IconButton(
+                                      icon: const Icon(Icons.person_remove_rounded, color: Colors.redAccent, size: 22),
+                                      onPressed: () => _removeStudent(student.id),
+                                    ),
+                            ),
                           ),
                         );
                       },
@@ -341,6 +333,41 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
               ),
             ],
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _blob(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: 0.05),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 80)],
+        ),
+      );
+}
+
+class _ErrorCard extends StatelessWidget {
+  const _ErrorCard({required this.message});
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.redAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Colors.redAccent),
+          const SizedBox(width: 12),
+          Expanded(child: Text(message, style: const TextStyle(color: Colors.white70, fontSize: 12))),
         ],
       ),
     );

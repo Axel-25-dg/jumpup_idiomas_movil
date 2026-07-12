@@ -7,6 +7,7 @@ import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class AnnouncementsScreen extends ConsumerStatefulWidget {
   const AnnouncementsScreen({super.key});
@@ -36,71 +37,152 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     final notifier = ref.read(announcementNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Anuncios y Avisos'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add_rounded),
-            onPressed: () => _showAddEditDialog(context),
-            tooltip: 'Crear anuncio',
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
+        children: [
+          // Background Blobs
+          Positioned(
+            top: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                    blurRadius: 100,
+                  )
+                ],
+              ),
+            ),
           ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => notifier.refresh(),
-            tooltip: 'Refrescar',
+          Positioned(
+            bottom: -50,
+            right: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                    blurRadius: 80,
+                  )
+                ],
+              ),
+            ),
           ),
-        ],
-      ),
-      body: RefreshIndicator(
-        onRefresh: () => notifier.refresh(),
-        child: announcementsAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => _buildErrorView(error, notifier),
-          data: (announcements) {
-            if (announcements.isEmpty) {
-              return EmptyState(
-                title: 'No hay anuncios',
-                subtitle: 'Crea tu primer anuncio para comunicarte con los usuarios',
-                icon: Icons.campaign_rounded,
-                buttonText: 'Crear anuncio',
-                onButtonPressed: () => _showAddEditDialog(context),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: announcements.length,
-              itemBuilder: (context, index) {
-                final announcement = announcements[index];
-                return _AnnouncementCard(
-                  announcement: announcement,
-                  onEdit: () => _showAddEditDialog(
-                    context,
-                    announcement: announcement,
+
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Announcements',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
                   ),
-                  onDelete: () => _confirmDelete(
-                    context,
-                    announcement.id,
-                    notifier,
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
                   ),
-                  onToggleStatus: () {
-                    notifier.updateAnnouncement(
-                      id: announcement.id,
-                      title: announcement.title,
-                      content: announcement.content,
-                      startDate: announcement.startDate,
-                      endDate: announcement.endDate,
-                      isActive: !announcement.isActive,
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
+                    onPressed: () => _showAddEditDialog(context),
+                    tooltip: 'Create Announcement',
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                    onPressed: () => notifier.refresh(),
+                    tooltip: 'Refresh',
+                  ),
+                ],
+              ),
+              
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                sliver: announcementsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  ),
+                  error: (error, stack) => SliverFillRemaining(
+                    child: _buildErrorView(error, notifier),
+                  ),
+                  data: (announcements) {
+                    if (announcements.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          title: 'No announcements found',
+                          subtitle: 'Create your first announcement to reach your students',
+                          icon: Icons.campaign_rounded,
+                          buttonText: 'Create Announcement',
+                          onButtonPressed: () => _showAddEditDialog(context),
+                        ),
+                      );
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final announcement = announcements[index];
+                          return _AnnouncementCard(
+                            announcement: announcement,
+                            onEdit: () => _showAddEditDialog(
+                              context,
+                              announcement: announcement,
+                            ),
+                            onDelete: () => _confirmDelete(
+                              context,
+                              announcement.id,
+                              notifier,
+                            ),
+                            onToggleStatus: () {
+                              notifier.updateAnnouncement(
+                                id: announcement.id,
+                                title: announcement.title,
+                                content: announcement.content,
+                                startDate: announcement.startDate,
+                                endDate: announcement.endDate,
+                                isActive: !announcement.isActive,
+                              );
+                            },
+                          );
+                        },
+                        childCount: announcements.length,
+                      ),
                     );
                   },
-                );
-              },
-            );
-          },
-        ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -112,16 +194,17 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text('Error al cargar anuncios', style: AppTextStyles.titleMedium),
+          const Text('Error loading announcements',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
+            style: const TextStyle(color: Colors.white54, fontSize: 12),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
           PrimaryButton(
-            label: 'Reintentar',
+            label: 'Retry',
             onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
@@ -131,7 +214,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
   }
 
   void _showAddEditDialog(BuildContext context, {Announcement? announcement}) {
-
     if (announcement != null) {
       _titleController.text = announcement.title;
       _contentController.text = announcement.content;
@@ -149,22 +231,27 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(announcement != null ? 'Editar anuncio' : 'Crear anuncio'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(announcement != null ? 'Edit Announcement' : 'Create Announcement',
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: SizedBox(
-          width: 400,
+          width: 450,
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
               child: Column(
                 mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   BrandedTextField(
                     controller: _titleController,
-                    label: 'Título del anuncio',
+                    label: 'Announcement Title',
                     prefixIcon: Icons.title_rounded,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'El título es obligatorio';
+                        return 'Title is required';
                       }
                       return null;
                     },
@@ -172,45 +259,59 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                   const SizedBox(height: 16),
                   BrandedTextField(
                     controller: _contentController,
-                    label: 'Contenido',
+                    label: 'Content',
                     prefixIcon: Icons.description_rounded,
                     maxLines: 4,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'El contenido es obligatorio';
+                        return 'Content is required';
                       }
                       return null;
                     },
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
+                  const Text('Scheduling', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: _DatePickerField(
-                          label: 'Fecha inicio',
+                          label: 'Start Date',
                           date: _startDate,
-                          onChanged: (date) => setState(() => _startDate = date),
+                          onChanged: (date) =>
+                              setState(() => _startDate = date),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 12),
                       Expanded(
                         child: _DatePickerField(
-                          label: 'Fecha fin',
+                          label: 'End Date',
                           date: _endDate,
                           onChanged: (date) => setState(() => _endDate = date),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _isActive,
-                        onChanged: (value) => setState(() => _isActive = value ?? true),
+                  const SizedBox(height: 20),
+                  InkWell(
+                    onTap: () => setState(() => _isActive = !_isActive),
+                    borderRadius: BorderRadius.circular(12),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _isActive,
+                            activeColor: const Color(0xFF7C4DFF),
+                            checkColor: Colors.white,
+                            onChanged: (value) =>
+                                setState(() => _isActive = value ?? true),
+                          ),
+                          const Text('Publish Immediately',
+                              style: TextStyle(color: Colors.white70)),
+                        ],
                       ),
-                      const Text('Activo'),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -220,13 +321,17 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: announcement != null ? 'Actualizar' : 'Publicar',
+            label: announcement != null ? 'Update' : 'Publish',
             onPressed: () {
-              if (_formKey.currentState!.validate() && _startDate != null && _endDate != null) {
-                final notifier = ref.read(announcementNotifierProvider.notifier);
+              if (_formKey.currentState!.validate() &&
+                  _startDate != null &&
+                  _endDate != null) {
+                final notifier =
+                    ref.read(announcementNotifierProvider.notifier);
 
                 if (announcement != null) {
                   notifier.updateAnnouncement(
@@ -255,22 +360,29 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, int id, AnnouncementNotifier notifier) {
+  void _confirmDelete(
+      BuildContext context, int id, AnnouncementNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar anuncio'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Delete Announcement',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: const Text(
-          '¿Estás seguro de que deseas eliminar este anuncio?\n'
-          'Esta acción no se puede deshacer.',
+          'Are you sure you want to delete this announcement?\n'
+          'This action cannot be undone.',
+          style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child:
+                const Text('Cancel', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: 'Eliminar',
+            label: 'Delete',
+            color: AppColors.error,
             onPressed: () {
               notifier.deleteAnnouncement(id);
               Navigator.pop(ctx);
@@ -300,11 +412,14 @@ class _DatePickerField extends StatelessWidget {
       children: [
         Text(
           label,
-          style: AppTextStyles.labelMedium.copyWith(
-            color: AppColors.textSecondary,
+          style: const TextStyle(
+            color: Colors.white54,
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 4),
+        const SizedBox(height: 6),
         InkWell(
           onTap: () async {
             final picked = await showDatePicker(
@@ -312,29 +427,47 @@ class _DatePickerField extends StatelessWidget {
               initialDate: date ?? DateTime.now(),
               firstDate: DateTime(2020),
               lastDate: DateTime(2030),
+              builder: (context, child) {
+                return Theme(
+                  data: Theme.of(context).copyWith(
+                    colorScheme: const ColorScheme.dark(
+                      primary: Color(0xFF7C4DFF),
+                      onPrimary: Colors.white,
+                      surface: Color(0xFF1E1E2A),
+                      onSurface: Colors.white,
+                  ),
+                  dialogTheme: const DialogThemeData(
+                    backgroundColor: Color(0xFF1E1E2A),
+                  ),
+                ),
+                  child: child!,
+                );
+              },
             );
             if (picked != null) {
               onChanged(picked);
             }
           },
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: Colors.white.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.divider),
+              border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
             ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 18, color: AppColors.textSecondary),
+                const Icon(Icons.calendar_today_rounded,
+                    size: 16, color: Color(0xFF7C4DFF)),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
                     date != null
                         ? '${date!.day}/${date!.month}/${date!.year}'
-                        : 'Seleccionar fecha',
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: date != null ? AppColors.textPrimary : Colors.grey[600],
+                        : 'Select',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: date != null ? Colors.white : Colors.white38,
                     ),
                   ),
                 ),
@@ -364,7 +497,7 @@ class _AnnouncementCard extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 
-  bool get _isActive {
+  bool get _isCurrentlyActive {
     final now = DateTime.now();
     return announcement.isActive &&
         announcement.startDate.isBefore(now) &&
@@ -373,110 +506,118 @@ class _AnnouncementCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isActive = _isActive;
+    final currentlyActive = _isCurrentlyActive;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isActive ? AppColors.primary.withValues(alpha: 0.3) : AppColors.divider,
-          width: isActive ? 1.5 : 1,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.primary.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            Icons.campaign_rounded,
-            color: isActive ? AppColors.primary : Colors.grey,
-          ),
-        ),
-        title: Text(
-          announcement.title,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const SizedBox(height: 4),
-            Text(
-              announcement.content,
-              style: AppTextStyles.bodySmall.copyWith(
-                color: AppColors.textSecondary,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          leading: Container(
+            width: 52,
+            height: 52,
+            decoration: BoxDecoration(
+              color: currentlyActive
+                  ? const Color(0xFF7C4DFF).withValues(alpha: 0.1)
+                  : Colors.white.withValues(alpha: 0.05),
+              borderRadius: BorderRadius.circular(15),
+              border: Border.all(
+                color: currentlyActive 
+                  ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
+                  : Colors.white10
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
-            const SizedBox(height: 4),
-            Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: isActive ? Colors.green.withValues(alpha: 0.1) : Colors.red.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(8),
+            child: Icon(
+              Icons.campaign_rounded,
+              color: currentlyActive ? const Color(0xFF7C4DFF) : Colors.white38,
+              size: 24,
+            ),
+          ),
+          title: Text(
+            announcement.title,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+              fontSize: 15,
+            ),
+          ),
+          subtitle: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const SizedBox(height: 6),
+              Text(
+                announcement.content,
+                style: const TextStyle(
+                  color: Colors.white70,
+                  fontSize: 12,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: currentlyActive
+                          ? Colors.green.withValues(alpha: 0.1)
+                          : Colors.red.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      currentlyActive ? 'ACTIVE' : 'INACTIVE',
+                      style: TextStyle(
+                        color: currentlyActive ? Colors.green : Colors.red,
+                        fontSize: 9,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                   ),
-                  child: Text(
-                    isActive ? 'Activo' : 'Inactivo',
-                    style: AppTextStyles.bodySmall.copyWith(
-                      color: isActive ? Colors.green : Colors.red,
+                  const SizedBox(width: 10),
+                  const Icon(Icons.access_time_rounded, size: 12, color: Colors.white24),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${_formatDate(announcement.startDate)} - ${_formatDate(announcement.endDate)}',
+                    style: const TextStyle(
+                      color: Colors.white38,
                       fontSize: 10,
                     ),
                   ),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  '${_formatDate(announcement.startDate)} → ${_formatDate(announcement.endDate)}',
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textHint,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: Icon(
-                announcement.isActive ? Icons.visibility_rounded : Icons.visibility_off_rounded,
-                color: announcement.isActive ? Colors.green : Colors.grey,
-                size: 20,
+                ],
               ),
-              onPressed: onToggleStatus,
-              tooltip: announcement.isActive ? 'Desactivar' : 'Activar',
-            ),
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 20),
-              onPressed: onEdit,
-              color: AppColors.primary,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              onPressed: onDelete,
-              color: AppColors.error,
-            ),
-          ],
+            ],
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                icon: Icon(
+                  announcement.isActive
+                      ? Icons.visibility_rounded
+                      : Icons.visibility_off_rounded,
+                  color: announcement.isActive ? const Color(0xFF00E5FF) : Colors.white24,
+                  size: 20,
+                ),
+                onPressed: onToggleStatus,
+                tooltip: announcement.isActive ? 'Hide' : 'Show',
+              ),
+              IconButton(
+                icon: const Icon(Icons.edit_rounded, size: 20),
+                onPressed: onEdit,
+                color: Colors.white38,
+              ),
+              IconButton(
+                icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                onPressed: onDelete,
+                color: AppColors.error.withValues(alpha: 0.7),
+              ),
+            ],
+          ),
         ),
       ),
     );

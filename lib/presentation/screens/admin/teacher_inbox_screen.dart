@@ -13,138 +13,219 @@ class TeacherInboxScreen extends ConsumerWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
-        elevation: 0,
-        title: const Text('Mensajes de Alumnos',
-            style: TextStyle(color: Colors.white)),
-        iconTheme: const IconThemeData(color: Colors.white),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () => ref.invalidate(chatThreadsProvider),
+      body: Stack(
+        children: [
+          // Decorative Blobs
+          Positioned(
+            top: -100,
+            right: -100,
+            child: _blob(const Color(0xFF7C4DFF), 300),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -50,
+            child: _blob(const Color(0xFF00E5FF), 250),
+          ),
+
+          RefreshIndicator(
+            color: const Color(0xFF7C4DFF),
+            onRefresh: () async => ref.invalidate(chatThreadsProvider),
+            child: CustomScrollView(
+              physics: const BouncingScrollPhysics(),
+              slivers: [
+                const SliverAppBar(
+                  expandedHeight: 120,
+                  pinned: true,
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    title: Text(
+                      'Bandeja de Entrada',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    centerTitle: false,
+                  ),
+                ),
+
+                threadsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  ),
+                  error: (e, stack) {
+                    debugPrint('Inbox Error: $e\n$stack');
+                    return SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.redAccent.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+                          ),
+                          child: const Text(
+                            'Error al cargar mensajes. Por favor, intenta de nuevo.',
+                            style: TextStyle(color: Colors.white70),
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                  data: (threads) {
+                    if (threads.isEmpty) {
+                      return const SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(Icons.inbox_rounded, size: 64, color: Colors.white30),
+                              SizedBox(height: 12),
+                              Text('Bandeja vacía',
+                                  style: TextStyle(color: Colors.white, fontSize: 18)),
+                            ],
+                          ),
+                        ),
+                      );
+                    }
+
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            final thread = threads[index];
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: GlassContainer(
+                                opacity: 0.1,
+                                blur: 15,
+                                padding: const EdgeInsets.all(16),
+                                borderRadius: BorderRadius.circular(20),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.all(2),
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: LinearGradient(
+                                          colors: [
+                                            const Color(0xFF7C4DFF),
+                                            const Color(0xFF00E5FF).withValues(alpha: 0.5)
+                                          ],
+                                        ),
+                                      ),
+                                      child: CircleAvatar(
+                                        radius: 24,
+                                        backgroundColor: const Color(0xFF1E1E2A),
+                                        child: Text(
+                                          (thread.participantName.isNotEmpty)
+                                              ? thread.participantName[0].toUpperCase()
+                                              : '?',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            thread.participantNames.isNotEmpty
+                                                ? thread.participantNames.join(', ')
+                                                : thread.participantName,
+                                            style: const TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Text(
+                                            thread.lastMessageBody ?? thread.subject,
+                                            style: const TextStyle(
+                                              color: Colors.white70,
+                                              fontSize: 14,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.end,
+                                      children: [
+                                        if (thread.lastMessageAt != null)
+                                          Text(
+                                            DateFormat('HH:mm').format(thread.lastMessageAt!),
+                                            style: const TextStyle(
+                                              color: Colors.white30,
+                                              fontSize: 11,
+                                            ),
+                                          ),
+                                        const SizedBox(height: 6),
+                                        if (thread.unreadCount > 0)
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 8, vertical: 4),
+                                            decoration: BoxDecoration(
+                                              color: const Color(0xFF7C4DFF),
+                                              borderRadius: BorderRadius.circular(10),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: const Color(0xFF7C4DFF).withValues(alpha: 0.4),
+                                                  blurRadius: 8,
+                                                )
+                                              ],
+                                            ),
+                                            child: Text(
+                                              '${thread.unreadCount}',
+                                              style: const TextStyle(
+                                                color: Colors.white,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                          ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          },
+                          childCount: threads.length,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),
-      body: threadsAsync.when(
-        loading: () =>
-            const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-        error: (e, _) => Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Icon(Icons.error_outline, size: 48, color: Colors.redAccent),
-              const SizedBox(height: 12),
-              Text('Error: $e',
-                  style: const TextStyle(color: Colors.redAccent)),
-            ],
-          ),
-        ),
-        data: (threads) {
-          if (threads.isEmpty) {
-            return const Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(Icons.inbox_rounded, size: 64, color: Colors.white30),
-                  SizedBox(height: 12),
-                  Text('Bandeja vacía',
-                      style:
-                          TextStyle(color: Colors.white, fontSize: 18)),
-                  SizedBox(height: 8),
-                  Text('No tienes mensajes de tus alumnos aún.',
-                      style: TextStyle(color: Colors.white54)),
-                ],
-              ),
-            );
-          }
-
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: threads.length,
-            itemBuilder: (context, index) {
-              final thread = threads[index];
-              // MessageThread usa: subject, participantNames, participantName,
-              // unreadCount, lastMessageBody, lastMessageAt
-              return Padding(
-                padding: const EdgeInsets.only(bottom: 12),
-                child: GlassContainer(
-                  opacity: 0.1,
-                  blur: 10,
-                  padding: const EdgeInsets.all(16),
-                  borderRadius: BorderRadius.circular(16),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor:
-                            const Color(0xFF7C4DFF).withValues(alpha: 0.2),
-                        child: Text(
-                          thread.participantName.isNotEmpty
-                              ? thread.participantName[0].toUpperCase()
-                              : '?',
-                          style: const TextStyle(
-                              color: Color(0xFF7C4DFF),
-                              fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              thread.participantNames.isNotEmpty
-                                  ? thread.participantNames.join(', ')
-                                  : thread.participantName,
-                              style: const TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(
-                              thread.lastMessageBody ?? thread.subject,
-                              style: const TextStyle(
-                                  color: Colors.white70, fontSize: 14),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
-                      ),
-                      if (thread.unreadCount > 0)
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF7C4DFF),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Text(
-                            '${thread.unreadCount}',
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      if (thread.lastMessageAt != null)
-                        Padding(
-                          padding: const EdgeInsets.only(left: 8),
-                          child: Text(
-                            DateFormat('HH:mm').format(thread.lastMessageAt!),
-                            style: const TextStyle(
-                                color: Colors.white30, fontSize: 12),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
     );
   }
+
+  Widget _blob(Color color, double size) => Container(
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: 0.05),
+          boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 80)],
+        ),
+      );
 }

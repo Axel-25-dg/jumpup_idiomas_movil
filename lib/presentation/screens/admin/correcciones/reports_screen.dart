@@ -6,6 +6,7 @@ import 'package:jumpup_app/presentation/providers/correcciones/report_provider.d
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -23,104 +24,177 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     final notifier = ref.read(reportNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('Reportes de Contenido'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => notifier.refresh(),
-            tooltip: 'Refrescar',
-          ),
-        ],
-      ),
-      body: Column(
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
         children: [
-          // Filters
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _StatusChip(
-                    label: 'Todos',
-                    selected: _statusFilter == 'TODOS',
-                    onSelected: () => setState(() => _statusFilter = 'TODOS'),
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Pendiente',
-                    selected: _statusFilter == 'OPEN',
-                    onSelected: () => setState(() => _statusFilter = 'OPEN'),
-                    color: Colors.orange,
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'En progreso',
-                    selected: _statusFilter == 'IN_PROGRESS',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'IN_PROGRESS'),
-                    color: Colors.blue,
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Resuelto',
-                    selected: _statusFilter == 'RESOLVED',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'RESOLVED'),
-                    color: Colors.green,
-                  ),
-                  const SizedBox(width: 8),
-                  _StatusChip(
-                    label: 'Rechazado',
-                    selected: _statusFilter == 'REJECTED',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'REJECTED'),
-                    color: Colors.red,
-                  ),
+          // Background Blobs
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+                    blurRadius: 100,
+                  )
                 ],
               ),
             ),
           ),
-          // List
-          Expanded(
-            child: RefreshIndicator(
-              onRefresh: () => notifier.refresh(),
-              child: reportsAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (error, stack) => _buildErrorView(error, notifier),
-                data: (reports) {
-                  final filtered = _filterReports(reports);
-                  if (filtered.isEmpty) {
-                    return EmptyState(
-                      title: 'No hay reportes',
-                      subtitle: _statusFilter != 'TODOS'
-                          ? 'No hay reportes con el estado seleccionado'
-                          : 'Todos los reportes han sido procesados',
-                      icon: Icons.flag_rounded,
-                    );
-                  }
-                  return ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final report = filtered[index];
-                      return _ReportCard(
-                        report: report,
-                        onUpdateStatus: (status) {
-                          // ✅ CORREGIDO: pasar Map<String, dynamic>
-                          notifier.updateReport(report.id, {'status': status});
-                        },
-                      );
-                    },
-                  );
-                },
+          Positioned(
+            bottom: -50,
+            left: -50,
+            child: Container(
+              width: 250,
+              height: 250,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+                    blurRadius: 80,
+                  )
+                ],
               ),
             ),
+          ),
+
+          CustomScrollView(
+            slivers: [
+              SliverAppBar(
+                expandedHeight: 120,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                iconTheme: const IconThemeData(color: Colors.white),
+                flexibleSpace: FlexibleSpaceBar(
+                  centerTitle: false,
+                  titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
+                  title: const Text(
+                    'Content Reports',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
+                    onPressed: () => notifier.refresh(),
+                    tooltip: 'Refresh',
+                  ),
+                ],
+              ),
+              
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
+                  child: SingleChildScrollView(
+                    scrollDirection: Axis.horizontal,
+                    physics: const BouncingScrollPhysics(),
+                    child: Row(
+                      children: [
+                        _StatusChip(
+                          label: 'All',
+                          selected: _statusFilter == 'TODOS',
+                          onSelected: () => setState(() => _statusFilter = 'TODOS'),
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusChip(
+                          label: 'Pending',
+                          selected: _statusFilter == 'OPEN',
+                          onSelected: () => setState(() => _statusFilter = 'OPEN'),
+                          color: Colors.orange,
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusChip(
+                          label: 'In Progress',
+                          selected: _statusFilter == 'IN_PROGRESS',
+                          onSelected: () => setState(() => _statusFilter = 'IN_PROGRESS'),
+                          color: Colors.blue,
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusChip(
+                          label: 'Resolved',
+                          selected: _statusFilter == 'RESOLVED',
+                          onSelected: () => setState(() => _statusFilter = 'RESOLVED'),
+                          color: Colors.green,
+                        ),
+                        const SizedBox(width: 8),
+                        _StatusChip(
+                          label: 'Rejected',
+                          selected: _statusFilter == 'REJECTED',
+                          onSelected: () => setState(() => _statusFilter = 'REJECTED'),
+                          color: Colors.red,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                sliver: reportsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  ),
+                  error: (error, stack) => SliverFillRemaining(
+                    child: _buildErrorView(error, notifier),
+                  ),
+                  data: (reports) {
+                    final filtered = _filterReports(reports);
+                    if (filtered.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          title: 'No reports found',
+                          subtitle: _statusFilter != 'TODOS'
+                              ? 'No reports with the selected status'
+                              : 'All reports have been processed',
+                          icon: Icons.flag_rounded,
+                        ),
+                      );
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final report = filtered[index];
+                          return _ReportCard(
+                            report: report,
+                            onUpdateStatus: (status) {
+                              notifier.updateReport(report.id, {'status': status});
+                            },
+                          );
+                        },
+                        childCount: filtered.length,
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -139,17 +213,11 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text('Error al cargar reportes', style: AppTextStyles.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            style: AppTextStyles.bodySmall
-                .copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
+          const Text('Error loading reports',
+              style: TextStyle(color: Colors.white, fontSize: 18)),
           const SizedBox(height: 16),
           PrimaryButton(
-            label: 'Reintentar',
+            label: 'Retry',
             onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
@@ -174,17 +242,26 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return FilterChip(
-      label: Text(label),
-      selected: selected,
-      onSelected: (_) => onSelected(),
-      backgroundColor: AppColors.white,
-      selectedColor: (color ?? AppColors.primary).withValues(alpha: 0.2),
-      checkmarkColor: color ?? AppColors.primary,
-      labelStyle: TextStyle(
-        color:
-            selected ? (color ?? AppColors.primary) : AppColors.textSecondary,
-        fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
+    final chipColor = color ?? const Color(0xFF7C4DFF);
+    return Padding(
+      padding: const EdgeInsets.only(right: 8),
+      child: FilterChip(
+        label: Text(label),
+        selected: selected,
+        onSelected: (_) => onSelected(),
+        backgroundColor: Colors.white.withValues(alpha: 0.05),
+        selectedColor: chipColor.withValues(alpha: 0.2),
+        checkmarkColor: chipColor,
+        labelStyle: TextStyle(
+            color: selected ? chipColor : Colors.white60,
+            fontSize: 12,
+            fontWeight: selected ? FontWeight.bold : FontWeight.normal),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: selected ? chipColor : Colors.white12,
+          ),
+        ),
       ),
     );
   }
@@ -224,13 +301,13 @@ class _ReportCardState extends State<_ReportCard> {
   String _getStatusLabel(String status) {
     switch (status) {
       case 'OPEN':
-        return 'Pendiente';
+        return 'Pending';
       case 'IN_PROGRESS':
-        return 'En progreso';
+        return 'In Progress';
       case 'RESOLVED':
-        return 'Resuelto';
+        return 'Resolved';
       case 'REJECTED':
-        return 'Rechazado';
+        return 'Rejected';
       default:
         return status;
     }
@@ -245,147 +322,155 @@ class _ReportCardState extends State<_ReportCard> {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(widget.report.status);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: statusColor.withValues(alpha: 0.3),
-          width: 1.5,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          ListTile(
-            contentPadding: const EdgeInsets.all(16),
-            leading: Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: statusColor.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                Icons.flag_rounded,
-                color: statusColor,
-                size: 20,
-              ),
-            ),
-            title: Text(
-              'Reporte #${widget.report.id}',
-              style: AppTextStyles.titleSmall.copyWith(
-                fontWeight: FontWeight.w700,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            subtitle: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 4),
-                Text(
-                  widget.report.description,
-                  style: AppTextStyles.bodySmall.copyWith(
-                    color: AppColors.textSecondary,
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedSize(
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeInOut,
+          child: Column(
+            children: [
+              ListTile(
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                leading: Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(15),
+                    border: Border.all(color: statusColor.withValues(alpha: 0.2)),
                   ),
-                  maxLines: _isExpanded ? null : 2,
-                  overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                  child: Icon(
+                    Icons.flag_rounded,
+                    color: statusColor,
+                    size: 24,
+                  ),
                 ),
-                const SizedBox(height: 4),
-                Row(
+                title: Text(
+                  'Report #${widget.report.id}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    fontSize: 15,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
-                      decoration: BoxDecoration(
-                        color: statusColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        _getStatusLabel(widget.report.status),
-                        style: TextStyle(
-                          fontSize: 10,
-                          color: statusColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
+                    const SizedBox(height: 6),
                     Text(
-                      _formatDate(widget.report.createdAt),
-                      style: AppTextStyles.bodySmall.copyWith(
-                        color: AppColors.textHint,
-                        fontSize: 10,
+                      widget.report.description,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 12,
                       ),
+                      maxLines: _isExpanded ? null : 2,
+                      overflow: _isExpanded ? null : TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: statusColor.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            _getStatusLabel(widget.report.status).toUpperCase(),
+                            style: TextStyle(
+                              fontSize: 9,
+                              color: statusColor,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        const Icon(Icons.access_time_rounded, size: 12, color: Colors.white24),
+                        const SizedBox(width: 4),
+                        Text(
+                          _formatRelativeDate(widget.report.createdAt),
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
-              ],
-            ),
-            trailing: IconButton(
-              icon: Icon(
-                _isExpanded
-                    ? Icons.expand_less_rounded
-                    : Icons.expand_more_rounded,
-                color: AppColors.textSecondary,
+                trailing: IconButton(
+                  icon: Icon(
+                    _isExpanded
+                        ? Icons.expand_less_rounded
+                        : Icons.expand_more_rounded,
+                    color: Colors.white38,
+                  ),
+                  onPressed: () => setState(() => _isExpanded = !_isExpanded),
+                ),
               ),
-              onPressed: () => setState(() => _isExpanded = !_isExpanded),
-            ),
+              if (_isExpanded)
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 20),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Divider(color: Colors.white10, height: 24),
+                      const Text(
+                        'Update Status',
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white38,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: Row(
+                          children: _getAvailableStatuses(widget.report.status)
+                              .map((status) {
+                            return Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: SizedBox(
+                                width: 120,
+                                height: 36,
+                                child: PrimaryButton(
+                                  label: _getStatusLabel(status),
+                                  fontSize: 11,
+                                  onPressed: () => widget.onUpdateStatus(status),
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
           ),
-          // Actions (expandido)
-          if (_isExpanded)
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Divider(),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Cambiar estado:',
-                    style: AppTextStyles.labelMedium.copyWith(
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: _getAvailableStatuses(widget.report.status)
-                        .map((status) {
-                      return PrimaryButton(
-                        label: _getStatusLabel(status),
-                        onPressed: () => widget.onUpdateStatus(status),
-                      );
-                    }).toList(),
-                  ),
-                ],
-              ),
-            ),
-        ],
+        ),
       ),
     );
   }
 
-  String _formatDate(DateTime date) {
+  String _formatRelativeDate(DateTime date) {
     final now = DateTime.now();
     final difference = now.difference(date);
 
     if (difference.inDays > 0) {
-      return 'Hace ${difference.inDays} día${difference.inDays > 1 ? 's' : ''}';
+      return '${difference.inDays}d ago';
     } else if (difference.inHours > 0) {
-      return 'Hace ${difference.inHours} hora${difference.inHours > 1 ? 's' : ''}';
+      return '${difference.inHours}h ago';
     } else if (difference.inMinutes > 0) {
-      return 'Hace ${difference.inMinutes} minuto${difference.inMinutes > 1 ? 's' : ''}';
+      return '${difference.inMinutes}m ago';
     } else {
-      return 'Hace unos segundos';
+      return 'Just now';
     }
   }
 }

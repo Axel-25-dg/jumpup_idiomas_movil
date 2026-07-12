@@ -7,6 +7,13 @@ import 'package:jumpup_app/domain/model/auth_models.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/core/services/google_auth_service.dart';
 import 'package:jumpup_app/core/services/biometric_service.dart';
+import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
+import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
+import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -41,8 +48,9 @@ class AuthState {
 class AuthNotifier extends StateNotifier<AuthState> {
   final AuthService _authService;
   final TokenStorage _tokenStorage;
+  final Ref _ref;
 
-  AuthNotifier(this._authService, this._tokenStorage)
+  AuthNotifier(this._authService, this._tokenStorage, this._ref)
       : super(const AuthState(status: AuthStatus.loading)) {
     _checkSession();
   }
@@ -98,6 +106,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       
       // Intentar registrar biométrico si no existe
       await _maybeRegisterBiometric();
+
+      // Invalida todos los proveedores de datos para forzar la recarga
+      // con los datos del nuevo usuario.
+      _invalidateAllDataProviders();
 
       state = state.copyWith(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
@@ -228,11 +240,46 @@ class AuthNotifier extends StateNotifier<AuthState> {
     await _authService.logout();
     await GoogleAuthService.instance.signOut();
     final hasBiometric = await _tokenStorage.hasBiometricStored();
+    
+    // Invalida todos los proveedores de datos al cerrar sesión
+    _invalidateAllDataProviders();
+
     state = state.copyWith(
       status: AuthStatus.unauthenticated,
       user: null,
       canUseBiometrics: hasBiometric,
     );
+  }
+
+  /// Invalida globalmente los proveedores que almacenan datos específicos
+  /// del usuario para evitar persistencia de datos al cambiar de cuenta.
+  void _invalidateAllDataProviders() {
+    // Lista de proveedores a invalidar
+    final List<dynamic> providersToInvalidate = [
+      userProfileProvider,
+      dashboardSummaryProvider,
+      classroomsListProvider,
+      adminCoursesProvider,
+      adminStatsProvider,
+      teacherStatsProvider,
+      socialFeedProvider,
+      chatThreadsProvider,
+      notificationsProvider,
+      unreadNotificationsProvider,
+      mySubscriptionProvider,
+      paymentHistoryProvider,
+      ordersProvider,
+      subscriptionsProvider,
+      adminLanguagesProvider,
+      resourcesListProvider,
+      // Añade más proveedores según sea necesario
+    ];
+
+    for (final provider in providersToInvalidate) {
+      if (provider is ProviderOrFamily) {
+        _ref.invalidate(provider);
+      }
+    }
   }
 
   // ── Limpiar error ──────────────────────────────────────────────────────────
@@ -248,5 +295,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(AuthService(), TokenStorage());
+  return AuthNotifier(AuthService(), TokenStorage(), ref);
 });

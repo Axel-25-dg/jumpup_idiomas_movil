@@ -42,6 +42,49 @@ Future<void> main() async {
     debugPrint('NotificationService error: $e');
   }
 
+  // Capturar errores de Flutter (Pantalla Roja)
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        backgroundColor: const Color(0xFF0F0E1A),
+        body: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Colors.redAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 48),
+                const SizedBox(height: 16),
+                const Text(
+                  'Algo salió mal',
+                  style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  details.exception.toString(),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
+                ),
+                const SizedBox(height: 20),
+                TextButton(
+                  onPressed: () => FirebaseCrashlytics.instance.recordFlutterError(details),
+                  child: const Text('Reportar error', style: TextStyle(color: Color(0xFF00E5FF))),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  };
+
   // UI Settings
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(

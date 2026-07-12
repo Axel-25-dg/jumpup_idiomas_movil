@@ -74,24 +74,38 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1A1828),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: Text(
           widget.classroom == null ? 'Crear Aula' : 'Editar Aula',
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: ClassroomForm(
-          nameController: _nameController,
-          descController: _descController,
-          selectedCourseId: _selectedCourseId,
-          onCourseChanged: (val) => setState(() => _selectedCourseId = val),
-          loading: state.isLoading,
-          onSubmit: _handleSubmit,
-          isEdit: widget.classroom != null,
-        ),
+      body: Stack(
+        children: [
+          Positioned(top: -100, right: -100, child: Container(
+            width: 300,
+            height: 300,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
+              boxShadow: [BoxShadow(color: const Color(0xFF7C4DFF).withValues(alpha: 0.1), blurRadius: 100)],
+            ),
+          )),
+          Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: ClassroomForm(
+              nameController: _nameController,
+              descController: _descController,
+              selectedCourseId: _selectedCourseId,
+              onCourseChanged: (val) => setState(() => _selectedCourseId = val),
+              loading: state.isLoading,
+              onSubmit: _handleSubmit,
+              isEdit: widget.classroom != null,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,3 @@
-// lib/presentation/screens/admin/languages_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
@@ -6,7 +5,7 @@ import 'package:jumpup_app/presentation/providers/correcciones/language_provider
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class LanguagesScreen extends ConsumerStatefulWidget {
   const LanguagesScreen({super.key});
@@ -35,91 +34,88 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
     final notifier = ref.read(languageNotifierProvider.notifier);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
-        title: const Text('Gestión de Idiomas'),
-        backgroundColor: AppColors.primaryDark,
-        foregroundColor: Colors.white,
+        title: const Text('Language Assets',
+            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: Colors.transparent,
         elevation: 0,
+        iconTheme: const IconThemeData(color: Colors.white),
         actions: [
           IconButton(
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
             onPressed: () => _showAddEditDialog(context),
-            tooltip: 'Agregar idioma',
-          ),
-          IconButton(
-            icon: const Icon(Icons.refresh_rounded),
-            onPressed: () => notifier.refresh(),
-            tooltip: 'Refrescar',
+            tooltip: 'Add Language',
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () => notifier.refresh(),
-        child: languagesAsync.when(
-          loading: () => const Center(child: CircularProgressIndicator()),
-          error: (error, stack) => _buildErrorView(error, notifier),
-          data: (languages) {
-            if (languages.isEmpty) {
-              return EmptyState(
-                title: 'No hay idiomas configurados',
-                subtitle: 'Agrega tu primer idioma para comenzar',
-                icon: Icons.translate_rounded,
-                buttonText: 'Agregar idioma',
-                onButtonPressed: () => _showAddEditDialog(context),
-              );
-            }
-            return ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: languages.length,
-              itemBuilder: (context, index) {
-                final language = languages[index];
-                return _LanguageCard(
-                  language: language,
-                  onEdit: () => _showAddEditDialog(
-                    context,
-                    language: language,
-                  ),
-                  onDelete: () => _confirmDelete(
-                    context,
-                    language.id,
-                    notifier,
-                  ),
+      body: Stack(
+        children: [
+          Positioned(
+            bottom: -100,
+            left: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
+              ),
+            ),
+          ),
+          RefreshIndicator(
+            color: const Color(0xFF7C4DFF),
+            onRefresh: () => notifier.refresh(),
+            child: languagesAsync.when(
+              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              error: (error, stack) => _buildErrorView(error, notifier),
+              data: (languages) {
+                if (languages.isEmpty) {
+                  return EmptyState(
+                    title: 'No languages configured',
+                    subtitle: 'Add your first language to start localizing content',
+                    icon: Icons.translate_rounded,
+                    buttonText: 'Add Language',
+                    onButtonPressed: () => _showAddEditDialog(context),
+                  );
+                }
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                  itemCount: languages.length,
+                  itemBuilder: (context, index) {
+                    final language = languages[index];
+                    return _LanguageCard(
+                      language: language,
+                      onEdit: () => _showAddEditDialog(context, language: language),
+                      onDelete: () => _confirmDelete(context, language.id, notifier),
+                    );
+                  },
                 );
               },
-            );
-          },
-        ),
+            ),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildErrorView(Object error, LanguageNotifier notifier) {
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-          const SizedBox(height: 16),
-          Text(
-            'Error al cargar idiomas',
-            style: AppTextStyles.titleMedium,
-          ),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(
-              color: AppColors.textSecondary,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: 'Reintentar',
-            onPressed: () => notifier.refresh(),
-            icon: Icons.refresh_rounded,
-          ),
-        ],
+      child: GlassContainer(
+        margin: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Color(0xFFFF5252)),
+            const SizedBox(height: 16),
+            const Text('Sync Error', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text(error.toString(), style: const TextStyle(color: Colors.white54, fontSize: 12), textAlign: TextAlign.center),
+            const SizedBox(height: 20),
+            PrimaryButton(label: 'Retry', onPressed: () => notifier.refresh(), icon: Icons.refresh_rounded),
+          ],
+        ),
       ),
     );
   }
@@ -138,7 +134,9 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(language != null ? 'Editar idioma' : 'Agregar idioma'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(language != null ? 'Edit Language' : 'New Language', style: const TextStyle(color: Colors.white)),
         content: Form(
           key: _formKey,
           child: Column(
@@ -146,70 +144,40 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
             children: [
               BrandedTextField(
                 controller: _nameController,
-                label: 'Nombre del idioma',
-                hint: 'Ej: Español, Inglés, Francés...',
+                label: 'Name',
+                hint: 'English, Spanish, French...',
                 prefixIcon: Icons.language_rounded,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre es obligatorio';
-                  }
-                  return null;
-                },
+                validator: (v) => v?.isEmpty ?? true ? 'Required' : null,
               ),
               const SizedBox(height: 16),
               BrandedTextField(
                 controller: _codeController,
-                label: 'Código ISO',
-                hint: 'Ej: es, en, fr...',
+                label: 'ISO Code',
+                hint: 'en, es, fr...',
                 prefixIcon: Icons.code_rounded,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El código es obligatorio';
-                  }
-                  if (value.length != 2) {
-                    return 'El código debe tener 2 caracteres';
-                  }
-                  return null;
-                },
+                validator: (v) => (v?.length ?? 0) != 2 ? 'Must be 2 chars' : null,
               ),
               const SizedBox(height: 16),
               BrandedTextField(
                 controller: _flagUrlController,
-                label: 'URL de la bandera (opcional)',
-                hint: 'https://flagcdn.com/es.png',
+                label: 'Flag URL (Optional)',
+                hint: 'https://flagcdn.com/us.png',
                 prefixIcon: Icons.image_rounded,
               ),
             ],
           ),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white38))),
           PrimaryButton(
-            label: language != null ? 'Actualizar' : 'Guardar',
+            label: language != null ? 'Update' : 'Save',
             onPressed: () {
               if (_formKey.currentState!.validate()) {
                 final notifier = ref.read(languageNotifierProvider.notifier);
-
                 if (language != null) {
-                  notifier.editLanguage(
-                    language.id,
-                    _nameController.text,
-                    _codeController.text,
-                    flagIconUrl: _flagUrlController.text.isNotEmpty
-                        ? _flagUrlController.text
-                        : null,
-                  );
+                  notifier.editLanguage(language.id, _nameController.text, _codeController.text, flagIconUrl: _flagUrlController.text);
                 } else {
-                  notifier.addLanguage(
-                    _nameController.text,
-                    _codeController.text,
-                    flagIconUrl: _flagUrlController.text.isNotEmpty
-                        ? _flagUrlController.text
-                        : null,
-                  );
+                  notifier.addLanguage(_nameController.text, _codeController.text, flagIconUrl: _flagUrlController.text);
                 }
                 Navigator.pop(ctx);
               }
@@ -220,30 +188,20 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
     );
   }
 
-  void _confirmDelete(
-    BuildContext context,
-    int languageId,
-    LanguageNotifier notifier,
-  ) {
+  void _confirmDelete(BuildContext context, int id, LanguageNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Eliminar idioma'),
-        content: const Text(
-          '¿Estás seguro de que deseas eliminar este idioma?\n'
-          'Esta acción no se puede deshacer y afectará a los cursos asociados.',
-        ),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('Delete Language', style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure? This will affect all courses linked to this language.', style: TextStyle(color: Colors.white70)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
-          ),
-          PrimaryButton(
-            label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteLanguage(languageId);
-              Navigator.pop(ctx);
-            },
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white38))),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFFFF5252), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
+            onPressed: () { notifier.deleteLanguage(id); Navigator.pop(ctx); },
+            child: const Text('Delete', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -252,97 +210,33 @@ class _LanguagesScreenState extends ConsumerState<LanguagesScreen> {
 }
 
 class _LanguageCard extends StatelessWidget {
-  const _LanguageCard({
-    required this.language,
-    required this.onEdit,
-    required this.onDelete,
-  });
-
+  const _LanguageCard({required this.language, required this.onEdit, required this.onDelete});
   final Language language;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          onTap: onEdit,
+          leading: Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(color: const Color(0xFF7C4DFF).withValues(alpha: 0.1), borderRadius: BorderRadius.circular(15)),
+            child: language.flagIconUrl.isNotEmpty
+                ? ClipRRect(borderRadius: BorderRadius.circular(15), child: Image.network(language.flagIconUrl, fit: BoxFit.cover, errorBuilder: (_,__,___) => const Icon(Icons.language, color: Color(0xFF7C4DFF))))
+                : const Icon(Icons.language, color: Color(0xFF7C4DFF)),
           ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        leading: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: const Color(0xFF0D47A1).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+          title: Text(language.name, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+          subtitle: Text('Code: ${language.code.toUpperCase()}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
+          trailing: IconButton(
+            icon: const Icon(Icons.delete_outline_rounded, color: Color(0xFFFF5252), size: 22),
+            onPressed: onDelete,
           ),
-          child: language.flagIconUrl.isNotEmpty
-              ? ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    language.flagIconUrl,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Center(
-                      child: Text(
-                        language.code.toUpperCase(),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D47A1),
-                          fontSize: 14,
-                        ),
-                      ),
-                    ),
-                  ),
-                )
-              : Center(
-                  child: Text(
-                    language.code.toUpperCase(),
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0D47A1),
-                      fontSize: 14,
-                    ),
-                  ),
-                ),
-        ),
-        title: Text(
-          language.name,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        subtitle: Text(
-          'Código: ${language.code}',
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-          ),
-        ),
-        trailing: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            IconButton(
-              icon: const Icon(Icons.edit_rounded, size: 20),
-              onPressed: onEdit,
-              color: AppColors.primary,
-            ),
-            IconButton(
-              icon: const Icon(Icons.delete_outline_rounded, size: 20),
-              onPressed: onDelete,
-              color: AppColors.error,
-            ),
-          ],
         ),
       ),
     );

@@ -12,7 +12,7 @@ import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_scr
 import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
+import 'package:jumpup_app/widgets/glass_container.dart';
 
 class AdminDashboardScreen extends ConsumerWidget {
   const AdminDashboardScreen({super.key});
@@ -23,316 +23,303 @@ class AdminDashboardScreen extends ConsumerWidget {
     final authState = ref.watch(authProvider);
 
     return Scaffold(
-      backgroundColor: AppColors.background,
-      body: CustomScrollView(
-        slivers: [
-          // ── Header ──────────────────────────────────────────────────
-          SliverAppBar(
-            expandedHeight: 140,
-            pinned: true,
-            backgroundColor: AppColors.primaryDark,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  gradient: AppColors.primaryGradient,
-                ),
-                padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: Colors.white24,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.admin_panel_settings_rounded,
-                            color: Colors.white,
-                            size: 22,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'Panel de Administración',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                              Text(
-                                authState.user?.email ?? 'admin@jumpup.com',
-                                style: const TextStyle(
-                                  color: Colors.white60,
-                                  fontSize: 12,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.logout_rounded,
-                            color: Colors.white70,
-                          ),
-                          tooltip: 'Cerrar sesión',
-                          onPressed: () => _confirmLogout(context, ref),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
+      backgroundColor: const Color(0xFF0F0E1A),
+      body: Stack(
+        children: [
+          // Background Decorative Blobs
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF7C4DFF).withValues(alpha: 0.15),
+              ),
+            ),
+          ),
+          Positioned(
+            bottom: 200,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFF00E5FF).withValues(alpha: 0.1),
               ),
             ),
           ),
 
-          // ── Cuerpo ───────────────────────────────────────────────────
-          SliverToBoxAdapter(
-            child: RefreshIndicator(
-              onRefresh: () async {
-                ref.invalidate(adminStatsProvider);
-                await ref.read(adminStatsProvider.future);
-              },
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Métricas
-                    Text(
-                      'Resumen de la plataforma',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    statsAsync.when(
-                      loading: () => const Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(40),
-                          child: CircularProgressIndicator(),
-                        ),
-                      ),
-                      error: (e, _) => _ErrorCard(message: e.toString()),
-                      data: (stats) => GridView.count(
-                        crossAxisCount: 2,
-                        mainAxisSpacing: 12,
-                        crossAxisSpacing: 12,
-                        childAspectRatio: 1.6,
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        children: [
-                          _MetricCard(
-                            title: 'Total Usuarios',
-                            value: stats.totalUsers,
-                            icon: Icons.people_alt_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF1565C0),
-                              Color(0xFF1E88E5)
-                            ]),
-                            subtitle: 'Registrados',
-                          ),
-                          _MetricCard(
-                            title: 'Profesores',
-                            value: stats.teachers,
-                            icon: Icons.school_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF00897B),
-                              Color(0xFF26A69A)
-                            ]),
-                            subtitle: 'Activos',
-                          ),
-                          _MetricCard(
-                            title: 'Estudiantes',
-                            value: stats.students,
-                            icon: Icons.person_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF5E35B1),
-                              Color(0xFF7E57C2)
-                            ]),
-                            subtitle: 'Inscritos',
-                          ),
-                          _MetricCard(
-                            title: 'Cursos',
-                            value: stats.courses,
-                            icon: Icons.menu_book_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF2E7D32),
-                              Color(0xFF43A047)
-                            ]),
-                            subtitle: 'Publicados',
-                          ),
-                          _MetricCard(
-                            title: 'Aulas',
-                            value: stats.classrooms,
-                            icon: Icons.class_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFFE65100),
-                              Color(0xFFFB8C00)
-                            ]),
-                            subtitle: 'Activas',
-                          ),
-                          _MetricCard(
-                            title: 'Suscripciones',
-                            value: stats.subscriptions,
-                            icon: Icons.workspace_premium_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF6A1B9A),
-                              Color(0xFFAB47BC)
-                            ]),
-                            subtitle: 'Premium',
-                          ),
-                          _MetricCard(
-                            title: 'Pagos',
-                            value: stats.payments,
-                            icon: Icons.payment_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF00695C),
-                              Color(0xFF00ACC1)
-                            ]),
-                            subtitle: 'Procesados',
-                          ),
-                          _MetricCard(
-                            title: 'Certificados',
-                            value: stats.certificates,
-                            icon: Icons.verified_rounded,
-                            gradient: const LinearGradient(colors: [
-                              Color(0xFF283593),
-                              Color(0xFF3F51B5)
-                            ]),
-                            subtitle: 'Emitidos',
-                          ),
+          CustomScrollView(
+            slivers: [
+              // ── Header ──────────────────────────────────────────────────
+              SliverAppBar(
+                expandedHeight: 180,
+                pinned: true,
+                backgroundColor: Colors.transparent,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          const Color(0xFF1E1E2A),
+                          const Color(0xFF0F0E1A).withValues(alpha: 0.8),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 28),
-
-                    // ── Gestión ──────────────────────────────────────
-                    Text(
-                      'Gestión',
-                      style: AppTextStyles.titleMedium.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // ✅ Usuarios
-                    _ActionCard(
-                      icon: Icons.people_alt_rounded,
-                      title: 'Gestión de Usuarios',
-                      subtitle: 'Activar, desactivar y modificar roles',
-                      color: AppColors.primary,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const UsersScreen(),
+                    padding: const EdgeInsets.fromLTRB(20, 60, 20, 16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Row(
+                          children: [
+                            GlassContainer(
+                              borderRadius: BorderRadius.circular(15),
+                              padding: const EdgeInsets.all(12),
+                              child: const Icon(
+                                Icons.admin_panel_settings_rounded,
+                                color: Color(0xFF00E5FF),
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Admin Panel',
+                                    style: TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      letterSpacing: 1,
+                                    ),
+                                  ),
+                                  Text(
+                                    authState.user?.email ?? 'admin@jumpup.com',
+                                    style: TextStyle(
+                                      color: Colors.white.withValues(alpha: 0.6),
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(
+                                Icons.logout_rounded,
+                                color: Colors.white70,
+                              ),
+                              tooltip: 'Cerrar sesión',
+                              onPressed: () => _confirmLogout(context, ref),
+                            ),
+                          ],
                         ),
-                      ),
+                      ],
                     ),
-
-                    // ✅ Cursos
-                    _ActionCard(
-                      icon: Icons.menu_book_rounded,
-                      title: 'Gestión de Cursos',
-                      subtitle: 'Crear y gestionar el catálogo de cursos',
-                      color: const Color(0xFF2E7D32),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const CoursesScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Idiomas
-                    _ActionCard(
-                      icon: Icons.translate_rounded,
-                      title: 'Gestión de Idiomas',
-                      subtitle: 'Administrar idiomas disponibles en la plataforma',
-                      color: const Color(0xFF0D47A1),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const LanguagesScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Aulas (NUEVO)
-                    _ActionCard(
-                      icon: Icons.class_rounded,
-                      title: 'Gestión de Aulas',
-                      subtitle: 'Crear y gestionar aulas',
-                      color: const Color(0xFFE65100),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ClassroomsScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Ejercicios (NUEVO)
-                    _ActionCard(
-                      icon: Icons.edit_note_rounded,
-                      title: 'Gestión de Ejercicios',
-                      subtitle: 'Crear y gestionar ejercicios por lección',
-                      color: const Color(0xFF7B1FA2),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ExercisesScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Anuncios
-                    _ActionCard(
-                      icon: Icons.campaign_rounded,
-                      title: 'Anuncios y Avisos',
-                      subtitle: 'Publicar comunicados a toda la plataforma',
-                      color: const Color(0xFFE65100),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const AnnouncementsScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Reportes
-                    _ActionCard(
-                      icon: Icons.flag_rounded,
-                      title: 'Reportes de Contenido',
-                      subtitle: 'Moderar reportes del foro y feed social',
-                      color: AppColors.error,
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const ReportsScreen(),
-                        ),
-                      ),
-                    ),
-
-                    // ✅ Suscripciones
-                    _ActionCard(
-                      icon: Icons.workspace_premium_rounded,
-                      title: 'Suscripciones y Pagos',
-                      subtitle: 'Gestionar planes premium y estado de facturación',
-                      color: const Color(0xFF6A1B9A),
-                      onTap: () => Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (_) => const SubscriptionsScreen(),
-                        ),
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-                  ],
+                  ),
                 ),
               ),
-            ),
+
+              // ── Cuerpo ───────────────────────────────────────────────────
+              SliverToBoxAdapter(
+                child: RefreshIndicator(
+                  color: const Color(0xFF7C4DFF),
+                  onRefresh: () async {
+                    ref.invalidate(adminStatsProvider);
+                    await ref.read(adminStatsProvider.future);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Métricas
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            const Text(
+                              'Platform Overview',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            TextButton(
+                              onPressed: () => ref.invalidate(adminStatsProvider),
+                              child: const Text('Refresh', style: TextStyle(color: Color(0xFF00E5FF))),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        statsAsync.when(
+                          loading: () => const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(40),
+                              child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+                            ),
+                          ),
+                          error: (e, _) => _ErrorCard(message: e.toString()),
+                          data: (stats) => GridView.count(
+                            crossAxisCount: 2,
+                            mainAxisSpacing: 16,
+                            crossAxisSpacing: 16,
+                            childAspectRatio: 1.5,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            children: [
+                              _MetricCard(
+                                title: 'Total Users',
+                                value: stats.totalUsers,
+                                icon: Icons.people_alt_rounded,
+                                accentColor: const Color(0xFF7C4DFF),
+                              ),
+                              _MetricCard(
+                                title: 'Teachers',
+                                value: stats.teachers,
+                                icon: Icons.school_rounded,
+                                accentColor: const Color(0xFF00E5FF),
+                              ),
+                              _MetricCard(
+                                title: 'Students',
+                                value: stats.students,
+                                icon: Icons.person_rounded,
+                                accentColor: const Color(0xFFFF4081),
+                              ),
+                              _MetricCard(
+                                title: 'Courses',
+                                value: stats.courses,
+                                icon: Icons.menu_book_rounded,
+                                accentColor: const Color(0xFF00C853),
+                              ),
+                              _MetricCard(
+                                title: 'Classrooms',
+                                value: stats.classrooms,
+                                icon: Icons.class_rounded,
+                                accentColor: const Color(0xFFFFD600),
+                              ),
+                              _MetricCard(
+                                title: 'Subscriptions',
+                                value: stats.subscriptions,
+                                icon: Icons.workspace_premium_rounded,
+                                accentColor: const Color(0xFFAA00FF),
+                              ),
+                              _MetricCard(
+                                title: 'Payments',
+                                value: stats.payments,
+                                icon: Icons.payment_rounded,
+                                accentColor: const Color(0xFF00B0FF),
+                              ),
+                              _MetricCard(
+                                title: 'Certificates',
+                                value: stats.certificates,
+                                icon: Icons.verified_rounded,
+                                accentColor: const Color(0xFF64DD17),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // ── Gestión ──────────────────────────────────────
+                        const Text(
+                          'Management',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        _ActionCard(
+                          icon: Icons.people_alt_rounded,
+                          title: 'User Management',
+                          subtitle: 'Manage roles and account status',
+                          accentColor: const Color(0xFF7C4DFF),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const UsersScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.menu_book_rounded,
+                          title: 'Courses & Lessons',
+                          subtitle: 'Create and edit educational content',
+                          accentColor: const Color(0xFF00C853),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const CoursesScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.translate_rounded,
+                          title: 'Language Assets',
+                          subtitle: 'Manage platform supported languages',
+                          accentColor: const Color(0xFF00E5FF),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const LanguagesScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.class_rounded,
+                          title: 'Virtual Classrooms',
+                          subtitle: 'Monitor and manage active groups',
+                          accentColor: const Color(0xFFFFD600),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ClassroomsScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.edit_note_rounded,
+                          title: 'Exercise Bank',
+                          subtitle: 'Review and update exercise modules',
+                          accentColor: const Color(0xFFAA00FF),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ExercisesScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.campaign_rounded,
+                          title: 'Announcements',
+                          subtitle: 'Push global platform updates',
+                          accentColor: const Color(0xFFFF6D00),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const AnnouncementsScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.flag_rounded,
+                          title: 'Content Reports',
+                          subtitle: 'Moderate forum and social reports',
+                          accentColor: const Color(0xFFFF5252),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const ReportsScreen()),
+                          ),
+                        ),
+                        _ActionCard(
+                          icon: Icons.workspace_premium_rounded,
+                          title: 'Billing & Plans',
+                          subtitle: 'Premium subscriptions and revenue',
+                          accentColor: const Color(0xFF00B0FF),
+                          onTap: () => Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => const SubscriptionsScreen()),
+                          ),
+                        ),
+
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         ],
       ),
@@ -343,23 +330,26 @@ class AdminDashboardScreen extends ConsumerWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Cerrar sesión'),
-        content: const Text('¿Seguro que quieres salir del panel?'),
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Logout', style: TextStyle(color: Colors.white)),
+        content: const Text('Are you sure you want to exit the admin panel?', style: TextStyle(color: Colors.white70)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancelar'),
+            child: const Text('Cancel', style: TextStyle(color: Colors.white38)),
           ),
-          FilledButton(
-            style: FilledButton.styleFrom(
-              backgroundColor: AppColors.error,
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF5252),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
             ),
             onPressed: () async {
               Navigator.pop(ctx);
               await ref.read(authProvider.notifier).logout();
               if (context.mounted) context.go(AppRoutes.login);
             },
-            child: const Text('Cerrar sesión'),
+            child: const Text('Logout', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -367,72 +357,65 @@ class AdminDashboardScreen extends ConsumerWidget {
   }
 }
 
-// ── Widgets ───────────────────────────────────────────────────────────────────
-
 class _MetricCard extends StatelessWidget {
   const _MetricCard({
     required this.title,
     required this.value,
     required this.icon,
-    required this.gradient,
-    required this.subtitle,
+    required this.accentColor,
   });
 
   final String title;
   final int value;
   final IconData icon;
-  final LinearGradient gradient;
-  final String subtitle;
+  final Color accentColor;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        gradient: gradient,
-        borderRadius: BorderRadius.circular(18),
-        boxShadow: [
-          BoxShadow(
-            color: gradient.colors.first.withValues(alpha: 0.35),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: Colors.white24,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Icon(icon, color: Colors.white, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(icon, color: accentColor, size: 24),
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: accentColor,
+                  boxShadow: [
+                    BoxShadow(color: accentColor.withValues(alpha: 0.5), blurRadius: 4, spreadRadius: 1),
+                  ],
+                ),
+              ),
+            ],
           ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  value.toString(),
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w800,
-                  ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value.toString(),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
                 ),
-                Text(
-                  title,
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
-                  ),
+              ),
+              Text(
+                title,
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
         ],
       ),
@@ -445,61 +428,53 @@ class _ActionCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.subtitle,
-    required this.color,
+    required this.accentColor,
     required this.onTap,
   });
 
   final IconData icon;
   final String title;
   final String subtitle;
-  final Color color;
+  final Color accentColor;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      decoration: BoxDecoration(
-        color: AppColors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.divider),
-        boxShadow: const [
-          BoxShadow(
-            color: AppColors.shadow,
-            blurRadius: 8,
-            offset: Offset(0, 2),
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: GlassContainer(
+        borderRadius: BorderRadius.circular(20),
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: accentColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: Icon(icon, color: accentColor, size: 26),
           ),
-        ],
-      ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
           ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-        title: Text(
-          title,
-          style: AppTextStyles.titleSmall.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 13,
+            ),
           ),
-        ),
-        subtitle: Text(
-          subtitle,
-          style: AppTextStyles.bodySmall.copyWith(
-            color: AppColors.textSecondary,
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.white24,
           ),
         ),
-        trailing: Icon(
-          Icons.arrow_forward_ios_rounded,
-          size: 14,
-          color: color,
-        ),
-        onTap: onTap,
       ),
     );
   }
@@ -512,23 +487,28 @@ class _ErrorCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.error.withValues(alpha: 0.3),
-        ),
-      ),
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.all(20),
       child: Row(
         children: [
-          const Icon(Icons.error_outline, color: AppColors.error),
-          const SizedBox(width: 12),
+          const Icon(Icons.error_outline_rounded, color: Color(0xFFFF5252), size: 30),
+          const SizedBox(width: 16),
           Expanded(
-            child: Text(
-              message,
-              style: AppTextStyles.bodySmall,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Data Sync Error',
+                  style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  message,
+                  style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 12),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
             ),
           ),
         ],
