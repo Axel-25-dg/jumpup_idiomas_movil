@@ -16,6 +16,7 @@ class ReportNotifier extends StateNotifier<AsyncValue<List<Report>>> {
     fetchReports();
   }
 
+  // 📥 Obtener todos los reportes
   Future<void> fetchReports() async {
     state = const AsyncValue.loading();
     try {
@@ -26,6 +27,7 @@ class ReportNotifier extends StateNotifier<AsyncValue<List<Report>>> {
     }
   }
 
+  // ✏️ Actualizar reporte
   Future<void> updateReport(int id, Map<String, dynamic> data) async {
     try {
       await _repository.updateReport(id, data);
@@ -35,6 +37,18 @@ class ReportNotifier extends StateNotifier<AsyncValue<List<Report>>> {
     }
   }
 
+  // 🗑️ Eliminar reporte
+  Future<void> deleteReport(int id) async {
+    try {
+      await _repository.deleteReport(id);
+      final currentList = state.value ?? [];
+      state = AsyncValue.data(currentList.where((r) => r.id != id).toList());
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  // 🔄 Refrescar
   Future<void> refresh() async {
     await fetchReports();
   }

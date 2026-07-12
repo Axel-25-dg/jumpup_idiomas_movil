@@ -27,6 +27,7 @@ import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
 import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/certificate_repository.dart'; // ✅ Agregar
 
 class TeacherRepository {
   final LanguageRepository languages = LanguageRepository();
@@ -41,6 +42,7 @@ class TeacherRepository {
   final ClassroomRepository classrooms = ClassroomRepository();
   final StatsRepository stats = StatsRepository();
   final ResourceRepository resources = ResourceRepository();
+  final CertificateRepository certificates = CertificateRepository();
 
   final Dio _dio = DioClient.instance.dio;
 

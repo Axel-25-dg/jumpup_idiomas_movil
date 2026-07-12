@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/report_provider.dart';
+import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
+
 
 class ReportsScreen extends ConsumerStatefulWidget {
   const ReportsScreen({super.key});
@@ -15,7 +17,25 @@ class ReportsScreen extends ConsumerStatefulWidget {
 }
 
 class _ReportsScreenState extends ConsumerState<ReportsScreen> {
+  final _searchController = TextEditingController();
+  String _searchQuery = '';
   String _statusFilter = 'TODOS';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -39,9 +59,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
       ),
       body: Column(
         children: [
-          // Filters
+          // ✅ Barra de búsqueda
           Padding(
             padding: const EdgeInsets.all(16),
+            child: BrandedTextField(
+              controller: _searchController,
+              label: 'Buscar reporte',
+              hint: 'Tipo, descripción o usuario...',
+              prefixIcon: Icons.search_rounded,
+            ),
+          ),
+          // ✅ Filtros por estado
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -62,31 +92,29 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   _StatusChip(
                     label: 'En progreso',
                     selected: _statusFilter == 'IN_PROGRESS',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'IN_PROGRESS'),
+                    onSelected: () => setState(() => _statusFilter = 'IN_PROGRESS'),
                     color: Colors.blue,
                   ),
                   const SizedBox(width: 8),
                   _StatusChip(
                     label: 'Resuelto',
                     selected: _statusFilter == 'RESOLVED',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'RESOLVED'),
+                    onSelected: () => setState(() => _statusFilter = 'RESOLVED'),
                     color: Colors.green,
                   ),
                   const SizedBox(width: 8),
                   _StatusChip(
                     label: 'Rechazado',
                     selected: _statusFilter == 'REJECTED',
-                    onSelected: () =>
-                        setState(() => _statusFilter = 'REJECTED'),
+                    onSelected: () => setState(() => _statusFilter = 'REJECTED'),
                     color: Colors.red,
                   ),
                 ],
               ),
             ),
           ),
-          // List
+          const SizedBox(height: 8),
+          // ✅ Lista de reportes
           Expanded(
             child: RefreshIndicator(
               onRefresh: () => notifier.refresh(),
@@ -97,11 +125,22 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                   final filtered = _filterReports(reports);
                   if (filtered.isEmpty) {
                     return EmptyState(
-                      title: 'No hay reportes',
-                      subtitle: _statusFilter != 'TODOS'
-                          ? 'No hay reportes con el estado seleccionado'
-                          : 'Todos los reportes han sido procesados',
+                      title: _searchQuery.isNotEmpty
+                          ? 'No se encontraron reportes'
+                          : 'No hay reportes',
+                      subtitle: _searchQuery.isNotEmpty
+                          ? 'Intenta con otro término de búsqueda'
+                          : _statusFilter != 'TODOS'
+                              ? 'No hay reportes con el estado seleccionado'
+                              : 'Todos los reportes han sido procesados',
                       icon: Icons.flag_rounded,
+                      buttonText: _searchQuery.isNotEmpty ? 'Limpiar búsqueda' : null,
+                      onButtonPressed: _searchQuery.isNotEmpty
+                          ? () {
+                              _searchController.clear();
+                              setState(() => _searchQuery = '');
+                            }
+                          : null,
                     );
                   }
                   return ListView.builder(
@@ -112,7 +151,6 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                       return _ReportCard(
                         report: report,
                         onUpdateStatus: (status) {
-                          // ✅ CORREGIDO: pasar Map<String, dynamic>
                           notifier.updateReport(report.id, {'status': status});
                         },
                       );
@@ -128,8 +166,19 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   }
 
   List<Report> _filterReports(List<Report> reports) {
-    if (_statusFilter == 'TODOS') return reports;
-    return reports.where((r) => r.status == _statusFilter).toList();
+    var filtered = reports;
+    // ✅ Filtrar por estado
+    if (_statusFilter != 'TODOS') {
+      filtered = filtered.where((r) => r.status == _statusFilter).toList();
+    }
+    // ✅ Filtrar por búsqueda
+    if (_searchQuery.isNotEmpty) {
+      filtered = filtered.where((r) =>
+        r.reportType.toLowerCase().contains(_searchQuery) ||
+        r.description.toLowerCase().contains(_searchQuery)
+      ).toList();
+    }
+    return filtered;
   }
 
   Widget _buildErrorView(Object error, ReportNotifier notifier) {
@@ -143,8 +192,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
           const SizedBox(height: 8),
           Text(
             error.toString(),
-            style: AppTextStyles.bodySmall
-                .copyWith(color: AppColors.textSecondary),
+            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
             textAlign: TextAlign.center,
           ),
           const SizedBox(height: 16),
@@ -182,8 +230,7 @@ class _StatusChip extends StatelessWidget {
       selectedColor: (color ?? AppColors.primary).withValues(alpha: 0.2),
       checkmarkColor: color ?? AppColors.primary,
       labelStyle: TextStyle(
-        color:
-            selected ? (color ?? AppColors.primary) : AppColors.textSecondary,
+        color: selected ? (color ?? AppColors.primary) : AppColors.textSecondary,
         fontWeight: selected ? FontWeight.w600 : FontWeight.w400,
       ),
     );
@@ -291,6 +338,13 @@ class _ReportCardState extends State<_ReportCard> {
               children: [
                 const SizedBox(height: 4),
                 Text(
+                  widget.report.reportType,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
                   widget.report.description,
                   style: AppTextStyles.bodySmall.copyWith(
                     color: AppColors.textSecondary,
@@ -302,8 +356,7 @@ class _ReportCardState extends State<_ReportCard> {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
                         color: statusColor.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
@@ -331,9 +384,7 @@ class _ReportCardState extends State<_ReportCard> {
             ),
             trailing: IconButton(
               icon: Icon(
-                _isExpanded
-                    ? Icons.expand_less_rounded
-                    : Icons.expand_more_rounded,
+                _isExpanded ? Icons.expand_less_rounded : Icons.expand_more_rounded,
                 color: AppColors.textSecondary,
               ),
               onPressed: () => setState(() => _isExpanded = !_isExpanded),
@@ -358,8 +409,7 @@ class _ReportCardState extends State<_ReportCard> {
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: _getAvailableStatuses(widget.report.status)
-                        .map((status) {
+                    children: _getAvailableStatuses(widget.report.status).map((status) {
                       return PrimaryButton(
                         label: _getStatusLabel(status),
                         onPressed: () => widget.onUpdateStatus(status),

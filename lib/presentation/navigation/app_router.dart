@@ -56,6 +56,12 @@ import 'package:jumpup_app/presentation/screens/admin/correcciones/languages_scr
 import 'package:jumpup_app/presentation/screens/admin/correcciones/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/suscription_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/users_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/lesson_screen.dart'; //  NUEVO
+import 'package:jumpup_app/presentation/screens/admin/correcciones/modules_screen.dart'; //  NUEVO
+import 'package:jumpup_app/presentation/screens/admin/correcciones/resources_screen.dart'; // NUEVO
+import 'package:jumpup_app/presentation/screens/admin/correcciones/certificate_admin_screen.dart'; // NUEVO
+
+
 
 abstract final class AppRoutes {
   // Auth
@@ -113,6 +119,10 @@ abstract final class AppRoutes {
   static const adminSubscriptions = '/admin/subscriptions';
   static const adminClassrooms = '/admin/classrooms';
   static const adminExercises = '/admin/exercises';
+  static const adminModules = '/admin/modules'; //  NUEVO
+  static const adminLessons = '/admin/lessons'; //  NUEVO
+  static const adminResources = '/admin/resources'; //  NUEVO
+  static const adminCertificates = '/admin/certificates'; //  NUEVO
 }
 
 GoRouter buildAppRouter(WidgetRef ref) {
@@ -125,7 +135,8 @@ GoRouter buildAppRouter(WidgetRef ref) {
         final isAuth = authState.status == AuthStatus.authenticated;
         final location = state.uri.toString();
 
-        final isAuthRoute = location == AppRoutes.login ||
+        final isAuthRoute =
+            location == AppRoutes.login ||
             location == AppRoutes.register ||
             location == AppRoutes.forgotPassword ||
             location == AppRoutes.splash;
@@ -188,23 +199,26 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.studentCourseDetail,
         name: 'studentCourseDetail',
-        builder: (_, state) => CourseDetailScreen(
-          courseId: int.parse(state.pathParameters['id']!),
-        ),
+        builder:
+            (_, state) => CourseDetailScreen(
+              courseId: int.parse(state.pathParameters['id']!),
+            ),
       ),
       GoRoute(
         path: AppRoutes.studentLessonDetail,
         name: 'studentLessonDetail',
-        builder: (_, state) => LessonDetailScreen(
-          lessonId: int.parse(state.pathParameters['id']!),
-        ),
+        builder:
+            (_, state) => LessonDetailScreen(
+              lessonId: int.parse(state.pathParameters['id']!),
+            ),
       ),
       GoRoute(
         path: AppRoutes.studentExercise,
         name: 'studentExercise',
-        builder: (_, state) => ExerciseScreen(
-          lessonId: int.parse(state.pathParameters['lessonId']!),
-        ),
+        builder:
+            (_, state) => ExerciseScreen(
+              lessonId: int.parse(state.pathParameters['lessonId']!),
+            ),
       ),
       GoRoute(
         path: AppRoutes.studentLearningPath,
@@ -309,9 +323,10 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.teacherManageClassroom,
         name: 'teacherManageClassroom',
-        builder: (_, state) => ManageClassroomScreen(
-          classroomId: int.parse(state.pathParameters['id']!),
-        ),
+        builder:
+            (_, state) => ManageClassroomScreen(
+              classroomId: int.parse(state.pathParameters['id']!),
+            ),
       ),
       GoRoute(
         path: AppRoutes.teacherCreateExercise,
@@ -371,6 +386,36 @@ GoRouter buildAppRouter(WidgetRef ref) {
         builder: (_, __) => const CoursesScreen(),
       ),
       GoRoute(
+        path: AppRoutes.adminModules,
+        name: 'adminModules',
+        builder: (_, __) => const ModulesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminLessons,
+        name: 'adminLessons',
+        builder: (_, __) => const LessonsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminExercises,
+        name: 'adminExercises',
+        builder: (_, __) => const ExercisesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminClassrooms,
+        name: 'adminClassrooms',
+        builder: (_, __) => const ClassroomsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminResources,
+        name: 'adminResources',
+        builder: (_, __) => const ResourcesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminCertificates,
+        name: 'adminCertificates',
+        builder: (_, __) => const CertificatesAdminScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.adminAnnouncements,
         name: 'adminAnnouncements',
         builder: (_, __) => const AnnouncementsScreen(),
@@ -384,16 +429,6 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.adminSubscriptions,
         name: 'adminSubscriptions',
         builder: (_, __) => const SubscriptionsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminClassrooms,
-        name: 'adminClassrooms',
-        builder: (_, __) => const ClassroomsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminExercises,
-        name: 'adminExercises',
-        builder: (_, __) => const ExercisesScreen(),
       ),
     ],
   );

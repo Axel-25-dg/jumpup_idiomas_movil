@@ -5,6 +5,7 @@ import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/correcciones/stats_provider.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/announcements_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/correcciones/certificate_admin_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/classrooms_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/courses_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/correcciones/exercises_screen.dart';
@@ -319,7 +320,7 @@ class AdminDashboardScreen extends ConsumerWidget {
                       ),
                     ),
 
-                    // ✅ Recursos (NUEVO)
+                    // ✅ Recursos
                     _ActionCard(
                       icon: Icons.folder_rounded,
                       title: 'Gestión de Recursos',
@@ -328,6 +329,19 @@ class AdminDashboardScreen extends ConsumerWidget {
                       onTap: () => Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => const ResourcesScreen(),
+                        ),
+                      ),
+                    ),
+
+                    // ✅ Certificados (NUEVO)
+                    _ActionCard(
+                      icon: Icons.verified_rounded,
+                      title: 'Gestión de Certificados',
+                      subtitle: 'Emitir y gestionar certificados MCER',
+                      color: const Color(0xFF9C27B0),
+                      onTap: () => Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => const CertificatesAdminScreen(),
                         ),
                       ),
                     ),
