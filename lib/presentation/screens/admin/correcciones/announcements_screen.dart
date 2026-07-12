@@ -152,8 +152,9 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         title: Text(announcement != null ? 'Editar anuncio' : 'Crear anuncio'),
         content: SizedBox(
           width: 400,
-          child: Form(
-            key: _formKey,
+          child: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
@@ -332,7 +333,7 @@ class _DatePickerField extends StatelessWidget {
                         ? '${date!.day}/${date!.month}/${date!.year}'
                         : 'Seleccionar fecha',
                     style: AppTextStyles.bodyMedium.copyWith(
-                      color: date != null ? AppColors.textPrimary : AppColors.textHint,
+                      color: date != null ? AppColors.textPrimary : Colors.grey[600],
                     ),
                   ),
                 ),

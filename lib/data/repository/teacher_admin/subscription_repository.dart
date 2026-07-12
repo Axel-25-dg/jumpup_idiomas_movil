@@ -16,8 +16,7 @@ class SubscriptionRepository extends BaseRepository {
   Future<String> initiateCheckout(int subscriptionId) async {
     try {
       final response = await dio.post(
-        'subscriptions/checkout/',
-        data: {'subscription_id': subscriptionId},
+        'subscriptions/$subscriptionId/checkout/',
       );
       return response.data['url'] as String;
     } on DioException catch (e) {
