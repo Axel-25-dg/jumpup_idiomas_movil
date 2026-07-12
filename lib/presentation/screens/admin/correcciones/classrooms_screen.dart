@@ -144,44 +144,45 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         content: SingleChildScrollView(
           child: Form(
             key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              BrandedTextField(
-                controller: _nameController,
-                label: 'Nombre del aula',
-                prefixIcon: Icons.class_rounded,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El nombre es obligatorio';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              BrandedTextField(
-                controller: _descriptionController,
-                label: 'Descripción',
-                prefixIcon: Icons.description_rounded,
-                maxLines: 3,
-              ),
-              const SizedBox(height: 16),
-              BrandedTextField(
-                controller: _courseIdController,
-                label: 'ID del curso',
-                prefixIcon: Icons.menu_book_rounded,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'El ID del curso es obligatorio';
-                  }
-                  if (int.tryParse(value) == null) {
-                    return 'Ingresa un número válido';
-                  }
-                  return null;
-                },
-              ),
-            ],
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                BrandedTextField(
+                  controller: _nameController,
+                  label: 'Nombre del aula',
+                  prefixIcon: Icons.class_rounded,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El nombre es obligatorio';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                BrandedTextField(
+                  controller: _descriptionController,
+                  label: 'Descripción',
+                  prefixIcon: Icons.description_rounded,
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                BrandedTextField(
+                  controller: _courseIdController,
+                  label: 'ID del curso',
+                  prefixIcon: Icons.menu_book_rounded,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.isEmpty) {
+                      return 'El ID del curso es obligatorio';
+                    }
+                    if (int.tryParse(value) == null) {
+                      return 'Ingresa un número válido';
+                    }
+                    return null;
+                  },
+                ),
+              ],
+            ),
           ),
         ),
         actions: [

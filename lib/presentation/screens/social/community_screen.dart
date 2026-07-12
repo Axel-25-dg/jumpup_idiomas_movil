@@ -338,11 +338,13 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (_, __) => const Text('Error cargando categorías',
                     style: TextStyle(color: Colors.redAccent)),
-                data: (categories) => DropdownButtonFormField<int>(
+                data: (categories) => categories.isEmpty
+                    ? const SizedBox.shrink()
+                    : DropdownButtonFormField<int>(
                   initialValue: _categoryId,
                   dropdownColor: isDark ? const Color(0xFF2A2D3E) : Colors.white,
                   style: AppTextStyles.bodyMedium.copyWith(color: textColor),
-                  decoration: _inputDecoration('Seleccionar categoría', Icons.category_outlined, isDark),
+                  decoration: _inputDecoration('Categoría (opcional)', Icons.category_outlined, isDark),
                   items: categories.map((c) => DropdownMenuItem(value: c.id, child: Text(c.name))).toList(),
                   onChanged: (v) => setState(() => _categoryId = v),
                 ),
@@ -364,7 +366,7 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
               SizedBox(
                 width: double.infinity, height: 56,
                 child: ElevatedButton(
-                  onPressed: (_loading || _categoryId == null || _titleCtrl.text.trim().isEmpty)
+                  onPressed: (_loading || _titleCtrl.text.trim().isEmpty)
                       ? null
                       : _submit,
                   style: ElevatedButton.styleFrom(
@@ -408,11 +410,21 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
   }
 
   Future<void> _submit() async {
-    if (_categoryId == null || _titleCtrl.text.trim().isEmpty) return;
+    if (_titleCtrl.text.trim().isEmpty) return;
+    
+    // Si no hay categoría seleccionada, intentar obtener la primera disponible
+    int? categoryId = _categoryId;
+    if (categoryId == null) {
+      final categoriesAsync = ref.read(forumCategoriesProvider);
+      categoryId = categoriesAsync.value?.isNotEmpty == true 
+          ? categoriesAsync.value!.first.id 
+          : null;
+    }
+
     setState(() => _loading = true);
     try {
       await ref.read(socialRepositoryProvider).createForumThread(
-            categoryId: _categoryId!,
+            categoryId: categoryId,
             title: _titleCtrl.text.trim(),
             body: _bodyCtrl.text.trim(),
           );

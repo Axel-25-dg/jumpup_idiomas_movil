@@ -219,22 +219,40 @@ class _CourseCard extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        context.push('/student/course/${course.id}');
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
-                        foregroundColor: Colors.blueAccent,
-                        elevation: 0,
-                        padding: const EdgeInsets.symmetric(vertical: 0),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        minimumSize: const Size(0, 36),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            context.push('/student/course/${course.id}');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blueAccent.withValues(alpha: 0.1),
+                            foregroundColor: Colors.blueAccent,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(vertical: 0),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            minimumSize: const Size(0, 36),
+                          ),
+                          child: const Text('Ver más', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+                        ),
                       ),
-                      child: const Text('Ver más', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
-                    ),
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: () {
+                          context.push('/student/subscriptions');
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blueAccent,
+                          foregroundColor: Colors.white,
+                          elevation: 0,
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          minimumSize: const Size(0, 36),
+                        ),
+                        child: const Icon(Icons.shopping_cart_outlined, size: 16),
+                      ),
+                    ],
                   ),
                 ],
               ),

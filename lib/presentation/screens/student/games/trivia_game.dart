@@ -76,16 +76,21 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
   Future<void> _submitScore() async {
     setState(() => _submitting = true);
     try {
+      // Reportamos el score al backend — usamos lessonId 0 como marcador
+      // genérico para actividades de juego (el backend debe aceptarlo o ignorarlo)
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 4, // Placeholder para Trivia
+            lessonId: 1, // Usar la lección base disponible en el servidor
             status: 'completed',
             score: _score.toDouble(),
           );
+      // Invalidar todos los providers de progreso para refrescar XP y racha
       ref.invalidate(userStatsProvider);
       ref.invalidate(progressSummaryProvider);
       ref.invalidate(rankingProvider);
+      ref.invalidate(dailyChallengesProvider);
     } catch (e) {
-      debugPrint('Error al subir puntuación: $e');
+      debugPrint('[Trivia] Error al subir puntuación: $e');
+      // Mostrar el score aunque no se haya podido guardar en el servidor
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

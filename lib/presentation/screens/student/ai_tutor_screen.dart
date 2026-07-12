@@ -3,11 +3,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/services.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 import 'package:jumpup_app/presentation/providers/service_providers.dart';
 
 import 'package:jumpup_app/presentation/providers/ai_chat_provider.dart';
@@ -134,8 +131,6 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
   @override
   Widget build(BuildContext context) {
     final chatState = ref.watch(aiChatProvider);
-    final mySubAsync = ref.watch(mySubscriptionProvider);
-    final isPro = mySubAsync.value?.isActive ?? false;
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
 
@@ -163,11 +158,6 @@ class _AITutorScreenState extends ConsumerState<AITutorScreen> {
             ),
           Column(
             children: [
-              // Subscription required banner
-              if (!isPro && mySubAsync.hasValue)
-                _SubscriptionBanner(
-                  onUpgrade: () => context.push(AppRoutes.studentSubscriptions),
-                ),
               if (chatState.error != null)
                 Container(
                   width: double.infinity,
@@ -594,41 +584,6 @@ class _ChatInput extends StatelessWidget {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-/// Banner shown at the top of AI Tutor screen when user has no active subscription
-class _SubscriptionBanner extends StatelessWidget {
-  final VoidCallback onUpgrade;
-  const _SubscriptionBanner({required this.onUpgrade});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onUpgrade,
-      child: Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-          ),
-        ),
-        child: const Row(
-          children: [
-            Text('🔒', style: TextStyle(fontSize: 18)),
-            SizedBox(width: 10),
-            Expanded(
-              child: Text(
-                'El Tutor IA requiere suscripción Pro — Toca para ver planes',
-                style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600),
-              ),
-            ),
-            Icon(Icons.arrow_forward_ios_rounded, color: Colors.white70, size: 14),
-          ],
         ),
       ),
     );

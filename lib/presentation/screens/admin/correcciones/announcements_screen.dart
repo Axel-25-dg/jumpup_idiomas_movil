@@ -155,64 +155,65 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BrandedTextField(
-                  controller: _titleController,
-                  label: 'Título del anuncio',
-                  prefixIcon: Icons.title_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El título es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _contentController,
-                  label: 'Contenido',
-                  prefixIcon: Icons.description_rounded,
-                  maxLines: 4,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El contenido es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _DatePickerField(
-                        label: 'Fecha inicio',
-                        date: _startDate,
-                        onChanged: (date) => setState(() => _startDate = date),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BrandedTextField(
+                    controller: _titleController,
+                    label: 'Título del anuncio',
+                    prefixIcon: Icons.title_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El título es obligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _contentController,
+                    label: 'Contenido',
+                    prefixIcon: Icons.description_rounded,
+                    maxLines: 4,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'El contenido es obligatorio';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _DatePickerField(
+                          label: 'Fecha inicio',
+                          date: _startDate,
+                          onChanged: (date) => setState(() => _startDate = date),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _DatePickerField(
-                        label: 'Fecha fin',
-                        date: _endDate,
-                        onChanged: (date) => setState(() => _endDate = date),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: _DatePickerField(
+                          label: 'Fecha fin',
+                          date: _endDate,
+                          onChanged: (date) => setState(() => _endDate = date),
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 16),
-                Row(
-                  children: [
-                    Checkbox(
-                      value: _isActive,
-                      onChanged: (value) => setState(() => _isActive = value ?? true),
-                    ),
-                    const Text('Activo'),
-                  ],
-                ),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _isActive,
+                        onChanged: (value) => setState(() => _isActive = value ?? true),
+                      ),
+                      const Text('Activo'),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),

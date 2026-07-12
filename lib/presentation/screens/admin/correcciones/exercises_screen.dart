@@ -144,31 +144,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     );
   }
 
-  Widget _buildErrorView(Object error, ExerciseNotifier notifier) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.error_outline, size: 48, color: AppColors.error),
-          const SizedBox(height: 16),
-          Text('Error al cargar ejercicios', style: AppTextStyles.titleMedium),
-          const SizedBox(height: 8),
-          Text(
-            error.toString(),
-            style: AppTextStyles.bodySmall.copyWith(color: AppColors.textSecondary),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 16),
-          PrimaryButton(
-            label: 'Reintentar',
-            onPressed: () => notifier.refresh(_currentLessonId!),
-            icon: Icons.refresh_rounded,
-          ),
-        ],
-      ),
-    );
-  }
-
   void _showAddEditDialog(BuildContext context, {ExerciseModel? exercise}) {
     _editingExercise = exercise;
     final isEditing = exercise != null;
@@ -192,128 +167,126 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // ID de Lección (solo visible en creación)
-                if (!isEditing) ...[
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (!isEditing) ...[
+                    BrandedTextField(
+                      controller: _lessonIdController,
+                      label: 'ID de Lección',
+                      prefixIcon: Icons.book_rounded,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'El ID de lección es obligatorio';
+                        }
+                        if (int.tryParse(value) == null) {
+                          return 'Ingresa un número válido';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                  DropdownButtonFormField<String>(
+                    initialValue: _selectedType,
+                    isExpanded: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Tipo de ejercicio',
+                      prefixIcon: Icon(Icons.category_rounded),
+                      border: OutlineInputBorder(),
+                    ),
+                    items: _exerciseTypes.map<DropdownMenuItem<String>>((type) {
+                      return DropdownMenuItem<String>(
+                        value: type['value'] as String,
+                        child: Row(
+                          children: [
+                            Icon(type['icon'] as IconData, size: 20, color: AppColors.primary),
+                            const SizedBox(width: 12),
+                            Text(type['label'] as String),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() => _selectedType = value);
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 16),
                   BrandedTextField(
-                    controller: _lessonIdController,
-                    label: 'ID de Lección',
-                    prefixIcon: Icons.book_rounded,
-                    keyboardType: TextInputType.number,
+                    controller: _questionController,
+                    label: 'Enunciado / Pregunta',
+                    prefixIcon: Icons.question_mark_rounded,
+                    maxLines: 3,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'El ID de lección es obligatorio';
-                      }
-                      if (int.tryParse(value) == null) {
-                        return 'Ingresa un número válido';
+                        return 'El enunciado es obligatorio';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 16),
-                ],
-                // Tipo de ejercicio - ✅ CORREGIDO
-                DropdownButtonFormField<String>(
-                  initialValue: _selectedType,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Tipo de ejercicio',
-                    prefixIcon: Icon(Icons.category_rounded),
-                    border: OutlineInputBorder(),
+                  BrandedTextField(
+                    controller: _answerController,
+                    label: 'Respuesta Correcta',
+                    prefixIcon: Icons.check_circle_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'La respuesta es obligatoria';
+                      }
+                      return null;
+                    },
                   ),
-                  items: _exerciseTypes.map<DropdownMenuItem<String>>((type) {
-                    return DropdownMenuItem<String>(
-                      value: type['value'] as String,
-                      child: Row(
-                        children: [
-                          Icon(type['icon'] as IconData, size: 20, color: AppColors.primary),
-                          const SizedBox(width: 12),
-                          Text(type['label'] as String),
-                        ],
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.2),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    if (value != null) {
-                      setState(() => _selectedType = value);
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _questionController,
-                  label: 'Enunciado / Pregunta',
-                  prefixIcon: Icons.question_mark_rounded,
-                  maxLines: 3,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'El enunciado es obligatorio';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _answerController,
-                  label: 'Respuesta Correcta',
-                  prefixIcon: Icons.check_circle_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'La respuesta es obligatoria';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                // Vista previa del tipo seleccionado
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _exerciseTypes.firstWhere(
+                            (t) => t['value'] == _selectedType,
+                            orElse: () => const {'icon': Icons.help_rounded},
+                          )['icon'] as IconData,
+                          color: AppColors.primary,
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Tipo seleccionado:',
+                                style: AppTextStyles.bodySmall.copyWith(
+                                  color: AppColors.textSecondary,
+                                ),
+                              ),
+                              Text(
+                                _exerciseTypes.firstWhere(
+                                  (t) => t['value'] == _selectedType,
+                                  orElse: () => const {'label': 'No definido'},
+                                )['label'] as String,
+                                style: AppTextStyles.titleSmall.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        _exerciseTypes.firstWhere(
-                          (t) => t['value'] == _selectedType,
-                          orElse: () => const {'icon': Icons.help_rounded},
-                        )['icon'] as IconData,
-                        color: AppColors.primary,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Tipo seleccionado:',
-                              style: AppTextStyles.bodySmall.copyWith(
-                                color: AppColors.textSecondary,
-                              ),
-                            ),
-                            Text(
-                              _exerciseTypes.firstWhere(
-                                (t) => t['value'] == _selectedType,
-                                orElse: () => const {'label': 'No definido'},
-                              )['label'] as String,
-                              style: AppTextStyles.titleSmall.copyWith(
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.primary,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
