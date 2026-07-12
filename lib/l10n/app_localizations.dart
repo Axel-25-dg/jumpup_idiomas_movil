@@ -1015,12 +1015,6 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Congratulations! You\'ve reached your first 30 XP and are now a Pro Beginner.'**
   String get achievementPrincipianteProDesc;
-
-  /// No description provided for @library.
-  ///
-  /// In en, this message translates to:
-  /// **'Library'**
-  String get library;
 }
 
 class _AppLocalizationsDelegate

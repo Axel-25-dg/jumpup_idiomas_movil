@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/data/repository/auth/progress_repository_impl.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 
 final progressServiceProvider = Provider<ProgressService>((ref) {
   return const ProgressService();
@@ -29,13 +30,25 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
     required int lessonId,
     required String status,
     double score = 0.0,
+    required WidgetRef ref,
   }) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.registerProgress(
-          lessonId: lessonId,
-          status: status,
-          score: score,
-        ));
+    state = await AsyncValue.guard(() async {
+      final result = await _service.registerProgress(
+        lessonId: lessonId,
+        status: status,
+        score: score,
+      );
+      
+      // Invalidate ALL related providers to force immediate UI refresh
+      ref.invalidate(userStatsProvider);
+      ref.invalidate(progressSummaryProvider);
+      ref.invalidate(rankingProvider);
+      ref.invalidate(dashboardSummaryProvider);
+      ref.invalidate(myAchievementsProvider);
+      
+      return result;
+    });
   }
 }
 

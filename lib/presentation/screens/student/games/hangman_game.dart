@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class HangmanGame extends ConsumerStatefulWidget {
@@ -53,6 +54,22 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
   int _xpEarned = 0;
   bool _submitting = false;
 
+  final List<String> _basicWords = ['CAT', 'DOG', 'SUN', 'BOOK', 'RED', 'BLUE', 'FAST', 'FISH', 'TREE', 'MILK'];
+  final List<String> _interWords = ['FLUTTER', 'LANGUAGE', 'COMPUTER', 'KEYBOARD', 'MORNING', 'SUCCESS', 'STUDENT', 'SCHOOL', 'FRIEND'];
+  final List<String> _advWords = ['DEVELOPER', 'EXPERIENCE', 'CHALLENGE', 'KNOWLEDGE', 'IMAGINATION', 'ENVIRONMENT', 'EDUCATION'];
+  final Map<String, String> _allHints = {
+    'CAT': 'Animal que maúlla', 'DOG': 'El mejor amigo del hombre', 'SUN': 'Estrella que nos da calor',
+    'BOOK': 'Objeto con páginas para leer', 'RED': 'Color de la sangre', 'BLUE': 'Color del cielo despejado',
+    'FAST': 'Contrario de lento', 'FISH': 'Vive en el agua', 'TREE': 'Planta grande con tronco', 'MILK': 'Bebida blanca de la vaca',
+    'FLUTTER': 'Framework de Google para apps', 'LANGUAGE': 'Sistema de comunicación humana',
+    'COMPUTER': 'Dispositivo para procesar datos', 'KEYBOARD': 'Periférico con muchas teclas',
+    'MORNING': 'Cuando sale el sol', 'SUCCESS': 'Logro de un objetivo', 'STUDENT': 'Persona que estudia',
+    'SCHOOL': 'Lugar donde se aprende', 'FRIEND': 'Persona de confianza', 'DEVELOPER': 'Persona que crea software',
+    'EXPERIENCE': 'Conocimiento ganado con el tiempo', 'CHALLENGE': 'Algo difícil de lograr',
+    'KNOWLEDGE': 'Información que posees', 'IMAGINATION': 'Capacidad de crear imágenes mentales',
+    'ENVIRONMENT': 'Lo que nos rodea (medio...)', 'EDUCATION': 'Proceso de aprendizaje'
+  };
+
   @override
   void initState() {
     super.initState();
@@ -60,22 +77,21 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
   }
 
   void _newWord() {
-    // 1. Filtrar palabras del nivel actual que no hayan sido usadas
-    final pool = _levelPool[_currentLevel]!;
-    final available = pool.where((w) => !_usedWords.contains(w)).toList();
+    List<String> pool;
+    if (_currentLevel == 1) pool = _basicWords;
+    else if (_currentLevel == 2) pool = _interWords;
+    else pool = _advWords;
 
-    // 2. Si se acabaron las palabras del nivel, subimos o reiniciamos el pool del nivel
+    final available = pool.where((w) => !_usedWords.any((u) => u['word'] == w)).toList();
+
     if (available.isEmpty) {
-      if (_currentLevel < 3) {
-        _currentLevel++;
-        _newWord();
-        return;
-      } else {
-        _usedWords.removeWhere((w) => pool.contains(w)); // Resetear solo el nivel avanzado
-      }
+      _usedWords.clear();
+      _newWord();
+      return;
     }
 
-    final pick = (available..shuffle()).first;
+    final word = (available..shuffle()).first;
+    final pick = {'word': word, 'hint': _allHints[word] ?? 'Pista no disponible'};
     _usedWords.add(pick);
 
     setState(() {
@@ -110,24 +126,29 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
         }
 
         _xpEarned = (_currentLevel * 15) + max(5, 20 - _errors * 3);
+        debugPrint('Victoria! XP ganada: $_xpEarned'); // Debug para verificar XP
         _submitScore();
       }
     });
   }
 
   Future<void> _submitScore() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     try {
+      // Usar lessonId 0 o uno específico para juegos si el backend lo permite. 
+      // Si el backend requiere una lección real, esto sumará XP a esa lección.
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
             lessonId: 1, 
             status: 'completed',
             score: _xpEarned.toDouble(),
+            ref: ref,
           );
-      ref.invalidate(userStatsProvider);
-      ref.invalidate(progressSummaryProvider);
-      ref.invalidate(rankingProvider);
+      
+      // Pequeña pausa para asegurar que el backend procesó antes de refrescar
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
-      debugPrint('Error: $e');
+      debugPrint('Error sumando XP: $e');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }

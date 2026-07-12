@@ -22,6 +22,7 @@ import 'package:jumpup_app/presentation/screens/student/course_list_screen.dart'
 import 'package:jumpup_app/presentation/screens/student/progress_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/profile_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
 
 /// Tokens de diseño centralizados para evitar repetir colores/gradientes.
@@ -178,6 +179,7 @@ class _LiquidGlassNav extends StatelessWidget {
                     ],
                   ),
                   child: Stack(
+                    alignment: Alignment.center,
                     children: [
                       AnimatedPositioned(
                         duration: const Duration(milliseconds: 400),
@@ -257,40 +259,41 @@ class _NavButton extends StatelessWidget {
         behavior: HitTestBehavior.opaque,
         child: SizedBox(
           height: double.infinity,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
+          child: Stack(
+            alignment: Alignment.center,
             children: [
               AnimatedScale(
                 duration: const Duration(milliseconds: 320),
                 curve: Curves.easeOutBack,
                 scale: isSelected ? 1.14 : 1.0,
-                child: Icon(
-                  isSelected ? item.active : item.inactive,
-                  color: isSelected ? Colors.white : inactiveColor,
-                  size: 24,
+                child: Padding(
+                  padding: EdgeInsets.only(bottom: isSelected ? 12 : 0),
+                  child: Icon(
+                    isSelected ? item.active : item.inactive,
+                    color: isSelected ? Colors.white : inactiveColor,
+                    size: 24,
+                  ),
                 ),
               ),
-              AnimatedSize(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeOut,
-                child: isSelected
-                    ? Padding(
-                  padding: const EdgeInsets.only(top: 4),
-                  child: Text(
-                    item.label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.labelLarge.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 10,
-                      letterSpacing: 0.2,
+              if (isSelected)
+                Positioned(
+                  bottom: 12,
+                  child: AnimatedOpacity(
+                    duration: const Duration(milliseconds: 300),
+                    opacity: isSelected ? 1.0 : 0.0,
+                    child: Text(
+                      item.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.labelLarge.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 10,
+                        letterSpacing: 0.2,
+                      ),
                     ),
                   ),
-                )
-                    : const SizedBox.shrink(),
-              ),
+                ),
             ],
           ),
         ),
@@ -413,6 +416,8 @@ class _HomeTabState extends ConsumerState<_HomeTab>
                     ),
                     const SizedBox(height: 16),
                     _RecentCourseCard(summaryAsync: summaryAsync),
+                    const SizedBox(height: 44),
+                    const _AchievementsSection(),
                     const SizedBox(height: 44),
                     const _TutorIABanner(),
                   ]),
@@ -816,13 +821,14 @@ class _StatBadgeItem extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.all(11),
+          width: 48,
+          height: 48,
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
             border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
           ),
-          child: Icon(icon, color: color, size: 24),
+          child: Center(child: Icon(icon, color: color, size: 24)),
         ),
         const SizedBox(height: 12),
         Text(
@@ -875,12 +881,6 @@ class _QuickActionsGrid extends StatelessWidget {
         l10n.store,
         Colors.greenAccent,
         '/student/catalog',
-      ),
-      _QuickAction(
-        Icons.library_books_rounded,
-        l10n.library,
-        Colors.purpleAccent,
-        AppRoutes.studentLibrary,
       ),
       _QuickAction(
         Icons.videogame_asset_rounded,
@@ -946,7 +946,8 @@ class _QuickActionCard extends StatelessWidget {
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(11),
+              width: 42,
+              height: 42,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -960,7 +961,7 @@ class _QuickActionCard extends StatelessWidget {
                 border:
                 Border.all(color: color.withValues(alpha: 0.3), width: 1.2),
               ),
-              child: Icon(icon, color: color, size: 20),
+              child: Center(child: Icon(icon, color: color, size: 20)),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -1155,6 +1156,86 @@ class _RecentCourseCard extends ConsumerWidget {
         child: Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const SizedBox.shrink(),
+    );
+  }
+}
+
+class _AchievementsSection extends ConsumerWidget {
+  const _AchievementsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final achievementsAsync = ref.watch(myAchievementsProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            const _SectionTitle('Mis Logros'),
+            TextButton(
+              onPressed: () => context.push('/student/achievements'),
+              style: TextButton.styleFrom(
+                minimumSize: Size.zero,
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
+              child: const Text(
+                'Ver todos',
+                style: TextStyle(
+                  color: _DashTokens.primary,
+                  fontSize: 13,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        achievementsAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return GlassContainer(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                borderRadius: BorderRadius.circular(24),
+                child: Center(
+                  child: Text(
+                    '¡Aprende y desbloquea logros!',
+                    style: TextStyle(
+                      color: _DashTokens.textSecondary(context),
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              );
+            }
+            return SizedBox(
+              height: 110,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final userAch = list[index];
+                  return ModernAchievementCard(
+                    name: userAch.achievement.name,
+                    description: userAch.achievement.description,
+                    iconUrl: userAch.achievement.iconUrl,
+                    requiredXp: userAch.achievement.requiredXp,
+                    isUnlocked: true,
+                    isCompact: true,
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (_, __) => const SizedBox.shrink(),
+        ),
+      ],
     );
   }
 }

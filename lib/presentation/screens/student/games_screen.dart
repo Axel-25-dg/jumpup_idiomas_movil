@@ -24,8 +24,12 @@ class GamesScreen extends ConsumerWidget {
     final statsAsync = ref.watch(userStatsProvider);
     final rankingPositionAsync = ref.watch(myRankingPositionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // En el nuevo sistema, los juegos se desbloquean por nivel o XP
-    const isPro = true; // Desbloqueado por petición del usuario
+    
+    // Todos los juegos desbloqueados por petición del usuario
+    const isPro = true;
+
+    // Force refresh stats on build to ensure they are up to date
+    ref.listen(userStatsProvider, (_, __) {});
 
     // Theme-aware colors
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -106,7 +110,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
                       xp: 50,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HangmanGame())),
+                      onTap: () => _handleGameTap(context, isPro, const HangmanGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -116,7 +120,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF6A11CB), Color(0xFFAB47BC)],
                       xp: 40,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryGame())),
+                      onTap: () => _handleGameTap(context, isPro, const MemoryGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -126,7 +130,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF00C853), Color(0xFFB2FF59)],
                       xp: 75,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FastTypeGame())),
+                      onTap: () => _handleGameTap(context, isPro, const FastTypeGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -136,7 +140,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFFE65100), Color(0xFFFFA726)],
                       xp: 60,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchingGame())),
+                      onTap: () => _handleGameTap(context, isPro, const MatchingGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -146,7 +150,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF1B5E20), Color(0xFF66BB6A)],
                       xp: 100,
                       difficulty: 'Difícil',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const TriviaGame()),
                     ),
                     const SizedBox(height: 16),
@@ -157,7 +160,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFFC62828), Color(0xFFEF5350)],
                       xp: 90,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WordScrambleGame())),
+                      onTap: () => _handleGameTap(context, isPro, const WordScrambleGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -167,7 +170,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF00B0FF), Color(0xFF00E5FF)],
                       xp: 120,
                       difficulty: 'Avanzado',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const SentenceBuilderGame()),
                     ),
                     const SizedBox(height: 16),
@@ -178,7 +180,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF6200EA), Color(0xFFD500F9)],
                       xp: 150,
                       difficulty: 'Difícil',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const VerbBlitzGame()),
                     ),
                     const SizedBox(height: 16),
@@ -189,7 +190,7 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFFFF4081), Color(0xFFFF80AB)],
                       xp: 45,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageMatchGame())),
+                      onTap: () => _handleGameTap(context, isPro, const ImageMatchGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -199,7 +200,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF455A64), Color(0xFF78909C)],
                       xp: 50,
                       difficulty: 'Medio',
-                      isLocked: true,
                       onTap: () {},
                     ),
                     const SizedBox(height: 16),
@@ -210,7 +210,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF3E2723), Color(0xFF5D4037)],
                       xp: 60,
                       difficulty: 'Medio',
-                      isLocked: true,
                       onTap: () {},
                     ),
                     const SizedBox(height: 16),
@@ -221,7 +220,6 @@ class GamesScreen extends ConsumerWidget {
                       gradient: const [Color(0xFF37474F), Color(0xFF546E7A)],
                       xp: 150,
                       difficulty: 'Difícil',
-                      isLocked: true,
                       onTap: () {},
                     ),
                   ]),

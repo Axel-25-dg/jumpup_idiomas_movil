@@ -493,7 +493,4 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get achievementPrincipianteProDesc =>
       '¡Felicidades! Has alcanzado tus primeros 30 XP y eres un Principiante Pro.';
-
-  @override
-  String get library => 'Biblioteca';
 }

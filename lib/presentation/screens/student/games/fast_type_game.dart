@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class FastTypeGame extends ConsumerStatefulWidget {
@@ -63,12 +64,14 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
             lessonId: 3,
             status: 'completed',
             score: _score.toDouble() * 5,
+            ref: ref,
           );
-      ref.invalidate(userStatsProvider);
-      ref.invalidate(progressSummaryProvider);
-      ref.invalidate(rankingProvider);
+      
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
-      debugPrint('Error: $e');
+      debugPrint('Error sumando XP: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 

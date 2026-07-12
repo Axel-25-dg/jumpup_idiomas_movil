@@ -26,7 +26,6 @@ import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
-import 'package:jumpup_app/presentation/screens/student/library_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/change_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
@@ -80,7 +79,6 @@ abstract final class AppRoutes {
   static const studentAchievements = '/student/achievements';
   static const studentCertificates = '/student/certificates';
   static const studentClassrooms = '/student/classrooms';
-  static const studentLibrary = '/student/library';
   static const studentResources = '/student/classroom/:classroomId/resources';
   static const studentAiTutor = '/student/ai-tutor';
   static const studentDailyChallenges = '/student/daily-challenges';
@@ -240,11 +238,6 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.studentClassrooms,
         name: 'studentClassrooms',
         builder: (_, __) => const VirtualClassListScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.studentLibrary,
-        name: 'studentLibrary',
-        builder: (_, __) => const LibraryScreen(),
       ),
       GoRoute(
         path: AppRoutes.studentResources,

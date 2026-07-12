@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class TriviaGame extends ConsumerStatefulWidget {
@@ -20,24 +21,34 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
       {'q': 'Which is NOT a vowel?', 'options': ['A', 'E', 'R', 'I'], 'correct': 2},
       {'q': '"She ___ to school every day."', 'options': ['go', 'going', 'goes', 'gone'], 'correct': 2},
       {'q': 'Opposite of "Hot" is:', 'options': ['Warm', 'Cold', 'Ice', 'Sun'], 'correct': 1},
+      {'q': 'How do you say "Hola" in English?', 'options': ['Bye', 'Hello', 'Please', 'Thanks'], 'correct': 1},
+      {'q': 'Which color is a mix of Red and White?', 'options': ['Blue', 'Pink', 'Green', 'Yellow'], 'correct': 1},
+      {'q': 'What is the opposite of "Big"?', 'options': ['Large', 'Tall', 'Small', 'High'], 'correct': 2},
     ],
     2: [ // Intermedio
       {'q': 'Which sentence is correct?', 'options': ['I has a car', 'He have a car', 'They has a car', 'She has a car'], 'correct': 3},
       {'q': 'Past tense of "Buy":', 'options': ['Buyed', 'Bought', 'Boughten', 'Buying'], 'correct': 1},
       {'q': 'A person who cooks is a:', 'options': ['Cooker', 'Chef', 'Chicken', 'Kitchen'], 'correct': 1},
+      {'q': 'Choose the correct preposition: "I am interested ___ music."', 'options': ['on', 'at', 'in', 'for'], 'correct': 2},
+      {'q': 'Identify the adverb: "She ran quickly."', 'options': ['She', 'ran', 'quickly', 'none'], 'correct': 2},
+      {'q': 'Which word is a synonym for "Happy"?', 'options': ['Sad', 'Angry', 'Joyful', 'Tired'], 'correct': 2},
     ],
     3: [ // Avanzado
       {'q': 'If I ___ you, I would study more.', 'options': ['was', 'am', 'were', 'be'], 'correct': 2},
       {'q': 'Meaning of "Break a leg":', 'options': ['Get hurt', 'Good luck', 'Dance', 'Fail'], 'correct': 1},
       {'q': 'Which is a synonym of "Fastidious"?', 'options': ['Quick', 'Boring', 'Meticulous', 'Funny'], 'correct': 2},
+      {'q': 'Select the correctly spelled word:', 'options': ['Accomodate', 'Acommodate', 'Accommodate', 'Acomodate'], 'correct': 2},
+      {'q': 'What does "Call it a day" mean?', 'options': ['Start working', 'Stop working', 'Call someone', 'Have lunch'], 'correct': 1},
+      {'q': 'The movie was ___ better than I expected.', 'options': ['far', 'more', 'very', 'too'], 'correct': 0},
     ]
   };
 
   List<Map<String, dynamic>> _sessionQuestions = [];
+  static final Set<String> _usedGlobal = {}; // Evitar repetir en la misma sesión de la app
+
   int _current = 0;
   int? _selected;
   int _score = 0;
-  int _level = 1;
   bool _done = false;
   bool _submitting = false;
 
@@ -48,12 +59,29 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
   }
 
   void _setupGame() {
-    // Seleccionar 2 preguntas de cada nivel para una partida de 6 preguntas
-    _sessionQuestions = [
-      ...(_questionPool[1]!..shuffle()).take(2),
-      ...(_questionPool[2]!..shuffle()).take(2),
-      ...(_questionPool[3]!..shuffle()).take(2),
-    ];
+    final List<Map<String, dynamic>> allAvailable = [];
+    
+    // Intentar obtener preguntas no usadas globalmente primero
+    for (int lvl = 1; lvl <= 3; lvl++) {
+      final pool = List<Map<String, dynamic>>.from(_questionPool[lvl]!);
+      pool.shuffle();
+      
+      final unused = pool.where((q) => !_usedGlobal.contains(q['q'])).toList();
+      
+      if (unused.length < 2) {
+        // Si no hay suficientes nuevas, limpiar rastro y usar del pool
+        _usedGlobal.removeWhere((q) => pool.any((pq) => pq['q'] == q));
+        allAvailable.addAll(pool.take(2));
+      } else {
+        allAvailable.addAll(unused.take(2));
+      }
+    }
+
+    _sessionQuestions = allAvailable..shuffle();
+    for (var q in _sessionQuestions) {
+      _usedGlobal.add(q['q'] as String);
+    }
+    
     _current = 0;
     _score = 0;
     _done = false;
@@ -68,8 +96,9 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
       if (idx == correct) {
         HapticFeedback.mediumImpact();
         // Más puntos por niveles altos
-        int points = (_current < 2) ? 10 : (_current < 4 ? 20 : 35);
+        int points = (_current < 2) ? 15 : (_current < 4 ? 25 : 40); // Aumento de puntos
         _score += points;
+        _xpEarned += points;
       } else {
         HapticFeedback.vibrate();
       }
@@ -90,17 +119,20 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
     });
   }
 
+  int _xpEarned = 0; // Añadir esta variable
+
   Future<void> _submitScore() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 1, 
+            lessonId: 4, 
             status: 'completed',
-            score: _score.toDouble(),
+            score: _xpEarned.toDouble(),
+            ref: ref,
           );
-      ref.invalidate(userStatsProvider);
-      ref.invalidate(progressSummaryProvider);
-      ref.invalidate(rankingProvider);
+      
+      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       debugPrint('[Trivia] Error: $e');
     } finally {
