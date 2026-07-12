@@ -43,17 +43,17 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
     }
 
     if (widget.classroom != null) {
-      await ref.read(classroomNotifierProvider.notifier).updateClassroom(
-        id: widget.classroom!.id,
-        name: _nameController.text.trim(),
-        description: _descController.text.trim(),
-        courseId: _selectedCourseId!,
+      await ref.read(classroomNotifierProvider.notifier).update(
+        widget.classroom!.id,
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
       );
     } else {
-      await ref.read(classroomNotifierProvider.notifier).addClassroom(
-        name: _nameController.text.trim(),
-        description: _descController.text.trim(),
-        courseId: _selectedCourseId!,
+      await ref.read(classroomNotifierProvider.notifier).create(
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
       );
     }
   }
@@ -68,14 +68,14 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
             .showSnackBar(SnackBar(content: Text('Error: ${next.error}')));
         return;
       }
-      final classroomList = next.valueOrNull;
-      if (classroomList != null && previous?.isLoading == true) {
+      final classroom = next.valueOrNull;
+      if (classroom != null && previous?.isLoading == true) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
                   widget.classroom == null
-                      ? 'Aula creada correctamente.'
+                      ? 'Aula creada correctamente. Código: ${classroom.accessCode}'
                       : 'Aula actualizada correctamente.')),
         );
         ref.invalidate(classroomsListProvider);
