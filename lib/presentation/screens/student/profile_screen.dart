@@ -176,52 +176,55 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
         children: [
           Positioned(top: -50, left: -50, child: _blob(Colors.purpleAccent, 250)),
           Positioned(bottom: 100, right: -50, child: _blob(Colors.blueAccent, 200)),
-          ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              _ProfileHeader(
-                fullName: displayFullName,
-                email: displayEmail,
-                avatarUrl: displayAvatar,
-                isUploading: isUploading,
-                isEditing: _isEditing,
-                onAvatarTap: isUploading ? null : _pickAndUploadAvatar,
-                onEditTap: () {
-                  if (_isEditing) {
-                    _saveProfile();
-                  } else {
-                    _startEditing(displayFirstName, displayLastName);
-                  }
-                },
-                onSettingsTap: () => context.push('/student/settings'),
-                onShareTap: () => _shareProfile(displayFullName),
-                isSaving: isSaving,
-              ),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
-                child: Column(
-                  children: [
-                    _StatsSection(),
-                    const SizedBox(height: 24),
-                    _ProfileInfoSection(
-                      isEditing: _isEditing,
-                      firstName: displayFirstName,
-                      lastName: displayLastName,
-                      username: displayUsername,
-                      email: displayEmail,
-                      firstNameController: _firstNameController,
-                      lastNameController: _lastNameController,
-                    ),
-                    const SizedBox(height: 24),
-                    _AchievementsSection(),
-                    const SizedBox(height: 24),
-                    _ProgressByLanguageSection(),
-                    const SizedBox(height: 24),
-                    _DangerZone(onLogout: _confirmLogout),
-                  ],
+          SafeArea(
+            bottom: false,
+            child: ListView(
+              padding: EdgeInsets.zero,
+              children: [
+                _ProfileHeader(
+                  fullName: displayFullName,
+                  email: displayEmail,
+                  avatarUrl: displayAvatar,
+                  isUploading: isUploading,
+                  isEditing: _isEditing,
+                  onAvatarTap: isUploading ? null : _pickAndUploadAvatar,
+                  onEditTap: () {
+                    if (_isEditing) {
+                      _saveProfile();
+                    } else {
+                      _startEditing(displayFirstName, displayLastName);
+                    }
+                  },
+                  onSettingsTap: () => context.push('/student/settings'),
+                  onShareTap: () => _shareProfile(displayFullName),
+                  isSaving: isSaving,
                 ),
-              ),
-            ],
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                  child: Column(
+                    children: [
+                      _StatsSection(),
+                      const SizedBox(height: 24),
+                      _ProfileInfoSection(
+                        isEditing: _isEditing,
+                        firstName: displayFirstName,
+                        lastName: displayLastName,
+                        username: displayUsername,
+                        email: displayEmail,
+                        firstNameController: _firstNameController,
+                        lastNameController: _lastNameController,
+                      ),
+                      const SizedBox(height: 24),
+                      _AchievementsSection(),
+                      const SizedBox(height: 24),
+                      _ProgressByLanguageSection(),
+                      const SizedBox(height: 24),
+                      _DangerZone(onLogout: _confirmLogout),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),

@@ -27,14 +27,14 @@ class EcommerceRepositoryImpl extends BaseRepository {
         message: 'No se pudo agregar al carrito');
   }
 
-  Future<CarritoModel> eliminarDelCarrito(int productoId) async {
-    return createOne('carrito/eliminar/', CarritoModel.fromJson,
-        data: {'producto_id': productoId},
+  Future<void> eliminarDelCarrito(int productoId) async {
+    return executeRequest(() => dio.post('carrito/eliminar/', data: {'producto_id': productoId}),
         message: 'No se pudo eliminar del carrito');
   }
 
-  Future<OrdenCompraModel> comprar() async {
+  Future<OrdenCompraModel> comprar({List<int>? productoIds}) async {
     return createOne('carrito/comprar/', OrdenCompraModel.fromJson,
+        data: productoIds != null ? {'productos': productoIds} : null,
         message: 'No se pudo procesar la compra');
   }
 

@@ -119,7 +119,7 @@ class OrdenCompraModel {
   factory OrdenCompraModel.fromJson(Map<String, dynamic> json) {
     final list = json['detalles'] as List? ?? [];
     return OrdenCompraModel(
-      id: json['id'] as int,
+      id: json['id'] as int? ?? 0,
       estudianteEmail: json['estudiante_email']?.toString() ?? '',
       total: double.tryParse(json['total']?.toString() ?? '0.0') ?? 0.0,
       estado: json['estado']?.toString() ?? 'pendiente',
@@ -146,9 +146,9 @@ class OrdenDetalleModel {
 
   factory OrdenDetalleModel.fromJson(Map<String, dynamic> json) {
     return OrdenDetalleModel(
-      id: json['id'] as int,
-      productoId: json['catalogo'] as int,
-      cantidad: json['cantidad'] as int,
+      id: json['id'] as int? ?? 0,
+      productoId: json['catalogo'] as int? ?? json['producto_id'] as int? ?? 0,
+      cantidad: json['cantidad'] as int? ?? 1,
       precioUnitario: double.tryParse(json['precio_unitario']?.toString() ?? '0.0') ?? 0.0,
       productoTitulo: json['producto_titulo']?.toString(),
     );

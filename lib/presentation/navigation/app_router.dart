@@ -26,7 +26,7 @@ import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
-
+import 'package:jumpup_app/presentation/screens/student/library_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/change_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
@@ -80,6 +80,7 @@ abstract final class AppRoutes {
   static const studentAchievements = '/student/achievements';
   static const studentCertificates = '/student/certificates';
   static const studentClassrooms = '/student/classrooms';
+  static const studentLibrary = '/student/library';
   static const studentResources = '/student/classroom/:classroomId/resources';
   static const studentAiTutor = '/student/ai-tutor';
   static const studentDailyChallenges = '/student/daily-challenges';
@@ -188,21 +189,21 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.studentCourseDetail,
         name: 'studentCourseDetail',
         builder: (_, state) => CourseDetailScreen(
-          courseId: int.parse(state.pathParameters['id']!),
+          courseId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
       ),
       GoRoute(
         path: AppRoutes.studentLessonDetail,
         name: 'studentLessonDetail',
         builder: (_, state) => LessonDetailScreen(
-          lessonId: int.parse(state.pathParameters['id']!),
+          lessonId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
       ),
       GoRoute(
         path: AppRoutes.studentExercise,
         name: 'studentExercise',
         builder: (_, state) => ExerciseScreen(
-          lessonId: int.parse(state.pathParameters['lessonId']!),
+          lessonId: int.tryParse(state.pathParameters['lessonId'] ?? '') ?? 0,
         ),
       ),
       GoRoute(
@@ -241,10 +242,15 @@ GoRouter buildAppRouter(WidgetRef ref) {
         builder: (_, __) => const VirtualClassListScreen(),
       ),
       GoRoute(
+        path: AppRoutes.studentLibrary,
+        name: 'studentLibrary',
+        builder: (_, __) => const LibraryScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.studentResources,
         name: 'studentResources',
         builder: (_, state) => ClassroomResourcesScreen(
-          classroomId: int.parse(state.pathParameters['classroomId']!),
+          classroomId: int.tryParse(state.pathParameters['classroomId'] ?? '') ?? 0,
         ),
       ),
       GoRoute(

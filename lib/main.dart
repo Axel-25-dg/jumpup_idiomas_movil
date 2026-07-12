@@ -86,16 +86,24 @@ Future<void> main() async {
   };
 
   // UI Settings
-  SystemChrome.setSystemUIOverlayStyle(
-    const SystemUiOverlayStyle(
-      statusBarColor: Colors.transparent,
-      statusBarIconBrightness: Brightness.light,
-    ),
-  );
+    SystemChrome.setSystemUIOverlayStyle(
+      const SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.transparent,
+        systemNavigationBarContrastEnforced: false,
+        systemNavigationBarIconBrightness: Brightness.light,
+      ),
+    );
 
-  await SystemChrome.setPreferredOrientations([
-    DeviceOrientation.portraitUp,
-  ]);
+    await SystemChrome.setEnabledSystemUIMode(
+      SystemUiMode.edgeToEdge,
+      overlays: [SystemUiOverlay.top],
+    );
+
+    await SystemChrome.setPreferredOrientations([
+      DeviceOrientation.portraitUp,
+    ]);
 
   // Inicializar Sentry y arrancar App
   await SentryFlutter.init(
@@ -125,8 +133,11 @@ class JumpUpApp extends ConsumerWidget {
       child: MaterialApp.router(
         title: 'JumpUp',
         debugShowCheckedModeBanner: false,
+        
+        // Avoid initial white screen
+        color: const Color(0xFF0F111A),
 
-        // ── Localización ───────────────────────────────────────────────
+        // ─── Localization ─────────────────────────────────────────────
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: const [
           Locale('en'),
@@ -134,12 +145,12 @@ class JumpUpApp extends ConsumerWidget {
         ],
         locale: Locale(prefs.language),
 
-        // ── Temas ───────────────────────────────────────────────────────
+        // ─── Themes ────────────────────────────────────────────────────
         theme: lightTheme,
         darkTheme: darkTheme,
         themeMode: prefs.darkMode ? ThemeMode.dark : ThemeMode.light,
 
-        // ── go_router ────────────────────────────────────────────────────
+        // ─── go_router ────────────────────────────────────────────────────
         routerConfig: buildAppRouter(ref),
       ),
     );

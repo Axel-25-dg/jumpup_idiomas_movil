@@ -36,68 +36,143 @@ class _CartScreenState extends ConsumerState<CartScreen> with TickerProviderStat
 
   Future<void> _handleCheckout() async {
     HapticFeedback.mediumImpact();
-    final cartAsync = ref.read(cartProvider);
-    if (cartAsync.hasError || cartAsync.value!.items.isEmpty) return;
+    final selectedIds = ref.read(selectedCartItemsProvider);
+    if (selectedIds.isEmpty) {
+      setState(() { _statusText = 'Por favor, selecciona al menos un producto'; });
+      return;
+    }
 
-    setState(() { _processing = true; _statusText = 'Procesando compra...'; });
+    setState(() { _processing = true; _statusText = 'Procesando tu orden...'; });
 
     try {
       final actions = ref.read(cartActionsProvider);
       final order = await actions.checkout();
 
-      setState(() { _processing = false; _statusText = ''; });
-      if (mounted) _showSuccess(order.id.toString());
-
+      if (mounted) {
+        setState(() { _processing = false; });
+        if (order != null) {
+          _statusText = '';
+          _showSuccess(order.id.toString());
+        } else {
+          setState(() { _statusText = 'Error: No se pudo completar el pago. Intenta de nuevo.'; });
+        }
+      }
     } catch (e) {
-      setState(() { _processing = false; _statusText = 'Error: ${e.toString()}'; });
+      if (mounted) {
+        setState(() { 
+          _processing = false; 
+          _statusText = 'Error: ${e.toString().split(':').last.trim()}'; 
+        });
+      }
     }
   }
 
   void _showSuccess(String orderId) {
+    HapticFeedback.heavyImpact();
     showGeneralDialog(
       context: context,
       barrierDismissible: false,
-      barrierLabel: '',
-      pageBuilder: (ctx, a1, a2) => Container(),
-      transitionBuilder: (ctx, a1, a2, child) => Transform.scale(
-        scale: a1.value,
-        child: Opacity(
-          opacity: a1.value,
-          child: AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-            title: const Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
-                SizedBox(width: 10),
-                Text('¡Compra Exitosa!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            content: Text(
-              'Tu orden #$orderId ha sido procesada correctamente.\n'
-              'Ya tienes acceso al contenido.',
-              style: const TextStyle(color: Colors.white70),
-            ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+      barrierLabel: 'Success',
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      transitionDuration: const Duration(milliseconds: 400),
+      pageBuilder: (ctx, a1, a2) => const SizedBox.shrink(),
+      transitionBuilder: (ctx, a1, a2, child) {
+        final curve = Curves.easeOutBack.transform(a1.value);
+        return BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15 * a1.value, sigmaY: 15 * a1.value),
+          child: Opacity(
+            opacity: a1.value,
+            child: Transform.scale(
+              scale: 0.8 + (0.2 * curve),
+              child: AlertDialog(
+                backgroundColor: Colors.transparent,
+                contentPadding: EdgeInsets.zero,
+                insetPadding: const EdgeInsets.symmetric(horizontal: 40),
+                content: GlassContainer(
+                  blur: 20,
+                  opacity: 0.1,
+                  borderRadius: BorderRadius.circular(32),
+                  padding: const EdgeInsets.all(32),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.2), width: 1.5),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Colors.greenAccent.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 64),
+                      ),
+                      const SizedBox(height: 24),
+                      const Text(
+                        '¡Pago Exitoso!',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 26,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Tu orden #$orderId ha sido procesada.\n'
+                        'El contenido ya está disponible en tu biblioteca.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white.withValues(alpha: 0.7),
+                          fontSize: 15,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      SizedBox(
+                        width: double.infinity,
+                        height: 54,
+                        child: ElevatedButton(
+                          onPressed: () {
+                            Navigator.pop(ctx);
+                            context.go('/student');
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            shadowColor: Colors.transparent,
+                            padding: EdgeInsets.zero,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          ),
+                          child: Ink(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Container(
+                              alignment: Alignment.center,
+                              child: const Text(
+                                'Explorar Contenido',
+                                style: TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    context.go('/student');
-                  },
-                  child: const Text('Continuar', style: TextStyle(fontWeight: FontWeight.bold)),
                 ),
               ),
-            ],
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 
@@ -132,6 +207,18 @@ class _CartScreenState extends ConsumerState<CartScreen> with TickerProviderStat
           ),
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.select_all_rounded),
+            tooltip: 'Seleccionar todos',
+            onPressed: () {
+              final cart = ref.read(cartProvider).value;
+              if (cart != null) {
+                ref.read(cartActionsProvider).selectAll(
+                  cart.items.map((e) => e.productoId).toList()
+                );
+              }
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.history_rounded),
             onPressed: () => context.push('/student/payment-history'),
@@ -300,102 +387,136 @@ class _CartItemCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final product = item.producto;
+    final selectedIds = ref.watch(selectedCartItemsProvider);
+    final isSelected = selectedIds.contains(item.productoId);
 
     return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
       borderRadius: BorderRadius.circular(24),
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.zero,
       blur: 24,
-      opacity: isDark ? 0.06 : 0.08,
+      opacity: isSelected ? (isDark ? 0.15 : 0.2) : (isDark ? 0.06 : 0.08),
+      border: Border.all(
+        color: isSelected 
+            ? const Color(0xFF00E5FF).withValues(alpha: 0.5) 
+            : (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+        width: 1.5,
+      ),
       child: Row(
         children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              boxShadow: [
-                BoxShadow(
-                  color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Icon(
-              product?.tipo == 'libro' ? Icons.book_rounded : Icons.school_rounded,
-              color: Colors.white,
-              size: 28,
-            ),
-          ),
-          const SizedBox(width: 16),
+          // Área de selección (toda la parte izquierda y central)
           Expanded(
+            child: InkWell(
+              borderRadius: const BorderRadius.horizontal(left: Radius.circular(24)),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                ref.read(cartActionsProvider).toggleSelection(item.productoId);
+              },
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  children: [
+                    // Checkbox personalizado
+                    Container(
+                      width: 24,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected ? const Color(0xFF00E5FF) : (isDark ? Colors.white24 : Colors.black26),
+                          width: 2,
+                        ),
+                        color: isSelected ? const Color(0xFF00E5FF) : Colors.transparent,
+                      ),
+                      child: isSelected 
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
+                    ),
+                    const SizedBox(width: 16),
+                    // Imagen/Icono
+                    Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: isSelected 
+                            ? [const Color(0xFF7C4DFF), const Color(0xFF00E5FF)]
+                            : [const Color(0xFF7C4DFF).withValues(alpha: 0.7), const Color(0xFF00E5FF).withValues(alpha: 0.7)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      child: Icon(
+                        product?.tipo == 'libro' ? Icons.book_rounded : Icons.school_rounded,
+                        color: Colors.white,
+                        size: 28,
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // Info Producto
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product?.titulo ?? 'Producto',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 16,
+                              letterSpacing: -0.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            product?.tipo?.toUpperCase() ?? 'PRODUCTO',
+                            style: TextStyle(
+                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          // Área de Acción (Precio y Eliminar) - Separada para evitar interferencia de clics
+          Padding(
+            padding: const EdgeInsets.only(right: 16, top: 16, bottom: 16),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  product?.titulo ?? 'Producto',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 17,
-                    letterSpacing: -0.2,
+                if (product != null)
+                  Text(
+                    '\$${product.precio.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      color: Color(0xFF00E5FF),
+                      fontWeight: FontWeight.w900,
+                      fontSize: 18,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  product?.tipo ?? 'producto',
-                  style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black54,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Cantidad: ${item.cantidad}',
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.7),
-                    fontSize: 13,
+                const SizedBox(height: 12),
+                IconButton(
+                  onPressed: () {
+                    HapticFeedback.heavyImpact();
+                    ref.read(cartActionsProvider).removeItem(item.productoId);
+                  },
+                  icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 24),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.redAccent.withValues(alpha: 0.1),
+                    padding: const EdgeInsets.all(8),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
               ],
             ),
-          ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (product != null)
-                Text(
-                  '\$${product.precio.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Color(0xFF00E5FF),
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () {
-                  HapticFeedback.mediumImpact();
-                  ref.read(cartActionsProvider).removeItem(item.productoId);
-                },
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.redAccent.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent, size: 20),
-                ),
-              ),
-            ],
           ),
         ],
       ),
@@ -403,7 +524,7 @@ class _CartItemCard extends StatelessWidget {
   }
 }
 
-class _CartSummaryPanel extends StatelessWidget {
+class _CartSummaryPanel extends ConsumerWidget {
   final CarritoModel cart;
   final VoidCallback onCheckout;
   final bool processing;
@@ -412,11 +533,15 @@ class _CartSummaryPanel extends StatelessWidget {
   const _CartSummaryPanel({required this.cart, required this.onCheckout, required this.processing, required this.statusText});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalTextColor = isDark ? Colors.white54 : Colors.black54;
     final totalLabelColor = isDark ? Colors.white : Colors.black87;
     final hasError = statusText.startsWith('Error');
+    
+    final selectedTotal = ref.watch(selectedTotalProvider);
+    final selectedIds = ref.watch(selectedCartItemsProvider);
+    final hasSelection = selectedIds.isNotEmpty;
 
     return GlassContainer(
       blur: 32,
@@ -431,11 +556,20 @@ class _CartSummaryPanel extends StatelessWidget {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Total', style: TextStyle(color: totalTextColor, fontSize: 14, fontWeight: FontWeight.w600)),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Total Seleccionado', style: TextStyle(color: totalTextColor, fontSize: 13, fontWeight: FontWeight.w500)),
+                    Text(
+                      '${selectedIds.length} ítems',
+                      style: TextStyle(color: totalTextColor.withValues(alpha: 0.7), fontSize: 11),
+                    ),
+                  ],
+                ),
                 Text(
-                  '\$${cart.total.toStringAsFixed(2)}',
+                  '\$${selectedTotal.toStringAsFixed(2)}',
                   style: TextStyle(
-                    color: totalLabelColor,
+                    color: hasSelection ? const Color(0xFF00E5FF) : totalLabelColor,
                     fontSize: 24,
                     fontWeight: FontWeight.w900,
                   ),
@@ -480,7 +614,7 @@ class _CartSummaryPanel extends StatelessWidget {
               width: double.infinity,
               height: 56,
               child: ElevatedButton(
-                onPressed: cart.items.isEmpty || processing ? null : onCheckout,
+                onPressed: !hasSelection || processing ? null : onCheckout,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
@@ -489,27 +623,29 @@ class _CartSummaryPanel extends StatelessWidget {
                 ),
                 child: Ink(
                   decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
+                    gradient: LinearGradient(
+                      colors: !hasSelection 
+                        ? [Colors.grey.shade700, Colors.grey.shade600]
+                        : [const Color(0xFF7C4DFF), const Color(0xFF00E5FF)],
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
                     borderRadius: BorderRadius.circular(18),
-                    boxShadow: [
+                    boxShadow: hasSelection ? [
                       BoxShadow(
                         color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
                         blurRadius: 16,
                         offset: const Offset(0, 8),
                       ),
-                    ],
+                    ] : [],
                   ),
                   child: Container(
                     alignment: Alignment.center,
                     child: processing
                         ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                        : const Text(
-                            'Finalizar Compra',
-                            style: TextStyle(
+                        : Text(
+                            hasSelection ? 'Finalizar Compra' : 'Selecciona productos',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
                               fontWeight: FontWeight.w800,

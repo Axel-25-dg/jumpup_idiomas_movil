@@ -19,76 +19,79 @@ class ProgressScreen extends ConsumerWidget {
         children: [
           Positioned(top: -80, right: -80, child: _blob(Colors.purpleAccent, 250)),
           Positioned(bottom: 100, left: -60, child: _blob(const Color(0xFF448AFF), 200)),
-          RefreshIndicator(
-            color: Colors.blueAccent,
-            backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
-            onRefresh: () async {
-              return ref.refresh(progressSummaryProvider.future);
-            },
-            child: CustomScrollView(
-              physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
-              slivers: [
-                SliverAppBar(
-                  pinned: true,
-                  backgroundColor: Colors.transparent,
-                  elevation: 0,
-                  expandedHeight: 80,
-                  flexibleSpace: FlexibleSpaceBar(
-                    centerTitle: false,
-                    titlePadding: const EdgeInsets.fromLTRB(24, 0, 0, 16),
-                    title: Text('Mi Progreso', style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87, 
-                      fontWeight: FontWeight.w900, 
-                      fontSize: 22
-                    )),
+          SafeArea(
+            bottom: false,
+            child: RefreshIndicator(
+              color: Colors.blueAccent,
+              backgroundColor: isDark ? const Color(0xFF1E1E2E) : Colors.white,
+              onRefresh: () async {
+                return ref.refresh(progressSummaryProvider.future);
+              },
+              child: CustomScrollView(
+                physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                slivers: [
+                  SliverAppBar(
+                    pinned: true,
+                    backgroundColor: Colors.transparent,
+                    elevation: 0,
+                    expandedHeight: 80,
+                    flexibleSpace: FlexibleSpaceBar(
+                      centerTitle: false,
+                      titlePadding: const EdgeInsets.fromLTRB(24, 0, 0, 16),
+                      title: Text('Mi Progreso', style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87, 
+                        fontWeight: FontWeight.w900, 
+                        fontSize: 22
+                      )),
+                    ),
                   ),
-                ),
-                SliverPadding(
-                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      // XP Level Ring + Stats
-                      statsAsync.when(
-                        loading: () => const _SkeletonCard(height: 200),
-                        error: (_, __) => const SizedBox.shrink(),
-                        data: (stats) => summaryAsync.when(
+                  SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                    sliver: SliverList(
+                      delegate: SliverChildListDelegate([
+                        // XP Level Ring + Stats
+                        statsAsync.when(
                           loading: () => const _SkeletonCard(height: 200),
                           error: (_, __) => const SizedBox.shrink(),
-                          data: (summary) => _XPCard(stats: stats, summary: summary),
+                          data: (stats) => summaryAsync.when(
+                            loading: () => const _SkeletonCard(height: 200),
+                            error: (_, __) => const SizedBox.shrink(),
+                            data: (summary) => _XPCard(stats: stats, summary: summary),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 20),
-                      // Streak Card
-                      summaryAsync.when(
-                        loading: () => const _SkeletonCard(height: 100),
-                        error: (_, __) => const SizedBox.shrink(),
-                        data: (s) => _StreakCard(current: s.currentStreak, longest: s.longestStreak),
-                      ),
-                      const SizedBox(height: 20),
-                      // Course stats
-                      summaryAsync.when(
-                        loading: () => const _SkeletonCard(height: 120),
-                        error: (_, __) => const SizedBox.shrink(),
-                        data: (s) => _CourseStatsCard(summary: s),
-                      ),
-                      const SizedBox(height: 24),
-                      Row(
-                        children: [
-                          const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
-                          const SizedBox(width: 8),
-                          Text('Mis Logros', style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87, 
-                            fontSize: 20, 
-                            fontWeight: FontWeight.bold
-                          )),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      const _AchievementsGrid(),
-                    ]),
+                        const SizedBox(height: 20),
+                        // Streak Card
+                        summaryAsync.when(
+                          loading: () => const _SkeletonCard(height: 100),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (s) => _StreakCard(current: s.currentStreak, longest: s.longestStreak),
+                        ),
+                        const SizedBox(height: 20),
+                        // Course stats
+                        summaryAsync.when(
+                          loading: () => const _SkeletonCard(height: 120),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (s) => _CourseStatsCard(summary: s),
+                        ),
+                        const SizedBox(height: 24),
+                        Row(
+                          children: [
+                            const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
+                            const SizedBox(width: 8),
+                            Text('Mis Logros', style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black87, 
+                              fontSize: 20, 
+                              fontWeight: FontWeight.bold
+                            )),
+                          ],
+                        ),
+                        const SizedBox(height: 16),
+                        const _AchievementsGrid(),
+                      ]),
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],

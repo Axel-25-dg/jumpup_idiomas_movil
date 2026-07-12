@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -25,6 +26,11 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   bool _hasAnswered = false;
   bool _isCorrect = false;
   int _correctCount = 0;
+  final List<ExerciseModel> _wrongExercises = [];
+  bool _isRepeatingWrong = false;
+  int _wrongExerciseIndex = 0;
+  int _remainingTime = 60; // Default 60 seconds per exercise
+  Timer? _timer;
   
   // Variables de estado adicionales
   final Map<String, String> _completedMatches = {};
@@ -33,6 +39,41 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   List<String>? _availableTranslateWords;
   List<String>? _selectedTranslateWords;
   bool _isPlayingAudioExercise = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // Start timer when screen initializes
+    _startTimer();
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  void _startTimer() {
+    _timer?.cancel();
+    setState(() {
+      _remainingTime = 60; // Reset to 60 seconds
+    });
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingTime > 0 && !_hasAnswered) {
+        setState(() {
+          _remainingTime--;
+        });
+      } else if (_remainingTime <= 0 && !_hasAnswered) {
+        // Time's up! Auto submit as wrong
+        timer.cancel();
+        setState(() {
+          _selectedAnswer = '';
+          _hasAnswered = true;
+          _isCorrect = false;
+        });
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,21 +90,59 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
           onPressed: () => _showExitConfirmation(),
         ),
         title: exercisesAsync.when(
-          data: (exercises) => ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: exercises.isEmpty ? 0 : (currentIndex + 1) / exercises.length,
-              minHeight: 10,
-              backgroundColor: Colors.white12,
-              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-            ),
-          ),
+          data: (exercises) {
+            final totalExercises = exercises.length + (_wrongExercises.isNotEmpty ? _wrongExercises.length : 0);
+            int currentProgress;
+            if (_isRepeatingWrong) {
+              currentProgress = exercises.length + _wrongExerciseIndex + 1;
+            } else {
+              currentProgress = currentIndex + 1;
+            }
+            return ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: totalExercises == 0 ? 0 : currentProgress / totalExercises,
+                minHeight: 10,
+                backgroundColor: Colors.white12,
+                valueColor: _isRepeatingWrong 
+                    ? const AlwaysStoppedAnimation<Color>(Colors.amberAccent) 
+                    : const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+              ),
+            );
+          },
           loading: () => const SizedBox.shrink(),
           error: (_, __) => const SizedBox.shrink(),
         ),
         actions: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Center(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: (_remainingTime <= 10 ? Colors.redAccent : Colors.blueAccent).withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: (_remainingTime <= 10 ? Colors.redAccent : Colors.blueAccent).withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.timer_rounded, color: Colors.white, size: 16),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$_remainingTime',
+                      style: AppTextStyles.labelSmall.copyWith(
+                        color: _remainingTime <= 10 ? Colors.redAccent : Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Center(
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -103,7 +182,13 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
                 return const Center(child: Text('No hay ejercicios disponibles.', style: TextStyle(color: Colors.white70)));
               }
 
-              final exercise = exercises[currentIndex.clamp(0, exercises.length - 1)];
+              final exercise = _isRepeatingWrong 
+                  ? _wrongExercises[_wrongExerciseIndex.clamp(0, _wrongExercises.length - 1)]
+                  : exercises[currentIndex.clamp(0, exercises.length - 1)];
+              
+              final totalExercises = _isRepeatingWrong 
+                  ? _wrongExercises.length
+                  : exercises.length;
 
               return Column(
                 children: [
@@ -113,18 +198,45 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          if (_isRepeatingWrong)
+                            FadeInDown(
+                              duration: const Duration(milliseconds: 300),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.amberAccent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.refresh_rounded, color: Colors.amberAccent, size: 16),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      'Repetición: ejercicio ${_wrongExerciseIndex + 1} de ${_wrongExercises.length}',
+                                      style: AppTextStyles.labelLarge.copyWith(
+                                        color: Colors.amberAccent,
+                                        fontWeight: FontWeight.w900,
+                                        letterSpacing: 1.2,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                           FadeInDown(
                             duration: const Duration(milliseconds: 400),
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                               decoration: BoxDecoration(
-                                color: Colors.blueAccent.withValues(alpha: 0.15),
+                                color: (_isRepeatingWrong ? Colors.amberAccent : Colors.blueAccent).withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
                                 _getExerciseTypeLabel(exercise.exerciseType),
                                 style: AppTextStyles.labelLarge.copyWith(
-                                  color: Colors.blueAccent,
+                                  color: _isRepeatingWrong ? Colors.amberAccent : Colors.blueAccent,
                                   fontWeight: FontWeight.w900,
                                   letterSpacing: 1.2,
                                 ),
@@ -150,7 +262,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
                       ),
                     ),
                   ),
-                  _buildBottomAction(exercise, exercises.length),
+                  _buildBottomAction(exercise, totalExercises),
                 ],
               );
             },
@@ -284,6 +396,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   }
 
   void _submitAnswer(ExerciseModel exercise) async {
+    // Cancel timer when submitting answer
+    _timer?.cancel();
     setState(() {
       _hasAnswered = false; // Reset just in case or show loading if needed
     });
@@ -303,6 +417,10 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         HapticFeedback.mediumImpact();
       } else {
         HapticFeedback.vibrate();
+        // Add wrong exercise to the list for later repetition
+        if (!_wrongExercises.any((e) => e.id == exercise.id)) {
+          _wrongExercises.add(exercise);
+        }
       }
 
       setState(() {
@@ -321,7 +439,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
 
   void _nextExercise(int total) {
     final currentIndex = ref.read(currentExerciseIndexProvider);
-    if (currentIndex < total - 1) {
+    if (!_isRepeatingWrong && currentIndex < total - 1) {
+      // Still in main exercises
       ref.read(currentExerciseIndexProvider.notifier).state = currentIndex + 1;
       setState(() {
         _selectedAnswer = null;
@@ -334,6 +453,38 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
       });
+      _startTimer();
+    } else if (!_isRepeatingWrong && _wrongExercises.isNotEmpty) {
+      // Start repeating wrong exercises
+      setState(() {
+        _isRepeatingWrong = true;
+        _wrongExerciseIndex = 0;
+        _selectedAnswer = null;
+        _hasAnswered = false;
+        _isCorrect = false;
+        _completedMatches.clear();
+        _leftMatchItems.clear();
+        _rightMatchItems.clear();
+        _availableTranslateWords = null;
+        _selectedTranslateWords = null;
+        _isPlayingAudioExercise = false;
+      });
+      _startTimer();
+    } else if (_isRepeatingWrong && _wrongExerciseIndex < _wrongExercises.length - 1) {
+      // Next wrong exercise
+      setState(() {
+        _wrongExerciseIndex++;
+        _selectedAnswer = null;
+        _hasAnswered = false;
+        _isCorrect = false;
+        _completedMatches.clear();
+        _leftMatchItems.clear();
+        _rightMatchItems.clear();
+        _availableTranslateWords = null;
+        _selectedTranslateWords = null;
+        _isPlayingAudioExercise = false;
+      });
+      _startTimer();
     } else {
       _showCompletionDialog(total);
     }

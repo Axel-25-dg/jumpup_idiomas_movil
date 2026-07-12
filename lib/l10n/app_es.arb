@@ -208,5 +208,6 @@
   "securitySettings": "Configuración de Seguridad",
   "logoutAdminConfirm": "¿Estás seguro de que deseas salir del panel de administración?",
   "achievementPrincipiantePro": "PRINCIPIANTE PRO",
-  "achievementPrincipianteProDesc": "¡Felicidades! Has alcanzado tus primeros 30 XP y eres un Principiante Pro."
+  "achievementPrincipianteProDesc": "¡Felicidades! Has alcanzado tus primeros 30 XP y eres un Principiante Pro.",
+  "library": "Biblioteca"
 }

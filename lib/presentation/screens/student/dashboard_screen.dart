@@ -22,6 +22,7 @@ import 'package:jumpup_app/presentation/screens/student/course_list_screen.dart'
 import 'package:jumpup_app/presentation/screens/student/progress_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/profile_screen.dart';
 import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
+import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
 
 /// Tokens de diseño centralizados para evitar repetir colores/gradientes.
 class _DashTokens {
@@ -53,6 +54,16 @@ class _DashTokens {
     return (isDark ? Colors.white : Colors.black)
         .withValues(alpha: isDark ? 0.14 : 0.08);
   }
+
+  static Color textPrimary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white
+          : Colors.black87;
+
+  static Color textSecondary(BuildContext context) =>
+      Theme.of(context).brightness == Brightness.dark
+          ? Colors.white60
+          : Colors.black54;
 }
 
 class DashboardScreen extends ConsumerStatefulWidget {
@@ -83,7 +94,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
     return GamificationOverlay(
       child: Scaffold(
         backgroundColor: _DashTokens.background(context),
-        // La barra flota por encima del contenido (estilo liquid glass).
         extendBody: true,
         body: IndexedStack(
           index: _currentIndex,
@@ -105,8 +115,7 @@ class _NavItem {
   final String label;
 }
 
-/// Barra inferior flotante con efecto "liquid glass" al estilo del nuevo
-/// diseño de WhatsApp: pill translúcida, blur intenso, indicador deslizante.
+/// Barra inferior flotante con efecto "liquid glass".
 class _LiquidGlassNav extends StatelessWidget {
   const _LiquidGlassNav({required this.currentIndex, required this.onTap});
 
@@ -130,7 +139,7 @@ class _LiquidGlassNav extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
       child: SafeArea(
         top: false,
         child: LayoutBuilder(
@@ -140,14 +149,14 @@ class _LiquidGlassNav extends StatelessWidget {
             final double slotWidth = totalWidth / count;
 
             return ClipRRect(
-              borderRadius: BorderRadius.circular(32),
+              borderRadius: BorderRadius.circular(36),
               child: BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 24, sigmaY: 24),
+                filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
                 child: Container(
-                  height: 68,
+                  height: 74,
                   decoration: BoxDecoration(
                     color: _DashTokens.glassFill(context),
-                    borderRadius: BorderRadius.circular(32),
+                    borderRadius: BorderRadius.circular(36),
                     border: Border.all(
                       color: _DashTokens.glassStroke(context),
                       width: 1.2,
@@ -155,14 +164,13 @@ class _LiquidGlassNav extends StatelessWidget {
                     boxShadow: [
                       BoxShadow(
                         color: Colors.black
-                            .withValues(alpha: isDark ? 0.45 : 0.18),
-                        blurRadius: 28,
-                        offset: const Offset(0, 12),
+                            .withValues(alpha: isDark ? 0.5 : 0.2),
+                        blurRadius: 36,
+                        offset: const Offset(0, 16),
                       ),
-                      // Glow superior sutil que simula reflejo del cristal.
                       BoxShadow(
                         color: Colors.white
-                            .withValues(alpha: isDark ? 0.04 : 0.35),
+                            .withValues(alpha: isDark ? 0.05 : 0.4),
                         blurRadius: 1,
                         offset: const Offset(0, 1),
                         spreadRadius: -1,
@@ -171,9 +179,8 @@ class _LiquidGlassNav extends StatelessWidget {
                   ),
                   child: Stack(
                     children: [
-                      // Indicador deslizante (la "gota" de líquido).
                       AnimatedPositioned(
-                        duration: const Duration(milliseconds: 380),
+                        duration: const Duration(milliseconds: 400),
                         curve: Curves.easeOutCubic,
                         left: slotWidth * currentIndex,
                         top: 0,
@@ -181,19 +188,19 @@ class _LiquidGlassNav extends StatelessWidget {
                         width: slotWidth,
                         child: Center(
                           child: AnimatedContainer(
-                            duration: const Duration(milliseconds: 380),
+                            duration: const Duration(milliseconds: 400),
                             curve: Curves.easeOutCubic,
-                            width: slotWidth - 14,
-                            height: 52,
+                            width: slotWidth - 18,
+                            height: 56,
                             decoration: BoxDecoration(
                               gradient: _DashTokens.brandGradient,
-                              borderRadius: BorderRadius.circular(22),
+                              borderRadius: BorderRadius.circular(26),
                               boxShadow: [
                                 BoxShadow(
                                   color: _DashTokens.brandGlow
-                                      .withValues(alpha: 0.45),
-                                  blurRadius: 16,
-                                  offset: const Offset(0, 6),
+                                      .withValues(alpha: 0.5),
+                                  blurRadius: 20,
+                                  offset: const Offset(0, 8),
                                 ),
                               ],
                             ),
@@ -239,7 +246,7 @@ class _NavButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final Color inactiveColor =
-        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45);
+    (isDark ? Colors.white : Colors.black).withValues(alpha: 0.45);
 
     return Semantics(
       button: true,
@@ -255,9 +262,9 @@ class _NavButton extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               AnimatedScale(
-                duration: const Duration(milliseconds: 300),
+                duration: const Duration(milliseconds: 320),
                 curve: Curves.easeOutBack,
-                scale: isSelected ? 1.12 : 1.0,
+                scale: isSelected ? 1.14 : 1.0,
                 child: Icon(
                   isSelected ? item.active : item.inactive,
                   color: isSelected ? Colors.white : inactiveColor,
@@ -269,19 +276,19 @@ class _NavButton extends StatelessWidget {
                 curve: Curves.easeOut,
                 child: isSelected
                     ? Padding(
-                        padding: const EdgeInsets.only(top: 3),
-                        child: Text(
-                          item.label,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.labelLarge.copyWith(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 10,
-                            letterSpacing: 0.2,
-                          ),
-                        ),
-                      )
+                  padding: const EdgeInsets.only(top: 4),
+                  child: Text(
+                    item.label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.labelLarge.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 10,
+                      letterSpacing: 0.2,
+                    ),
+                  ),
+                )
                     : const SizedBox.shrink(),
               ),
             ],
@@ -299,7 +306,8 @@ class _HomeTab extends ConsumerStatefulWidget {
   ConsumerState<_HomeTab> createState() => _HomeTabState();
 }
 
-class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixin {
+class _HomeTabState extends ConsumerState<_HomeTab>
+    with TickerProviderStateMixin {
   late AnimationController _blobController;
 
   @override
@@ -326,7 +334,6 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
 
     return Stack(
       children: [
-        // Malla de color de fondo (blobs suaves animados).
         AnimatedBuilder(
           animation: _blobController,
           builder: (context, child) {
@@ -335,16 +342,16 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
                 _BackgroundBlob(
                   top: -60 + (30 * _blobController.value),
                   left: -50 + (20 * _blobController.value),
-                  size: 300,
+                  size: 320,
                   color: _DashTokens.secondary,
-                  opacity: isDark ? 0.15 : 0.08,
+                  opacity: isDark ? 0.16 : 0.08,
                 ),
                 _BackgroundBlob(
                   bottom: 120 - (40 * _blobController.value),
                   right: -60 + (30 * _blobController.value),
-                  size: 280,
+                  size: 300,
                   color: _DashTokens.primary,
-                  opacity: isDark ? 0.12 : 0.06,
+                  opacity: isDark ? 0.13 : 0.06,
                 ),
               ],
             );
@@ -365,17 +372,20 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
             slivers: [
               _SliverHeader(userAsync: userAsync, statsAsync: statsAsync),
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 8, 20, 100),
+                padding: const EdgeInsets.fromLTRB(24, 28, 24, 130),
                 sliver: SliverList(
                   delegate: SliverChildListDelegate([
                     _XPAndStreakBanner(statsAsync: statsAsync),
-                    const SizedBox(height: 14),
-                    _SectionTitle(AppLocalizations.of(context)!.quickActions),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 40),
+                    _SectionTitle(
+                      AppLocalizations.of(context)!.quickActions,
+                    ),
+                    const SizedBox(height: 18),
                     const _QuickActionsGrid(),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 44),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         Flexible(
                           child: _SectionTitle(
@@ -386,7 +396,8 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
                               context.push(AppRoutes.studentClassrooms),
                           style: TextButton.styleFrom(
                             minimumSize: Size.zero,
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 8, vertical: 4),
                             tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                           ),
                           child: Text(
@@ -400,9 +411,9 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
                         ),
                       ],
                     ),
-                    const SizedBox(height: 4),
+                    const SizedBox(height: 16),
                     _RecentCourseCard(summaryAsync: summaryAsync),
-                    const SizedBox(height: 14),
+                    const SizedBox(height: 44),
                     const _TutorIABanner(),
                   ]),
                 ),
@@ -415,25 +426,38 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
   }
 }
 
-
-
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);
   final String text;
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Text(
-      text,
-      style: TextStyle(
-        color: isDark ? Colors.white : Colors.black87,
-        fontSize: 18,
-        fontWeight: FontWeight.w900,
-        letterSpacing: -0.5,
-      ),
-      maxLines: 1,
-      overflow: TextOverflow.ellipsis,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 4,
+          height: 22,
+          decoration: BoxDecoration(
+            gradient: _DashTokens.brandGradient,
+            borderRadius: BorderRadius.circular(4),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Flexible(
+          child: Text(
+            text,
+            style: TextStyle(
+              color: _DashTokens.textPrimary(context),
+              fontSize: 20,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+      ],
     );
   }
 }
@@ -474,8 +498,8 @@ class _BackgroundBlob extends StatelessWidget {
             boxShadow: [
               BoxShadow(
                 color: color.withValues(alpha: opacity + 0.04),
-                blurRadius: 110,
-                spreadRadius: 20,
+                blurRadius: 120,
+                spreadRadius: 24,
               ),
             ],
           ),
@@ -485,18 +509,25 @@ class _BackgroundBlob extends StatelessWidget {
   }
 }
 
-class _SliverHeader extends StatelessWidget {
+class _SliverHeader extends ConsumerWidget {
   const _SliverHeader({required this.userAsync, required this.statsAsync});
 
   final AsyncValue<UserProfileModel> userAsync;
   final AsyncValue<UserStatsModel> statsAsync;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context)!;
     final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    final cartCount = ref.watch(cartProvider).when(
+      data: (cart) => cart.items.fold(0, (sum, item) => sum + item.cantidad),
+      loading: () => 0,
+      error: (_, __) => 0,
+    );
+
     return SliverAppBar(
-      expandedHeight: 88,
+      expandedHeight: 104,
       pinned: true,
       backgroundColor: _DashTokens.background(context).withValues(alpha: 0.6),
       elevation: 0,
@@ -506,8 +537,7 @@ class _SliverHeader extends StatelessWidget {
           child: FlexibleSpaceBar(
             background: SafeArea(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.fromLTRB(24, 16, 24, 14),
                 child: userAsync.when(
                   data: (user) => Row(
                     children: [
@@ -527,12 +557,12 @@ class _SliverHeader extends StatelessWidget {
                         ),
                         child: UserAvatar(
                           imageUrl:
-                              AppConfig.resolveImageUrl(user.avatarUrl),
+                          AppConfig.resolveImageUrl(user.avatarUrl),
                           fullName: user.username,
-                          radius: 22,
+                          radius: 23,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -541,31 +571,33 @@ class _SliverHeader extends StatelessWidget {
                             Text(
                               l10n.hello(user.username),
                               style: AppTextStyles.titleMedium.copyWith(
-                                color: isDark ? Colors.white : Colors.black87,
+                                color: _DashTokens.textPrimary(context),
                                 fontWeight: FontWeight.w900,
-                                fontSize: 18,
+                                fontSize: 19,
                                 letterSpacing: -0.5,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            const SizedBox(height: 3),
                             Text(
                               l10n.readyToLearn,
                               style: AppTextStyles.bodySmall.copyWith(
-                                color:
-                                    isDark ? Colors.white60 : Colors.black54,
+                                color: _DashTokens.textSecondary(context),
                                 fontSize: 12,
                               ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () => context.push(AppRoutes.home),
                         child: GlassContainer(
-                          padding: const EdgeInsets.all(10),
-                          borderRadius: BorderRadius.circular(14),
+                          padding: const EdgeInsets.all(11),
+                          borderRadius: BorderRadius.circular(16),
                           opacity: 0.1,
                           child: const Icon(
                             Icons.notifications_active_rounded,
@@ -574,11 +606,54 @@ class _SliverHeader extends StatelessWidget {
                           ),
                         ),
                       ),
+                      const SizedBox(width: 12),
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          GestureDetector(
+                            onTap: () => context.push(AppRoutes.studentCart),
+                            child: GlassContainer(
+                              padding: const EdgeInsets.all(11),
+                              borderRadius: BorderRadius.circular(16),
+                              opacity: 0.1,
+                              child: const Icon(
+                                Icons.shopping_bag_outlined,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
+                          ),
+                          if (cartCount > 0)
+                            Positioned(
+                              right: 2,
+                              top: 2,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 5, vertical: 2),
+                                decoration: const BoxDecoration(
+                                  color: Colors.blueAccent,
+                                  shape: BoxShape.circle,
+                                ),
+                                constraints: const BoxConstraints(
+                                    minWidth: 18, minHeight: 18),
+                                child: Text(
+                                  '$cartCount',
+                                  textAlign: TextAlign.center,
+                                  style: const TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
                     ],
                   ),
                   loading: () => const Center(
                     child:
-                        CircularProgressIndicator(color: _DashTokens.primary),
+                    CircularProgressIndicator(color: _DashTokens.primary),
                   ),
                   error: (_, __) => const SizedBox.shrink(),
                 ),
@@ -602,10 +677,10 @@ class _XPAndStreakBanner extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return statsAsync.when(
       data: (stats) => GlassContainer(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(30),
         blur: 24,
         opacity: isDark ? 0.06 : 0.08,
-        padding: const EdgeInsets.all(20),
+        padding: const EdgeInsets.all(26),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -621,12 +696,14 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
                 Container(
                   width: 1.5,
-                  height: 40,
+                  height: 52,
+                  margin: const EdgeInsets.symmetric(horizontal: 8),
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
                         Colors.transparent,
-                        (isDark ? Colors.white : Colors.black).withValues(alpha: 0.15),
+                        (isDark ? Colors.white : Colors.black)
+                            .withValues(alpha: 0.15),
                         Colors.transparent,
                       ],
                       begin: Alignment.topCenter,
@@ -644,7 +721,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 26),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -652,7 +729,7 @@ class _XPAndStreakBanner extends StatelessWidget {
                   child: Text(
                     l10n.levelProgressLabel(stats.level),
                     style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black54,
+                      color: _DashTokens.textSecondary(context),
                       fontSize: 12,
                       fontWeight: FontWeight.w600,
                     ),
@@ -664,20 +741,21 @@ class _XPAndStreakBanner extends StatelessWidget {
                 Text(
                   '${stats.xpProgress}/${stats.xpForNextLevel} XP',
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
+                    color: _DashTokens.textPrimary(context),
                     fontSize: 12,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 12),
             Container(
-              height: 10,
+              height: 12,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
+                color: (isDark ? Colors.white : Colors.black)
+                    .withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
               ),
               child: Stack(
                 children: [
@@ -689,11 +767,12 @@ class _XPAndStreakBanner extends StatelessWidget {
                         gradient: const LinearGradient(
                           colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
                         ),
-                        borderRadius: BorderRadius.circular(10),
+                        borderRadius: BorderRadius.circular(12),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF2575FC).withValues(alpha: 0.3),
-                            blurRadius: 4,
+                            color:
+                            const Color(0xFF2575FC).withValues(alpha: 0.3),
+                            blurRadius: 6,
                             offset: const Offset(0, 2),
                           ),
                         ],
@@ -707,10 +786,10 @@ class _XPAndStreakBanner extends StatelessWidget {
         ),
       ),
       loading: () => GlassContainer(
-        height: 120,
+        height: 150,
         blur: 24,
         opacity: isDark ? 0.06 : 0.08,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(30),
         child: const Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const SizedBox.shrink(),
@@ -733,23 +812,23 @@ class _StatBadgeItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          padding: const EdgeInsets.all(8),
+          padding: const EdgeInsets.all(11),
           decoration: BoxDecoration(
             color: color.withValues(alpha: 0.12),
             shape: BoxShape.circle,
+            border: Border.all(color: color.withValues(alpha: 0.25), width: 1),
           ),
           child: Icon(icon, color: color, size: 24),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         Text(
           value,
           style: TextStyle(
-            color: isDark ? Colors.white : Colors.black87,
+            color: _DashTokens.textPrimary(context),
             fontSize: 16,
             fontWeight: FontWeight.bold,
           ),
@@ -760,7 +839,7 @@ class _StatBadgeItem extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white54 : Colors.black54,
+            color: _DashTokens.textSecondary(context),
             fontSize: 11,
           ),
           maxLines: 1,
@@ -799,9 +878,9 @@ class _QuickActionsGrid extends StatelessWidget {
       ),
       _QuickAction(
         Icons.library_books_rounded,
-        'Biblioteca',
+        l10n.library,
         Colors.purpleAccent,
-        AppRoutes.studentResources,
+        AppRoutes.studentLibrary,
       ),
       _QuickAction(
         Icons.videogame_asset_rounded,
@@ -825,9 +904,9 @@ class _QuickActionsGrid extends StatelessWidget {
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
       crossAxisCount: 2,
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 2.8,
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 2.5,
       children: [
         for (final a in actions)
           _QuickActionCard(
@@ -860,14 +939,14 @@ class _QuickActionCard extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(route),
       child: GlassContainer(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(24),
         blur: 24,
         opacity: isDark ? 0.06 : 0.08,
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(11),
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
@@ -878,20 +957,21 @@ class _QuickActionCard extends StatelessWidget {
                   end: Alignment.bottomRight,
                 ),
                 shape: BoxShape.circle,
-                border: Border.all(color: color.withValues(alpha: 0.3), width: 1.2),
+                border:
+                Border.all(color: color.withValues(alpha: 0.3), width: 1.2),
               ),
               child: Icon(icon, color: color, size: 20),
             ),
-            const SizedBox(width: 10),
+            const SizedBox(width: 14),
             Expanded(
               child: Text(
                 label,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.labelLarge.copyWith(
-                  color: isDark ? Colors.white : Colors.black87,
+                  color: _DashTokens.textPrimary(context),
                   fontWeight: FontWeight.w800,
-                  fontSize: 12,
+                  fontSize: 12.5,
                 ),
               ),
             ),
@@ -917,12 +997,12 @@ class _RecentCourseCard extends ConsumerWidget {
       data: (courses) {
         if (courses.isEmpty) {
           return GlassContainer(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(30),
+            borderRadius: BorderRadius.circular(30),
             child: Center(
               child: Text(
                 l10n.exploreCourses,
-                style:
-                    TextStyle(color: isDark ? Colors.white : Colors.black87),
+                style: TextStyle(color: _DashTokens.textPrimary(context)),
               ),
             ),
           );
@@ -935,7 +1015,7 @@ class _RecentCourseCard extends ConsumerWidget {
                 .replaceAll(':id', course.id.toString()),
           ),
           child: GlassContainer(
-            borderRadius: BorderRadius.circular(24),
+            borderRadius: BorderRadius.circular(30),
             blur: 24,
             opacity: isDark ? 0.06 : 0.08,
             padding: EdgeInsets.zero,
@@ -947,26 +1027,25 @@ class _RecentCourseCard extends ConsumerWidget {
                   children: [
                     ClipRRect(
                       borderRadius: const BorderRadius.vertical(
-                          top: Radius.circular(24)),
+                          top: Radius.circular(30)),
                       child: ProductImage(
                         imageUrl: course.imageUrl,
-                        height: 140,
+                        height: 160,
                         width: double.infinity,
                         fit: BoxFit.cover,
                       ),
                     ),
-                    // Degradado inferior para legibilidad tipo liquid glass.
                     Positioned.fill(
                       child: DecoratedBox(
                         decoration: BoxDecoration(
                           borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(24)),
+                              top: Radius.circular(30)),
                           gradient: LinearGradient(
                             begin: Alignment.topCenter,
                             end: Alignment.bottomCenter,
                             colors: [
                               Colors.transparent,
-                              Colors.black.withValues(alpha: 0.45),
+                              Colors.black.withValues(alpha: 0.5),
                             ],
                           ),
                         ),
@@ -975,7 +1054,7 @@ class _RecentCourseCard extends ConsumerWidget {
                   ],
                 ),
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+                  padding: const EdgeInsets.fromLTRB(22, 20, 22, 22),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisSize: MainAxisSize.min,
@@ -985,11 +1064,11 @@ class _RecentCourseCard extends ConsumerWidget {
                         children: [
                           Container(
                             padding: const EdgeInsets.symmetric(
-                                horizontal: 8, vertical: 4),
+                                horizontal: 11, vertical: 6),
                             decoration: BoxDecoration(
                               color:
-                                  _DashTokens.primary.withValues(alpha: 0.2),
-                              borderRadius: BorderRadius.circular(8),
+                              _DashTokens.primary.withValues(alpha: 0.2),
+                              borderRadius: BorderRadius.circular(12),
                             ),
                             child: Text(
                               course.difficultyLevel.toUpperCase(),
@@ -997,6 +1076,7 @@ class _RecentCourseCard extends ConsumerWidget {
                                 color: _DashTokens.primary,
                                 fontSize: 10,
                                 fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           ),
@@ -1004,8 +1084,7 @@ class _RecentCourseCard extends ConsumerWidget {
                             child: Text(
                               course.languageName,
                               style: TextStyle(
-                                color:
-                                    isDark ? Colors.white54 : Colors.black54,
+                                color: _DashTokens.textSecondary(context),
                                 fontSize: 11,
                               ),
                               maxLines: 1,
@@ -1014,33 +1093,35 @@ class _RecentCourseCard extends ConsumerWidget {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 10),
+                      const SizedBox(height: 16),
                       Text(
                         course.title,
                         style: TextStyle(
-                          color: isDark ? Colors.white : Colors.black87,
-                          fontSize: 16,
+                          color: _DashTokens.textPrimary(context),
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
+                          letterSpacing: -0.3,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 10),
                       Text(
                         course.description,
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: TextStyle(
-                          color: isDark ? Colors.white70 : Colors.black54,
+                          color: _DashTokens.textSecondary(context),
                           fontSize: 12,
+                          height: 1.5,
                         ),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 20),
                       Row(
                         children: [
                           const Icon(Icons.play_circle_fill_rounded,
-                              color: Colors.purpleAccent, size: 20),
-                          const SizedBox(width: 6),
+                              color: Colors.purpleAccent, size: 22),
+                          const SizedBox(width: 8),
                           Flexible(
                             child: Text(
                               l10n.continueLesson,
@@ -1055,7 +1136,7 @@ class _RecentCourseCard extends ConsumerWidget {
                           Text(
                             l10n.lessonsCount(course.lessonsCount),
                             style: TextStyle(
-                              color: isDark ? Colors.white54 : Colors.black54,
+                              color: _DashTokens.textSecondary(context),
                               fontSize: 11,
                             ),
                           ),
@@ -1070,7 +1151,7 @@ class _RecentCourseCard extends ConsumerWidget {
         );
       },
       loading: () => const GlassContainer(
-        height: 200,
+        height: 230,
         child: Center(child: CircularProgressIndicator()),
       ),
       error: (_, __) => const SizedBox.shrink(),
@@ -1087,16 +1168,17 @@ class _TutorIABanner extends StatelessWidget {
     return GestureDetector(
       onTap: () => context.push(AppRoutes.studentAiTutor),
       child: Container(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(30),
         decoration: BoxDecoration(
           gradient: _DashTokens.brandGradient,
-          borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.15), width: 1.5),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(
+              color: Colors.white.withValues(alpha: 0.15), width: 1.5),
           boxShadow: [
             BoxShadow(
               color: _DashTokens.brandGlow.withValues(alpha: 0.35),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
+              blurRadius: 28,
+              offset: const Offset(0, 14),
             ),
           ],
         ),
@@ -1112,21 +1194,22 @@ class _TutorIABanner extends StatelessWidget {
                     style: AppTextStyles.titleLarge.copyWith(
                       color: Colors.white,
                       fontWeight: FontWeight.w900,
-                      fontSize: 20,
+                      fontSize: 21,
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12),
                   Text(
                     l10n.aiTutorSubtitle,
                     style: AppTextStyles.bodyMedium.copyWith(
                       color: Colors.white.withValues(alpha: 0.8),
                       fontSize: 13,
+                      height: 1.5,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 22),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -1146,8 +1229,8 @@ class _TutorIABanner extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(width: 12),
-            const Icon(Icons.auto_awesome, size: 56, color: Colors.white24),
+            const SizedBox(width: 18),
+            const Icon(Icons.auto_awesome, size: 60, color: Colors.white24),
           ],
         ),
       ),
