@@ -2,12 +2,11 @@ import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
-import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_stats_model.dart';
 
 /// Contrato para operaciones exclusivas del rol Admin.
 ///
-/// Cubre usuarios, reportes, anuncios, suscripciones y estadísticas globales.
+/// Cubre usuarios, reportes, anuncios y estadísticas globales.
 abstract class AdminRepository {
   // ── Usuarios ───────────────────────────────────────────────────────────────
 
@@ -37,14 +36,6 @@ abstract class AdminRepository {
 
   /// Devuelve todos los anuncios publicados.
   Future<List<Announcement>> fetchAnnouncements();
-
-  // ── Suscripciones ──────────────────────────────────────────────────────────
-
-  /// Devuelve los planes de suscripción disponibles.
-  Future<List<Subscription>> fetchSubscriptions();
-
-  /// Inicia el proceso de pago para una suscripción.
-  Future<String> initiateCheckout(int subscriptionId);
 
   // ── Estadísticas globales ─────────────────────────────────────────────────
 

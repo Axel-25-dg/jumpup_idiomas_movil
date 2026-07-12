@@ -11,7 +11,7 @@ import 'package:jumpup_app/presentation/screens/admin/courses_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/exercises_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart';
+
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
@@ -262,16 +262,16 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                           color: _AdminTokens.success,
                         ),
                         _MetricCard(
-                          title: l10n.adminSubscriptions,
-                          value: stats.subscriptions,
-                          icon: Icons.workspace_premium_rounded,
-                          color: _AdminTokens.info,
-                        ),
-                        _MetricCard(
                           title: l10n.studentCertificates,
                           value: stats.certificates,
                           icon: Icons.verified_rounded,
                           color: _AdminTokens.accent,
+                        ),
+                        _MetricCard(
+                          title: l10n.classrooms,
+                          value: stats.classrooms ?? 0,
+                          icon: Icons.class_rounded,
+                          color: _AdminTokens.info,
                         ),
                       ],
                     ),
@@ -369,15 +369,8 @@ class _AdminOpsTab extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context)!;
     return _BaseTab(
-      title: l10n.operationsAndBilling,
+      title: l10n.adminOps,
       children: [
-        _ActionCard(
-          icon: Icons.payments_rounded,
-          title: l10n.billingAndSubscriptions,
-          subtitle: l10n.monitorRevenueSubtitle,
-          color: _AdminTokens.info,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SubscriptionsScreen())),
-        ),
         _ActionCard(
           icon: Icons.flag_rounded,
           title: l10n.contentReports,

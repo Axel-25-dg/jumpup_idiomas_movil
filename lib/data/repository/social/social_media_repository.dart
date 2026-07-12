@@ -157,13 +157,21 @@ class SocialMediaRepository extends BaseRepository {
   Future<LiveSession> createLiveSession({
     required String title,
     required int courseId,
-    required DateTime startsAt,
+    required DateTime scheduledAt,
+    String? description,
+    int durationMin = 60,
+    String? meetingUrl,
+    int maxStudents = 25,
   }) async {
     return createOne('live-sessions/', LiveSession.fromJson,
         data: {
           'title': title,
           'course': courseId,
-          'starts_at': startsAt.toIso8601String(),
+          'scheduled_at': scheduledAt.toIso8601String(),
+          if (description != null) 'description': description,
+          'duration_min': durationMin,
+          if (meetingUrl != null) 'meeting_url': meetingUrl,
+          'max_students': maxStudents,
         },
         message: 'No se pudo crear la sesión en vivo');
   }

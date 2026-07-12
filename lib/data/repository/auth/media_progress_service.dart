@@ -4,23 +4,32 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 class MediaProgressService extends BaseRepository {
   const MediaProgressService();
 
-  Future<MediaProgressModel?> getProgress(int lessonId) async {
-    return handleRequest<MediaProgressModel?>(() async {
+  Future<MediaProgressModel> resumeProgress(int lessonId) async {
+    return handleRequest<MediaProgressModel>(() async {
       final response = await dio.get<dynamic>(
-        'media-progress/',
-        queryParameters: {'lesson': lessonId},
+        'media-progress/resume/$lessonId/',
       );
       final data = response.data;
-      if (data is List && data.isNotEmpty) {
-        return MediaProgressModel.fromJson(data.first as Map<String, dynamic>);
-      }
-      if (data is Map && data['results'] is List) {
-        final results = data['results'] as List;
-        if (results.isNotEmpty) {
-          return MediaProgressModel.fromJson(results.first as Map<String, dynamic>);
+      if (data is Map) {
+        // If the response has detail (no progress found), return default
+        if (data.containsKey('detail') && data['position_sec'] == null) {
+          return MediaProgressModel(
+            id: 0,
+            lesson: lessonId,
+            positionSeconds: 0,
+            durationSeconds: 0,
+            completed: false,
+          );
         }
+        return MediaProgressModel.fromJson(data as Map<String, dynamic>);
       }
-      return null;
+      return MediaProgressModel(
+        id: 0,
+        lesson: lessonId,
+        positionSeconds: 0,
+        durationSeconds: 0,
+        completed: false,
+      );
     }, message: 'No se pudo obtener el progreso del video');
   }
 
@@ -31,29 +40,16 @@ class MediaProgressService extends BaseRepository {
     bool completed = false,
   }) async {
     return handleRequest<MediaProgressModel>(() async {
-      final existing = await getProgress(lessonId);
-      if (existing != null) {
-        final response = await dio.patch<Map<String, dynamic>>(
-          'media-progress/${existing.id}/',
-          data: {
-            'position_seconds': positionSeconds,
-            'duration_seconds': durationSeconds,
-            'completed': completed,
-          },
-        );
-        return MediaProgressModel.fromJson(response.data!);
-      } else {
-        final response = await dio.post<Map<String, dynamic>>(
-          'media-progress/',
-          data: {
-            'lesson': lessonId,
-            'position_seconds': positionSeconds,
-            'duration_seconds': durationSeconds,
-            'completed': completed,
-          },
-        );
-        return MediaProgressModel.fromJson(response.data!);
-      }
+      final response = await dio.post<Map<String, dynamic>>(
+        'media-progress/',
+        data: {
+          'lesson': lessonId,
+          'position_sec': positionSeconds,
+          'duration_sec': durationSeconds,
+          'completed': completed,
+        },
+      );
+      return MediaProgressModel.fromJson(response.data!);
     }, message: 'No se pudo guardar el progreso del video');
   }
 }

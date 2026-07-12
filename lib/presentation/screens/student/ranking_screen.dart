@@ -8,7 +8,7 @@ class RankingScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final rankingAsync = ref.watch(rankingProvider);
+    final rankingAsync = ref.watch(rankingProvider(null));
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
 
@@ -68,7 +68,7 @@ class RankingScreen extends ConsumerWidget {
                 ),
                 const SizedBox(height: 32),
                 ElevatedButton.icon(
-                  onPressed: () => ref.invalidate(rankingProvider),
+                  onPressed: () => ref.invalidate(rankingProvider(null)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.blueAccent,
                     padding: const EdgeInsets.symmetric(
@@ -92,7 +92,7 @@ class RankingScreen extends ConsumerWidget {
             ),
           ),
         ),
-        data: (ranking) => Stack(
+        data: (data) => Stack(
           children: [
             CustomScrollView(
               physics: const BouncingScrollPhysics(),
@@ -168,9 +168,73 @@ class RankingScreen extends ConsumerWidget {
                               ),
                             ),
                           ),
+                          const SizedBox(height: 12),
+                          // My position
+                          Container(
+                            margin: const EdgeInsets.symmetric(horizontal: 24),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.blueAccent.withValues(alpha: 0.15),
+                                  Colors.purpleAccent.withValues(alpha: 0.1),
+                                ],
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: Colors.blueAccent.withValues(alpha: 0.2),
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Container(
+                                  width: 48,
+                                  height: 48,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: Colors.blueAccent.withValues(alpha: 0.2),
+                                  ),
+                                  child: Center(
+                                    child: Text(
+                                      '#${data.myPosition}',
+                                      style: const TextStyle(
+                                        color: Colors.blueAccent,
+                                        fontWeight: FontWeight.w900,
+                                        fontSize: 20,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Tu posición',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white54 : Colors.black54,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 4),
+                                      Text(
+                                        'Nivel ${data.myLevel} • ${data.myXp} XP',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : Colors.black87,
+                                          fontWeight: FontWeight.w700,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                           const SizedBox(height: 24),
-                          if (ranking.length >= 3)
-                            _PodiumWidget(ranking: ranking, isDark: isDark)
+                          if (data.ranking.length >= 3)
+                            _PodiumWidget(ranking: data.ranking, isDark: isDark)
                           else
                             const SizedBox(height: 40),
                         ],
@@ -179,7 +243,7 @@ class RankingScreen extends ConsumerWidget {
                   ),
                 ),
                 // Stats Summary
-                if (ranking.length >= 3)
+                if (data.ranking.length >= 3)
                   SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
@@ -192,7 +256,7 @@ class RankingScreen extends ConsumerWidget {
                             child: _StatCard(
                               icon: Icons.people,
                               label: 'Participantes',
-                              value: '${ranking.length}',
+                              value: '${data.ranking.length}',
                               color: Colors.blueAccent,
                               isDark: isDark,
                             ),
@@ -202,7 +266,7 @@ class RankingScreen extends ConsumerWidget {
                             child: _StatCard(
                               icon: Icons.flash_on_rounded,
                               label: 'XP Total',
-                              value: '${_calculateTotalXp(ranking)}',
+                              value: '${_calculateTotalXp(data.ranking)}',
                               color: Colors.amber,
                               isDark: isDark,
                             ),
@@ -212,7 +276,7 @@ class RankingScreen extends ConsumerWidget {
                             child: _StatCard(
                               icon: Icons.emoji_events,
                               label: 'Top 3',
-                              value: ranking
+                              value: data.ranking
                                   .sublist(0, 3)
                                   .map((e) => e.username as String? ?? 'N/A')
                                   .join(', '),
@@ -255,7 +319,7 @@ class RankingScreen extends ConsumerWidget {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Text(
-                            '${ranking.length} total',
+                            '${data.ranking.length} total',
                             style: const TextStyle(
                               color: Colors.blueAccent,
                               fontSize: 12,
@@ -272,7 +336,7 @@ class RankingScreen extends ConsumerWidget {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, i) {
-                        final entry = ranking[i + 3];
+                        final entry = data.ranking[i + 3];
                         return _RankingRow(
                           entry: entry,
                           position: i + 4,
@@ -280,7 +344,7 @@ class RankingScreen extends ConsumerWidget {
                         );
                       },
                       childCount:
-                          ranking.length > 3 ? ranking.length - 3 : 0,
+                          data.ranking.length > 3 ? data.ranking.length - 3 : 0,
                     ),
                   ),
                 ),

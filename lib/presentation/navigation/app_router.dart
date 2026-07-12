@@ -25,9 +25,8 @@ import 'package:jumpup_app/presentation/screens/catalog/catalog_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/games_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/ai_tutor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/daily_challenges_screen.dart';
-import 'package:jumpup_app/presentation/screens/student/subscriptions_screen.dart'
-    as student_subs;
 import 'package:jumpup_app/presentation/screens/student/payment_history_screen.dart';
+
 import 'package:jumpup_app/presentation/screens/student/settings_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/change_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/classroom_resources_screen.dart';
@@ -55,7 +54,7 @@ import 'package:jumpup_app/presentation/screens/admin/courses_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/exercises_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
-import 'package:jumpup_app/presentation/screens/admin/subscriptions_screen.dart';
+
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 
 abstract final class AppRoutes {
@@ -84,13 +83,12 @@ abstract final class AppRoutes {
   static const studentResources = '/student/resources';
   static const studentAiTutor = '/student/ai-tutor';
   static const studentDailyChallenges = '/student/daily-challenges';
-  static const studentSubscriptions = '/student/subscriptions';
-  static const studentPayments = '/student/payments';
   static const studentSettings = '/student/settings';
   static const studentChangePassword = '/student/change-password';
   static const studentGames = '/student/games';
   static const studentCart = '/cart';
   static const studentCatalog = '/student/catalog';
+  static const studentPaymentHistory = '/student/payment-history';
 
   // RUTAS TEACHER
   static const teacherDashboard = '/teacher';
@@ -112,7 +110,6 @@ abstract final class AppRoutes {
   static const adminCreateCourse = '/admin/courses/create';
   static const adminAnnouncements = '/admin/announcements';
   static const adminReports = '/admin/reports';
-  static const adminSubscriptions = '/admin/subscriptions';
   static const adminClassrooms = '/admin/classrooms';
   static const adminExercises = '/admin/exercises';
 }
@@ -259,16 +256,6 @@ GoRouter buildAppRouter(WidgetRef ref) {
         builder: (_, __) => const DailyChallengesScreen(),
       ),
       GoRoute(
-        path: AppRoutes.studentSubscriptions,
-        name: 'studentSubscriptions',
-        builder: (_, __) => const student_subs.SubscriptionsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.studentPayments,
-        name: 'studentPayments',
-        builder: (_, __) => const PaymentHistoryScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.studentSettings,
         name: 'studentSettings',
         builder: (_, __) => const SettingsScreen(),
@@ -292,6 +279,11 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.studentCatalog,
         name: 'studentCatalog',
         builder: (_, __) => const CatalogScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.studentPaymentHistory,
+        name: 'studentPaymentHistory',
+        builder: (_, __) => const PaymentHistoryScreen(),
       ),
 
       // ─── Teacher ──────────────────────────────────────────────────
@@ -386,11 +378,6 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.adminReports,
         name: 'adminReports',
         builder: (_, __) => const ReportsScreen(),
-      ),
-      GoRoute(
-        path: AppRoutes.adminSubscriptions,
-        name: 'adminSubscriptions',
-        builder: (_, __) => const SubscriptionsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminClassrooms,

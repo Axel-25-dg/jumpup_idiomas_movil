@@ -8,9 +8,10 @@ import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
+import 'package:jumpup_app/presentation/widgets/gamification/gamification_overlay.dart';
 import 'package:jumpup_app/presentation/widgets/shared/user_avatar.dart';
 import 'package:jumpup_app/presentation/widgets/shared/product_image.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
@@ -79,17 +80,19 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _DashTokens.background(context),
-      // La barra flota por encima del contenido (estilo liquid glass).
-      extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _tabs,
-      ),
-      bottomNavigationBar: _LiquidGlassNav(
-        currentIndex: _currentIndex,
-        onTap: _onTabTap,
+    return GamificationOverlay(
+      child: Scaffold(
+        backgroundColor: _DashTokens.background(context),
+        // La barra flota por encima del contenido (estilo liquid glass).
+        extendBody: true,
+        body: IndexedStack(
+          index: _currentIndex,
+          children: _tabs,
+        ),
+        bottomNavigationBar: _LiquidGlassNav(
+          currentIndex: _currentIndex,
+          onTap: _onTabTap,
+        ),
       ),
     );
   }
@@ -401,8 +404,6 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
                     _RecentCourseCard(summaryAsync: summaryAsync),
                     const SizedBox(height: 14),
                     const _TutorIABanner(),
-                    const SizedBox(height: 14),
-                    _SubscriptionBanner(),
                   ]),
                 ),
               ),
@@ -414,79 +415,7 @@ class _HomeTabState extends ConsumerState<_HomeTab> with TickerProviderStateMixi
   }
 }
 
-class _SubscriptionBanner extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final mySubAsync = ref.watch(mySubscriptionProvider);
-    final isPro = mySubAsync.value?.isActive ?? false;
 
-    if (isPro) return const SizedBox.shrink();
-
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(24),
-      blur: 24,
-      opacity: isDark ? 0.06 : 0.08,
-      padding: const EdgeInsets.all(16),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Colors.amberAccent.withValues(alpha: 0.15),
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.amberAccent.withValues(alpha: 0.2)),
-            ),
-            child: const Icon(Icons.star_rounded,
-                color: Colors.amberAccent, size: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Mejora tu Plan',
-                  style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  'Accede a todos los cursos y tutor IA.',
-                  style: TextStyle(
-                    color: isDark ? Colors.white54 : Colors.black54,
-                    fontSize: 12,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 8),
-          TextButton(
-            onPressed: () => context.push('/student/subscriptions'),
-            style: TextButton.styleFrom(
-              padding: const EdgeInsets.symmetric(horizontal: 12),
-            ),
-            child: const Text(
-              'Ver Planes',
-              style: TextStyle(
-                color: _DashTokens.primary,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.text);

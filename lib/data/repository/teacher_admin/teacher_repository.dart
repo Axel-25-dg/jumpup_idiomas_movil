@@ -7,7 +7,6 @@ import 'package:jumpup_app/data/repository/teacher_admin/exercise_repository.dar
 import 'package:jumpup_app/data/repository/teacher_admin/user_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/report_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/announcement_repository.dart';
-import 'package:jumpup_app/data/repository/teacher_admin/subscription_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/classroom_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/stats_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/resource_repository.dart';
@@ -25,7 +24,6 @@ import 'package:jumpup_app/domain/model/admin/admin_stats_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
-import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
 import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
 
 class TeacherRepository extends BaseRepository {
@@ -39,7 +37,6 @@ class TeacherRepository extends BaseRepository {
   final UserRepository users = UserRepository();
   final ReportRepository reports = ReportRepository();
   final AnnouncementRepository announcements = AnnouncementRepository();
-  final SubscriptionRepository subscriptions = SubscriptionRepository();
   final ClassroomRepository classrooms = ClassroomRepository();
   final StatsRepository stats = StatsRepository();
   final ResourceRepository resources = ResourceRepository();
@@ -310,21 +307,6 @@ class TeacherRepository extends BaseRepository {
   Future<List<Announcement>> fetchAnnouncements() async {
     final res = await dio.get<dynamic>('announcements/');
     return _listFrom(res.data).map((i) => Announcement.fromJson(i)).toList();
-  }
-
-  // ── Suscripciones ──────────────────────────────────────────────────────────
-
-  Future<List<Subscription>> fetchSubscriptions() async {
-    final res = await dio.get<dynamic>('subscriptions/');
-    return _listFrom(res.data).map((i) => Subscription.fromJson(i)).toList();
-  }
-
-  Future<String> initiateCheckout(int subscriptionId) async {
-    final res = await dio.post(
-      'subscriptions/checkout/',
-      data: {'subscription_id': subscriptionId},
-    );
-    return res.data['url'] as String;
   }
 
   // ── Teacher Dashboard ──────────────────────────────────────────────────────

@@ -83,7 +83,7 @@ class _CreateLiveSessionScreenState
       await repo.createLiveSession(
         title: _titleCtrl.text.trim(),
         courseId: _selectedCourseId!,
-        startsAt: startsAt,
+        scheduledAt: startsAt,
       );
       ref.invalidate(liveSessionsProvider);
       if (mounted) {

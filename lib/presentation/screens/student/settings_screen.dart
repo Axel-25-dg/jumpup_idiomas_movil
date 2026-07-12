@@ -139,7 +139,7 @@ class SettingsScreen extends ConsumerWidget {
           const SizedBox(height: 24),
           Center(
             child: Text(
-              'JumpUp Idiomas v2.0.0 PRO',
+              'JumpUp Idiomas v3.0.0',
               style: AppTextStyles.bodySmall.copyWith(
                 color: isDark ? Colors.white24 : Colors.black26,
                 letterSpacing: 1.2,

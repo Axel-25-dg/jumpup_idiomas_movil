@@ -407,7 +407,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get studentCourses => 'Cursos';
 
   @override
-  String get adminSubscriptions => 'Suscripciones';
+  String get adminSubscriptions => 'Niveles de Acceso';
 
   @override
   String get studentCertificates => 'Certificados';
@@ -459,10 +459,11 @@ class AppLocalizationsEs extends AppLocalizations {
   String get operationsAndBilling => 'Operaciones y Facturación';
 
   @override
-  String get billingAndSubscriptions => 'Suscripciones y Facturación';
+  String get billingAndSubscriptions => 'Niveles y Facturación';
 
   @override
-  String get monitorRevenueSubtitle => 'Monitorear ingresos y planes premium';
+  String get monitorRevenueSubtitle =>
+      'Monitorear ingresos y niveles de acceso';
 
   @override
   String get contentReports => 'Reportes de Contenido';
@@ -485,4 +486,11 @@ class AppLocalizationsEs extends AppLocalizations {
   @override
   String get logoutAdminConfirm =>
       '¿Estás seguro de que deseas salir del panel de administración?';
+
+  @override
+  String get achievementPrincipiantePro => 'PRINCIPIANTE PRO';
+
+  @override
+  String get achievementPrincipianteProDesc =>
+      '¡Felicidades! Has alcanzado tus primeros 30 XP y eres un Principiante Pro.';
 }

@@ -11,7 +11,7 @@ import 'package:jumpup_app/presentation/providers/course_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
+
 import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/presentation/providers/language_provider.dart';
@@ -280,10 +280,6 @@ class AuthNotifier extends StateNotifier<AuthState> {
       chatThreadsProvider,
       notificationsProvider,
       unreadNotificationsProvider,
-      mySubscriptionProvider,
-      paymentHistoryProvider,
-      ordersProvider,
-      subscriptionsProvider,
       adminLanguagesProvider,
       resourcesListProvider,
       // Añade más proveedores según sea necesario

@@ -1,38 +1,54 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/subscription_models.dart';
+import 'package:jumpup_app/domain/model/ecommerce_models.dart';
+import 'package:jumpup_app/data/repository/auth/ecommerce_service.dart';
 
-class CartState {
-  final List<SubscriptionModel> items;
-  
-  CartState({this.items = const []});
-
-  double get total => items.fold(0, (sum, item) => sum + item.price);
-  int get itemCount => items.length;
-
-  CartState copyWith({List<SubscriptionModel>? items}) {
-    return CartState(items: items ?? this.items);
-  }
-}
-
-class CartNotifier extends StateNotifier<CartState> {
-  CartNotifier() : super(CartState());
-
-  void addItem(SubscriptionModel subscription) {
-    if (state.items.any((item) => item.id == subscription.id)) return;
-    state = state.copyWith(items: [...state.items, subscription]);
-  }
-
-  void removeItem(int subscriptionId) {
-    state = state.copyWith(
-      items: state.items.where((item) => item.id != subscriptionId).toList(),
-    );
-  }
-
-  void clear() {
-    state = CartState();
-  }
-}
-
-final cartProvider = StateNotifierProvider<CartNotifier, CartState>((ref) {
-  return CartNotifier();
+// --- Proveedor del Servicio de Ecommerce ---
+final ecommerceServiceProvider = Provider<EcommerceService>((ref) {
+  return const EcommerceService();
 });
+
+// --- Proveedor del Carrito ---
+final cartProvider = FutureProvider<CarritoModel>((ref) async {
+  final service = ref.watch(ecommerceServiceProvider);
+  return await service.getCarrito();
+});
+
+// --- Proveedor de Órdenes (Historial de Pagos) ---
+final ordersProvider = FutureProvider<List<OrdenCompraModel>>((ref) async {
+  final service = ref.watch(ecommerceServiceProvider);
+  return await service.getOrdenes();
+});
+
+// --- Proveedor de Acciones del Carrito ---
+final cartActionsProvider = Provider<CartActions>((ref) {
+  final service = ref.watch(ecommerceServiceProvider);
+  return CartActions(service, ref);
+});
+
+class CartActions {
+  final EcommerceService _service;
+  final Ref _ref;
+
+  CartActions(this._service, this._ref);
+
+  Future<void> addItem(int productId, {int cantidad = 1}) async {
+    await _service.agregarAlCarrito(productId, cantidad: cantidad);
+    _ref.invalidate(cartProvider);
+  }
+
+  Future<void> removeItem(int productId) async {
+    await _service.eliminarDelCarrito(productId);
+    _ref.invalidate(cartProvider);
+  }
+
+  Future<OrdenCompraModel> checkout() async {
+    final order = await _service.comprar();
+    _ref.invalidate(cartProvider);
+    _ref.invalidate(ordersProvider);
+    return order;
+  }
+
+  Future<void> refresh() async {
+    _ref.invalidate(cartProvider);
+  }
+}

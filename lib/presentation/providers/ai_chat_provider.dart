@@ -59,7 +59,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
         if (threadData == null) {
           throw Exception(
             'No se pudo iniciar la sesión de IA. '
-            'Verifica tu suscripción o intenta más tarde.',
+            'Verifica tu nivel de acceso en el catálogo o intenta más tarde.',
           );
         }
         _threadId = threadData['id'] as int?;
@@ -154,7 +154,7 @@ class AiChatNotifier extends StateNotifier<AiChatState> {
             } else if (decoded['type'] == 'error') {
               final code = decoded['code']?.toString() ?? '';
               final message = decoded['message']?.toString() ?? 'Error desconocido';
-              if (code == 'subscription_required') {
+              if (code == 'subscription_required' || code == 'insufficient_level') {
                 final subMsg = ChatMessage(
                   id: DateTime.now().millisecondsSinceEpoch,
                   senderId: 0,

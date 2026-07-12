@@ -12,6 +12,7 @@ class LiveSession {
     this.participantCount = 0,
     this.maxStudents = 0,
     this.hostAvatar,
+    this.durationMin,
   });
 
   final int id;
@@ -26,6 +27,7 @@ class LiveSession {
   final int participantCount;
   final int maxStudents;
   final String? hostAvatar;
+  final int? durationMin;
 
   String get statusLabel {
     switch (status) {
@@ -81,6 +83,7 @@ class LiveSession {
           json['participant_count'] as int? ?? 0,
       maxStudents: json['max_students'] as int? ?? 0,
       hostAvatar: hostAvatar,
+      durationMin: json['duration_min'] as int?,
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
 
 /// Servicio de catálogo público — cursos, idiomas, módulos, lecciones,
-/// planes de suscripción y progreso.
+/// niveles y progreso.
 /// Usa DioClient centralizado (token + refresh automático).
 class CatalogService {
   CatalogService() : _dio = DioClient.instance.dio;
@@ -40,31 +40,18 @@ class CatalogService {
       _getList('/api/lessons/',
           params: {'module': moduleId, 'ordering': 'order'});
 
-  // ── Planes de suscripción ──────────────────────────────────────────────────
+  // ── Niveles y Acceso (E-Commerce V3) ───────────────────────────────────────
 
-  Future<List<Map<String, dynamic>>> getPlans() =>
-      _getList('/api/subscriptions/active/');
-
-  /// Suscripción activa del usuario. Retorna null si no tiene ninguna.
-  Future<Map<String, dynamic>?> getCurrentSub() async {
-    try {
-      final res = await _dio.get<Map<String, dynamic>>(
-          '/api/my-subscriptions/current/');
-      final data = res.data ?? {};
-      if (data['subscription'] == null) return null;
-      return data;
-    } catch (_) {
-      return null;
-    }
-  }
+  Future<List<Map<String, dynamic>>> getLevels() =>
+      _getList('/api/levels/');
 
   // ── Órdenes / Checkout ─────────────────────────────────────────────────────
 
-  /// Crea una orden de compra y devuelve su id.
-  Future<int> createOrder(int planId) async {
+  /// Crea una orden de compra para un nivel y devuelve su id.
+  Future<int> createOrder(int levelId) async {
     final res = await _dio.post<Map<String, dynamic>>(
       '/api/orders/',
-      data: {'subscription': planId, 'payment_method': 'credit_card'},
+      data: {'level': levelId, 'payment_method': 'credit_card'},
     );
     return res.data!['id'] as int;
   }

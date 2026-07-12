@@ -181,7 +181,7 @@
   "platformOverview": "Platform Overview",
   "totalUsers": "Total Users",
   "studentCourses": "Courses",
-  "adminSubscriptions": "Subscriptions",
+  "adminSubscriptions": "Access Levels",
   "studentCertificates": "Certificates",
   "recentActivity": "Recent Activity",
   "systemAnnouncements": "System Announcements",
@@ -198,13 +198,15 @@
   "exerciseBank": "Exercise Bank",
   "manageExercisesSubtitle": "Review and update practice materials",
   "operationsAndBilling": "Operations & Billing",
-  "billingAndSubscriptions": "Subscriptions & Billing",
-  "monitorRevenueSubtitle": "Monitor revenue and premium plans",
+  "billingAndSubscriptions": "Levels & Billing",
+  "monitorRevenueSubtitle": "Monitor revenue and access levels",
   "contentReports": "Content Reports",
   "moderateReportsSubtitle": "Moderate forum and social reports",
   "adminProfile": "Admin Profile",
   "administrator": "Administrator",
   "superAdminAccess": "Super Admin Access",
   "securitySettings": "Security Settings",
-  "logoutAdminConfirm": "Are you sure you want to exit the admin panel?"
+  "logoutAdminConfirm": "Are you sure you want to exit the admin panel?",
+  "achievementPrincipiantePro": "PRO BEGINNER",
+  "achievementPrincipianteProDesc": "Congratulations! You've reached your first 30 XP and are now a Pro Beginner."
 }

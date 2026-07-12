@@ -4,7 +4,6 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
 import 'package:jumpup_app/presentation/screens/student/games/hangman_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/matching_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/trivia_game.dart';
@@ -25,9 +24,9 @@ class GamesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final statsAsync = ref.watch(userStatsProvider);
     final rankingPositionAsync = ref.watch(myRankingPositionProvider);
-    final mySubAsync = ref.watch(mySubscriptionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final isPro = mySubAsync.value?.isActive ?? false;
+    // En el nuevo sistema, los juegos se desbloquean por nivel o XP
+    final isPro = statsAsync.value != null && statsAsync.value!.level >= 2; 
 
     // Theme-aware colors
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -96,7 +95,7 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     if (!isPro) ...[
                       const SizedBox(height: 20),
-                      _ProBanner(onTap: () => context.push(AppRoutes.studentSubscriptions)),
+                      _ProBanner(onTap: () => context.push(AppRoutes.studentCatalog)),
                     ],
                     const SizedBox(height: 28),
                     Text('Minijuegos', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
@@ -223,8 +222,8 @@ class GamesScreen extends ConsumerWidget {
           backgroundColor: Theme.of(context).brightness == Brightness.dark
               ? const Color(0xFF1E1E2E)
               : Colors.white,
-          title: const Text('🚀 Contenido Premium'),
-          content: const Text('Este juego es exclusivo para usuarios Pro. ¡Suscríbete para desbloquear todos los juegos y más!'),
+          title: const Text('🚀 Acceso Pro Requerido'),
+          content: const Text('Este juego es exclusivo para usuarios de nivel Pro (Nivel 2+). ¡Mejora tu nivel para desbloquear todos los juegos y más!'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(dialogContext),
@@ -234,10 +233,10 @@ class GamesScreen extends ConsumerWidget {
               onPressed: () {
                 Navigator.pop(dialogContext);
                 // Use GoRouter from the root context, not the dialog context
-                GoRouter.of(context).push(AppRoutes.studentSubscriptions);
+                GoRouter.of(context).push(AppRoutes.studentCatalog);
               },
               style: ElevatedButton.styleFrom(backgroundColor: Colors.blueAccent),
-              child: const Text('Ver Planes', style: TextStyle(color: Colors.white)),
+              child: const Text('Ver Catálogo', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

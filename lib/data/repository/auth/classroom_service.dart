@@ -1,4 +1,5 @@
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/live_session.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
@@ -33,8 +34,8 @@ class ClassroomService extends BaseRepository {
 
   // ── Sesiones en vivo (LiveSession) ──────────────────────────────────────
 
-  Future<List<VirtualClassModel>> getLiveSessions() async {
-    return getList('live-sessions/', VirtualClassModel.fromJson,
+  Future<List<LiveSession>> getLiveSessions() async {
+    return getList('live-sessions/', LiveSession.fromJson,
         message: 'No se pudieron cargar las sesiones en vivo');
   }
 
@@ -42,6 +43,18 @@ class ClassroomService extends BaseRepository {
     await handleRequest<void>(() async {
       await dio.post<dynamic>('live-sessions/$sessionId/join/');
     }, message: 'No te pudiste unir a la sesión en vivo');
+  }
+
+  Future<void> startLiveSession(int sessionId) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('live-sessions/$sessionId/start/');
+    }, message: 'No se pudo iniciar la sesión');
+  }
+
+  Future<void> endLiveSession(int sessionId) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>('live-sessions/$sessionId/end/');
+    }, message: 'No se pudo finalizar la sesión');
   }
 
   // ── Certificados ──────────────────────────────────────────────────────────

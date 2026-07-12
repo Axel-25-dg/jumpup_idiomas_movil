@@ -15,7 +15,6 @@ import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
-import 'package:jumpup_app/domain/model/admin/admin_subscription_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/domain/model/admin/user_stats.dart';
 

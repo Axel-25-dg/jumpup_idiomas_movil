@@ -50,6 +50,12 @@ final userStatsProvider = FutureProvider<UserStatsModel>((ref) async {
   return service.getUserStats();
 });
 
+final progressByLanguageProvider =
+    FutureProvider<List<ProgressByLanguage>>((ref) async {
+  final service = ref.watch(progressServiceProvider);
+  return service.getProgressByLanguage();
+});
+
 final achievementsProvider =
     FutureProvider<List<AchievementModel>>((ref) async {
   final service = ref.watch(progressServiceProvider);
@@ -62,27 +68,15 @@ final myAchievementsProvider =
   return service.getMyAchievements();
 });
 
-final rankingProvider = FutureProvider<List<RankingEntryModel>>((ref) async {
+final rankingProvider = FutureProvider.family<RankingModel, String?>((ref, language) async {
   final service = ref.watch(progressServiceProvider);
-  return service.getRanking();
+  return service.getRanking(language: language);
 });
 
 final myRankingPositionProvider = FutureProvider<int?>((ref) async {
-  final rankingAsync = await ref.watch(rankingProvider.future);
-  final authState = ref.watch(authProvider);
-  final userIdStr = authState.user?.id;
-  
-  if (userIdStr == null || rankingAsync.isEmpty) return null;
-  
-  // Intentamos encontrar al usuario en la lista por su ID
-  try {
-    final myEntry = rankingAsync.firstWhere(
-      (entry) => entry.userId.toString() == userIdStr,
-    );
-    return myEntry.position;
-  } catch (_) {
-    return null;
-  }
+  final service = ref.watch(progressServiceProvider);
+  final ranking = await service.getRanking();
+  return ranking.myPosition > 0 ? ranking.myPosition : null;
 });
 
 final dailyChallengesProvider =

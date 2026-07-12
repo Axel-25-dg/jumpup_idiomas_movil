@@ -151,8 +151,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             return Transform.scale(
                               scale: value,
                               child: Container(
-                                width: 90,
-                                height: 90,
+                                width: 80,
+                                height: 80,
                                 decoration: BoxDecoration(
                                   shape: BoxShape.circle,
                                   gradient: const LinearGradient(
@@ -163,18 +163,18 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   boxShadow: [
                                     BoxShadow(
                                       color: const Color(0xFF2575FC).withValues(alpha: 0.4),
-                                      blurRadius: 25,
-                                      offset: const Offset(0, 10),
+                                      blurRadius: 20,
+                                      offset: const Offset(0, 8),
                                     ),
                                   ],
                                 ),
                                 child: const Icon(Icons.auto_awesome_rounded,
-                                    size: 45, color: Colors.white),
+                                    size: 40, color: Colors.white),
                               ),
                             );
                           },
                         ),
-                        const SizedBox(height: 32),
+                        const SizedBox(height: 24),
                         ShaderMask(
                           shaderCallback: (bounds) => const LinearGradient(
                             colors: [Colors.white, Colors.white70],
@@ -184,12 +184,12 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             style: AppTextStyles.headlineLarge.copyWith(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
-                              fontSize: 34,
+                              fontSize: 30,
                               letterSpacing: -1.0,
                             ),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
                         Text(
                           l10n.welcomeSubtitle,
                           textAlign: TextAlign.center,
@@ -198,14 +198,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             fontWeight: FontWeight.w500,
                           ),
                         ),
-                        const SizedBox(height: 48),
+                        const SizedBox(height: 32),
 
                         // ── Glass Card ───────────────────────────────────
                         GlassContainer(
                           blur: 30,
                           opacity: isDark ? 0.08 : 0.12,
-                          borderRadius: BorderRadius.circular(35),
-                          padding: const EdgeInsets.all(32),
+                          borderRadius: BorderRadius.circular(30),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
                           border: Border.all(
                             color: Colors.white.withValues(alpha: 0.15),
                             width: 1.5,
@@ -223,7 +223,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 24),
+                              const SizedBox(height: 20),
                               _CustomTextField(
                                 controller: _passCtrl,
                                 hint: l10n.password,
@@ -236,7 +236,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   return null;
                                 },
                               ),
-                              const SizedBox(height: 16),
+                              const SizedBox(height: 12),
                               Align(
                                 alignment: Alignment.centerRight,
                                 child: TextButton(
@@ -245,14 +245,16 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                   style: TextButton.styleFrom(
                                     foregroundColor: Colors.blueAccent,
                                     padding: EdgeInsets.zero,
+                                    minimumSize: Size.zero,
+                                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   child: Text(
                                     l10n.forgotPassword,
-                                    style: const TextStyle(fontWeight: FontWeight.w800),
+                                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 13),
                                   ),
                                 ),
                               ),
-                              const SizedBox(height: 32),
+                              const SizedBox(height: 24),
 
                               // ── Botón Principal de Acceso ──────────────────────────────
                               GestureDetector(
@@ -260,17 +262,17 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                 child: AnimatedContainer(
                                   duration: const Duration(milliseconds: 200),
                                   width: double.infinity,
-                                  height: 62,
+                                  height: 58,
                                   decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(22),
+                                    borderRadius: BorderRadius.circular(18),
                                     gradient: const LinearGradient(
                                       colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
                                     ),
                                     boxShadow: [
                                       BoxShadow(
                                         color: const Color(0xFF2575FC).withValues(alpha: 0.4),
-                                        blurRadius: 16,
-                                        offset: const Offset(0, 8),
+                                        blurRadius: 12,
+                                        offset: const Offset(0, 6),
                                       ),
                                     ],
                                   ),
@@ -286,9 +288,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                             l10n.loginButton.toUpperCase(),
                                             style: const TextStyle(
                                               color: Colors.white,
-                                              fontSize: 16,
+                                              fontSize: 15,
                                               fontWeight: FontWeight.w900,
-                                              letterSpacing: 2.0,
+                                              letterSpacing: 1.5,
                                             ),
                                           ),
                                   ),
@@ -297,7 +299,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                             ],
                           ),
                         ),
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 24),
 
                         // ── Alternative Login ──────────────────────────────
                         if (_biometricAvailable && authState.canUseBiometrics) ...[
@@ -307,47 +309,50 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                               Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 16),
                                 child: Text(
-                                  'or use biometrics',
+                                  'o usa biometría',
                                   style: AppTextStyles.bodySmall.copyWith(
-                                    color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.3),
+                                    color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.4),
+                                    fontSize: 12,
                                   ),
                                 ),
                               ),
                               const Expanded(child: Divider(color: Colors.white10)),
                             ],
                           ),
-                          const SizedBox(height: 24),
+                          const SizedBox(height: 16),
                           Center(
                             child: _BiometricButton(
                               onTap: isLoading ? null : _loginWithBiometric,
                               isLoading: isLoading,
                             ),
                           ),
+                          const SizedBox(height: 24),
                         ],
                         
-                        const SizedBox(height: 40),
-
                         // ── Register Link ──────────────────────────────────
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              l10n.noAccount,
-                              style: AppTextStyles.bodyMedium.copyWith(
-                                color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
-                              ),
-                            ),
-                            GestureDetector(
-                              onTap: () => context.push(AppRoutes.register),
-                              child: Text(
-                                l10n.registerHere,
-                                style: AppTextStyles.labelLarge.copyWith(
-                                  color: Colors.blueAccent,
-                                  fontWeight: FontWeight.w700,
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                l10n.noAccount,
+                                style: AppTextStyles.bodyMedium.copyWith(
+                                  color: (isDark ? Colors.white : Colors.black87).withValues(alpha: 0.5),
                                 ),
                               ),
-                            ),
-                          ],
+                              GestureDetector(
+                                onTap: () => context.push(AppRoutes.register),
+                                child: Text(
+                                  l10n.registerHere,
+                                  style: AppTextStyles.labelLarge.copyWith(
+                                    color: Colors.blueAccent,
+                                    fontWeight: FontWeight.w800,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -423,8 +428,8 @@ class _BiometricButtonState extends State<_BiometricButton> with SingleTickerPro
         animation: _pulseController,
         builder: (context, child) {
           return Container(
-            width: 80,
-            height: 80,
+            width: 64,
+            height: 64,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               gradient: LinearGradient(
@@ -442,13 +447,13 @@ class _BiometricButtonState extends State<_BiometricButton> with SingleTickerPro
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF2575FC).withValues(alpha: 0.15 + (0.15 * _pulseController.value)),
-                  blurRadius: 15 + (10 * _pulseController.value),
-                  spreadRadius: 1 + (2 * _pulseController.value),
+                  blurRadius: 12 + (8 * _pulseController.value),
+                  spreadRadius: 1 + (1 * _pulseController.value),
                 ),
               ],
             ),
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(40),
+              borderRadius: BorderRadius.circular(32),
               child: BackdropFilter(
                 filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
                 child: Center(
@@ -466,7 +471,7 @@ class _BiometricButtonState extends State<_BiometricButton> with SingleTickerPro
                           ).createShader(bounds),
                           child: const Icon(
                             Icons.fingerprint_rounded,
-                            size: 42,
+                            size: 36,
                             color: Colors.white,
                           ),
                         ),

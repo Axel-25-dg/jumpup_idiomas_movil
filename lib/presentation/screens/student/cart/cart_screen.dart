@@ -1,13 +1,10 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/cart/cart_provider.dart';
-import 'package:jumpup_app/presentation/providers/subscription_providers.dart';
-import 'package:jumpup_app/domain/model/subscription_models.dart';
+import 'package:jumpup_app/domain/model/ecommerce_models.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class CartScreen extends ConsumerStatefulWidget {
@@ -19,6 +16,8 @@ class CartScreen extends ConsumerStatefulWidget {
 
 class _CartScreenState extends ConsumerState<CartScreen> with TickerProviderStateMixin {
   late AnimationController _blobController;
+  bool _processing = false;
+  String _statusText = '';
 
   @override
   void initState() {
@@ -35,9 +34,76 @@ class _CartScreenState extends ConsumerState<CartScreen> with TickerProviderStat
     super.dispose();
   }
 
+  Future<void> _handleCheckout() async {
+    HapticFeedback.mediumImpact();
+    final cartAsync = ref.read(cartProvider);
+    if (cartAsync.hasError || cartAsync.value!.items.isEmpty) return;
+
+    setState(() { _processing = true; _statusText = 'Procesando compra...'; });
+
+    try {
+      final actions = ref.read(cartActionsProvider);
+      final order = await actions.checkout();
+
+      setState(() { _processing = false; _statusText = ''; });
+      if (mounted) _showSuccess(order.id.toString());
+
+    } catch (e) {
+      setState(() { _processing = false; _statusText = 'Error: ${e.toString()}'; });
+    }
+  }
+
+  void _showSuccess(String orderId) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: '',
+      pageBuilder: (ctx, a1, a2) => Container(),
+      transitionBuilder: (ctx, a1, a2, child) => Transform.scale(
+        scale: a1.value,
+        child: Opacity(
+          opacity: a1.value,
+          child: AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2A),
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+            title: const Row(
+              children: [
+                Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
+                SizedBox(width: 10),
+                Text('¡Compra Exitosa!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: Text(
+              'Tu orden #$orderId ha sido procesada correctamente.\n'
+              'Ya tienes acceso al contenido.',
+              style: const TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              SizedBox(
+                width: double.infinity,
+                child: FilledButton(
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF7C4DFF),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    context.go('/student');
+                  },
+                  child: const Text('Continuar', style: TextStyle(fontWeight: FontWeight.bold)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final cart = ref.watch(cartProvider);
+    final cartAsync = ref.watch(cartProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor = isDark ? const Color(0xFF0F111A) : const Color(0xFFF0F4F8);
     final titleColor = isDark ? Colors.white : Colors.black87;
@@ -57,71 +123,113 @@ class _CartScreenState extends ConsumerState<CartScreen> with TickerProviderStat
           ),
         ),
         title: Text(
-          '🛒 Shopping Cart',
+          '🛒 Carrito',
           style: TextStyle(
-            color: titleColor, 
-            fontWeight: FontWeight.bold, 
+            color: titleColor,
+            fontWeight: FontWeight.w800,
             fontSize: 22,
             letterSpacing: -0.5,
           ),
         ),
         actions: [
-          if (cart.items.isNotEmpty)
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: TextButton(
-                onPressed: () {
-                  HapticFeedback.lightImpact();
-                  ref.read(cartProvider.notifier).clear();
-                },
-                child: const Text('Clear', style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
-              ),
-            ),
+          IconButton(
+            icon: const Icon(Icons.history_rounded),
+            onPressed: () => context.push('/student/payment-history'),
+          ),
         ],
       ),
-      body: Stack(
-        children: [
-          // Background Blobs Animated
-          AnimatedBuilder(
-            animation: _blobController,
-            builder: (context, child) {
-              return Stack(
-                children: [
-                  Positioned(
-                    top: -60 + (40 * _blobController.value),
-                    right: -50 + (30 * _blobController.value),
-                    child: _blob(const Color(0xFF7C4DFF), 300, isDark ? 0.12 : 0.08),
-                  ),
-                  Positioned(
-                    bottom: 150 - (40 * _blobController.value),
-                    left: -80 + (20 * _blobController.value),
-                    child: _blob(const Color(0xFF00E5FF), 280, isDark ? 0.1 : 0.06),
-                  ),
-                ],
-              );
-            },
-          ),
-
-          if (cart.items.isEmpty)
-            const _EmptyCartView()
-          else
-            Column(
+      body: cartAsync.when(
+        loading: () => const Center(
+          child: CircularProgressIndicator(color: Colors.blueAccent),
+        ),
+        error: (e, _) => Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(20, 120, 20, 20),
-                    physics: const BouncingScrollPhysics(),
-                    itemCount: cart.items.length,
-                    itemBuilder: (context, index) {
-                      final item = cart.items[index];
-                      return _CartItemCard(item: item, ref: ref);
-                    },
+                const Icon(Icons.error_outline_rounded, color: Colors.redAccent, size: 60),
+                const SizedBox(height: 24),
+                Text(
+                  'Error al cargar el carrito',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
-                _CartSummaryPanel(cart: cart),
+                const SizedBox(height: 16),
+                Text(
+                  e.toString(),
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: () => ref.invalidate(cartProvider),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blueAccent,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  ),
+                  icon: const Icon(Icons.refresh, color: Colors.white),
+                  label: const Text(
+                    'Reintentar',
+                    style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+                  ),
+                ),
               ],
             ),
-        ],
+          ),
+        ),
+        data: (cart) => Stack(
+          children: [
+            // Background Blobs Animated
+            AnimatedBuilder(
+              animation: _blobController,
+              builder: (context, child) {
+                return Stack(
+                  children: [
+                    Positioned(
+                      top: -60 + (40 * _blobController.value),
+                      right: -50 + (30 * _blobController.value),
+                      child: _blob(const Color(0xFF7C4DFF), 300, isDark ? 0.12 : 0.08),
+                    ),
+                    Positioned(
+                      bottom: 150 - (40 * _blobController.value),
+                      left: -80 + (20 * _blobController.value),
+                      child: _blob(const Color(0xFF00E5FF), 280, isDark ? 0.1 : 0.06),
+                    ),
+                  ],
+                );
+              },
+            ),
+            if (cart.items.isEmpty)
+              const _EmptyCartView()
+            else
+              Column(
+                children: [
+                  Expanded(
+                    child: ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, 120, 20, 20),
+                      physics: const BouncingScrollPhysics(),
+                      itemCount: cart.items.length,
+                      itemBuilder: (context, index) {
+                        final item = cart.items[index];
+                        return _CartItemCard(item: item, ref: ref);
+                      },
+                    ),
+                  ),
+                  _CartSummaryPanel(cart: cart, onCheckout: _handleCheckout, processing: _processing, statusText: _statusText),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -163,34 +271,18 @@ class _EmptyCartView extends StatelessWidget {
           ),
           const SizedBox(height: 24),
           Text(
-            'Your cart is empty',
+            'Tu carrito está vacío',
             style: TextStyle(
-              color: isDark ? Colors.white : Colors.black87, 
-              fontSize: 22, 
-              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white : Colors.black87,
+              fontSize: 22,
+              fontWeight: FontWeight.w800,
               letterSpacing: -0.5,
             ),
           ),
           const SizedBox(height: 8),
           Text(
-            'Explore our premium plans',
-            style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 15),
-          ),
-          const SizedBox(height: 40),
-          SizedBox(
-            width: 200,
-            height: 52,
-            child: ElevatedButton(
-              onPressed: () => context.pop(),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF7C4DFF),
-                foregroundColor: Colors.white,
-                elevation: 8,
-                shadowColor: const Color(0xFF7C4DFF).withValues(alpha: 0.4),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-              ),
-              child: const Text('Explore Plans', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-            ),
+            'Explora la tienda para agregar productos',
+            style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 15),
           ),
         ],
       ),
@@ -199,7 +291,7 @@ class _EmptyCartView extends StatelessWidget {
 }
 
 class _CartItemCard extends StatelessWidget {
-  final SubscriptionModel item;
+  final CarritoItemModel item;
   final WidgetRef ref;
 
   const _CartItemCard({required this.item, required this.ref});
@@ -207,23 +299,26 @@ class _CartItemCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final product = item.producto;
+
     return GlassContainer(
       margin: const EdgeInsets.only(bottom: 16),
-      borderRadius: BorderRadius.circular(28),
-      padding: const EdgeInsets.all(20),
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(16),
       blur: 24,
       opacity: isDark ? 0.06 : 0.08,
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(14),
+            width: 60,
+            height: 60,
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [Color(0xFF7C4DFF), Color(0xFF00E5FF)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(18),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF00E5FF).withValues(alpha: 0.3),
@@ -232,7 +327,11 @@ class _CartItemCard extends StatelessWidget {
                 ),
               ],
             ),
-            child: const Icon(Icons.workspace_premium_rounded, color: Colors.white, size: 28),
+            child: Icon(
+              product?.tipo == 'libro' ? Icons.book_rounded : Icons.school_rounded,
+              color: Colors.white,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -240,28 +339,30 @@ class _CartItemCard extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  item.name,
+                  product?.titulo ?? 'Producto',
                   style: TextStyle(
-                    color: isDark ? Colors.white : Colors.black87, 
-                    fontWeight: FontWeight.bold, 
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w700,
                     fontSize: 17,
                     letterSpacing: -0.2,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  item.durationLabel,
-                  style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 12, fontWeight: FontWeight.w500),
+                  product?.tipo ?? 'producto',
+                  style: TextStyle(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
                 const SizedBox(height: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.greenAccent.withValues(alpha: 0.1), 
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.2)),
+                Text(
+                  'Cantidad: ${item.cantidad}',
+                  style: TextStyle(
+                    color: isDark ? Colors.white70 : Colors.black.withValues(alpha: 0.7),
+                    fontSize: 13,
                   ),
-                  child: const Text('✅ Includes AI Tutor', style: TextStyle(color: Colors.greenAccent, fontSize: 10, fontWeight: FontWeight.bold)),
                 ),
               ],
             ),
@@ -269,20 +370,21 @@ class _CartItemCard extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                item.formattedPrice,
-                style: const TextStyle(
-                  color: Color(0xFF00E5FF), 
-                  fontWeight: FontWeight.bold, 
-                  fontSize: 20,
-                  letterSpacing: -0.5,
+              if (product != null)
+                Text(
+                  '\$${product.precio.toStringAsFixed(2)}',
+                  style: const TextStyle(
+                    color: Color(0xFF00E5FF),
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-              ),
               const SizedBox(height: 12),
               GestureDetector(
                 onTap: () {
                   HapticFeedback.mediumImpact();
-                  ref.read(cartProvider.notifier).removeItem(item.id);
+                  ref.read(cartActionsProvider).removeItem(item.productoId);
                 },
                 child: Container(
                   padding: const EdgeInsets.all(8),
@@ -301,188 +403,20 @@ class _CartItemCard extends StatelessWidget {
   }
 }
 
-class _CartSummaryPanel extends ConsumerStatefulWidget {
-  final CartState cart;
-  const _CartSummaryPanel({required this.cart});
+class _CartSummaryPanel extends StatelessWidget {
+  final CarritoModel cart;
+  final VoidCallback onCheckout;
+  final bool processing;
+  final String statusText;
 
-  @override
-  ConsumerState<_CartSummaryPanel> createState() => _CartSummaryPanelState();
-}
-
-class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
-  String _statusText = '';
-  bool _processing = false;
-
-  Future<void> _handleCheckout() async {
-    HapticFeedback.mediumImpact();
-    final cartItems = ref.read(cartProvider).items;
-    if (cartItems.isEmpty) return;
-
-    final plan = cartItems.first;
-    setState(() { _processing = true; _statusText = 'Preparing payment...'; });
-
-    try {
-      setState(() => _statusText = 'Connecting to server...');
-      final ok = await ref.read(stripePaymentProvider.notifier)
-          .createIntent(subscriptionId: plan.id);
-
-      if (!ok) {
-        final err = ref.read(stripePaymentProvider).error;
-        setState(() { _processing = false; _statusText = err ?? 'Error creating payment.'; });
-        return;
-      }
-
-      final intentState = ref.read(stripePaymentProvider);
-      final clientSecret   = intentState.clientSecret!;
-      final publishableKey = intentState.publishableKey;
-
-      if (publishableKey != null && publishableKey.isNotEmpty) {
-        Stripe.publishableKey = publishableKey;
-      }
-      await Stripe.instance.applySettings();
-
-      setState(() => _statusText = 'Loading payment sheet...');
-      await Stripe.instance.initPaymentSheet(
-        paymentSheetParameters: SetupPaymentSheetParameters(
-          paymentIntentClientSecret: clientSecret,
-          merchantDisplayName: 'JumpUp Idiomas',
-          style: ThemeMode.system,
-          appearance: const PaymentSheetAppearance(
-            colors: PaymentSheetAppearanceColors(
-              primary: Color(0xFF7C4DFF),
-            ),
-            shapes: PaymentSheetShape(
-              borderRadius: 12,
-              shadow: PaymentSheetShadowParams(color: Colors.black),
-            ),
-          ),
-          googlePay: const PaymentSheetGooglePay(
-            merchantCountryCode: 'US',
-            currencyCode: 'usd',
-            testEnv: true,
-          ),
-        ),
-      );
-
-      setState(() => _statusText = '');
-      await Stripe.instance.presentPaymentSheet();
-
-      setState(() => _statusText = 'Activating subscription...');
-      
-      for (int i = 0; i < 3; i++) {
-        await Future.delayed(const Duration(seconds: 2));
-        ref.invalidate(mySubscriptionProvider);
-        final sub = await ref.read(mySubscriptionProvider.future);
-        if (sub?.isActive == true) break;
-      }
-
-      ref.read(cartProvider.notifier).clear();
-      ref.read(stripePaymentProvider.notifier).reset();
-
-      if (mounted) _showSuccess(plan.name.isNotEmpty ? plan.name : 'Pro');
-
-    } on StripeException catch (e) {
-      setState(() {
-        _processing = false;
-        _statusText = e.error.code == FailureCode.Canceled
-            ? 'Payment canceled.'
-            : 'Card declined: ${e.error.localizedMessage}';
-      });
-    } catch (e) {
-      setState(() {
-        _processing = false;
-        _statusText = 'Error: ${e.toString().replaceAll("Exception: ", "")}';
-      });
-    }
-  }
-
-  Future<void> _handleMockPurchase() async {
-    HapticFeedback.heavyImpact();
-    final cartItems = ref.read(cartProvider).items;
-    if (cartItems.isEmpty) return;
-
-    final plan = cartItems.first;
-    setState(() { _processing = true; _statusText = 'Processing mock purchase...'; });
-
-    try {
-      final success = await ref.read(stripePaymentProvider.notifier)
-          .executeMockPurchase(subscriptionId: plan.id);
-
-      if (success) {
-        for (int i = 0; i < 2; i++) {
-          await Future.delayed(const Duration(milliseconds: 500));
-          ref.invalidate(mySubscriptionProvider);
-        }
-        
-        ref.read(cartProvider.notifier).clear();
-        if (mounted) _showSuccess(plan.name);
-      } else {
-        setState(() { _processing = false; _statusText = 'Simulation error.'; });
-      }
-    } catch (e) {
-      setState(() {
-        _processing = false;
-        _statusText = 'Error: ${e.toString()}';
-      });
-    }
-  }
-
-  void _showSuccess(String planName) {
-    showGeneralDialog(
-      context: context,
-      barrierDismissible: false,
-      barrierLabel: '',
-      pageBuilder: (ctx, a1, a2) => Container(),
-      transitionBuilder: (ctx, a1, a2, child) => Transform.scale(
-        scale: a1.value,
-        child: Opacity(
-          opacity: a1.value,
-          child: AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-            title: const Row(
-              children: [
-                Icon(Icons.check_circle_rounded, color: Colors.greenAccent, size: 28),
-                SizedBox(width: 10),
-                Text('Payment Successful!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            content: Text(
-              'Your $planName plan is now active.\n'
-              'You now have access to the AI Tutor and all Pro benefits.',
-              style: const TextStyle(color: Colors.white70),
-            ),
-            actions: [
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton(
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF7C4DFF),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    padding: const EdgeInsets.symmetric(vertical: 14),
-                  ),
-                  onPressed: () {
-                    Navigator.pop(ctx);
-                    context.go('/student');
-                  },
-                  child: const Text('Get Started!', style: TextStyle(fontWeight: FontWeight.bold)),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  const _CartSummaryPanel({required this.cart, required this.onCheckout, required this.processing, required this.statusText});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final totalTextColor = isDark ? Colors.white54 : Colors.black54;
     final totalLabelColor = isDark ? Colors.white : Colors.black87;
-    final hasError = _statusText.startsWith('Error') ||
-        _statusText.contains('rechazada') ||
-        _statusText.contains('cancelado');
+    final hasError = statusText.startsWith('Error');
 
     return GlassContainer(
       blur: 32,
@@ -497,29 +431,18 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text('Subtotal', style: TextStyle(color: totalTextColor, fontSize: 14, fontWeight: FontWeight.w500)),
-                Text('\$${widget.cart.total.toStringAsFixed(2)}', style: TextStyle(color: totalLabelColor, fontSize: 16, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Divider(color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.1)),
-            const SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text('Total', style: TextStyle(color: totalLabelColor, fontSize: 20, fontWeight: FontWeight.bold)),
+                Text('Total', style: TextStyle(color: totalTextColor, fontSize: 14, fontWeight: FontWeight.w600)),
                 Text(
-                  '\$${widget.cart.total.toStringAsFixed(2)}',
-                  style: const TextStyle(
-                    color: Color(0xFF00E5FF), 
-                    fontSize: 28, 
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: -1,
+                  '\$${cart.total.toStringAsFixed(2)}',
+                  style: TextStyle(
+                    color: totalLabelColor,
+                    fontSize: 24,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               ],
             ),
-            if (_statusText.isNotEmpty) ...[
+            if (statusText.isNotEmpty) ...[
               const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -530,20 +453,20 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    if (_processing && !hasError)
+                    if (processing && !hasError)
                       const SizedBox(
                         width: 14,
                         height: 14,
                         child: CircularProgressIndicator(strokeWidth: 2, color: Colors.blueAccent),
                       ),
-                    if (_processing && !hasError) const SizedBox(width: 10),
+                    if (processing && !hasError) const SizedBox(width: 10),
                     Flexible(
                       child: Text(
-                        _statusText,
+                        statusText,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 13,
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           color: hasError ? Colors.redAccent : Colors.blueAccent,
                         ),
                       ),
@@ -552,17 +475,17 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
                 ),
               ),
             ],
-            const SizedBox(height: 20),
+            const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              height: 60,
+              height: 56,
               child: ElevatedButton(
-                onPressed: _processing ? null : _handleCheckout,
+                onPressed: cart.items.isEmpty || processing ? null : onCheckout,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.transparent,
                   shadowColor: Colors.transparent,
                   padding: EdgeInsets.zero,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
                 ),
                 child: Ink(
                   decoration: BoxDecoration(
@@ -571,7 +494,7 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
                       begin: Alignment.centerLeft,
                       end: Alignment.centerRight,
                     ),
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                     boxShadow: [
                       BoxShadow(
                         color: const Color(0xFF00E5FF).withValues(alpha: 0.4),
@@ -582,45 +505,20 @@ class _CartSummaryPanelState extends ConsumerState<_CartSummaryPanel> {
                   ),
                   child: Container(
                     alignment: Alignment.center,
-                    child: _processing
+                    child: processing
                         ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 3)
-                        : const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.lock_outline_rounded, color: Colors.white, size: 20),
-                              SizedBox(width: 10),
-                              Text('PAY WITH STRIPE', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.5)),
-                            ],
+                        : const Text(
+                            'Finalizar Compra',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                            ),
                           ),
                   ),
                 ),
               ),
             ),
-            const SizedBox(height: 16),
-            const Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(Icons.verified_user_rounded, color: Colors.greenAccent, size: 14),
-                SizedBox(width: 6),
-                Text('100% Secure Payment with Stripe', style: TextStyle(color: Colors.greenAccent, fontSize: 12, fontWeight: FontWeight.w600)),
-              ],
-            ),
-            if (kDebugMode) ...[
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton(
-                  onPressed: _processing ? null : _handleMockPurchase,
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: Colors.orangeAccent,
-                    side: const BorderSide(color: Colors.orangeAccent, width: 1.5),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                  ),
-                  child: const Text('🧪 SIMULATE PURCHASE (DEBUG)', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13)),
-                ),
-              ),
-            ],
           ],
         ),
       ),

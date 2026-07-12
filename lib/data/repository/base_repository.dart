@@ -38,10 +38,12 @@ abstract class BaseRepository {
   Future<T> getOne<T>(
     String endpoint,
     T Function(Map<String, dynamic>) fromJson, {
+    Map<String, dynamic>? queryParameters,
     String? message,
   }) async {
     return handleRequest<T>(() async {
-      final response = await dio.get<Map<String, dynamic>>(endpoint);
+      final response = await dio.get<Map<String, dynamic>>(endpoint,
+          queryParameters: queryParameters);
       return fromJson(response.data!);
     }, message: message ?? 'No se pudo obtener el dato');
   }

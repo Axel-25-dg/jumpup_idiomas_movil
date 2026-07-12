@@ -51,7 +51,11 @@ class ProgressScreen extends ConsumerWidget {
                       statsAsync.when(
                         loading: () => const _SkeletonCard(height: 200),
                         error: (_, __) => const SizedBox.shrink(),
-                        data: (stats) => _XPCard(stats: stats),
+                        data: (stats) => summaryAsync.when(
+                          loading: () => const _SkeletonCard(height: 200),
+                          error: (_, __) => const SizedBox.shrink(),
+                          data: (summary) => _XPCard(stats: stats, summary: summary),
+                        ),
                       ),
                       const SizedBox(height: 20),
                       // Streak Card
@@ -105,7 +109,8 @@ class ProgressScreen extends ConsumerWidget {
 
 class _XPCard extends StatelessWidget {
   final UserStatsModel stats;
-  const _XPCard({required this.stats});
+  final ProgressSummaryModel summary;
+  const _XPCard({required this.stats, required this.summary});
 
   @override
   Widget build(BuildContext context) {
@@ -211,7 +216,7 @@ class _XPCard extends StatelessWidget {
             children: [
               _SmallStat(icon: Icons.star_rounded, label: 'XP Total', value: '${stats.totalXp}', color: Colors.purpleAccent),
               _SmallStat(icon: Icons.local_fire_department_rounded, label: 'Racha', value: '${stats.currentStreak} días', color: Colors.orangeAccent),
-              const _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '12', color: Colors.amberAccent),
+              _SmallStat(icon: Icons.emoji_events_rounded, label: 'Logros', value: '${summary.achievementsCount}', color: Colors.amberAccent),
             ],
           ),
         ],

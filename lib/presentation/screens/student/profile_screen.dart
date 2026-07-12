@@ -8,6 +8,7 @@ import 'package:jumpup_app/presentation/providers/images/image_upload_provider.d
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
@@ -34,6 +35,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ref.invalidate(userProfileProvider);
+      ref.invalidate(progressByLanguageProvider);
     });
   }
 
@@ -149,13 +151,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final profileData = profileAsync.valueOrNull;
 
     final displayFirstName =
-        profileData?.firstName ?? (authUser?.name ?? '');
-    final displayLastName = profileData?.lastName ?? '';
-    final authName = authUser?.name;
+        profileData?.firstName ?? (authUser?.firstName ?? '');
+    final displayLastName = profileData?.lastName ?? (authUser?.lastName ?? '');
+    final authFullName = authUser?.fullName;
     final authEmail = authUser?.email;
     final displayFullName = profileData?.fullName ??
-        (authName != null && authName.isNotEmpty ? authName : l10n.user);
-    final displayUsername = profileData?.username ?? '';
+        (authFullName != null && authFullName.isNotEmpty ? authFullName : l10n.user);
+    final displayUsername = profileData?.username ?? (authUser?.username ?? '');
     final displayEmail = profileData?.email ??
         (authEmail != null && authEmail.isNotEmpty ? authEmail : '');
 
@@ -209,6 +211,8 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       lastNameController: _lastNameController,
                     ),
                     const SizedBox(height: 24),
+                    _ProgressByLanguageSection(),
+                    const SizedBox(height: 24),
                     _DangerZone(onLogout: _confirmLogout),
                   ],
                 ),
@@ -229,6 +233,86 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           boxShadow: [BoxShadow(color: color.withValues(alpha: 0.1), blurRadius: 100)],
         ),
       );
+}
+
+class _ProgressByLanguageSection extends ConsumerWidget {
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final progressAsync = ref.watch(progressByLanguageProvider);
+    final l10n = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(24),
+      padding: const EdgeInsets.all(8),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+            child: Text(
+              'Progreso por Idioma',
+              style: AppTextStyles.titleMedium.copyWith(
+                fontWeight: FontWeight.w700,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+          progressAsync.when(
+            data: (list) {
+              if (list.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Text('No has iniciado ningún curso aún.',
+                      style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: list.length,
+                separatorBuilder: (_, __) => const Divider(height: 1, indent: 20, endIndent: 20, color: Colors.white10),
+                itemBuilder: (context, index) {
+                  final p = list[index];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                    leading: Text(p.languageCode.toUpperCase(), style: const TextStyle(fontSize: 24)),
+                    title: Text(p.languageName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const SizedBox(height: 8),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: p.percentage / 100,
+                            backgroundColor: Colors.white10,
+                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                            minHeight: 6,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text('${p.completed} / ${p.totalLessons} lecciones (${p.percentage.toInt()}%)', 
+                          style: const TextStyle(fontSize: 12)),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            loading: () => const Center(child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(),
+            )),
+            error: (e, __) => Padding(
+              padding: const EdgeInsets.all(20),
+              child: Text('Error al cargar progreso: $e'),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 // ─── Header con avatar, nombre y acciones ─────────────────────────────────────

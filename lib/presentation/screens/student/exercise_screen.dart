@@ -1,5 +1,6 @@
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
@@ -8,7 +9,7 @@ import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:lottie/lottie.dart';
 
-import 'package:flutter/services.dart';
+import 'package:jumpup_app/l10n/app_localizations.dart';
 
 class ExerciseScreen extends ConsumerStatefulWidget {
   const ExerciseScreen({super.key, required this.lessonId});
@@ -341,6 +342,16 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
       score: (_correctCount / total) * 100,
     );
 
+    // Verificar logro Principiante Pro (30 XP)
+    final stats = ref.read(userStatsProvider).value;
+    if (stats != null) {
+      final totalXpWithNew = stats.totalXp + xp;
+      // Si antes tenía menos de 30 y ahora tiene 30 o más
+      if (stats.totalXp < 30 && totalXpWithNew >= 30) {
+        _showPrincipianteProAchievement();
+      }
+    }
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -411,6 +422,72 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
     );
   }
 
+  void _showPrincipianteProAchievement() {
+    final l10n = AppLocalizations.of(context)!;
+    // Agregamos un pequeño delay para que no aparezca exactamente igual que el diálogo de fin de lección
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted) return;
+      
+      final overlay = Overlay.of(context);
+      late OverlayEntry entry;
+      
+      entry = OverlayEntry(
+        builder: (context) => Positioned(
+          top: 60,
+          left: 20,
+          right: 20,
+          child: Material(
+            color: Colors.transparent,
+            child: FadeInDown(
+              child: GlassContainer(
+                padding: const EdgeInsets.all(16),
+                borderRadius: BorderRadius.circular(20),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: const BoxDecoration(
+                        color: Colors.amberAccent,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.emoji_events_rounded, color: Colors.white),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(l10n.achievementPrincipiantePro, 
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
+                          Text(l10n.achievementPrincipianteProDesc, 
+                            style: const TextStyle(fontSize: 13, color: Colors.white70)),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Colors.purpleAccent.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: const Text('+30 XP', style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      );
+
+      overlay.insert(entry);
+      Future.delayed(const Duration(seconds: 4), () {
+        if (entry.mounted) entry.remove();
+      });
+    });
+  }
+
   void _showExitConfirmation() {
     showDialog(
       context: context,
@@ -433,8 +510,15 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   }
 
   Widget _buildMultipleChoice(ExerciseModel exercise) {
-    // In a real app, options would come from the model
-    final options = [exercise.correctAnswer, 'Opción Incorrecta 1', 'Opción Incorrecta 2', 'Opción Incorrecta 3']..shuffle();
+    // If options list is empty, fallback to previous behavior
+    final List<String> options;
+    if (exercise.options.isEmpty) {
+      options = [exercise.correctAnswer, 'Opción Incorrecta 1', 'Opción Incorrecta 2', 'Opción Incorrecta 3'];
+      options.shuffle();
+    } else {
+      options = List.from(exercise.options);
+      options.shuffle();
+    }
 
     return Column(
       children: options.map((option) {
@@ -458,8 +542,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
                     ),
                   ),
                   child: isSelected 
-                    ? const Center(child: Icon(Icons.circle, size: 14, color: Colors.blueAccent))
-                    : null,
+                      ? const Center(child: Icon(Icons.circle, size: 14, color: Colors.blueAccent))
+                      : null,
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -590,7 +674,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
 
   Widget _buildMatch(ExerciseModel exercise) {
     // Similar to existing logic but styled
-    return const Center(child: Text('Implementación de Match con diseño premium'));
+    return const Center(child: Text('Implementación de Match con diseño profesional'));
   }
 
   Widget _buildListen(ExerciseModel exercise) {

@@ -851,7 +851,7 @@ abstract class AppLocalizations {
   /// No description provided for @adminSubscriptions.
   ///
   /// In en, this message translates to:
-  /// **'Subscriptions'**
+  /// **'Access Levels'**
   String get adminSubscriptions;
 
   /// No description provided for @studentCertificates.
@@ -953,13 +953,13 @@ abstract class AppLocalizations {
   /// No description provided for @billingAndSubscriptions.
   ///
   /// In en, this message translates to:
-  /// **'Subscriptions & Billing'**
+  /// **'Levels & Billing'**
   String get billingAndSubscriptions;
 
   /// No description provided for @monitorRevenueSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Monitor revenue and premium plans'**
+  /// **'Monitor revenue and access levels'**
   String get monitorRevenueSubtitle;
 
   /// No description provided for @contentReports.
@@ -1003,6 +1003,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Are you sure you want to exit the admin panel?'**
   String get logoutAdminConfirm;
+
+  /// No description provided for @achievementPrincipiantePro.
+  ///
+  /// In en, this message translates to:
+  /// **'PRO BEGINNER'**
+  String get achievementPrincipiantePro;
+
+  /// No description provided for @achievementPrincipianteProDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Congratulations! You\'ve reached your first 30 XP and are now a Pro Beginner.'**
+  String get achievementPrincipianteProDesc;
 }
 
 class _AppLocalizationsDelegate

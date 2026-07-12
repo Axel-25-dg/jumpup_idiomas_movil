@@ -15,6 +15,11 @@ class ProgressService extends BaseRepository {
         queryParameters: params, message: 'No se pudo obtener el progreso');
   }
 
+  Future<List<ProgressByLanguage>> getProgressByLanguage() async {
+    return getList('progress/by-language/', ProgressByLanguage.fromJson,
+        message: 'No se pudo obtener el progreso por idioma');
+  }
+
   Future<UserProgressModel> registerProgress({
     required int lessonId,
     required String status,
@@ -44,8 +49,10 @@ class ProgressService extends BaseRepository {
         message: 'No se pudieron obtener tus logros');
   }
 
-  Future<List<RankingEntryModel>> getRanking() async {
-    return getList('ranking/', RankingEntryModel.fromJson,
+  Future<RankingModel> getRanking({String? language}) async {
+    final params = language != null ? {'language': language} : null;
+    return getOne('ranking/', RankingModel.fromJson,
+        queryParameters: params,
         message: 'No se pudo obtener el ranking');
   }
 
@@ -119,8 +126,8 @@ class ProgressService extends BaseRepository {
   }) async {
     return handleRequest<Map<String, dynamic>>(() async {
       final response = await dio.post<Map<String, dynamic>>(
-        'exercises/$exerciseId/submit/',
-        data: {'answer': answer},
+        'exercises/$exerciseId/validar/',
+        data: {'respuesta_usuario': answer},
       );
       return response.data!;
     }, message: 'No se pudo enviar la respuesta');
