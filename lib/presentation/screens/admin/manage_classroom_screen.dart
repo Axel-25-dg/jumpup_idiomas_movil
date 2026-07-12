@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/correcciones/classroom_provider.dart' as correcciones;
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -19,7 +20,7 @@ class ManageClassroomScreen extends ConsumerStatefulWidget {
 class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
   String _searchQuery = '';
 
-  Future<void> _removeStudent(int id) async {
+  Future<void> _removeStudent(int studentId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -41,7 +42,10 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     if (confirmed != true) return;
 
     try {
-      await ref.read(enrollmentNotifierProvider.notifier).removeStudent(id);
+      await ref.read(enrollmentNotifierProvider.notifier).removeStudent(
+        classroomId: widget.classroomId,
+        studentId: studentId,
+      );
       if (!mounted) return;
       ref.invalidate(enrollmentsProvider(widget.classroomId));
       ref.invalidate(classroomsListProvider);
@@ -81,6 +85,10 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
       await ref.read(classroomNotifierProvider.notifier).delete(widget.classroomId);
       if (!mounted) return;
       ref.invalidate(classroomsListProvider);
+      // Also refresh the correcciones provider so admin screens stay in sync
+      try {
+        await ref.read(correcciones.classroomNotifierProvider.notifier).fetchAllClassrooms();
+      } catch (_) {}
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aula eliminada con éxito'), backgroundColor: Colors.greenAccent)
       );
@@ -330,7 +338,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                                   )
                                 : IconButton(
                                     icon: const Icon(Icons.person_remove_rounded, color: Colors.redAccent, size: 22),
-                                    onPressed: () => _removeStudent(student.id),
+                                    onPressed: () => _removeStudent(student.studentId),
                                   ),
                           ),
                         );

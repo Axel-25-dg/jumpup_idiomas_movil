@@ -41,11 +41,21 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
       );
       return;
     }
-    await ref.read(classroomNotifierProvider.notifier).create(
-          _nameController.text.trim(),
-          _descController.text.trim(),
-          _selectedCourseId!,
-        );
+
+    if (widget.classroom != null) {
+      await ref.read(classroomNotifierProvider.notifier).update(
+        widget.classroom!.id,
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
+      );
+    } else {
+      await ref.read(classroomNotifierProvider.notifier).create(
+        _nameController.text.trim(),
+        _descController.text.trim(),
+        _selectedCourseId!,
+      );
+    }
   }
 
   @override
@@ -64,7 +74,9 @@ class _CreateClassroomScreenState extends ConsumerState<CreateClassroomScreen> {
           SnackBar(
               backgroundColor: Colors.greenAccent,
               content: Text(
-                  'Aula guardada. Código: ${classroom.accessCode}')),
+                  widget.classroom == null
+                      ? 'Aula creada correctamente. Código: ${classroom.accessCode}'
+                      : 'Aula actualizada correctamente.')),
         );
         ref.invalidate(classroomsListProvider);
         Navigator.pop(context);

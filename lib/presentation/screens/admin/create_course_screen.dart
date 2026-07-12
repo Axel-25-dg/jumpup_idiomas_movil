@@ -63,7 +63,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                         await ref.read(adminCoursesProvider.notifier).addCourse({
                           'title': _titleCtrl.text,
                           'description': _descCtrl.text,
-                          'language': _selectedLanguageId,
+                          'language_id': _selectedLanguageId,
                           'difficulty_level': 'A1',
                         });
                         if (context.mounted) Navigator.pop(context);

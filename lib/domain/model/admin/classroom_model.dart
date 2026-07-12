@@ -68,7 +68,8 @@ class ClassroomModel {
                   classroom['date_joined']?.toString() ??
                   '') ??
           DateTime.now(),
-      studentsCount: classroom['students_count'] as int? ??
+      studentsCount: classroom['total_students'] as int? ??
+          classroom['students_count'] as int? ??
           classroom['enrolled_count'] as int? ??
           0,
       courseName: classroom['course_name']?.toString() ??

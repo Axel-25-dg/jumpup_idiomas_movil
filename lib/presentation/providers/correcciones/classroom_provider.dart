@@ -46,16 +46,18 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
     }
   }
 
-  // ✏️ Editar aula - ✅ NUEVO
+  // ✏️ Editar aula
   Future<void> updateClassroom({
     required int id,
     required String name,
     required String description,
+    required int courseId,
   }) async {
     try {
       await _repository.updateClassroom(id, {
         'name': name,
         'description': description,
+        'course': courseId,
       });
       await fetchAllClassrooms();
     } catch (e, stack) {
@@ -63,12 +65,11 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
     }
   }
 
-  // 🗑️ Eliminar aula - ✅ NUEVO
+  // 🗑️ Eliminar aula
   Future<void> deleteClassroom(int id) async {
     try {
       await _repository.deleteClassroom(id);
-      final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((c) => c.id != id).toList());
+      await fetchAllClassrooms();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }
@@ -84,9 +85,15 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
   }
 
   // 🗑️ Eliminar alumno
-  Future<void> removeStudent(int enrollmentId) async {
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  }) async {
     try {
-      await _repository.removeStudent(enrollmentId);
+      await _repository.removeStudent(
+        classroomId: classroomId,
+        studentId: studentId,
+      );
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

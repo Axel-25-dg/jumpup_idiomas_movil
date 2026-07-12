@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/upload_resource_screen.dart';
+import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ResourceLibraryScreen extends ConsumerWidget {
@@ -96,9 +98,23 @@ class ResourceLibraryScreen extends ConsumerWidget {
                         ),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.download_rounded, color: Colors.white54),
+                        icon: const Icon(Icons.open_in_new_rounded, color: Colors.white54),
                         onPressed: () {
-                           ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Descarga iniciada...')));
+                          var fileUrl = res.fileUrl?.trim() ?? '';
+                          if (fileUrl.isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('URL del recurso no disponible')),
+                            );
+                            return;
+                          }
+                          if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
+                            fileUrl = AppConfig.resolveImageUrl(fileUrl);
+                          }
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ResourceWebViewScreen(url: fileUrl, title: res.title),
+                            ),
+                          );
                         },
                       ),
                     ],

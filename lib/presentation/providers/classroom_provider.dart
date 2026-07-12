@@ -7,7 +7,12 @@ import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart
 /// Si necesitas filtrar o buscar, puedes convertirlo a un [AsyncNotifierProvider].
 final classroomsListProvider = FutureProvider<List<ClassroomModel>>((ref) async {
   final repo = ref.read(teacherRepositoryProvider);
-  return repo.fetchAllClassrooms(); // Asegúrate de tener este método en tu repo
+  final list = await repo.fetchAllClassrooms();
+  // Filter out inactive (soft-deleted) classrooms returned by the API
+  final filtered = list.where((c) => c.isActive).toList();
+  // ignore: avoid_print
+  print('classroomsListProvider: original=${list.length}, filtered=${filtered.length}');
+  return filtered;
 });
 
 /// Notificador para acciones CRUD sobre Aulas (Crear, Editar, Borrar)

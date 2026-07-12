@@ -216,6 +216,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
             ),
           ),
         ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

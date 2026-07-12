@@ -28,20 +28,29 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
   }
 
   Future<void> _submit() async {
-    if (_titleCtrl.text.trim().isEmpty || _selectedCourseId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa un título y selecciona un curso')));
+    final title = _titleCtrl.text.trim();
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa un título para el módulo')));
+      return;
+    }
+    if (_selectedCourseId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor selecciona un curso')));
       return;
     }
 
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(adminCoursesProvider.notifier).addModule({
-        'title': _titleCtrl.text.trim(),
-        'description': _descriptionCtrl.text.trim(),
-        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
+      final data = <String, dynamic>{
+        'title': title,
         'course': _selectedCourseId,
-      });
+        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
+      };
+      // Solo incluir descripción si no está vacía
+      final desc = _descriptionCtrl.text.trim();
+      if (desc.isNotEmpty) data['description'] = desc;
+
+      await ref.read(adminCoursesProvider.notifier).addModule(data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Módulo creado correctamente')));

@@ -66,6 +66,7 @@ dependencies:
   # Pagos y enlaces externos (Stripe)
   # ─────────────────────────────────────────────
   url_launcher: ^6.3.0
+  webview_flutter: ^4.2.1
   flutter_stripe: 13.1.0   # <--- cambia ^13.1.0 por 13.1.0
   
   # ─────────────────────────────────────────────

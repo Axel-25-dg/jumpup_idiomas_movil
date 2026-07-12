@@ -317,6 +317,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             ),
           ),
         ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),

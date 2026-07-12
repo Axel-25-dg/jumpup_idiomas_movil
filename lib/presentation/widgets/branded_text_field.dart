@@ -17,6 +17,8 @@ class BrandedTextField extends StatelessWidget {
     this.autofillHints,
     this.maxLines = 1,
     this.enabled = true,
+    this.textColor,
+    this.labelColor,
   });
 
   final TextEditingController controller;
@@ -32,9 +34,17 @@ class BrandedTextField extends StatelessWidget {
   final Iterable<String>? autofillHints;
   final int maxLines;
   final bool enabled;
+  final Color? textColor;
+  final Color? labelColor;
 
   @override
   Widget build(BuildContext context) {
+    // Detectar si el tema es oscuro para usar colores blancos automáticamente
+    final brightness = Theme.of(context).brightness;
+    final isDark = brightness == Brightness.dark;
+    final effectiveTextColor = textColor ?? (isDark ? Colors.white : AppColors.textPrimary);
+    final effectiveLabelColor = labelColor ?? (isDark ? Colors.white70 : AppColors.textSecondary);
+
     return TextFormField(
       controller: controller,
       obscureText: obscureText,
@@ -46,14 +56,16 @@ class BrandedTextField extends StatelessWidget {
       maxLines: maxLines,
       enabled: enabled,
       style: AppTextStyles.bodyMedium.copyWith(
-        color: AppColors.textPrimary,
+        color: effectiveTextColor,
         fontWeight: FontWeight.w500,
       ),
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
+        labelStyle: TextStyle(color: effectiveLabelColor),
+        hintStyle: TextStyle(color: effectiveLabelColor),
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, size: 20, color: AppColors.textSecondary)
+            ? Icon(prefixIcon, size: 20, color: effectiveLabelColor)
             : null,
         suffixIcon: suffixIcon,
       ),

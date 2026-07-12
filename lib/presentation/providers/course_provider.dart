@@ -33,6 +33,11 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
     await _repo.createCourse(data);
     await fetchCourses(); // Refresca la lista tras añadir
   }
+
+  Future<void> editCourse(int id, Map<String, dynamic> data) async {
+    await _repo.updateCourse(id, data);
+    await fetchCourses(); // Refresca la lista tras editar
+  }
   
   Future<void> addModule(Map<String, dynamic> data) async {
     await _repo.createModule(data);

@@ -184,6 +184,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
             ],
           ),
         ),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
@@ -191,24 +192,34 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: classroom != null ? 'Actualizar' : 'Crear',
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 final notifier = ref.read(classroomNotifierProvider.notifier);
+                final courseId = int.parse(_courseIdController.text.trim());
 
-                if (classroom != null) {
-                  notifier.updateClassroom(
-                    id: classroom.id,
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                  );
-                } else {
-                  notifier.addClassroom(
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                    courseId: int.parse(_courseIdController.text.trim()),
+                try {
+                  if (classroom != null) {
+                    await notifier.updateClassroom(
+                      id: classroom.id,
+                      name: _nameController.text.trim(),
+                      description: _descriptionController.text.trim(),
+                      courseId: courseId,
+                    );
+                  } else {
+                    await notifier.addClassroom(
+                      name: _nameController.text.trim(),
+                      description: _descriptionController.text.trim(),
+                      courseId: courseId,
+                    );
+                  }
+                  if (!mounted) return;
+                  Navigator.pop(ctx);
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No se pudo guardar el aula.')),
                   );
                 }
-                Navigator.pop(ctx);
               }
             },
           ),
@@ -233,9 +244,17 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteClassroom(id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              try {
+                await notifier.deleteClassroom(id);
+                if (!context.mounted) return;
+                Navigator.pop(ctx);
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No se pudo eliminar el aula.')),
+                );
+              }
             },
           ),
         ],
@@ -312,7 +331,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                       icon: const Icon(Icons.remove_circle_rounded, color: AppColors.error),
                       onPressed: () {
                         final notifier = ref.read(classroomNotifierProvider.notifier);
-                        notifier.removeStudent(enrollment.id);
+                        notifier.removeStudent(
+                          classroomId: classroomId,
+                          studentId: enrollment.studentId,
+                        );
                         ref.invalidate(enrollmentsProvider(classroomId));
                         if (mounted) {
                           Navigator.pop(ctx);

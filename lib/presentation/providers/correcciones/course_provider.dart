@@ -47,8 +47,7 @@ class CourseNotifier extends StateNotifier<AsyncValue<List<Course>>> {
   Future<void> deleteCourse(int id) async {
     try {
       await _repository.deleteCourse(id);
-      final currentList = state.value ?? [];
-      state = AsyncValue.data(currentList.where((c) => c.id != id).toList());
+      await fetchCourses();
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

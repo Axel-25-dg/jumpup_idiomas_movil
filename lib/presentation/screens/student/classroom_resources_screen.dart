@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:jumpup_app/theme/colors.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 
 class ClassroomResourcesScreen extends ConsumerWidget {
   const ClassroomResourcesScreen({super.key});
@@ -53,11 +55,15 @@ class ClassroomResourcesScreen extends ConsumerWidget {
               final folderName = folder['folder']?.toString() ?? '';
               final filesList = folder['files'] as List<dynamic>? ?? [];
 
+              debugPrint('[ResourcesData] folder=$folderName filesRaw=${filesList.toString()}');
               final List<_FileWidget> filesWidgets = filesList.map((f) {
+                final rawUrl = f['url']?.toString() ?? f['file_url']?.toString() ?? '';
+                debugPrint('[ResourcesData] file raw=${f.toString()} url=$rawUrl');
                 return _FileWidget(
                   name: f['name']?.toString() ?? '',
                   size: f['size']?.toString() ?? '',
                   type: _parseFileType(f['type']?.toString()),
+                  url: rawUrl,
                 );
               }).toList();
 
@@ -129,11 +135,13 @@ class _FileWidget extends StatelessWidget {
     required this.name,
     required this.size,
     required this.type,
+    this.url = '',
   });
 
   final String name;
   final String size;
   final FileType type;
+  final String url;
 
   IconData get _icon {
     switch (type) {
@@ -178,14 +186,85 @@ class _FileWidget extends StatelessWidget {
           Text(name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 14)),
       subtitle: Text(size,
           style: const TextStyle(color: AppColors.textSecondary, fontSize: 11)),
-      trailing: IconButton(
-        icon: const Icon(Icons.download, color: AppColors.textSecondary),
-        onPressed: () {
+      onTap: () async {
+        final openUrl = url;
+        if (openUrl.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Descargando $name...')),
+            SnackBar(content: Text('URL no disponible para $name')),
           );
+          return;
+        }
+        await _openResourceUrl(context, name, openUrl);
+      },
+      trailing: IconButton(
+        icon: const Icon(Icons.open_in_new_rounded, color: AppColors.textSecondary),
+        onPressed: () async {
+          await _openResourceUrl(context, name, url);
         },
       ),
     );
+  }
+
+  Future<void> _openResourceUrl(BuildContext context, String name, String url) async {
+    if (url.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('URL no disponible para $name')),
+      );
+      return;
+    }
+
+    try {
+      final finalUrl = _normalizeResourceUrl(url);
+      debugPrint('[Resources] opening url: $finalUrl');
+
+      final finalUri = Uri.tryParse(finalUrl);
+      if (finalUri == null || !finalUri.hasAbsolutePath || finalUri.scheme.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('URL inválida: $finalUrl')),
+        );
+        return;
+      }
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ResourceWebViewScreen(url: finalUrl, title: name),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error abriendo URL: $e')),
+      );
+    }
+  }
+
+  String _normalizeResourceUrl(String rawUrl) {
+    var cleanUrl = rawUrl.trim();
+
+    if (cleanUrl.isEmpty) {
+      return cleanUrl;
+    }
+
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = AppConfig.resolveImageUrl(cleanUrl);
+    }
+
+    if (!cleanUrl.startsWith('http://') && !cleanUrl.startsWith('https://')) {
+      cleanUrl = 'https://${cleanUrl.replaceFirst(RegExp(r'^/+'), '')}';
+    }
+
+    final lower = cleanUrl.toLowerCase();
+    if (lower.endsWith('.pdf') ||
+        lower.endsWith('.doc') ||
+        lower.endsWith('.docx') ||
+        lower.endsWith('.xls') ||
+        lower.endsWith('.xlsx') ||
+        lower.endsWith('.ppt') ||
+        lower.endsWith('.pptx')) {
+      final encodedUrl = Uri.encodeComponent(cleanUrl);
+      return 'https://docs.google.com/gview?embedded=true&url=$encodedUrl';
+    }
+
+    return cleanUrl;
   }
 }

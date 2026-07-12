@@ -113,6 +113,12 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                           label: 'ID de la Lección vinculada',
                           keyboardType: TextInputType.number,
                           hint: 'Ej: 42',
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'El ID de la lección es obligatorio';
+                            final id = int.tryParse(v.trim());
+                            if (id == null || id <= 0) return 'Ingresa un ID válido (número mayor a 0)';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 20),
                         BrandedTextField(
@@ -120,12 +126,20 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                           label: 'Enunciado de la pregunta',
                           hint: 'Ej: ¿Cómo se dice "Hola" en inglés?',
                           maxLines: 2,
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'El enunciado es obligatorio';
+                            return null;
+                          },
                         ),
                         const SizedBox(height: 20),
                         BrandedTextField(
                           controller: _answerCtrl, 
                           label: 'Respuesta Correcta',
                           hint: 'Ej: Hello',
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'La respuesta correcta es obligatoria';
+                            return null;
+                          },
                         ),
                       ],
                     ),
@@ -137,10 +151,10 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                     onPressed: () {
                       if (_formKey.currentState!.validate()) {
                         ref.read(exerciseNotifierProvider.notifier).createExercise({
-                          'lesson': int.tryParse(_lessonCtrl.text) ?? 0,
-                          'question_text': _questionCtrl.text,
+                          'lesson': int.parse(_lessonCtrl.text.trim()),
+                          'question_text': _questionCtrl.text.trim(),
                           'exercise_type': _selectedType,
-                          'correct_answer': _answerCtrl.text,
+                          'correct_answer': _answerCtrl.text.trim(),
                         });
                       }
                     },

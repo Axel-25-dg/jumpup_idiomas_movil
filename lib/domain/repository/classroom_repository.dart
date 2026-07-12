@@ -28,5 +28,8 @@ abstract class ClassroomRepositoryBase {
   Future<List<ClassroomEnrollment>> fetchEnrollments(int classroomId);
 
   /// Retira a un estudiante de un aula.
-  Future<void> removeStudent(int enrollmentId);
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  });
 }

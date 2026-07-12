@@ -29,20 +29,34 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
   }
 
   Future<void> _submit() async {
-    if (_titleCtrl.text.trim().isEmpty || _moduleIdCtrl.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa el título y el ID del Módulo')));
+    final title = _titleCtrl.text.trim();
+    final moduleIdText = _moduleIdCtrl.text.trim();
+    final orderText = _orderCtrl.text.trim();
+
+    if (title.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa el título de la lección')));
       return;
     }
+    final moduleId = int.tryParse(moduleIdText);
+    if (moduleId == null || moduleId <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Por favor ingresa un ID de Módulo válido (número entero)')));
+      return;
+    }
+    final order = int.tryParse(orderText) ?? 1;
 
     setState(() => _isLoading = true);
 
     try {
-      await ref.read(adminCoursesProvider.notifier).addLesson({
-        'title': _titleCtrl.text.trim(),
-        'description': _descriptionCtrl.text.trim(),
-        'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
-        'module': int.tryParse(_moduleIdCtrl.text.trim()),
-      });
+      final data = <String, dynamic>{
+        'title': title,
+        'module': moduleId,
+        'order': order,
+      };
+      // Solo incluir descripción si no está vacía
+      final desc = _descriptionCtrl.text.trim();
+      if (desc.isNotEmpty) data['description'] = desc;
+
+      await ref.read(adminCoursesProvider.notifier).addLesson(data);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lección creada correctamente')));

@@ -182,6 +182,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
       // Forzar la obtención del perfil real del usuario con su token recién emitido
       final user = await _authService.getProfile();
+      try {
+        // ignore: avoid_print
+        print('AuthNotifier.register: fetched_user_id=${user.id}, email=${user.email}');
+      } catch (_) {}
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
       state = AuthState(

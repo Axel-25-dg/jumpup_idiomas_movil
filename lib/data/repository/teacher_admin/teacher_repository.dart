@@ -106,8 +106,14 @@ class TeacherRepository {
 
   Future<void> deleteClassroom(int id) async {
     try {
-      await _dio.delete('classrooms/$id/');
+      // ignore: avoid_print
+      print('TeacherRepository.deleteClassroom: deleting id=$id');
+      final res = await _dio.delete('classrooms/$id/');
+      // ignore: avoid_print
+      print('TeacherRepository.deleteClassroom: response status=${res.statusCode}');
     } on DioException catch (e) {
+      // ignore: avoid_print
+      print('TeacherRepository.deleteClassroom: error=${e.response}');
       throw ApiException(
           e.message ?? 'Error al eliminar aula', e.response?.statusCode, e);
     }
@@ -116,10 +122,13 @@ class TeacherRepository {
   Future<List<ClassroomEnrollment>> fetchEnrollments(int classroomId) async {
     try {
       final response = await _dio.get<dynamic>(
-        'classroom-enrollments/',
-        queryParameters: {'classroom': classroomId},
+        'classrooms/$classroomId/',
       );
-      return _listFrom(response.data)
+      final data = response.data;
+      final enrollments = data is Map && data['enrollments'] is List
+          ? data['enrollments'] as List
+          : const <dynamic>[];
+      return enrollments
           .map((json) =>
               ClassroomEnrollment.fromJson(json as Map<String, dynamic>))
           .toList();
@@ -128,9 +137,15 @@ class TeacherRepository {
     }
   }
 
-  Future<void> removeStudent(int enrollmentId) async {
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  }) async {
     try {
-      await _dio.delete('classroom-enrollments/$enrollmentId/');
+      await _dio.post(
+        'classrooms/$classroomId/remove-student/',
+        data: {'student_id': studentId},
+      );
     } on DioException catch (e) {
       throw ApiException(
           'Error al dar de baja al alumno', e.response?.statusCode, e);
@@ -267,6 +282,9 @@ class TeacherRepository {
 
   Future<void> createCourse(Map<String, dynamic> data) async =>
       await _dio.post('courses/', data: data);
+
+  Future<void> updateCourse(int id, Map<String, dynamic> data) async =>
+      await _dio.patch('courses/$id/', data: data);
 
   Future<void> createModule(Map<String, dynamic> data) async =>
       await _dio.post('modules/', data: data);

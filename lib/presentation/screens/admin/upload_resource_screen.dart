@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
+import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class UploadResourceScreen extends ConsumerStatefulWidget {
@@ -16,21 +17,19 @@ class UploadResourceScreen extends ConsumerStatefulWidget {
 class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
   late final TextEditingController titleCtrl;
   late final TextEditingController urlCtrl;
-  late final TextEditingController courseCtrl;
+  int? selectedCourseId;
 
   @override
   void initState() {
     super.initState();
     titleCtrl = TextEditingController();
     urlCtrl = TextEditingController();
-    courseCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
     titleCtrl.dispose();
     urlCtrl.dispose();
-    courseCtrl.dispose();
     super.dispose();
   }
 
@@ -98,11 +97,41 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                         hint: 'Ej: Guía de Gramática PDF',
                       ),
                       const SizedBox(height: 20),
-                      BrandedTextField(
-                        controller: courseCtrl,
-                        label: 'ID del Curso vinculado',
-                        keyboardType: TextInputType.number,
-                        hint: 'Ej: 10',
+                      const SizedBox(height: 0),
+                      FutureBuilder<List<Course>>(
+                        future: ref.read(teacherRepositoryProvider).fetchCourses(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 8.0),
+                              child: Text('Cargando cursos...', style: TextStyle(color: Colors.white70)),
+                            );
+                          }
+                          if (snapshot.hasError || !snapshot.hasData) {
+                            return BrandedTextField(
+                              controller: TextEditingController(),
+                              label: 'ID del Curso vinculado',
+                              keyboardType: TextInputType.number,
+                              hint: 'Ej: 10',
+                            );
+                          }
+                          final courses = snapshot.data!;
+                          return DropdownButtonFormField<int>(
+                            decoration: const InputDecoration(
+                              filled: true,
+                              fillColor: Color(0xFF122033),
+                            ),
+                            value: selectedCourseId,
+                            items: courses.map((c) {
+                              return DropdownMenuItem<int>(
+                                value: c.id,
+                                child: Text('${c.title} (id: ${c.id})', style: const TextStyle(color: Colors.white)),
+                              );
+                            }).toList(),
+                            onChanged: (v) => setState(() => selectedCourseId = v),
+                            hint: const Text('Selecciona un curso', style: TextStyle(color: Colors.white70)),
+                          );
+                        },
                       ),
                       const SizedBox(height: 20),
                       BrandedTextField(
@@ -118,7 +147,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                   label: 'Publicar Recurso Premium',
                   loading: state.isLoading,
                   onPressed: () {
-                    if (titleCtrl.text.isEmpty || courseCtrl.text.isEmpty || urlCtrl.text.isEmpty) {
+                    if (titleCtrl.text.isEmpty || selectedCourseId == null || urlCtrl.text.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Por favor, completa todos los campos'), backgroundColor: Colors.orangeAccent)
                       );
@@ -126,7 +155,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                     }
                     ref.read(resourceUploadProvider.notifier).create(
                           title: titleCtrl.text,
-                          courseId: int.parse(courseCtrl.text),
+                          courseId: selectedCourseId!,
                           fileUrl: urlCtrl.text,
                         );
                   },

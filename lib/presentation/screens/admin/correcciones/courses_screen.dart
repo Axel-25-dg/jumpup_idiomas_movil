@@ -234,7 +234,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           ),
           PrimaryButton(
             label: course != null ? 'Actualizar' : 'Guardar',
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate() && _selectedLanguageId != null) {
                 final notifier = ref.read(courseNotifierProvider.notifier);
 
@@ -246,12 +246,20 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
                   'image_url': _imageUrlController.text.trim(),
                 };
 
-                if (course != null) {
-                  notifier.editCourse(course.id, data);
-                } else {
-                  notifier.addCourse(data);
+                try {
+                  if (course != null) {
+                    await notifier.editCourse(course.id, data);
+                  } else {
+                    await notifier.addCourse(data);
+                  }
+                  if (!mounted) return;
+                  Navigator.pop(ctx);
+                } catch (_) {
+                  if (!mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('No se pudo guardar el curso.')),
+                  );
                 }
-                Navigator.pop(ctx);
               }
             },
           ),
@@ -276,9 +284,17 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> {
           ),
           PrimaryButton(
             label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteCourse(id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              try {
+                await notifier.deleteCourse(id);
+                if (!context.mounted) return;
+                Navigator.pop(ctx);
+              } catch (_) {
+                if (!context.mounted) return;
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(content: Text('No se pudo eliminar el curso.')),
+                );
+              }
             },
           ),
         ],
