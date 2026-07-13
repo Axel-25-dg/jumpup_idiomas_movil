@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
-import 'package:jumpup_app/presentation/providers/correcciones/classroom_provider.dart' as correcciones;
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -83,13 +82,9 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     if (confirmed != true) return;
 
     try {
-      await ref.read(classroomNotifierProvider.notifier).deleteClassroom(widget.classroomId);
+      await ref.read(classroomNotifierProvider.notifier).delete(widget.classroomId);
       if (!mounted) return;
       ref.invalidate(classroomsListProvider);
-      // Also refresh the correcciones provider so admin screens stay in sync
-      try {
-        await ref.read(correcciones.classroomNotifierProvider.notifier).fetchAllClassrooms();
-      } catch (_) {}
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Aula eliminada con éxito'), backgroundColor: Colors.greenAccent)
       );

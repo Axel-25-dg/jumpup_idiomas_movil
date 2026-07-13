@@ -9,7 +9,7 @@ class ModuleRepository extends BaseRepository {
     return getList<ModuleModel>(
       'modules/',
       (json) => ModuleModel.fromJson(json),
-      queryParameters: {'course_id': courseId},
+      queryParameters: {'course': courseId},
       message: 'Error al cargar módulos',
     );
   }

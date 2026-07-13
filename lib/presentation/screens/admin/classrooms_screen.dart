@@ -36,8 +36,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final classroomsAsync = ref.watch(classroomNotifierProvider);
-    final notifier = ref.read(classroomNotifierProvider.notifier);
+    final classroomsAsync = ref.watch(classroomsListProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
@@ -121,7 +120,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-                    onPressed: () => notifier.refresh(),
+                    onPressed: () => ref.invalidate(classroomsListProvider),
                     tooltip: 'Refresh',
                   ),
                 ],
@@ -133,7 +132,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                     child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
                   ),
                   error: (error, stack) => SliverFillRemaining(
-                    child: _buildErrorView(error, notifier),
+                    child: _buildErrorView(error),
                   ),
                   data: (classrooms) {
                     if (classrooms.isEmpty) {
@@ -157,14 +156,14 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                             child: _ClassroomCard(
                               classroom: classroom,
                               onEdit: () => _showAddEditDialog(
-                                context,
-                                classroom: classroom,
-                              ),
+                                  context,
+                                  classroom: classroom,
+                                ),
                               onDelete: () => _confirmDelete(
-                                context,
-                                classroom.id,
-                                notifier,
-                              ),
+                                  context,
+                                  classroom.id,
+                                  ref.read(classroomNotifierProvider.notifier),
+                                ),
                               onViewStudents: () => _showStudentsDialog(
                                 context,
                                 classroom.id,
@@ -186,7 +185,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  Widget _buildErrorView(Object error, ClassroomNotifier notifier) {
+  Widget _buildErrorView(Object error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -204,7 +203,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Retry',
-            onPressed: () => notifier.refresh(),
+            onPressed: () => ref.invalidate(classroomsListProvider),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -286,25 +285,26 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: classroom != null ? 'Update' : 'Create',
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 final notifier = ref.read(classroomNotifierProvider.notifier);
 
                 if (classroom != null) {
-                  notifier.updateClassroom(
-                    id: classroom.id,
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                    courseId: int.tryParse(_courseIdController.text.trim()) ?? 0,
+                  await notifier.update(
+                    classroom.id,
+                    _nameController.text.trim(),
+                    _descriptionController.text.trim(),
+                    int.tryParse(_courseIdController.text.trim()) ?? 0,
                   );
                 } else {
-                  notifier.addClassroom(
-                    name: _nameController.text.trim(),
-                    description: _descriptionController.text.trim(),
-                    courseId: int.parse(_courseIdController.text.trim()),
+                  await notifier.create(
+                    _nameController.text.trim(),
+                    _descriptionController.text.trim(),
+                    int.parse(_courseIdController.text.trim()),
                   );
                 }
-                Navigator.pop(ctx);
+                ref.invalidate(classroomsListProvider);
+                if (context.mounted) Navigator.pop(ctx);
               }
             },
           ),
@@ -334,9 +334,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: 'Delete',
-            onPressed: () {
-              notifier.deleteClassroom(id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              await notifier.delete(id);
+              ref.invalidate(classroomsListProvider);
+              if (context.mounted) Navigator.pop(ctx);
             },
           ),
         ],
@@ -424,8 +425,11 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                           color: AppColors.error, size: 20),
                       onPressed: () {
                         final notifier =
-                            ref.read(classroomNotifierProvider.notifier);
-                        notifier.removeStudent(classroomId, enrollment.studentId);
+                            ref.read(enrollmentNotifierProvider.notifier);
+                        notifier.removeStudent(
+                          classroomId: classroomId,
+                          studentId: enrollment.studentId,
+                        );
                         ref.invalidate(enrollmentsProvider(classroomId));
                         if (mounted) {
                           Navigator.pop(ctx);

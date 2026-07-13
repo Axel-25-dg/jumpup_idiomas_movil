@@ -87,6 +87,7 @@ class ClassroomRepository extends BaseRepository {
         final res = await dio.delete('classrooms/$id/');
         // ignore: avoid_print
         print('ClassroomRepository.deleteClassroom: response status=${res.statusCode}');
+        return res;
       } catch (e) {
         // ignore: avoid_print
         print('ClassroomRepository.deleteClassroom: error=$e');

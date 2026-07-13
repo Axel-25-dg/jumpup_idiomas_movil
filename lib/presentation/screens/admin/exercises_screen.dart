@@ -283,7 +283,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                   const Text('Exercise Type', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    initialValue: _selectedType,
+                    value: _selectedType,
                     isExpanded: true,
                     dropdownColor: const Color(0xFF1E1E2A),
                     style: const TextStyle(color: Colors.white),

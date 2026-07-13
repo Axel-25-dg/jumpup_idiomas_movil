@@ -93,7 +93,7 @@ class _CreateLiveSessionScreenState
       await repo.createLiveSession(
         title: title,
         courseId: _selectedCourseId!,
-        scheduledAt: startsAt,
+        startsAt: startsAt,
       );
       ref.invalidate(liveSessionsProvider);
       if (mounted) {
@@ -145,7 +145,7 @@ class _CreateLiveSessionScreenState
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
-                  initialValue: _selectedCourseId,
+                  value: _selectedCourseId,
                   hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                   items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
                   onChanged: (val) => setState(() => _selectedCourseId = val),

@@ -1,5 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/data/repository/auth/auth_repository_impl.dart';
+import 'package:jumpup_app/data/repository/auth/auth_repository_impl.dart'; // Aunque el archivo se llame auth_repository_impl.dart, la clase adentro es AuthService
 import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
 import 'package:jumpup_app/domain/model/auth_models.dart';
@@ -48,7 +48,7 @@ class AuthState {
 }
 
 class AuthNotifier extends StateNotifier<AuthState> {
-  final AuthRepositoryImpl _authService;
+  final AuthService _authService;
   final SecureStorage _secureStorage;
   final Ref _ref;
 
@@ -336,5 +336,5 @@ class AuthNotifier extends StateNotifier<AuthState> {
 }
 
 final authProvider = StateNotifierProvider<AuthNotifier, AuthState>((ref) {
-  return AuthNotifier(AuthRepositoryImpl(), SecureStorage(), ref);
+  return AuthNotifier(AuthService(), SecureStorage(), ref);
 });

@@ -46,9 +46,6 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
         'course': _selectedCourseId,
         'order': int.tryParse(_orderCtrl.text.trim()) ?? 1,
       };
-      // Solo incluir descripción si no está vacía
-      final desc = _descriptionCtrl.text.trim();
-      if (desc.isNotEmpty) data['description'] = desc;
 
       await ref.read(adminCoursesProvider.notifier).addModule(data);
 
@@ -95,7 +92,7 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
-                  initialValue: _selectedCourseId,
+                  value: _selectedCourseId,
                   hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                   items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
                   onChanged: (val) => setState(() => _selectedCourseId = val),
@@ -106,8 +103,6 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
             Column(
               children: [
                 BrandedTextField(controller: _titleCtrl, label: 'Título del módulo'),
-                const SizedBox(height: 20),
-                BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
                 const SizedBox(height: 20),
                 BrandedTextField(controller: _orderCtrl, label: 'Orden (Ej. 1)', keyboardType: TextInputType.number),
               ],

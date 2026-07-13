@@ -12,7 +12,7 @@ final exerciseNotifierProvider = StateNotifierProvider<ExerciseNotifier, AsyncVa
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
   final ExerciseRepository _repository;
 
-  ExerciseNotifier(this._repository) : super(const AsyncValue.loading());
+  ExerciseNotifier(this._repository) : super(const AsyncValue.data([]));
 
   Future<void> getExercisesByLesson(int lessonId) async {
     state = const AsyncValue.loading();
@@ -25,10 +25,12 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
   }
 
   Future<void> addExercise(Map<String, dynamic> data) async {
+    state = const AsyncValue.loading();
     try {
       await _repository.createExercise(data);
-      final lessonId = data['lesson'] as int;
-      await getExercisesByLesson(lessonId);
+      // Actualizar el estado con una lista vacía para disparar el listener de éxito, 
+      // o intentar recargar las lecciones si es posible.
+      state = const AsyncValue.data([]);
     } catch (e, stack) {
       state = AsyncValue.error(e, stack);
     }

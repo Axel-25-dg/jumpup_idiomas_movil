@@ -278,16 +278,16 @@ class TeacherRepository {
   }
 
   Future<void> createCourse(Map<String, dynamic> data) async =>
-      await _dio.post('courses/', data: data);
+      await courses.createCourse(data);
 
   Future<void> updateCourse(int id, Map<String, dynamic> data) async =>
-      await _dio.patch('courses/$id/', data: data);
+      await courses.updateCourse(id, data);
 
   Future<void> createModule(Map<String, dynamic> data) async =>
-      await _dio.post('modules/', data: data);
+      await modules.createModule(data);
 
   Future<void> createLesson(Map<String, dynamic> data) async =>
-      await _dio.post('lessons/', data: data);
+      await lessons.createLesson(data);
 
   Future<void> deleteCourse(int id) async =>
       await _dio.delete('courses/$id/');

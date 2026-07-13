@@ -94,7 +94,7 @@ class _CreateExerciseScreenState extends ConsumerState<CreateExerciseScreen> {
                         const SizedBox(height: 8),
                         DropdownButtonFormField<String>(
                           dropdownColor: const Color(0xFF1A1828),
-                          initialValue: _selectedType,
+                          value: _selectedType,
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
                             filled: true,
