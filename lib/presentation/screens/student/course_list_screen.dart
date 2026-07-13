@@ -311,6 +311,7 @@ class _CourseListItem extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                   child: ProductImage(
                     imageUrl: course.imageUrl,
+                    seed: course.id.toString(),
                     height: 160,
                     width: double.infinity,
                     fit: BoxFit.cover,

@@ -13,6 +13,7 @@ class CreateCourseScreen extends ConsumerStatefulWidget {
 class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
+  final _imageCtrl = TextEditingController();
   int? _selectedLanguageId;
   bool _isSaving = false;
 
@@ -20,6 +21,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
   void dispose() {
     _titleCtrl.dispose();
     _descCtrl.dispose();
+    _imageCtrl.dispose();
     super.dispose();
   }
 
@@ -39,6 +41,11 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
             TextField(
                 controller: _descCtrl,
                 decoration: const InputDecoration(labelText: 'Descripción')),
+            TextField(
+                controller: _imageCtrl,
+                decoration: const InputDecoration(
+                    labelText: 'URL de Imagen (Opcional)',
+                    hintText: 'https://ejemplo.com/imagen.jpg')),
             const SizedBox(height: 16),
             languagesAsync.when(
               data: (langs) => DropdownButtonFormField<int>(
@@ -61,11 +68,13 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                   : () async {
                       setState(() => _isSaving = true);
                       try {
+                        final image = _imageCtrl.text.trim();
                         await ref.read(adminCoursesProvider.notifier).addCourse({
                           'title': _titleCtrl.text,
                           'description': _descCtrl.text,
                           'language_id': _selectedLanguageId,
                           'difficulty_level': 'A1',
+                          'image_url': image.isNotEmpty ? image : '',
                         });
                         if (context.mounted) Navigator.pop(context);
                       } catch (e) {

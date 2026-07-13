@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 
@@ -48,6 +49,11 @@ class _CreateModuleScreenState extends ConsumerState<CreateModuleScreen> {
       };
 
       await ref.read(adminCoursesProvider.notifier).addModule(data);
+
+      ref.invalidate(modulesByCourseProvider(_selectedCourseId!));
+      ref.invalidate(modulesForCourseProvider(_selectedCourseId!));
+      ref.invalidate(courseDetailProvider(_selectedCourseId!));
+      ref.invalidate(coursesProvider);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Módulo creado correctamente')));

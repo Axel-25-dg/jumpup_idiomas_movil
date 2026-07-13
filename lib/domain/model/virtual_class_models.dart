@@ -82,9 +82,20 @@ class VirtualClassRegistrationModel {
 
   factory VirtualClassRegistrationModel.fromJson(Map<String, dynamic> json) {
     return VirtualClassRegistrationModel(
-      id: json['id'] as int,
-      virtualClass: VirtualClassModel.fromJson(
-          json['virtual_class'] as Map<String, dynamic>),
+      id: json['id'] as int? ?? 0,
+      virtualClass: json['virtual_class'] is Map<String, dynamic>
+          ? VirtualClassModel.fromJson(
+              json['virtual_class'] as Map<String, dynamic>)
+          : VirtualClassModel(
+              id: json['virtual_class'] is int ? json['virtual_class'] as int : 0,
+              title: '',
+              description: '',
+              instructorName: '',
+              scheduledAt: DateTime.now(),
+              durationMinutes: 60,
+              maxParticipants: 50,
+              status: 'scheduled',
+            ),
       registeredAt:
           DateTime.tryParse(json['registered_at']?.toString() ?? '') ??
               DateTime.now(),

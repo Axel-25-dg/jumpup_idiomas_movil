@@ -21,6 +21,7 @@ import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
+import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 
 
 class TeacherDashboardScreen extends ConsumerStatefulWidget {
@@ -39,7 +40,7 @@ class _TeacherDashboardScreenState
     _TeacherHomeTab(),
     _TeacherCoursesTab(),
     _TeacherSessionsTab(),
-    TeacherInboxScreen(),
+    SocialMediaShell(),
     TeacherProfileScreen(),
   ];
 
@@ -69,7 +70,7 @@ class _TeacherBottomNav extends StatelessWidget {
       (Icons.home_rounded, Icons.home_outlined, 'Inicio'),
       (Icons.library_books_rounded, Icons.library_books_outlined, 'Cursos'),
       (Icons.videocam_rounded, Icons.videocam_outlined, 'Sesiones'),
-      (Icons.chat_rounded, Icons.chat_outlined, 'Mensajes'),
+      (Icons.forum_rounded, Icons.forum_outlined, 'Social'),
       (Icons.person_rounded, Icons.person_outlined, 'Perfil'),
     ];
 

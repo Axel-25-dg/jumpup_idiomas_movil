@@ -404,12 +404,12 @@ class _PulsingDotState extends State<_PulsingDot>
   }
 }
 
-class _SessionCard extends StatelessWidget {
+class _SessionCard extends ConsumerWidget {
   const _SessionCard({required this.session});
   final LiveSession session;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = _LiveTokens.textPrimary(isDark);
     final subtextColor = _LiveTokens.textSecondary(isDark);
@@ -560,14 +560,34 @@ class _SessionCard extends StatelessWidget {
                               glow: statusColor,
                               fullWidth: true,
                               onTap: () async {
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
                                 try {
                                   await const SocialMediaRepository()
                                       .joinLiveSession(session.id);
+                                  scaffoldMessenger.showSnackBar(
+                                    const SnackBar(
+                                      content: Text('¡Reserva realizada con éxito!'),
+                                      backgroundColor: Colors.greenAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                  ref.invalidate(liveSessionsProvider);
                                   if (session.meetingUrl != null &&
                                       session.meetingUrl!.isNotEmpty) {
-                                    launchUrl(Uri.parse(session.meetingUrl!));
+                                    final uri = Uri.tryParse(session.meetingUrl!);
+                                    if (uri != null && await canLaunchUrl(uri)) {
+                                      await launchUrl(uri, mode: LaunchMode.externalApplication);
+                                    }
                                   }
-                                } catch (_) {}
+                                } catch (e) {
+                                  scaffoldMessenger.showSnackBar(
+                                    SnackBar(
+                                      content: Text('Error al reservar: ${e.toString()}'),
+                                      backgroundColor: Colors.redAccent,
+                                      behavior: SnackBarBehavior.floating,
+                                    ),
+                                  );
+                                }
                               },
                             ),
                           ],
