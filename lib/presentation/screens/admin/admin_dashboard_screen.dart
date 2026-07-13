@@ -12,12 +12,14 @@ import 'package:jumpup_app/presentation/screens/admin/exercises_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/modules_screen.dart';
 
 
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
+
 
 
 /// Tokens de diseño para el panel de Admin (Premium Dark)
@@ -353,12 +355,20 @@ class _AdminContentTab extends StatelessWidget {
           color: _AdminTokens.success,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CoursesScreen())),
         ),
+        // ✅ NUEVO: Tarjeta para Modulos
+        _ActionCard(
+          icon: Icons.view_module_rounded,
+          title: 'Modulos',
+          subtitle: 'Gestiona los modulos de los cursos',
+          color: _AdminTokens.info,
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ModulesScreen())),
+        ),
         // ✅ NUEVO: Tarjeta para Lecciones
         _ActionCard(
           icon: Icons.menu_book_rounded,
           title: 'Lecciones',
           subtitle: 'Gestiona las lecciones de los cursos',
-          color: _AdminTokens.info,
+          color: _AdminTokens.primary,
           onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LessonsScreen())),
         ),
         _ActionCard(
