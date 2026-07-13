@@ -197,7 +197,7 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
           const Text(
-            '❓ TRIVIA QUIZ',
+            'TRIVIA QUIZ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
           ),
           const SizedBox(width: 48),
@@ -346,7 +346,11 @@ class _ResultScreen extends StatelessWidget {
                 const SizedBox(height: 24),
                 Text('Sincronizando XP...', style: TextStyle(color: textColor.withValues(alpha: 0.7))),
               ] else ...[
-                Text(pct >= 0.8 ? '🏆' : pct >= 0.5 ? '⭐' : '💪', style: const TextStyle(fontSize: 80)),
+                Icon(
+                  pct >= 0.8 ? Icons.emoji_events_rounded : pct >= 0.5 ? Icons.star_rounded : Icons.fitness_center_rounded,
+                  size: 80,
+                  color: pct >= 0.8 ? Colors.amber : pct >= 0.5 ? Colors.orange : Colors.blueAccent,
+                ),
                 const SizedBox(height: 24),
                 Text('$score / $total XP', style: TextStyle(color: textColor, fontSize: 42, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 8),

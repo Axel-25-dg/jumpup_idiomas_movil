@@ -1,40 +1,38 @@
+// lib/presentation/screens/admin/modules_screen.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
-import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_course_model.dart'; // ✅ Import correcto
+import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/presentation/providers/module_provider.dart';
 import 'package:jumpup_app/presentation/providers/courses_provider.dart';
-import 'package:jumpup_app/presentation/providers/language_provider.dart';
+import 'package:jumpup_app/presentation/screens/admin/courses_screen.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
-class CoursesScreen extends ConsumerStatefulWidget {
-  const CoursesScreen({super.key});
+class ModulesScreen extends ConsumerStatefulWidget {
+  final int? initialCourseId;
+
+  const ModulesScreen({super.key, this.initialCourseId});
 
   @override
-  ConsumerState<CoursesScreen> createState() => _CoursesScreenState();
+  ConsumerState<ModulesScreen> createState() => _ModulesScreenState();
 }
 
-class _CoursesScreenState extends ConsumerState<CoursesScreen>
+class _ModulesScreenState extends ConsumerState<ModulesScreen>
     with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
+  final _searchController = TextEditingController();
   final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _imageUrlController = TextEditingController();
-  int? _selectedLanguageId;
-  String? _selectedDifficulty;
+  final _orderController = TextEditingController();
+  final _courseIdController = TextEditingController();
+  String _searchQuery = '';
+  int? _selectedCourseId;
+  int? _currentCourseId;
+  ModuleModel? _editingModule;
   late AnimationController _blobController;
-
-  final List<Map<String, String>> _difficultyLevels = [
-    {'value': 'A1', 'label': 'Principiante A1'},
-    {'value': 'A2', 'label': 'Elemental A2'},
-    {'value': 'B1', 'label': 'Intermedio B1'},
-    {'value': 'B2', 'label': 'Intermedio Alto B2'},
-    {'value': 'C1', 'label': 'Avanzado C1'},
-    {'value': 'C2', 'label': 'Maestría C2'},
-  ];
 
   @override
   void initState() {
@@ -43,29 +41,48 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
       vsync: this,
       duration: const Duration(seconds: 12),
     )..repeat(reverse: true);
+
+    _searchController.addListener(() {
+      setState(() {
+        _searchQuery = _searchController.text.toLowerCase();
+      });
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ref.read(moduleNotifierProvider.notifier).fetchAllModules();
+    });
+
+    if (widget.initialCourseId != null && widget.initialCourseId! > 0) {
+      _currentCourseId = widget.initialCourseId;
+      _courseIdController.text = widget.initialCourseId.toString();
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(moduleNotifierProvider.notifier).getModulesByCourse(widget.initialCourseId!);
+      });
+    }
   }
 
   @override
   void dispose() {
     _blobController.dispose();
+    _searchController.dispose();
     _titleController.dispose();
-    _descriptionController.dispose();
-    _imageUrlController.dispose();
+    _orderController.dispose();
+    _courseIdController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final modulesAsync = ref.watch(moduleNotifierProvider);
+    final notifier = ref.read(moduleNotifierProvider.notifier);
     final coursesAsync = ref.watch(courseNotifierProvider);
-    final notifier = ref.read(courseNotifierProvider.notifier);
-    final languagesAsync = ref.watch(languageNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         title: const Text(
-          'Cursos',
+          'Modulos',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -86,19 +103,24 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
-            onPressed: () => _showAddEditDialog(context, languagesAsync),
-            tooltip: 'Agregar curso',
+            onPressed: () => _showAddEditDialog(context, coursesAsync),
+            tooltip: 'Agregar modulo',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            onPressed: () => notifier.refresh(),
+            onPressed: () {
+              if (_currentCourseId != null) {
+                notifier.refresh(_currentCourseId!);
+              } else {
+                notifier.fetchAllModules();
+              }
+            },
             tooltip: 'Refrescar',
           ),
         ],
       ),
       body: Stack(
         children: [
-          // Background Blobs Animated
           AnimatedBuilder(
             animation: _blobController,
             builder: (context, child) {
@@ -122,7 +144,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
           RefreshIndicator(
             color: const Color(0xFF7C4DFF),
             backgroundColor: const Color(0xFF1E1E2A),
-            onRefresh: () => notifier.refresh(),
+            onRefresh: () async {
+              if (_currentCourseId != null) {
+                await notifier.refresh(_currentCourseId!);
+              } else {
+                await notifier.fetchAllModules();
+              }
+            },
             child: coursesAsync.when(
               loading: () => const Center(
                 child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
@@ -132,38 +160,72 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                 child: _buildErrorView(error, notifier),
               ),
               data: (courses) {
-                if (courses.isEmpty) {
-                  return EmptyState(
-                    title: 'No hay cursos creados',
-                    subtitle: 'Crea tu primer curso para comenzar',
-                    icon: Icons.menu_book_rounded,
-                    buttonText: 'Crear curso',
-                    onButtonPressed: () =>
-                        _showAddEditDialog(context, languagesAsync),
-                  );
-                }
-                return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(
-                    20,
-                    kToolbarHeight + 60,
-                    20,
-                    100,
+                return modulesAsync.when(
+                  loading: () => const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
                   ),
-                  physics: const BouncingScrollPhysics(
-                    parent: AlwaysScrollableScrollPhysics(),
+                  error: (error, stack) => Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: _buildErrorView(error, notifier),
                   ),
-                  itemCount: courses.length,
-                  itemBuilder: (context, index) {
-                    final course = courses[index];
-                    return _CourseCard(
-                      course: course,
-                      onEdit: () => _showAddEditDialog(
-                        context,
-                        languagesAsync,
-                        course: course,
+                  data: (modules) {
+                    final filtered = modules.where((module) {
+                      if (_searchQuery.isEmpty) return true;
+                      return module.title.toLowerCase().contains(_searchQuery) ||
+                          module.courseTitle.toLowerCase().contains(_searchQuery);
+                    }).toList();
+
+                    final finalModules = _currentCourseId != null
+                        ? filtered.where((m) => m.course == _currentCourseId).toList()
+                        : filtered;
+
+                    if (finalModules.isEmpty) {
+                      return EmptyState(
+                        title: _searchQuery.isEmpty
+                            ? 'No hay modulos creados'
+                            : 'No se encontraron modulos',
+                        subtitle: _searchQuery.isEmpty
+                            ? 'Crea tu primer modulo para comenzar'
+                            : 'Intenta con otro termino de busqueda',
+                        icon: Icons.view_module_rounded,
+                        buttonText: _searchQuery.isEmpty
+                            ? 'Crear modulo'
+                            : 'Limpiar busqueda',
+                        onButtonPressed: _searchQuery.isEmpty
+                            ? () => _showAddEditDialog(context, coursesAsync)
+                            : () {
+                                _searchController.clear();
+                                setState(() => _searchQuery = '');
+                              },
+                      );
+                    }
+
+                    return ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(20, kToolbarHeight + 60, 20, 100),
+                      physics: const BouncingScrollPhysics(
+                        parent: AlwaysScrollableScrollPhysics(),
                       ),
-                      onDelete: () =>
-                          _confirmDelete(context, course.id, notifier),
+                      itemCount: finalModules.length,
+                      itemBuilder: (context, index) {
+                        final module = finalModules[index];
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _ModuleCard(
+                            module: module,
+                            onEdit: () => _showAddEditDialog(
+                              context,
+                              coursesAsync,
+                              module: module,
+                            ),
+                            onDelete: () => _confirmDelete(
+                              context,
+                              module.id,
+                              _currentCourseId ?? module.course,
+                              notifier,
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
@@ -191,7 +253,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
         ),
       );
 
-  Widget _buildErrorView(Object error, CourseNotifier notifier) {
+  Widget _buildErrorView(Object error, ModuleNotifier notifier) {
     return Center(
       child: GlassContainer(
         padding: const EdgeInsets.all(24),
@@ -205,7 +267,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                 size: 56, color: Colors.redAccent),
             const SizedBox(height: 20),
             const Text(
-              'Error al cargar cursos',
+              'Error al cargar modulos',
               style: TextStyle(
                 color: Colors.white,
                 fontSize: 18,
@@ -223,7 +285,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               width: double.infinity,
               child: PrimaryButton(
                 label: 'Reintentar',
-                onPressed: () => notifier.refresh(),
+                onPressed: () {
+                  if (_currentCourseId != null) {
+                    notifier.refresh(_currentCourseId!);
+                  } else {
+                    notifier.fetchAllModules();
+                  }
+                },
                 icon: Icons.refresh_rounded,
               ),
             ),
@@ -235,21 +303,20 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
 
   void _showAddEditDialog(
     BuildContext context,
-    AsyncValue<List<Language>> languagesAsync, {
-    Course? course,
+    AsyncValue<List<Course>> coursesAsync, {
+    ModuleModel? module,
   }) {
-    if (course != null) {
-      _titleController.text = course.title;
-      _descriptionController.text = course.description;
-      _imageUrlController.text = course.imageUrl;
-      _selectedLanguageId = course.languageId;
-      _selectedDifficulty = course.difficultyLevel;
+    _editingModule = module;
+    final isEditing = module != null;
+
+    if (isEditing) {
+      _titleController.text = module.title;
+      _orderController.text = module.order.toString();
+      _selectedCourseId = module.course;
     } else {
       _titleController.clear();
-      _descriptionController.clear();
-      _imageUrlController.clear();
-      _selectedLanguageId = null;
-      _selectedDifficulty = null;
+      _orderController.clear();
+      _selectedCourseId = _currentCourseId;
     }
 
     showGeneralDialog(
@@ -267,7 +334,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               borderRadius: BorderRadius.circular(24),
             ),
             title: Text(
-              course != null ? 'Editar curso' : 'Nuevo curso',
+              isEditing ? 'Editar modulo' : 'Nuevo modulo',
               style: const TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
@@ -281,101 +348,111 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Idioma
-                      languagesAsync.when(
-                        loading: () => const CircularProgressIndicator(
-                          color: Color(0xFF7C4DFF),
+                      // Selector de curso
+                      coursesAsync.when(
+                        loading: () => const Center(
+                          child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
                         ),
                         error: (_, __) => const Text(
-                          'Error al cargar idiomas',
+                          'Error al cargar cursos',
                           style: TextStyle(color: Colors.redAccent),
                         ),
-                        data: (languages) => DropdownButtonFormField<int>(
-                          dropdownColor: const Color(0xFF1E1E2A),
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Idioma',
-                            labelStyle: const TextStyle(color: Colors.white70),
-                            prefixIcon: const Icon(
-                              Icons.language_rounded,
-                              color: Colors.white54,
-                            ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
-                            ),
-                          ),
-                          value: _selectedLanguageId,
-                          items: languages.map((lang) {
-                            return DropdownMenuItem(
-                              value: lang.id,
-                              child: Text(lang.name),
+                        data: (courses) {
+                          if (courses.isEmpty) {
+                            return Column(
+                              children: [
+                                const Text(
+                                  'No hay cursos disponibles. Crea un curso primero.',
+                                  style: TextStyle(color: Colors.white70),
+                                ),
+                                const SizedBox(height: 12),
+                                PrimaryButton(
+                                  label: 'Ir a Cursos',
+                                  onPressed: () {
+                                    Navigator.pop(ctx);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => const CoursesScreen(),
+                                      ),
+                                    );
+                                  },
+                                  icon: Icons.menu_book_rounded,
+                                ),
+                              ],
                             );
-                          }).toList(),
-                          onChanged: (value) => _selectedLanguageId = value,
-                          validator: (value) =>
-                              value == null ? 'Selecciona un idioma' : null,
-                        ),
+                          }
+                          return DropdownButtonFormField<int>(
+                            dropdownColor: const Color(0xFF1E1E2A),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Curso',
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              prefixIcon: const Icon(
+                                Icons.menu_book_rounded,
+                                color: Colors.white54,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withValues(alpha: 0.05),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            hint: const Text(
+                              'Selecciona un curso',
+                              style: TextStyle(color: Colors.white54),
+                            ),
+                            value: _selectedCourseId,
+                            items: courses.map((course) {
+                              return DropdownMenuItem(
+                                value: course.id,
+                                child: Text(
+                                  course.title,
+                                  style: const TextStyle(color: Colors.white),
+                                ),
+                              );
+                            }).toList(),
+                            onChanged: (value) {
+                              _selectedCourseId = value;
+                            },
+                            validator: (value) =>
+                                value == null ? 'Selecciona un curso' : null,
+                          );
+                        },
                       ),
                       const SizedBox(height: 16),
 
-                      // Título
+                      // Titulo
                       BrandedTextField(
                         controller: _titleController,
-                        label: 'Título del curso',
+                        label: 'Titulo del modulo',
                         prefixIcon: Icons.title_rounded,
-                        validator: (value) =>
-                            (value == null || value.isEmpty)
-                                ? 'El título es obligatorio'
-                                : null,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El titulo es obligatorio';
+                          }
+                          return null;
+                        },
                       ),
                       const SizedBox(height: 16),
 
-                      // Descripción
+                      // Orden
                       BrandedTextField(
-                        controller: _descriptionController,
-                        label: 'Descripción',
-                        prefixIcon: Icons.description_rounded,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Dificultad A1-C2
-                      DropdownButtonFormField<String>(
-                        dropdownColor: const Color(0xFF1E1E2A),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Nivel de dificultad',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(
-                            Icons.signal_cellular_alt_rounded,
-                            color: Colors.white54,
-                          ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
-                          ),
-                        ),
-                        value: _selectedDifficulty,
-                        items: _difficultyLevels.map((level) {
-                          return DropdownMenuItem(
-                            value: level['value'],
-                            child: Text(level['label']!),
-                          );
-                        }).toList(),
-                        onChanged: (value) => _selectedDifficulty = value,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // URL de imagen (opcional)
-                      BrandedTextField(
-                        controller: _imageUrlController,
-                        label: 'URL de la imagen (opcional)',
-                        prefixIcon: Icons.image_rounded,
+                        controller: _orderController,
+                        label: 'Orden',
+                        hint: 'Ej: 1, 2, 3...',
+                        prefixIcon: Icons.sort_rounded,
+                        keyboardType: TextInputType.number,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'El orden es obligatorio';
+                          }
+                          if (int.tryParse(value) == null) {
+                            return 'Ingresa un numero valido';
+                          }
+                          return null;
+                        },
                       ),
                     ],
                   ),
@@ -395,25 +472,19 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               ),
               const SizedBox(width: 8),
               PrimaryButton(
-                label: course != null ? 'Actualizar' : 'Guardar',
+                label: isEditing ? 'Actualizar' : 'Guardar',
                 onPressed: () {
                   if (_formKey.currentState!.validate() &&
-                      _selectedLanguageId != null) {
-                    final notifier = ref.read(
-                      courseNotifierProvider.notifier,
-                    );
+                      _selectedCourseId != null) {
+                    final notifier = ref.read(moduleNotifierProvider.notifier);
+
                     final data = {
-                      'language': _selectedLanguageId!,
+                      'course': _selectedCourseId!,
                       'title': _titleController.text.trim(),
-                      'description': _descriptionController.text.trim(),
-                      'difficulty_level': _selectedDifficulty ?? 'A1',
-                      'image_url': _imageUrlController.text.trim(),
+                      'order': int.parse(_orderController.text.trim()),
                     };
-                    if (course != null) {
-                      notifier.editCourse(course.id, data);
-                    } else {
-                      notifier.addCourse(data);
-                    }
+
+                    notifier.addModule(data);
                     Navigator.pop(ctx);
                   }
                 },
@@ -425,7 +496,12 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
     );
   }
 
-  void _confirmDelete(BuildContext context, int id, CourseNotifier notifier) {
+  void _confirmDelete(
+    BuildContext context,
+    int moduleId,
+    int courseId,
+    ModuleNotifier notifier,
+  ) {
     showGeneralDialog(
       context: context,
       barrierDismissible: true,
@@ -441,15 +517,15 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
               borderRadius: BorderRadius.circular(24),
             ),
             title: const Text(
-              'Eliminar curso',
+              'Eliminar modulo',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
               ),
             ),
             content: const Text(
-              '¿Estás seguro de que deseas eliminar este curso?\n'
-              'Esta acción eliminará todos los módulos y lecciones asociadas.',
+              '¿Estas seguro de que deseas eliminar este modulo?\n'
+              'Esta accion eliminara todas las lecciones asociadas.',
               style: TextStyle(color: Colors.white70),
             ),
             actions: [
@@ -468,7 +544,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                   ),
                 ),
                 onPressed: () {
-                  notifier.deleteCourse(id);
+                  notifier.deleteModule(moduleId, courseId);
                   Navigator.pop(ctx);
                 },
                 child: const Text(
@@ -484,54 +560,16 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
   }
 }
 
-class _CourseCard extends StatelessWidget {
-  const _CourseCard({
-    required this.course,
+class _ModuleCard extends StatelessWidget {
+  const _ModuleCard({
+    required this.module,
     required this.onEdit,
     required this.onDelete,
   });
 
-  final Course course;
+  final ModuleModel module;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
-
-  String _getDifficultyLabel(String level) {
-    switch (level.toUpperCase()) {
-      case 'A1':
-        return 'Principiante A1';
-      case 'A2':
-        return 'Elemental A2';
-      case 'B1':
-        return 'Intermedio B1';
-      case 'B2':
-        return 'Intermedio Alto B2';
-      case 'C1':
-        return 'Avanzado C1';
-      case 'C2':
-        return 'Maestría C2';
-      default:
-        return level;
-    }
-  }
-
-  Color _getDifficultyColor(String level) {
-    switch (level.toUpperCase()) {
-      case 'A1':
-        return Colors.greenAccent;
-      case 'A2':
-        return Colors.lightGreenAccent;
-      case 'B1':
-        return Colors.orangeAccent;
-      case 'B2':
-        return Colors.deepOrangeAccent;
-      case 'C1':
-        return Colors.redAccent;
-      case 'C2':
-        return Colors.deepPurpleAccent;
-      default:
-        return Colors.grey;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -554,7 +592,6 @@ class _CourseCard extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               child: Row(
                 children: [
-                  // Leading
                   Container(
                     width: 56,
                     height: 56,
@@ -572,33 +609,19 @@ class _CourseCard extends StatelessWidget {
                         color: accentColor.withValues(alpha: 0.2),
                       ),
                     ),
-                    child: course.imageUrl.isNotEmpty
-                        ? ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Image.network(
-                              course.imageUrl,
-                              fit: BoxFit.cover,
-                              errorBuilder: (_, __, ___) => Icon(
-                                Icons.menu_book_rounded,
-                                color: accentColor,
-                                size: 28,
-                              ),
-                            ),
-                          )
-                        : Icon(
-                            Icons.menu_book_rounded,
-                            color: accentColor,
-                            size: 28,
-                          ),
+                    child: const Icon(
+                      Icons.view_module_rounded,
+                      color: Colors.white,
+                      size: 28,
+                    ),
                   ),
                   const SizedBox(width: 16),
-                  // Title + Subtitle
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          course.title,
+                          module.title,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
@@ -608,7 +631,7 @@ class _CourseCard extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Idioma: ${course.languageName}',
+                          'Curso: ${module.courseTitle} (ID: ${module.course})',
                           style: const TextStyle(
                             color: Colors.white38,
                             fontSize: 12,
@@ -621,17 +644,13 @@ class _CourseCard extends StatelessWidget {
                             vertical: 2,
                           ),
                           decoration: BoxDecoration(
-                            color: _getDifficultyColor(course.difficultyLevel)
-                                .withValues(alpha: 0.1),
+                            color: Colors.blue.withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(6),
                           ),
                           child: Text(
-                            _getDifficultyLabel(course.difficultyLevel)
-                                .toUpperCase(),
-                            style: TextStyle(
-                              color: _getDifficultyColor(
-                                course.difficultyLevel,
-                              ),
+                            'Orden: ${module.order}',
+                            style: const TextStyle(
+                              color: Colors.blue,
                               fontSize: 9,
                               fontWeight: FontWeight.bold,
                               letterSpacing: 0.5,
@@ -641,7 +660,6 @@ class _CourseCard extends StatelessWidget {
                       ],
                     ),
                   ),
-                  // Trailing buttons
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

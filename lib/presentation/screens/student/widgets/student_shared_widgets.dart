@@ -188,9 +188,10 @@ class ModernAchievementCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(size * 0.3),
         child: isEmoji
             ? Center(
-                child: Text(
-                  iconUrl ?? '🏆',
-                  style: TextStyle(fontSize: size * 0.5),
+                child: Icon(
+                  Icons.stars_rounded,
+                  color: isUnlocked ? Colors.white : Colors.grey,
+                  size: size * 0.6,
                 ),
               )
             : Padding(
@@ -198,8 +199,8 @@ class ModernAchievementCard extends StatelessWidget {
                 child: CachedNetworkImage(
                   imageUrl: AppConfig.resolveImageUrl(iconUrl!),
                   fit: BoxFit.contain, // Cambiado de cover a contain para ver la imagen completa
-                  placeholder: (context, url) => Icon(Icons.emoji_events_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.5),
-                  errorWidget: (context, url, error) => Icon(Icons.emoji_events_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.5),
+                  placeholder: (context, url) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
+                  errorWidget: (context, url, error) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
                 ),
               ),
       ),

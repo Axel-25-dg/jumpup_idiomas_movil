@@ -1,4 +1,4 @@
-// lib/presentation/screens/admin/announcements_screen.dart
+/*// lib/presentation/screens/admin/announcements_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
@@ -482,3 +482,4 @@ class _AnnouncementCard extends StatelessWidget {
     );
   }
 }
+*/

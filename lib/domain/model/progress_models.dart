@@ -33,17 +33,24 @@ class UserProgressModel {
   bool get isCompleted => status == 'completed';
 
   factory UserProgressModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
     return UserProgressModel(
-      id: json['id'] as int,
-      user: json['user'] as int,
-      userEmail: json['user_email'] as String,
-      lesson: json['lesson'] as int,
-      lessonTitle: json['lesson_title'] as String? ?? '',
-      lessonXp: json['lesson_xp'] as int? ?? 0,
-      courseTitle: json['course_title'] as String? ?? '',
-      languageCode: json['language_code'] as String? ?? '',
+      id: toInt(json['id']),
+      user: toInt(json['user'] ?? json['usuario']),
+      userEmail: json['user_email']?.toString() ?? json['email']?.toString() ?? '',
+      lesson: toInt(json['lesson'] ?? json['leccion'] ?? json['lesson_id']),
+      lessonTitle: json['lesson_title']?.toString() ?? json['leccion_titulo']?.toString() ?? '',
+      lessonXp: toInt(json['lesson_xp'] ?? json['xp'] ?? json['puntos']),
+      courseTitle: json['course_title']?.toString() ?? '',
+      languageCode: json['language_code']?.toString() ?? '',
       status: json['status']?.toString() ?? 'in_progress',
-      score: (json['score'] as num?)?.toDouble() ?? 0.0,
+      score: (json['score'] as num?)?.toDouble() ?? (json['puntaje'] as num?)?.toDouble() ?? 0.0,
       completedAt: json['completed_at'] != null
           ? DateTime.tryParse(json['completed_at'].toString())
           : null,
@@ -103,27 +110,45 @@ class ProgressSummaryModel {
   final int achievementsCount;
 
   factory ProgressSummaryModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
+    final totalXp = toInt(json['total_xp'] ?? json['xp'] ?? json['points'] ?? json['total_points'] ?? json['puntos_totales'] ?? json['puntos']);
+    final level = toInt(json['level'] ?? json['current_level'] ?? json['nivel'], (totalXp ~/ 100) + 1);
+    
+    // Resilient XP progress calculation
+    int xpForNext = toInt(json['xp_for_next_level'] ?? json['next_level_xp'] ?? json['xp_siguiente_nivel'], 100);
+    if (xpForNext <= 0) xpForNext = 100;
+
+    int xpProg = toInt(json['xp_progress'] ?? json['current_xp'] ?? json['xp_actual'], -1);
+    if (xpProg == -1) {
+      xpProg = totalXp % xpForNext;
+    }
+
     return ProgressSummaryModel(
-      totalLessons: int.tryParse(json['total_lessons']?.toString() ?? '0') ?? 0,
-      lessonsCompleted: int.tryParse(json['lessons_completed']?.toString() ?? '0') ?? 0,
-      lessonsInProgress: int.tryParse(json['lessons_in_progress']?.toString() ?? '0') ?? 0,
-      coursesStarted: int.tryParse(json['courses_started']?.toString() ?? '0') ?? 0,
-      coursesCompleted: int.tryParse(json['courses_completed']?.toString() ?? '0') ?? 0,
-      percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
-      totalXp: int.tryParse(json['total_xp']?.toString() ?? json['xp']?.toString() ?? '0') ?? 0,
-      level: int.tryParse(json['level']?.toString() ?? '1') ?? 1,
-      xpForNextLevel: int.tryParse(json['xp_for_next_level']?.toString() ?? '100') ?? 100,
-      xpProgress: int.tryParse(json['xp_progress']?.toString() ?? '0') ?? 0,
-      xpProgressInLevel: int.tryParse(json['xp_progress_in_level']?.toString() ?? '0') ?? 0,
-      currentStreak: int.tryParse(json['current_streak']?.toString() ?? json['streak']?.toString() ?? '0') ?? 0,
-      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '0') ?? 0,
+      totalLessons: toInt(json['total_lessons'] ?? json['lessons_count'] ?? json['lecciones_totales']),
+      lessonsCompleted: toInt(json['lessons_completed'] ?? json['completed_lessons'] ?? json['lecciones_completadas']),
+      lessonsInProgress: toInt(json['lessons_in_progress'] ?? json['lecciones_en_progreso']),
+      coursesStarted: toInt(json['courses_started'] ?? json['cursos_empezados']),
+      coursesCompleted: toInt(json['courses_completed'] ?? json['cursos_completados']),
+      percentage: (json['percentage'] as num?)?.toDouble() ?? (json['progreso'] as num?)?.toDouble() ?? 0.0,
+      totalXp: totalXp,
+      level: level > 0 ? level : 1,
+      xpForNextLevel: xpForNext,
+      xpProgress: xpProg,
+      xpProgressInLevel: toInt(json['xp_progress_in_level'] ?? json['level_progress'] ?? json['progreso_nivel'], xpProg),
+      currentStreak: toInt(json['current_streak'] ?? json['streak'] ?? json['streak_count'] ?? json['racha_actual']),
+      longestStreak: toInt(json['longest_streak'] ?? json['max_streak'] ?? json['racha_maxima']),
       lastActivityDate: json['last_activity_date'] != null
-          ? DateTime.tryParse(json['last_activity_date'] as String)
+          ? DateTime.tryParse(json['last_activity_date'].toString())
           : null,
-      achievementsCount: int.tryParse(json['achievements_count']?.toString() ?? '0') ?? 0,
+      achievementsCount: toInt(json['achievements_count'] ?? json['badges_count'] ?? json['logros_count']),
     );
   }
-
 }
 
 // ─── UserStats ────────────────────────────────────────────────────────────────
@@ -153,21 +178,53 @@ class UserStatsModel {
   double get levelProgress =>
       xpForNextLevel > 0 ? xpProgress / xpForNextLevel : 0.0;
 
-  factory UserStatsModel.fromJson(Map<String, dynamic> json) {
-    return UserStatsModel(
-      totalXp: int.tryParse(json['total_xp']?.toString() ?? json['xp']?.toString() ?? '0') ?? 0,
-      level: int.tryParse(json['level']?.toString() ?? '1') ?? 1,
-      xpForNextLevel: int.tryParse(json['xp_for_next_level']?.toString() ?? '100') ?? 100,
-      xpProgress: int.tryParse(json['xp_progress']?.toString() ?? '0') ?? 0,
-      xpProgressInLevel: int.tryParse(json['xp_progress_in_level']?.toString() ?? '0') ?? 0,
-      currentStreak: int.tryParse(json['current_streak']?.toString() ?? json['streak']?.toString() ?? '0') ?? 0,
-      longestStreak: int.tryParse(json['longest_streak']?.toString() ?? '0') ?? 0,
-      lastActivityDate: json['last_activity_date'] != null
-          ? DateTime.tryParse(json['last_activity_date'] as String)
-          : null,
+  /// Retorna un modelo de estadísticas vacío (valores en cero).
+  factory UserStatsModel.empty() {
+    return const UserStatsModel(
+      totalXp: 0,
+      level: 1,
+      xpForNextLevel: 100,
+      xpProgress: 0,
+      xpProgressInLevel: 0,
+      currentStreak: 0,
+      longestStreak: 0,
+      lastActivityDate: null,
     );
   }
 
+  factory UserStatsModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
+    final totalXp = toInt(json['total_xp'] ?? json['xp'] ?? json['points'] ?? json['total_points'] ?? json['puntos_totales'] ?? json['puntos']);
+    final level = toInt(json['level'] ?? json['current_level'] ?? json['nivel'], (totalXp ~/ 100) + 1);
+    
+    // Resilient XP progress calculation
+    int xpForNext = toInt(json['xp_for_next_level'] ?? json['next_level_xp'] ?? json['xp_siguiente_nivel'], 100);
+    if (xpForNext <= 0) xpForNext = 100;
+
+    int xpProg = toInt(json['xp_progress'] ?? json['current_xp'] ?? json['xp_actual'], -1);
+    if (xpProg == -1) {
+      xpProg = totalXp % xpForNext;
+    }
+
+    return UserStatsModel(
+      totalXp: totalXp,
+      level: level > 0 ? level : 1,
+      xpForNextLevel: xpForNext,
+      xpProgress: xpProg,
+      xpProgressInLevel: toInt(json['xp_progress_in_level'] ?? json['level_progress'] ?? json['progreso_nivel'], xpProg),
+      currentStreak: toInt(json['current_streak'] ?? json['streak'] ?? json['streak_count'] ?? json['racha_actual']),
+      longestStreak: toInt(json['longest_streak'] ?? json['max_streak'] ?? json['racha_maxima']),
+      lastActivityDate: json['last_activity_date'] != null
+          ? DateTime.tryParse(json['last_activity_date'].toString())
+          : null,
+    );
+  }
 }
 
 // ─── Achievement ──────────────────────────────────────────────────────────────
@@ -196,15 +253,21 @@ class AchievementModel {
   final DateTime? createdAt;
 
   factory AchievementModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
     return AchievementModel(
-      id: json['id'] as int,
-      name: json['name']?.toString() ?? '',
-      description: json['description']?.toString() ?? '',
-      requiredXp: int.tryParse(json['required_xp']?.toString() ?? '0') ?? 0,
-      iconUrl: json['icon_url']?.toString(),
-      isActive: json['is_active'] as bool? ?? true,
-      triggerType: json['trigger_type']?.toString(),
-      requiredValue: int.tryParse(json['required_value']?.toString() ?? '0'),
+      id: toInt(json['id']),
+      name: json['name']?.toString() ?? json['nombre']?.toString() ?? '',
+      description: json['description']?.toString() ?? json['descripcion']?.toString() ?? '',
+      requiredXp: toInt(json['required_xp'] ?? json['xp_requerido']),
+      iconUrl: json['icon_url']?.toString() ?? json['imagen']?.toString() ?? json['icon']?.toString(),
+      isActive: json['is_active'] == true || json['is_active'] == 1 || json['activo'] == true,
+      triggerType: json['trigger_type']?.toString() ?? json['tipo']?.toString(),
+      requiredValue: toInt(json['required_value'] ?? json['valor_requerido']),
       createdAt: json['created_at'] != null
           ? DateTime.tryParse(json['created_at'].toString())
           : null,
@@ -239,10 +302,10 @@ class UserAchievementModel {
 
   factory UserAchievementModel.fromJson(Map<String, dynamic> json) {
     return UserAchievementModel(
-      id: json['id'] as int,
+      id: json['id'] as int? ?? 0,
       achievement: AchievementModel.fromJson(
-          json['achievement'] as Map<String, dynamic>),
-      unlockedAt: DateTime.tryParse(json['unlocked_at']?.toString() ?? '') ??
+          json['achievement'] as Map<String, dynamic>? ?? json['logro'] as Map<String, dynamic>? ?? {}),
+      unlockedAt: DateTime.tryParse(json['unlocked_at']?.toString() ?? json['fecha_desbloqueo']?.toString() ?? '') ??
           DateTime.now(),
     );
   }
@@ -274,16 +337,46 @@ class RankingEntryModel {
   final bool isMe;
 
   factory RankingEntryModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
+    // Manejo robusto del usuario (puede venir anidado o plano)
+    Object? userObj = json['user'] ?? json['usuario'];
+    String username = 'Estudiante';
+    String email = '';
+    int uId = 0;
+    
+    if (userObj is Map) {
+      username = userObj['full_name']?.toString() ?? 
+                 userObj['username']?.toString() ?? 
+                 userObj['nombre']?.toString() ?? 
+                 userObj['email']?.toString() ?? 
+                 'Estudiante';
+      email = userObj['email']?.toString() ?? '';
+      uId = toInt(userObj['id'] ?? userObj['pk']);
+    } else {
+      username = json['username']?.toString() ?? 
+                 json['full_name']?.toString() ?? 
+                 json['nombre']?.toString() ?? 
+                 'Estudiante';
+      email = json['email']?.toString() ?? '';
+      uId = toInt(json['user_id'] ?? json['id'] ?? json['usuario_id']);
+    }
+
     return RankingEntryModel(
-      position: json['position'] as int,
-      userId: json['user_id'] as int,
-      username: json['username']?.toString() ?? '',
-      email: json['email']?.toString() ?? '',
-      totalXp: json['total_xp'] as int? ?? 0,
-      level: json['level'] as int? ?? 1,
-      currentStreak: json['current_streak'] as int? ?? 0,
-      longestStreak: json['longest_streak'] as int? ?? 0,
-      isMe: json['is_me'] as bool? ?? false,
+      position: toInt(json['position'] ?? json['rank'] ?? json['puesto']),
+      userId: uId,
+      username: username,
+      email: email,
+      totalXp: toInt(json['total_xp'] ?? json['xp'] ?? json['points'] ?? json['total_points'] ?? json['puntos_totales'] ?? json['puntos']),
+      level: toInt(json['level'] ?? json['current_level'] ?? json['nivel'], 1),
+      currentStreak: toInt(json['current_streak'] ?? json['streak'] ?? json['streak_count'] ?? json['racha']),
+      longestStreak: toInt(json['longest_streak'] ?? json['max_streak'] ?? json['racha_maxima']),
+      isMe: json['is_me'] == true || json['is_me'] == 1 || json['is_me'] == 'true' || json['es_yo'] == true,
     );
   }
 }
@@ -304,14 +397,49 @@ class RankingModel {
   final List<RankingEntryModel> ranking;
 
   factory RankingModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
+    final rawRanking = json['ranking'] ?? json['results'] ?? json['data'] ?? json['usuarios'];
+    final List<dynamic> rankingList = rawRanking is List ? rawRanking : [];
+
+    final rankingItems = rankingList
+              .map((e) {
+                if (e is Map) return RankingEntryModel.fromJson(Map<String, dynamic>.from(e));
+                return null;
+              })
+              .whereType<RankingEntryModel>()
+              .toList();
+
+    int myPos = toInt(json['my_position'] ?? json['position'] ?? json['rank'] ?? json['mi_puesto']);
+    int myXpVal = toInt(json['my_xp'] ?? json['xp'] ?? json['points'] ?? json['total_xp'] ?? json['mis_puntos'] ?? json['puntos']);
+    int myLvl = toInt(json['my_level'] ?? json['level'] ?? json['mi_nivel'], 0);
+
+    // Si faltan datos propios, buscarlos en la lista
+    if (myPos == 0 || myXpVal == 0) {
+      RankingEntryModel? me;
+      try {
+        me = rankingItems.firstWhere((e) => e.isMe);
+      } catch (_) {
+        // No se encontró 'isMe', nada que hacer
+      }
+      
+      if (me != null) {
+        if (myPos == 0) myPos = me.position > 0 ? me.position : rankingItems.indexOf(me) + 1;
+        if (myXpVal == 0) myXpVal = me.totalXp;
+        if (myLvl == 0) myLvl = me.level;
+      }
+    }
+
     return RankingModel(
-      myPosition: json['my_position'] as int? ?? 0,
-      myXp: json['my_xp'] as int? ?? 0,
-      myLevel: json['my_level'] as int? ?? 1,
-      ranking: (json['ranking'] as List<dynamic>?)
-              ?.map((e) => RankingEntryModel.fromJson(e as Map<String, dynamic>))
-              .toList() ??
-          [],
+      myPosition: myPos,
+      myXp: myXpVal,
+      myLevel: myLvl > 0 ? myLvl : 1,
+      ranking: rankingItems,
     );
   }
 }
@@ -338,14 +466,20 @@ class ProgressByLanguage {
   final double percentage;
 
   factory ProgressByLanguage.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
     return ProgressByLanguage(
-      languageId: json['language_id'] as int? ?? 0,
-      languageName: json['language_name']?.toString() ?? '',
-      languageCode: json['language_code']?.toString() ?? '',
-      flagUrl: json['flag_url']?.toString(),
-      totalLessons: json['total_lessons'] as int? ?? 0,
-      completed: json['completed'] as int? ?? 0,
-      percentage: (json['percentage'] as num?)?.toDouble() ?? 0.0,
+      languageId: toInt(json['language_id'] ?? json['id']),
+      languageName: json['language_name']?.toString() ?? json['nombre']?.toString() ?? '',
+      languageCode: json['language_code']?.toString() ?? json['codigo']?.toString() ?? '',
+      flagUrl: json['flag_url']?.toString() ?? json['bandera']?.toString(),
+      totalLessons: toInt(json['total_lessons'] ?? json['lecciones_totales']),
+      completed: toInt(json['completed'] ?? json['completadas']),
+      percentage: (json['percentage'] as num?)?.toDouble() ?? (json['progreso'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

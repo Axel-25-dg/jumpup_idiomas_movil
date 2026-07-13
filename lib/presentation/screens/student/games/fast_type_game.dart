@@ -62,13 +62,12 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
     try {
       final xp = _score * 5;
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 3,
+            lessonId: 17, // ID único para Fast Type
             status: 'completed',
             score: xp.toDouble(),
             xpEarned: xp,
           );
       
-      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       debugPrint('Error sumando XP: $e');
     } finally {
@@ -133,8 +132,8 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
           const Text(
-            '⚡ VELOCIDAD',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            'VELOCIDAD',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white),
           ),
           const SizedBox(width: 48),
         ],

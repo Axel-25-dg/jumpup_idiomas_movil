@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
@@ -31,6 +32,12 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<ClassroomModel?>> {
         ));
   }
 
+  Future<void> addClassroom({
+    required String name,
+    required String description,
+    required int courseId,
+  }) => create(name, description, courseId);
+
   Future<void> update(int id, String name, String desc, int courseId) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() => _repo.updateClassroom(
@@ -41,9 +48,38 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<ClassroomModel?>> {
         ));
   }
 
+  Future<void> updateClassroom({
+    required int id,
+    required String name,
+    required String description,
+    required int courseId,
+  }) => update(id, name, description, courseId);
+
+  Future<void> deleteClassroom(int id) => delete(id);
+
+  Future<List<ClassroomEnrollment>> getEnrollments(int classroomId) async {
+    return _repo.fetchEnrollments(classroomId);
+  }
+
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  }) async {
+    state = const AsyncValue.loading();
+    final res = await AsyncValue.guard<void>(() => _repo.removeStudent(
+          classroomId: classroomId,
+          studentId: studentId,
+        ));
+    if (res.hasError) {
+      state = AsyncValue.error(res.error!, res.stackTrace!);
+    } else {
+      state = const AsyncValue.data(null);
+    }
+  }
+
   Future<void> delete(int id) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
+    state = await AsyncValue.guard<ClassroomModel?>(() async {
       await _repo.deleteClassroom(id);
       return null;
     });

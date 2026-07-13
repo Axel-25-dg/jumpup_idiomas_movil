@@ -81,22 +81,36 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
   }
 
   Future<void> _finishGame() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
-    await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-      lessonId: 10, // ID único para este juego
-      status: 'completed',
-      score: 50.0,
-      xpEarned: 50,
-    );
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (c) => AlertDialog(
-          title: const Text('¡Ganaste!'),
-          content: const Text('Has encontrado todas las palabras. +50 XP'),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-        ),
-      ).then((_) => Navigator.pop(context));
+    try {
+      await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+            lessonId: 22, // ID único para Sopa de Letras
+            status: 'completed',
+            score: 50.0,
+            xpEarned: 50,
+          );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (c) => AlertDialog(
+            title: const Text('¡Ganaste!'),
+            content: const Text('Has encontrado todas las palabras. +50 XP'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(c);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'))
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -108,13 +122,15 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('SOPA DE LETRAS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('SOPA DE LETRAS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
+          _buildProgressHeader(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Wrap(
@@ -183,6 +199,33 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
               padding: EdgeInsets.all(20.0),
               child: CircularProgressIndicator(color: Colors.blueAccent),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${foundWords.length}/${wordsToFind.length} PALABRAS', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('50 XP', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: foundWords.length / wordsToFind.length,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+              minHeight: 8,
+            ),
+          ),
         ],
       ),
     );

@@ -35,16 +35,23 @@ class _CrosswordGameState extends ConsumerState<CrosswordGame> {
     }
 
     if (allCorrect) {
+      if (_submitting) return;
       setState(() => _submitting = true);
       HapticFeedback.mediumImpact();
-      await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-        lessonId: 11,
-        status: 'completed',
-        score: 60.0,
-        xpEarned: 60,
-      );
-      if (mounted) {
-        _showWinDialog();
+      try {
+        await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+              lessonId: 24, // ID único para Crucigrama
+              status: 'completed',
+              score: 60.0,
+              xpEarned: 60,
+            );
+        if (mounted) {
+          _showWinDialog();
+        }
+      } catch (e) {
+        debugPrint('Error: $e');
+      } finally {
+        if (mounted) setState(() => _submitting = false);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -91,9 +98,10 @@ class _CrosswordGameState extends ConsumerState<CrosswordGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('CRUCIGRAMA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('CRUCIGRAMA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(

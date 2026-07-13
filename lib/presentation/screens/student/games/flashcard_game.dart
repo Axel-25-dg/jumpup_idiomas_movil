@@ -71,11 +71,12 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
   }
 
   Future<void> _submitResults() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     final xpEarned = _correct * 5;
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 2, // Placeholder para Flashcards
+            lessonId: 18, // ID único para Flashcards
             status: 'completed',
             score: xpEarned.toDouble(),
             xpEarned: xpEarned,
@@ -83,6 +84,8 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
       _showFlashcardResult(xpEarned);
     } catch (e) {
       _showFlashcardResult(xpEarned);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 
@@ -127,16 +130,41 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
-        title: Text('Flashcards ${_current + 1}/${_cards.length}', style: const TextStyle(color: Colors.white)),
+        title: Text('FLASHCARDS', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
       ),
       body: _submitting 
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
         : Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text('✅ Correctas: $_correct', style: const TextStyle(color: Colors.greenAccent, fontSize: 16)),
-              const SizedBox(height: 32),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('PROGRESO: ${_current + 1}/${_cards.length}', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+                        Text('$_correct CORRECTAS', style: const TextStyle(color: Colors.greenAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(10),
+                      child: LinearProgressIndicator(
+                        value: (_current + 1) / _cards.length,
+                        backgroundColor: Colors.white.withValues(alpha: 0.1),
+                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+                        minHeight: 8,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Spacer(),
               GestureDetector(
                 onTap: _flip,
                 child: AnimatedBuilder(
@@ -190,6 +218,7 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
                     ),
                   ],
                 ),
+              const Spacer(),
             ],
           ),
     );

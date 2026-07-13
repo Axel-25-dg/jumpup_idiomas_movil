@@ -26,7 +26,8 @@ class CourseRepository extends BaseRepository {
 
   Future<void> createCourse(Map<String, dynamic> data) async {
     try {
-      await dio.post('courses/', data: buildCoursePayload(data));
+      final payload = buildCoursePayload(data);
+      await dio.post('courses/', data: payload);
     } on DioException catch (e) {
       throw ApiException('Error al crear curso', e.response?.statusCode, e);
     }
@@ -42,14 +43,8 @@ class CourseRepository extends BaseRepository {
 
   Future<void> deleteCourse(int id) async {
     try {
-      // ignore: avoid_print
-      print('CourseRepository.deleteCourse: deleting id=$id');
       final res = await dio.delete('courses/$id/');
-      // ignore: avoid_print
-      print('CourseRepository.deleteCourse: response status=${res.statusCode}');
     } on DioException catch (e) {
-      // ignore: avoid_print
-      print('CourseRepository.deleteCourse: error=${e.response}');
       throw ApiException('Error al eliminar curso', e.response?.statusCode, e);
     }
   }

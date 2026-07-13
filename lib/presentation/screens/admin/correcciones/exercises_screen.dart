@@ -1,4 +1,4 @@
-// lib/presentation/screens/admin/exercises_screen.dart
+/*// lib/presentation/screens/admin/exercises_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
@@ -629,3 +629,4 @@ class _ExercisesList extends ConsumerWidget {
     );
   }
 }
+*/

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/dashboard_models.dart';
 import 'package:jumpup_app/data/repository/auth/dashboard_repository_impl.dart';
+import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
 final dashboardServiceProvider = Provider<DashboardService>((ref) {
   return const DashboardService();
@@ -12,6 +13,8 @@ final userProfileProvider = FutureProvider<UserProfileModel>((ref) async {
 
 final dashboardSummaryProvider =
     FutureProvider<DashboardSummaryModel>((ref) async {
+  // Escuchar estadísticas locales para reaccionar a cambios de XP
+  ref.watch(localUserStatsProvider);
   return ref.watch(dashboardServiceProvider).getDashboardSummary();
 });
 

@@ -73,7 +73,7 @@ class GamesScreen extends ConsumerWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisAlignment: MainAxisAlignment.end,
                       children: [
-                        const Text('🎮 Arena de Juegos', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
+                        const Text('Arena de Juegos', style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900)),
                         const SizedBox(height: 4),
                         Text('Aprende idiomas jugando • Gana XP', style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 13)),
                       ],
@@ -107,7 +107,8 @@ class GamesScreen extends ConsumerWidget {
                     Text('Minijuegos', style: TextStyle(color: textColor, fontSize: 20, fontWeight: FontWeight.bold)),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🪢 Ahorcado',
+                      title: 'Ahorcado',
+                      icon: Icons.gesture_rounded,
                       subtitle: 'Adivina palabras en inglés',
                       description: 'Pon a prueba tu vocabulario antes de agotar tus intentos',
                       gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
@@ -117,7 +118,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🧠 Memoria',
+                      title: 'Memoria',
+                      icon: Icons.psychology_rounded,
                       subtitle: 'Encuentra las parejas',
                       description: 'Entrena tu retentiva visual con emojis coloridos',
                       gradient: const [Color(0xFF6A11CB), Color(0xFFAB47BC)],
@@ -127,7 +129,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '⚡ Velocidad',
+                      title: 'Velocidad',
+                      icon: Icons.speed_rounded,
                       subtitle: 'Escribe rápido y sin errores',
                       description: '¿Qué tan rápido puedes teclear estas palabras?',
                       gradient: const [Color(0xFF00C853), Color(0xFFB2FF59)],
@@ -137,7 +140,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🔗 Emparejar',
+                      title: 'Emparejar',
+                      icon: Icons.link_rounded,
                       subtitle: 'Relaciona palabras con su traducción',
                       description: 'Encuentra todos los pares antes que se acabe el tiempo',
                       gradient: const [Color(0xFFE65100), Color(0xFFFFA726)],
@@ -147,7 +151,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '❓ Trivia',
+                      title: 'Trivia',
+                      icon: Icons.quiz_rounded,
                       subtitle: 'Quiz de gramática y vocabulario',
                       description: 'Demuestra tus conocimientos respondiendo preguntas',
                       gradient: const [Color(0xFF1B5E20), Color(0xFF66BB6A)],
@@ -157,7 +162,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🧩 Word Scramble',
+                      title: 'Word Scramble',
+                      icon: Icons.extension_rounded,
                       subtitle: 'Desordena y reordena',
                       description: 'Ordena las letras para formar la palabra correcta',
                       gradient: const [Color(0xFFC62828), Color(0xFFEF5350)],
@@ -167,7 +173,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🏗️ Constructor',
+                      title: 'Constructor',
+                      icon: Icons.architecture_rounded,
                       subtitle: 'Forma oraciones correctas',
                       description: 'Arrastra las palabras para construir la frase',
                       gradient: const [Color(0xFF00B0FF), Color(0xFF00E5FF)],
@@ -177,7 +184,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '⚡ Verb Blitz',
+                      title: 'Verb Blitz',
+                      icon: Icons.bolt_rounded,
                       subtitle: 'Pasados y participios',
                       description: 'Domina los verbos irregulares a toda velocidad',
                       gradient: const [Color(0xFF6200EA), Color(0xFFD500F9)],
@@ -187,7 +195,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🖼️ Identificar',
+                      title: 'Identificar',
+                      icon: Icons.image_search_rounded,
                       subtitle: 'Vocabulario visual',
                       description: 'Selecciona el nombre correcto del objeto mostrado',
                       gradient: const [Color(0xFFFF4081), Color(0xFFFF80AB)],
@@ -197,7 +206,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🔠 Sopa de Letras',
+                      title: 'Sopa de Letras',
+                      icon: Icons.grid_on_rounded,
                       subtitle: 'Encuentra las palabras',
                       description: 'Busca las palabras ocultas en la cuadrícula',
                       gradient: const [Color(0xFF455A64), Color(0xFF78909C)],
@@ -207,7 +217,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🧩 Crucigrama',
+                      title: 'Crucigrama',
+                      icon: Icons.border_inner_rounded,
                       subtitle: 'Resuelve el tablero',
                       description: 'Completa las palabras cruzadas con pistas',
                       gradient: const [Color(0xFF3E2723), Color(0xFF5D4037)],
@@ -217,7 +228,8 @@ class GamesScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
-                      title: '🎭 Roleplay AI',
+                      title: 'Roleplay AI',
+                      icon: Icons.smart_toy_rounded,
                       subtitle: 'Conversación fluida',
                       description: 'Practica situaciones reales con inteligencia artificial',
                       gradient: const [Color(0xFF37474F), Color(0xFF546E7A)],
@@ -330,11 +342,11 @@ class _StatsBanner extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _MiniStat(icon: '🔥', value: streak, label: 'Racha'),
-          _MiniStat(icon: '⭐', value: xp, label: 'XP Total'),
+          _MiniStat(icon: Icons.local_fire_department_rounded, iconColor: Colors.orange, value: streak, label: 'Racha'),
+          _MiniStat(icon: Icons.stars_rounded, iconColor: Colors.amber, value: xp, label: 'XP Total'),
           GestureDetector(
             onTap: () => context.push(AppRoutes.studentRanking),
-            child: _MiniStat(icon: '🏆', value: ranking, label: 'Ranking'),
+            child: _MiniStat(icon: Icons.emoji_events_rounded, iconColor: Colors.blueAccent, value: ranking, label: 'Ranking'),
           ),
         ],
       ),
@@ -343,22 +355,24 @@ class _StatsBanner extends StatelessWidget {
 }
 
 class _MiniStat extends StatelessWidget {
-  final String icon, value, label;
-  const _MiniStat({required this.icon, required this.value, required this.label});
+  final IconData icon;
+  final Color iconColor;
+  final String value, label;
+  const _MiniStat({required this.icon, required this.iconColor, required this.value, required this.label});
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
-        Text(icon, style: const TextStyle(fontSize: 24)),
+        Icon(icon, color: iconColor, size: 28),
         const SizedBox(height: 6),
         Text(value, style: TextStyle(color: isDark ? Colors.white : Colors.black87, fontSize: 18, fontWeight: FontWeight.bold)),
         Text(label, style: TextStyle(color: isDark ? Colors.white54 : Colors.black45, fontSize: 11)),
         if (label == 'Ranking')
           const Padding(
             padding: EdgeInsets.only(top: 4),
-            child: Text('Ver más 🏆', style: TextStyle(color: Colors.blueAccent, fontSize: 9, fontWeight: FontWeight.bold)),
+            child: Text('Ver más', style: TextStyle(color: Colors.blueAccent, fontSize: 9, fontWeight: FontWeight.bold)),
           ),
       ],
     );
@@ -403,6 +417,7 @@ class _ProBanner extends StatelessWidget {
 
 class _GameCard extends StatelessWidget {
   final String title, subtitle, description, difficulty;
+  final IconData icon;
   final List<Color> gradient;
   final int xp;
   final bool isLocked;
@@ -410,6 +425,7 @@ class _GameCard extends StatelessWidget {
 
   const _GameCard({
     required this.title,
+    required this.icon,
     required this.subtitle,
     required this.description,
     required this.gradient,
@@ -439,6 +455,15 @@ class _GameCard extends StatelessWidget {
             padding: const EdgeInsets.all(24),
             child: Row(
               children: [
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Icon(icon, color: Colors.white, size: 32),
+                ),
+                const SizedBox(width: 20),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -460,11 +485,7 @@ class _GameCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 16),
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: const BoxDecoration(color: Colors.white24, shape: BoxShape.circle),
-                  child: Icon(isLocked ? Icons.lock_outline_rounded : Icons.play_arrow_rounded, color: Colors.white, size: 28),
-                ),
+                Icon(isLocked ? Icons.lock_outline_rounded : Icons.chevron_right_rounded, color: Colors.white70, size: 28),
               ],
             ),
           ),

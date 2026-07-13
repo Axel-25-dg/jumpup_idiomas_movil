@@ -1,42 +1,38 @@
-// lib/presentation/screens/admin/exercises_screen.dart
+// lib/presentation/screens/admin/lessons_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
-import 'package:jumpup_app/presentation/providers/exercise_provider.dart';
 import 'package:jumpup_app/presentation/providers/lesson_provider.dart';
-import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
+import 'package:jumpup_app/presentation/providers/module_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
-class ExercisesScreen extends ConsumerStatefulWidget {
-  const ExercisesScreen({super.key});
+class LessonsScreen extends ConsumerStatefulWidget {
+  const LessonsScreen({super.key});
 
   @override
-  ConsumerState<ExercisesScreen> createState() => _ExercisesScreenState();
+  ConsumerState<LessonsScreen> createState() => _LessonsScreenState();
 }
 
-class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
+class _LessonsScreenState extends ConsumerState<LessonsScreen> {
   final _formKey = GlobalKey<FormState>();
   final _searchController = TextEditingController();
-  final _lessonIdController = TextEditingController();
-  final _questionController = TextEditingController();
-  final _answerController = TextEditingController();
-  final _optionsController = TextEditingController();
+  final _titleController = TextEditingController();
+  final _orderController = TextEditingController();
+  final _xpRewardController = TextEditingController();
   String _searchQuery = '';
-  String _selectedType = 'multiple_choice';
-  int? _currentLessonId;
-  int? _selectedLessonId;
-  ExerciseModel? _editingExercise;
+  String _selectedContentType = 'text';
+  LessonModel? _editingLesson;
+  int? _selectedModuleId;
 
-  final List<Map<String, dynamic>> _exerciseTypes = [
-    {'value': 'multiple_choice', 'label': 'Opcion Multiple', 'icon': Icons.list_alt_rounded},
-    {'value': 'translate', 'label': 'Traduccion', 'icon': Icons.translate_rounded},
-    {'value': 'listen', 'label': 'Audicion', 'icon': Icons.headphones_rounded},
-    {'value': 'fill_blank', 'label': 'Completar', 'icon': Icons.text_fields_rounded},
-    {'value': 'match', 'label': 'Emparejar', 'icon': Icons.compare_arrows_rounded},
+  final List<Map<String, String>> _contentTypes = [
+    {'value': 'text', 'label': 'Texto'},
+    {'value': 'video', 'label': 'Video'},
+    {'value': 'audio', 'label': 'Audio'},
+    {'value': 'interactive', 'label': 'Interactivo'},
   ];
 
   @override
@@ -47,32 +43,28 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         _searchQuery = _searchController.text.toLowerCase();
       });
     });
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      ref.read(exerciseNotifierProvider.notifier).fetchAllExercises();
-    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
-    _lessonIdController.dispose();
-    _questionController.dispose();
-    _answerController.dispose();
-    _optionsController.dispose();
+    _titleController.dispose();
+    _orderController.dispose();
+    _xpRewardController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final exercisesAsync = ref.watch(exerciseNotifierProvider);
-    final notifier = ref.read(exerciseNotifierProvider.notifier);
     final lessonsAsync = ref.watch(lessonNotifierProvider);
+    final notifier = ref.read(lessonNotifierProvider.notifier);
+    final modulesAsync = ref.watch(moduleNotifierProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F0E1A),
       appBar: AppBar(
         title: const Text(
-          'Gestion de Ejercicios',
+          'Gestión de Lecciones',
           style: TextStyle(color: Colors.white),
         ),
         backgroundColor: const Color(0xFF1E1E2A),
@@ -81,12 +73,12 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
-            onPressed: () => _showAddEditDialog(context, lessonsAsync),
-            tooltip: 'Crear ejercicio',
+            onPressed: () => _showAddEditDialog(context, modulesAsync),
+            tooltip: 'Crear lección',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            onPressed: () => notifier.fetchAllExercises(),
+            onPressed: () => notifier.refresh(),
             tooltip: 'Refrescar',
           ),
         ],
@@ -98,44 +90,44 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
             padding: const EdgeInsets.all(16),
             child: BrandedTextField(
               controller: _searchController,
-              label: 'Buscar ejercicio',
-              hint: 'ID de leccion o enunciado...',
+              label: 'Buscar lección',
+              hint: 'ID de módulo o nombre de la lección...',
               prefixIcon: Icons.search_rounded,
             ),
           ),
 
-          // Lista de ejercicios
+          // Lista de lecciones
           Expanded(
             child: RefreshIndicator(
-              onRefresh: () => notifier.fetchAllExercises(),
+              onRefresh: () => notifier.refresh(),
               color: const Color(0xFF7C4DFF),
               backgroundColor: const Color(0xFF1E1E2A),
-              child: exercisesAsync.when(
+              child: lessonsAsync.when(
                 loading: () => const Center(
                   child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
                 ),
                 error: (error, stack) => _buildErrorView(error, notifier),
-                data: (exercises) {
-                  // Filtrar por ID de leccion o enunciado
-                  final filtered = exercises.where((exercise) {
+                data: (lessons) {
+                  // Filtrar por ID de módulo o nombre
+                  final filtered = lessons.where((lesson) {
                     if (_searchQuery.isEmpty) return true;
-                    return exercise.lesson.toString().contains(_searchQuery) ||
-                        exercise.questionText.toLowerCase().contains(_searchQuery) ||
-                        exercise.lessonTitle.toLowerCase().contains(_searchQuery);
+                    return lesson.module.toString().contains(_searchQuery) ||
+                        lesson.title.toLowerCase().contains(_searchQuery) ||
+                        lesson.moduleTitle.toLowerCase().contains(_searchQuery);
                   }).toList();
 
                   if (filtered.isEmpty) {
                     return EmptyState(
                       title: _searchQuery.isEmpty
-                          ? 'No hay ejercicios creados'
-                          : 'No se encontraron ejercicios',
+                          ? 'No hay lecciones creadas'
+                          : 'No se encontraron lecciones',
                       subtitle: _searchQuery.isEmpty
-                          ? 'Crea tu primer ejercicio para comenzar'
+                          ? 'Crea tu primera lección para comenzar'
                           : 'Intenta con otro término de búsqueda',
-                      icon: Icons.edit_note_rounded,
-                      buttonText: _searchQuery.isEmpty ? 'Crear ejercicio' : 'Limpiar búsqueda',
+                      icon: Icons.menu_book_rounded,
+                      buttonText: _searchQuery.isEmpty ? 'Crear lección' : 'Limpiar búsqueda',
                       onButtonPressed: _searchQuery.isEmpty
-                          ? () => _showAddEditDialog(context, lessonsAsync)
+                          ? () => _showAddEditDialog(context, modulesAsync)
                           : () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
@@ -147,17 +139,17 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     padding: const EdgeInsets.all(16),
                     itemCount: filtered.length,
                     itemBuilder: (context, index) {
-                      final exercise = filtered[index];
-                      return _ExerciseCard(
-                        exercise: exercise,
+                      final lesson = filtered[index];
+                      return _LessonCard(
+                        lesson: lesson,
                         onEdit: () => _showAddEditDialog(
                           context,
-                          lessonsAsync,
-                          exercise: exercise,
+                          modulesAsync,
+                          lesson: lesson,
                         ),
                         onDelete: () => _confirmDelete(
                           context,
-                          exercise.id,
+                          lesson.id,
                           notifier,
                         ),
                       );
@@ -172,7 +164,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     );
   }
 
-  Widget _buildErrorView(Object error, ExerciseNotifier notifier) {
+  Widget _buildErrorView(Object error, LessonNotifier notifier) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -180,7 +172,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           const Icon(Icons.error_outline, size: 48, color: Color(0xFFFF5252)),
           const SizedBox(height: 16),
           const Text(
-            'Error al cargar ejercicios',
+            'Error al cargar lecciones',
             style: TextStyle(color: Colors.white, fontSize: 18),
           ),
           const SizedBox(height: 8),
@@ -192,7 +184,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
-            onPressed: () => notifier.fetchAllExercises(),
+            onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -202,33 +194,31 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
 
   void _showAddEditDialog(
     BuildContext context,
-    AsyncValue<List<LessonModel>> lessonsAsync, {
-    ExerciseModel? exercise,
+    AsyncValue<List<ModuleModel>> modulesAsync, {
+    LessonModel? lesson,
   }) {
-    _editingExercise = exercise;
-    final isEditing = exercise != null;
+    _editingLesson = lesson;
+    final isEditing = lesson != null;
 
     if (isEditing) {
-      _questionController.text = exercise.questionText;
-      _answerController.text = exercise.correctAnswer;
-      _selectedType = exercise.exerciseType;
-      _selectedLessonId = exercise.lesson;
-      if (exercise.options.isNotEmpty) {
-        _optionsController.text = exercise.options.join(', ');
-      }
+      _titleController.text = lesson.title;
+      _orderController.text = lesson.order.toString();
+      _xpRewardController.text = lesson.xpReward.toString();
+      _selectedContentType = lesson.contentType;
+      _selectedModuleId = lesson.module;
     } else {
-      _questionController.clear();
-      _answerController.clear();
-      _optionsController.clear();
-      _selectedType = 'multiple_choice';
-      _selectedLessonId = null;
+      _titleController.clear();
+      _orderController.clear();
+      _xpRewardController.clear();
+      _selectedContentType = 'text';
+      _selectedModuleId = null;
     }
 
     showDialog(
       context: context,
       builder: (ctx) {
-        int? localLessonId = _selectedLessonId;
-        String? localType = _selectedType;
+        int? localModuleId = _selectedModuleId;
+        String? localContentType = _selectedContentType;
 
         return StatefulBuilder(
           builder: (context, setDialogState) {
@@ -239,7 +229,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 borderRadius: BorderRadius.circular(24),
               ),
               title: Text(
-                isEditing ? 'Editar ejercicio' : 'Crear ejercicio',
+                isEditing ? 'Editar lección' : 'Crear lección',
                 style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
@@ -253,48 +243,30 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Selector de leccion
-                        lessonsAsync.when(
+                        // Selector de módulo
+                        modulesAsync.when(
                           loading: () => const Center(
                             child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
                           ),
                           error: (_, __) => const Text(
-                            'Error al cargar lecciones',
+                            'Error al cargar módulos',
                             style: TextStyle(color: Colors.redAccent),
                           ),
-                          data: (lessons) {
-                            if (lessons.isEmpty) {
-                              return Column(
-                                children: [
-                                  const Text(
-                                    'No hay lecciones disponibles. Crea una lección primero.',
-                                    style: TextStyle(color: Colors.white70),
-                                  ),
-                                  const SizedBox(height: 12),
-                                  PrimaryButton(
-                                    label: 'Ir a Lecciones',
-                                    onPressed: () {
-                                      Navigator.pop(ctx);
-                                      Navigator.push(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (_) => const LessonsScreen(),
-                                        ),
-                                      );
-                                    },
-                                    icon: Icons.menu_book_rounded,
-                                  ),
-                                ],
+                          data: (modules) {
+                            if (modules.isEmpty) {
+                              return const Text(
+                                'No hay módulos disponibles. Crea un módulo primero.',
+                                style: TextStyle(color: Colors.white70),
                               );
                             }
                             return DropdownButtonFormField<int>(
                               dropdownColor: const Color(0xFF1E1E2A),
                               style: const TextStyle(color: Colors.white),
                               decoration: InputDecoration(
-                                labelText: 'Leccion',
+                                labelText: 'Módulo',
                                 labelStyle: const TextStyle(color: Colors.white70),
                                 prefixIcon: const Icon(
-                                  Icons.book_rounded,
+                                  Icons.view_module_rounded,
                                   color: Colors.white54,
                                 ),
                                 filled: true,
@@ -305,40 +277,54 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                                 ),
                               ),
                               hint: const Text(
-                                'Selecciona una leccion',
+                                'Selecciona un módulo',
                                 style: TextStyle(color: Colors.white54),
                               ),
-                              value: localLessonId,
-                              items: lessons.map((lesson) {
+                              value: localModuleId,
+                              items: modules.map((module) {
                                 return DropdownMenuItem(
-                                  value: lesson.id,
+                                  value: module.id,
                                   child: Text(
-                                    '${lesson.title} (ID: ${lesson.id})',
+                                    '${module.title} (ID: ${module.id})',
                                     style: const TextStyle(color: Colors.white),
                                   ),
                                 );
                               }).toList(),
                               onChanged: (value) {
-                                localLessonId = value;
+                                localModuleId = value;
                                 setDialogState(() {});
                               },
                               validator: (value) =>
-                                  value == null ? 'Selecciona una leccion' : null,
+                                  value == null ? 'Selecciona un módulo' : null,
                             );
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        // Tipo de ejercicio
+                        // Título
+                        BrandedTextField(
+                          controller: _titleController,
+                          label: 'Título de la lección',
+                          prefixIcon: Icons.title_rounded,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'El título es obligatorio';
+                            }
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Tipo de contenido
                         DropdownButtonFormField<String>(
                           dropdownColor: const Color(0xFF1E1E2A),
                           style: const TextStyle(color: Colors.white),
-                          value: localType,
+                          value: localContentType,
                           decoration: InputDecoration(
-                            labelText: 'Tipo de ejercicio',
+                            labelText: 'Tipo de contenido',
                             labelStyle: const TextStyle(color: Colors.white70),
                             prefixIcon: const Icon(
-                              Icons.category_rounded,
+                              Icons.content_paste_rounded,
                               color: Colors.white54,
                             ),
                             filled: true,
@@ -348,71 +334,60 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                               borderSide: BorderSide.none,
                             ),
                           ),
-                          items: _exerciseTypes.map((type) {
+                          items: _contentTypes.map((type) {
                             return DropdownMenuItem(
-                              value: type['value'] as String,
-                              child: Row(
-                                children: [
-                                  Icon(
-                                    type['icon'] as IconData,
-                                    size: 20,
-                                    color: const Color(0xFF7C4DFF),
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    type['label'] as String,
-                                    style: const TextStyle(color: Colors.white),
-                                  ),
-                                ],
+                              value: type['value'],
+                              child: Text(
+                                type['label']!,
+                                style: const TextStyle(color: Colors.white),
                               ),
                             );
                           }).toList(),
                           onChanged: (value) {
                             if (value != null) {
-                              localType = value;
+                              localContentType = value;
                               setDialogState(() {});
                             }
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        // Enunciado
+                        // Orden
                         BrandedTextField(
-                          controller: _questionController,
-                          label: 'Enunciado / Pregunta',
-                          prefixIcon: Icons.question_mark_rounded,
-                          maxLines: 3,
+                          controller: _orderController,
+                          label: 'Orden',
+                          hint: 'Ej: 1, 2, 3...',
+                          prefixIcon: Icons.sort_rounded,
+                          keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'El enunciado es obligatorio';
+                              return 'El orden es obligatorio';
+                            }
+                            if (int.tryParse(value) == null) {
+                              return 'Ingresa un número válido';
                             }
                             return null;
                           },
                         ),
                         const SizedBox(height: 16),
 
-                        // Respuesta correcta
+                        // XP Reward
                         BrandedTextField(
-                          controller: _answerController,
-                          label: 'Respuesta Correcta',
-                          prefixIcon: Icons.check_circle_rounded,
+                          controller: _xpRewardController,
+                          label: 'XP por completar',
+                          hint: 'Ej: 10, 20, 50...',
+                          prefixIcon: Icons.star_rounded,
+                          keyboardType: TextInputType.number,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'La respuesta es obligatoria';
+                              return 'La XP es obligatoria';
+                            }
+                            if (int.tryParse(value) == null) {
+                              return 'Ingresa un número válido';
                             }
                             return null;
                           },
                         ),
-                        const SizedBox(height: 16),
-
-                        // Opciones (solo para multiple_choice)
-                        if (localType == 'multiple_choice')
-                          BrandedTextField(
-                            controller: _optionsController,
-                            label: 'Opciones (separadas por coma)',
-                            hint: 'Ej: Opcion 1, Opcion 2, Opcion 3',
-                            prefixIcon: Icons.list_alt_rounded,
-                          ),
                       ],
                     ),
                   ),
@@ -428,40 +403,24 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
                 ),
                 PrimaryButton(
                   label: isEditing ? 'Actualizar' : 'Guardar',
-                  onPressed: () async {
-                    if (_formKey.currentState!.validate() && localLessonId != null) {
-                      final notifier = ref.read(exerciseNotifierProvider.notifier);
+                  onPressed: () {
+                    if (_formKey.currentState!.validate() && localModuleId != null) {
+                      final notifier = ref.read(lessonNotifierProvider.notifier);
 
-                      final data = <String, dynamic>{
-                        'lesson': localLessonId!,
-                        'question_text': _questionController.text.trim(),
-                        'exercise_type': localType!,
-                        'correct_answer': _answerController.text.trim(),
+                      final data = {
+                        'module': localModuleId!,
+                        'title': _titleController.text.trim(),
+                        'content_type': localContentType!,
+                        'order': int.parse(_orderController.text.trim()),
+                        'xp_reward': int.parse(_xpRewardController.text.trim()),
                       };
 
-                      if (localType == 'multiple_choice') {
-                        final optionsText = _optionsController.text.trim();
-                        if (optionsText.isNotEmpty) {
-                          data['options'] = optionsText.split(',').map((e) => e.trim()).where((e) => e.isNotEmpty).toList();
-                        }
+                      if (isEditing) {
+                        notifier.updateLesson(_editingLesson!.id, data);
+                      } else {
+                        notifier.addLesson(data);
                       }
-
-                      try {
-                        if (isEditing) {
-                          await notifier.updateExercise(_editingExercise!.id, data);
-                        } else {
-                          await notifier.createExercise(data);
-                        }
-                        Navigator.pop(ctx);
-                        notifier.fetchAllExercises();
-                      } catch (e) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Error: $e'),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      }
+                      Navigator.pop(ctx);
                     }
                   },
                 ),
@@ -473,7 +432,7 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, int exerciseId, ExerciseNotifier notifier) {
+  void _confirmDelete(BuildContext context, int lessonId, LessonNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -483,15 +442,15 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           borderRadius: BorderRadius.circular(20),
         ),
         title: const Text(
-          'Eliminar ejercicio',
+          'Eliminar lección',
           style: TextStyle(
             color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
         content: const Text(
-          '¿Estás seguro de que deseas eliminar este ejercicio?\n'
-          'Esta acción no se puede deshacer.',
+          '¿Estás seguro de que deseas eliminar esta lección?\n'
+          'Esta acción eliminará todos los ejercicios asociados.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
@@ -505,9 +464,8 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
           PrimaryButton(
             label: 'Eliminar',
             onPressed: () {
-              notifier.deleteExercise(exerciseId, exerciseId);
+              notifier.deleteLesson(lessonId);
               Navigator.pop(ctx);
-              notifier.fetchAllExercises();
             },
           ),
         ],
@@ -516,63 +474,63 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   }
 }
 
-class _ExerciseCard extends StatelessWidget {
-  const _ExerciseCard({
-    required this.exercise,
+class _LessonCard extends StatelessWidget {
+  const _LessonCard({
+    required this.lesson,
     required this.onEdit,
     required this.onDelete,
   });
 
-  final ExerciseModel exercise;
+  final LessonModel lesson;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
-  String _getTypeLabel(String type) {
+  String _getContentTypeLabel(String type) {
     switch (type) {
-      case 'multiple_choice':
-        return 'Opcion Multiple';
-      case 'translate':
-        return 'Traduccion';
-      case 'listen':
-        return 'Audicion';
-      case 'fill_blank':
-        return 'Completar';
-      case 'match':
-        return 'Emparejar';
+      case 'text':
+        return 'Texto';
+      case 'video':
+        return 'Video';
+      case 'audio':
+        return 'Audio';
+      case 'quiz':
+        return 'Quiz';
+      case 'interactive':
+        return 'Interactivo';
       default:
         return type;
     }
   }
 
-  Color _getTypeColor(String type) {
+  Color _getContentTypeColor(String type) {
     switch (type) {
-      case 'multiple_choice':
+      case 'text':
         return const Color(0xFF00E5FF);
-      case 'translate':
-        return const Color(0xFF7C4DFF);
-      case 'listen':
-        return const Color(0xFF00C853);
-      case 'fill_blank':
-        return const Color(0xFFFFAB40);
-      case 'match':
+      case 'video':
         return const Color(0xFFFF5252);
+      case 'audio':
+        return const Color(0xFF7C4DFF);
+      case 'quiz':
+        return const Color(0xFFFFAB40);
+      case 'interactive':
+        return const Color(0xFF00C853);
       default:
         return Colors.grey;
     }
   }
 
-  IconData _getTypeIcon(String type) {
+  IconData _getContentTypeIcon(String type) {
     switch (type) {
-      case 'multiple_choice':
-        return Icons.list_alt_rounded;
-      case 'translate':
-        return Icons.translate_rounded;
-      case 'listen':
-        return Icons.headphones_rounded;
-      case 'fill_blank':
+      case 'text':
         return Icons.text_fields_rounded;
-      case 'match':
-        return Icons.compare_arrows_rounded;
+      case 'video':
+        return Icons.video_library_rounded;
+      case 'audio':
+        return Icons.audiotrack_rounded;
+      case 'quiz':
+        return Icons.quiz_rounded;
+      case 'interactive':
+        return Icons.touch_app_rounded;
       default:
         return Icons.help_rounded;
     }
@@ -580,7 +538,7 @@ class _ExerciseCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final typeColor = _getTypeColor(exercise.exerciseType);
+    final contentTypeColor = _getContentTypeColor(lesson.contentType);
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
@@ -595,31 +553,29 @@ class _ExerciseCard extends StatelessWidget {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: typeColor.withValues(alpha: 0.1),
+                color: contentTypeColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
-                _getTypeIcon(exercise.exerciseType),
-                color: typeColor,
+                _getContentTypeIcon(lesson.contentType),
+                color: contentTypeColor,
                 size: 24,
               ),
             ),
             title: Text(
-              exercise.questionText,
+              lesson.title,
               style: const TextStyle(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
                 fontSize: 15,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
             subtitle: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 4),
                 Text(
-                  'Leccion: ${exercise.lessonTitle} (ID: ${exercise.lesson})',
+                  'Módulo: ${lesson.moduleTitle} (ID: ${lesson.module})',
                   style: const TextStyle(
                     color: Colors.white38,
                     fontSize: 12,
@@ -631,11 +587,19 @@ class _ExerciseCard extends StatelessWidget {
                   runSpacing: 4,
                   children: [
                     _buildBadge(
-                      text: _getTypeLabel(exercise.exerciseType),
-                      color: typeColor,
+                      text: _getContentTypeLabel(lesson.contentType),
+                      color: contentTypeColor,
                     ),
                     _buildBadge(
-                      text: 'Respuesta: ${exercise.correctAnswer}',
+                      text: 'Orden: ${lesson.order}',
+                      color: Colors.blue,
+                    ),
+                    _buildBadge(
+                      text: 'XP: ${lesson.xpReward}',
+                      color: Colors.amber,
+                    ),
+                    _buildBadge(
+                      text: '${lesson.exercisesCount} ejercicios',
                       color: Colors.green,
                     ),
                   ],

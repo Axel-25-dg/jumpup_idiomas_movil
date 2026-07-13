@@ -110,7 +110,7 @@ class _SentenceBuilderGameState extends ConsumerState<SentenceBuilderGame> {
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 6, // Sentence Builder
+            lessonId: 23, // ID único para Sentence Builder
             status: 'completed',
             score: points,
             xpEarned: points.toInt(),
@@ -187,8 +187,8 @@ class _SentenceBuilderGameState extends ConsumerState<SentenceBuilderGame> {
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
           const Text(
-            '🏗️ CONSTRUCTOR',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            'CONSTRUCTOR',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white),
           ),
           const SizedBox(width: 48),
         ],

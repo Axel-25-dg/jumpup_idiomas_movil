@@ -110,13 +110,12 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
     try {
       final xp = (100 - _moves).clamp(40, 90); 
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 2,
+            lessonId: 15, // ID único para Memoria
             status: 'completed',
             score: xp.toDouble(),
             xpEarned: xp,
           );
       
-      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       debugPrint('Error sumando XP: $e');
     } finally {
@@ -132,6 +131,30 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.close_rounded, color: textColor),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.psychology_rounded, color: Color(0xFF2575FC)),
+            const SizedBox(width: 12),
+            const Text(
+              'MEMORIA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => _setupLevel(),
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2575FC)),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           if (isDark) ...[
@@ -141,7 +164,6 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
           SafeArea(
             child: Column(
               children: [
-                _buildAppBar(context, textColor),
                 const SizedBox(height: 20),
                 _buildStatsRow(isDark, textColor),
                 const SizedBox(height: 32),
@@ -179,29 +201,6 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
     );
   }
 
-  Widget _buildAppBar(BuildContext context, Color textColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.close_rounded, color: textColor),
-          ),
-          const Text(
-            '🧠 MEMORIA',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
-          ),
-          IconButton(
-            onPressed: () => _setupLevel(),
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2575FC)),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildStatsRow(bool isDark, Color textColor) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -228,6 +227,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
   }
 
   Widget _buildWinOverlay(bool isDark, Color textColor) {
+    final xp = (100 - _moves).clamp(40, 90);
     return Padding(
       padding: const EdgeInsets.all(24),
       child: GlassContainer(
@@ -244,7 +244,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text('¡GANASTE!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.greenAccent)),
-                  Text('Has ganado ${(100 - _moves).clamp(20, 80)} XP', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 13)),
+                  Text('Has ganado $xp XP', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 13)),
                 ],
               ),
             ),
