@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/upload_resource_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/resource_editor_screen.dart';
 import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -96,6 +97,41 @@ class ResourceLibraryScreen extends ConsumerWidget {
                             Text('Tipo: ${res.resourceType.toUpperCase()} | Curso ID: ${res.course}', style: const TextStyle(color: Colors.white54, fontSize: 12)),
                           ],
                         ),
+                      ),
+                      PopupMenuButton<String>(
+                        icon: const Icon(Icons.more_vert, color: Colors.white54),
+                        onSelected: (value) async {
+                          if (value == 'edit') {
+                            final changed = await Navigator.of(context).push<bool>(
+                              MaterialPageRoute(builder: (_) => ResourceEditorScreen(resource: res)),
+                            );
+                            if (changed == true) {
+                              ref.invalidate(resourcesListProvider);
+                            }
+                          } else if (value == 'delete') {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (_) => AlertDialog(
+                                title: const Text('Eliminar recurso'),
+                                content: Text('¿Quieres quitar ${res.title} de la biblioteca?'),
+                                actions: [
+                                  TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancelar')),
+                                  FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Eliminar')),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              final ok = await ref.read(resourceManagerProvider.notifier).deleteResource(res.id);
+                              if (ok && context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Recurso eliminado')));
+                              }
+                            }
+                          }
+                        },
+                        itemBuilder: (_) => const [
+                          PopupMenuItem(value: 'edit', child: Text('Editar')),
+                          PopupMenuItem(value: 'delete', child: Text('Eliminar')),
+                        ],
                       ),
                       IconButton(
                         icon: const Icon(Icons.open_in_new_rounded, color: Colors.white54),

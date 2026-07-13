@@ -7,6 +7,8 @@ class Course {
   final String description;
   final String difficultyLevel;
   final String imageUrl;
+  final String? teacherName;
+  final String? teacherEmail;
 
   Course(
       {required this.id,
@@ -15,7 +17,9 @@ class Course {
       required this.title,
       required this.description,
       required this.difficultyLevel,
-      required this.imageUrl});
+      required this.imageUrl,
+      this.teacherName,
+      this.teacherEmail});
 
   factory Course.fromJson(Map<String, dynamic> json) => Course(
         id: int.tryParse(json['id']?.toString() ?? '') ?? 0,
@@ -25,5 +29,7 @@ class Course {
         description: json['description']?.toString() ?? '',
         difficultyLevel: json['difficulty_level']?.toString() ?? '',
         imageUrl: json['image_url']?.toString() ?? '',
+        teacherName: json['teacher_name']?.toString(),
+        teacherEmail: json['teacher_email']?.toString(),
       );
 }

@@ -79,6 +79,15 @@ final coursesProvider = FutureProvider<List<CourseModel>>((ref) async {
   );
 });
 
+final studentEnrolledCoursesProvider = FutureProvider<List<CourseModel>>((ref) async {
+  final service = ref.watch(courseServiceProvider);
+  final filters = ref.watch(courseFiltersProvider);
+  return service.getStudentEnrolledCourses(
+    difficultyLevel: filters.difficultyLevel,
+    search: filters.search,
+  );
+});
+
 final courseDetailProvider =
     FutureProvider.family<CourseModel, int>((ref, courseId) async {
   final service = ref.watch(courseServiceProvider);

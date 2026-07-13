@@ -4,9 +4,9 @@ import 'package:intl/intl.dart';
 import 'package:jumpup_app/data/repository/social/social_media_repository.dart';
 import 'package:jumpup_app/domain/model/social_media_models.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
+import 'package:jumpup_app/presentation/screens/common/live_session_join_screen.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Tokens de estilo centralizados para mantener una paleta coherente.
 class _LiveTokens {
@@ -564,30 +564,17 @@ class _SessionCard extends ConsumerWidget {
                                 try {
                                   await const SocialMediaRepository()
                                       .joinLiveSession(session.id);
-                                  scaffoldMessenger.showSnackBar(
-                                    const SnackBar(
-                                      content: Text('¡Reserva realizada con éxito!'),
-                                      backgroundColor: Colors.greenAccent,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                  ref.invalidate(liveSessionsProvider);
-                                  if (session.meetingUrl != null &&
-                                      session.meetingUrl!.isNotEmpty) {
-                                    final uri = Uri.tryParse(session.meetingUrl!);
-                                    if (uri != null && await canLaunchUrl(uri)) {
-                                      await launchUrl(uri, mode: LaunchMode.externalApplication);
-                                    }
+                                  if (context.mounted) {
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(
+                                        builder: (_) => LiveSessionJoinScreen(
+                                          meetingUrl: session.meetingUrl ?? '',
+                                          title: session.title,
+                                        ),
+                                      ),
+                                    );
                                   }
-                                } catch (e) {
-                                  scaffoldMessenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text('Error al reservar: ${e.toString()}'),
-                                      backgroundColor: Colors.redAccent,
-                                      behavior: SnackBarBehavior.floating,
-                                    ),
-                                  );
-                                }
+                                } catch (_) {}
                               },
                             ),
                           ],

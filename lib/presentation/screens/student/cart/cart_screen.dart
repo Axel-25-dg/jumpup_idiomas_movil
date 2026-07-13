@@ -504,9 +504,14 @@ class _CartItemCard extends StatelessWidget {
                   ),
                 const SizedBox(height: 12),
                 IconButton(
-                  onPressed: () {
+                  onPressed: () async {
                     HapticFeedback.heavyImpact();
-                    ref.read(cartActionsProvider).removeItem(item.productoId);
+                    await ref.read(cartActionsProvider).removeItem(item.productoId);
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Producto eliminado del carrito')),
+                      );
+                    }
                   },
                   icon: const Icon(Icons.delete_sweep_rounded, color: Colors.redAccent, size: 24),
                   style: IconButton.styleFrom(
