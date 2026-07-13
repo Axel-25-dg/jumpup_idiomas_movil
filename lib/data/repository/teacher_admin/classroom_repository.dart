@@ -2,6 +2,7 @@
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 
 Map<String, dynamic> buildClassroomPayload({
   required String name,
@@ -72,7 +73,7 @@ class ClassroomRepository extends BaseRepository {
     };
 
     return executeRequest(
-      () => dio.patch('classrooms/$id/', data: payload),
+      () async => await dio.patch('classrooms/$id/', data: payload),
       message: 'Error al actualizar aula',
     );
   }
@@ -120,7 +121,7 @@ class ClassroomRepository extends BaseRepository {
     required int studentId,
   }) {
     return executeRequest(
-      () => dio.post(
+      () async => await dio.post(
         'classrooms/$classroomId/remove-student/',
         data: {'student_id': studentId},
       ),
@@ -128,11 +129,57 @@ class ClassroomRepository extends BaseRepository {
     );
   }
 
-  Future<void> addClassroom(Map<String, dynamic> data) async {
-    await createClassroom(
-      name: data['name'] as String,
-      description: data['description'] as String,
-      courseId: data['course'] as int,
+  // 📥 Obtener solicitudes de ingreso pendientes
+  Future<List<ClassroomJoinRequest>> fetchJoinRequests(int classroomId) {
+    return getList<ClassroomJoinRequest>(
+      'classrooms/$classroomId/requests/',
+      (json) => ClassroomJoinRequest.fromJson(json),
+      message: 'Error al cargar solicitudes de ingreso',
+    );
+  }
+
+  // ✓ Aprobar solicitud de ingreso
+  Future<void> approveJoinRequest({
+    required int classroomId,
+    required int requestId,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/$classroomId/approve-request/',
+        data: {'request_id': requestId},
+      ),
+      message: 'Error al aprobar la solicitud de ingreso',
+    );
+  }
+
+  // ✗ Rechazar solicitud de ingreso
+  Future<void> rejectJoinRequest({
+    required int classroomId,
+    required int requestId,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/$classroomId/reject-request/',
+        data: {'request_id': requestId},
+      ),
+      message: 'Error al rechazar la solicitud de ingreso',
+    );
+  }
+
+  // ➕ Estudiante solicita ingresar a aula
+  Future<void> requestJoin({
+    required int classroomId,
+    String? message,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/request-join/',
+        data: {
+          'classroom_id': classroomId,
+          if (message != null) 'message': message,
+        },
+      ),
+      message: 'Error al solicitar el ingreso al aula',
     );
   }
 }

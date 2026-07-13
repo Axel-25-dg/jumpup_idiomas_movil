@@ -29,11 +29,13 @@ class ResourceNotifier extends StateNotifier<AsyncValue<TeacherResource?>> {
   Future<void> create({
     required String title,
     required int courseId,
+    int? lessonId,
     required String fileUrl,
   }) async {
     await uploadResource({
       'title': title,
-      'course_id': courseId,
+      'course': courseId,
+      if (lessonId != null) 'lesson': lessonId,
       'file_url': fileUrl,
     });
   }

@@ -5,17 +5,13 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 
 Map<String, dynamic> buildCoursePayload(Map<String, dynamic> data) {
+  final languageId = data['language_id'] ?? data['language'] ?? data['course_language_id'];
   final payload = <String, dynamic>{
     'title': data['title'] ?? '',
     'description': data['description'] ?? '',
     'difficulty_level': data['difficulty_level'] ?? 'A1',
+    if (languageId != null) 'language': languageId,
   };
-
-  final languageId = data['language_id'] ?? data['language'] ?? data['course_language_id'];
-  if (languageId != null) {
-    payload['language'] = languageId;
-  }
-
   return payload;
 }
 

@@ -38,6 +38,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   final Map<String, String> _completedMatches = {};
   final List<String> _leftMatchItems = [];
   final List<String> _rightMatchItems = [];
+  String? _selectedLeft;
+  String? _selectedRight;
   List<String>? _availableTranslateWords;
   List<String>? _selectedTranslateWords;
   bool _isPlayingAudioExercise = false;
@@ -451,6 +453,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeft = null;
+        _selectedRight = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -467,6 +471,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeft = null;
+        _selectedRight = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -482,6 +488,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeft = null;
+        _selectedRight = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -803,9 +811,186 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
     );
   }
 
+  void _initMatchItems(ExerciseModel exercise) {
+    if (_leftMatchItems.isEmpty && exercise.exerciseType == 'match') {
+      _leftMatchItems.addAll(exercise.options);
+      _leftMatchItems.shuffle();
+
+      final List<String> rights = exercise.correctAnswer.split(',');
+      _rightMatchItems.addAll(rights);
+      _rightMatchItems.shuffle();
+    }
+  }
+
   Widget _buildMatch(ExerciseModel exercise) {
-    // Similar to existing logic but styled
-    return const Center(child: Text('Implementación de Match con diseño profesional'));
+    _initMatchItems(exercise);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          'Toca un elemento de la izquierda y luego su pareja a la derecha:',
+          style: TextStyle(color: Colors.white70, fontSize: 14, fontStyle: FontStyle.italic),
+        ),
+        const SizedBox(height: 20),
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Columna Izquierda
+            Expanded(
+              child: Column(
+                children: _leftMatchItems.map((leftItem) {
+                  final isMatched = _completedMatches.containsKey(leftItem);
+                  final isSelected = _selectedLeft == leftItem;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GlassContainer(
+                      onTap: _hasAnswered || isMatched
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedLeft = leftItem;
+                                _checkAndCreateMatch(exercise);
+                              });
+                            },
+                      opacity: isSelected ? 0.25 : (isMatched ? 0.02 : 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.blueAccent
+                            : (isMatched ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white12),
+                        width: 2,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                        child: Center(
+                          child: Text(
+                            leftItem,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isMatched ? Colors.white30 : Colors.white,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              decoration: isMatched ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Columna Derecha
+            Expanded(
+              child: Column(
+                children: _rightMatchItems.map((rightItem) {
+                  final isMatched = _completedMatches.containsValue(rightItem);
+                  final isSelected = _selectedRight == rightItem;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GlassContainer(
+                      onTap: _hasAnswered || isMatched
+                          ? null
+                          : () {
+                              setState(() {
+                                _selectedRight = rightItem;
+                                _checkAndCreateMatch(exercise);
+                              });
+                            },
+                      opacity: isSelected ? 0.25 : (isMatched ? 0.02 : 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: isSelected
+                            ? Colors.blueAccent
+                            : (isMatched ? Colors.greenAccent.withValues(alpha: 0.3) : Colors.white12),
+                        width: 2,
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+                        child: Center(
+                          child: Text(
+                            rightItem,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: isMatched ? Colors.white30 : Colors.white,
+                              fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                              decoration: isMatched ? TextDecoration.lineThrough : null,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+        if (_completedMatches.isNotEmpty) ...[
+          const SizedBox(height: 24),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Parejas formadas:', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 13)),
+              if (!_hasAnswered)
+                TextButton.icon(
+                  onPressed: () {
+                    setState(() {
+                      _completedMatches.clear();
+                      _selectedLeft = null;
+                      _selectedRight = null;
+                      _selectedAnswer = null;
+                    });
+                  },
+                  icon: const Icon(Icons.refresh_rounded, size: 16, color: Colors.redAccent),
+                  label: const Text('Reiniciar', style: TextStyle(color: Colors.redAccent, fontSize: 12)),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ..._completedMatches.entries.map((entry) {
+            return Container(
+              margin: const EdgeInsets.only(bottom: 8),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: Colors.greenAccent.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: Colors.greenAccent.withValues(alpha: 0.15)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(entry.key, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                  const Icon(Icons.link_rounded, color: Colors.greenAccent, size: 18),
+                  Text(entry.value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w500)),
+                ],
+              ),
+            );
+          }),
+        ],
+      ],
+    );
+  }
+
+  void _checkAndCreateMatch(ExerciseModel exercise) {
+    if (_selectedLeft != null && _selectedRight != null) {
+      setState(() {
+        _completedMatches[_selectedLeft!] = _selectedRight!;
+        _selectedLeft = null;
+        _selectedRight = null;
+
+        if (_completedMatches.length == exercise.options.length) {
+          final List<String> matchedRights = [];
+          for (final left in exercise.options) {
+            matchedRights.add(_completedMatches[left] ?? '');
+          }
+          _selectedAnswer = matchedRights.join(',');
+        }
+      });
+    }
   }
 
   Widget _buildListen(ExerciseModel exercise) {

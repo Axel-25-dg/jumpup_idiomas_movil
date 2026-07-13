@@ -1,94 +1,64 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
+import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 /// Provider para obtener la lista de aulas.
+/// Si necesitas filtrar o buscar, puedes convertirlo a un [AsyncNotifierProvider].
 final classroomsListProvider = FutureProvider<List<ClassroomModel>>((ref) async {
   final repo = ref.read(teacherRepositoryProvider);
   final list = await repo.fetchAllClassrooms();
   // Filter out inactive (soft-deleted) classrooms returned by the API
   final filtered = list.where((c) => c.isActive).toList();
+  // ignore: avoid_print
+  print('classroomsListProvider: original=${list.length}, filtered=${filtered.length}');
   return filtered;
 });
 
 /// Notificador para acciones CRUD sobre Aulas (Crear, Editar, Borrar)
-class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> {
+class ClassroomNotifier extends StateNotifier<AsyncValue<ClassroomModel?>> {
   final TeacherRepository _repo;
+  ClassroomNotifier(this._repo) : super(const AsyncValue.data(null));
 
-  ClassroomNotifier(this._repo) : super(const AsyncValue.loading()) {
-    refresh();
-  }
-
-  Future<void> refresh() async {
+  Future<void> create(String name, String desc, int courseId) async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() async {
-      final list = await _repo.fetchAllClassrooms();
-      return list.where((c) => c.isActive).toList();
-    });
+    state = await AsyncValue.guard(() => _repo.createClassroom(
+          name: name,
+          description: desc,
+          courseId: courseId,
+        ));
   }
 
   Future<void> addClassroom({
     required String name,
     required String description,
     required int courseId,
-  }) async {
+  }) => create(name, description, courseId);
+
+  Future<void> update(int id, String name, String desc, int courseId) async {
     state = const AsyncValue.loading();
-    final result = await AsyncValue.guard(() => _repo.createClassroom(
+    state = await AsyncValue.guard(() => _repo.updateClassroom(
+          id: id,
           name: name,
-          description: description,
+          description: desc,
           courseId: courseId,
         ));
-    
-    if (result.hasError) {
-      state = AsyncValue.error(result.error!, result.stackTrace!);
-    } else {
-      await refresh();
-    }
   }
 
-  // ✅ CORREGIDO: Ahora acepta courseId obligatorio como en el antiguo
   Future<void> updateClassroom({
     required int id,
     required String name,
     required String description,
     required int courseId,
-  }) async {
-    state = const AsyncValue.loading();
-    
-    final result = await AsyncValue.guard(() => _repo.updateClassroom(
-          id: id,
-          name: name,
-          description: description,
-          courseId: courseId,
-        ));
+  }) => update(id, name, description, courseId);
 
-    if (result.hasError) {
-      state = AsyncValue.error(result.error!, result.stackTrace!);
-    } else {
-      await refresh();
-    }
-  }
+  Future<void> deleteClassroom(int id) => delete(id);
 
-  Future<void> deleteClassroom(int id) async {
-    state = const AsyncValue.loading();
-    final result = await AsyncValue.guard(() => _repo.deleteClassroom(id));
-    
-    if (result.hasError) {
-      state = AsyncValue.error(result.error!, result.stackTrace!);
-    } else {
-      await refresh();
-    }
-  }
-
-  // ✅ NUEVO: Método getEnrollments como en el antiguo
   Future<List<ClassroomEnrollment>> getEnrollments(int classroomId) async {
-    try {
-      return await _repo.fetchEnrollments(classroomId);
-    } catch (e) {
-      rethrow;
-    }
+    return _repo.fetchEnrollments(classroomId);
   }
 
   Future<void> removeStudent({
@@ -96,26 +66,68 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
     required int studentId,
   }) async {
     state = const AsyncValue.loading();
-    final result = await AsyncValue.guard(() => _repo.removeStudent(
+    final res = await AsyncValue.guard<void>(() => _repo.removeStudent(
           classroomId: classroomId,
           studentId: studentId,
         ));
-
-    if (result.hasError) {
-      state = AsyncValue.error(result.error!, result.stackTrace!);
+    if (res.hasError) {
+      state = AsyncValue.error(res.error!, res.stackTrace!);
     } else {
-      await refresh();
+      state = const AsyncValue.data(null);
     }
+  }
+
+  Future<void> delete(int id) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard<ClassroomModel?>(() async {
+      await _repo.deleteClassroom(id);
+      return null;
+    });
   }
 }
 
 final classroomNotifierProvider =
-    StateNotifierProvider<ClassroomNotifier, AsyncValue<List<ClassroomModel>>>((ref) {
+    StateNotifierProvider<ClassroomNotifier, AsyncValue<ClassroomModel?>>((ref) {
   return ClassroomNotifier(ref.read(teacherRepositoryProvider));
 });
 
-// ✅ NUEVO: Provider para enrollments (como en el antiguo)
-final enrollmentsProvider = FutureProvider.family<List<ClassroomEnrollment>, int>((ref, classroomId) {
-  final notifier = ref.read(classroomNotifierProvider.notifier);
-  return notifier.getEnrollments(classroomId);
+/// Provider de la lista de solicitudes de ingreso para un aula en específico.
+final classroomJoinRequestsProvider = FutureProvider.family<List<ClassroomJoinRequest>, int>((ref, classroomId) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  return await repo.fetchJoinRequests(classroomId);
+});
+
+/// Notificador para Aprobar / Rechazar solicitudes de ingreso a aulas.
+class ClassroomJoinRequestsNotifier extends StateNotifier<AsyncValue<void>> {
+  final TeacherRepository _repo;
+  final Ref _ref;
+
+  ClassroomJoinRequestsNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+
+  Future<void> approveRequest(int classroomId, int requestId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.approveJoinRequest(classroomId: classroomId, requestId: requestId);
+      _ref.invalidate(classroomJoinRequestsProvider(classroomId));
+    });
+  }
+
+  Future<void> rejectRequest(int classroomId, int requestId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.rejectJoinRequest(classroomId: classroomId, requestId: requestId);
+      _ref.invalidate(classroomJoinRequestsProvider(classroomId));
+    });
+  }
+
+  Future<void> requestJoin(int classroomId, String? message) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.requestJoin(classroomId: classroomId, message: message);
+    });
+  }
+}
+
+final classroomJoinRequestsNotifierProvider = StateNotifierProvider<ClassroomJoinRequestsNotifier, AsyncValue<void>>((ref) {
+  return ClassroomJoinRequestsNotifier(ref.read(teacherRepositoryProvider), ref);
 });

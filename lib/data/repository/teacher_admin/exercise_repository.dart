@@ -10,7 +10,7 @@ class ExerciseRepository extends BaseRepository {
     return getList<ExerciseModel>(
       'exercises/',
       (json) => ExerciseModel.fromJson(json),
-      queryParameters: {'lesson_id': lessonId},
+      queryParameters: {'lesson': lessonId},
       message: 'Error al cargar ejercicios',
     );
   }
