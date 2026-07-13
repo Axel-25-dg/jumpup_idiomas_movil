@@ -110,13 +110,12 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
     try {
       final xp = (100 - _moves).clamp(40, 90); 
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 2,
+            lessonId: 15, // ID único para Memoria
             status: 'completed',
             score: xp.toDouble(),
             xpEarned: xp,
           );
       
-      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
       debugPrint('Error sumando XP: $e');
     } finally {
@@ -228,6 +227,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
   }
 
   Widget _buildWinOverlay(bool isDark, Color textColor) {
+    final xp = (100 - _moves).clamp(40, 90);
     return Padding(
       padding: const EdgeInsets.all(24),
       child: GlassContainer(
@@ -244,7 +244,7 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Text('¡GANASTE!', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: Colors.greenAccent)),
-                  Text('Has ganado ${(100 - _moves).clamp(20, 80)} XP', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 13)),
+                  Text('Has ganado $xp XP', style: TextStyle(color: textColor.withValues(alpha: 0.7), fontSize: 13)),
                 ],
               ),
             ),

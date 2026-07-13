@@ -76,13 +76,14 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
   }
 
   Future<void> _finish() async {
+    if (_submitting) return;
     setState(() {
       _done = true;
       _submitting = true;
     });
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 1,
+            lessonId: 19, // ID único para Verb Blitz
             status: 'completed',
             score: _score.toDouble(),
             xpEarned: _score,

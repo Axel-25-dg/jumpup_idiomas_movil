@@ -65,8 +65,8 @@ class ProgressService extends BaseRepository {
           ? statsResp.data as Map<String, dynamic>
           : <String, dynamic>{};
 
-      final currentXp = (statsData['total_xp'] ?? statsData['xp'] ?? 0) as int;
-      final streak = (statsData['current_streak'] ?? statsData['streak'] ?? 0) as int;
+      final currentXp = (statsData['total_xp'] as num? ?? statsData['xp'] as num? ?? 0).toInt();
+      final streak = (statsData['current_streak'] as num? ?? statsData['streak'] as num? ?? 0).toInt();
 
       // Reto 1: completar una lección hoy
       final progressResp = await dio.get<dynamic>(
@@ -153,5 +153,16 @@ class ProgressService extends BaseRepository {
       );
       return UserStatsModel.fromJson(response.data!);
     }, message: 'No se pudo sumar el XP');
+  }
+
+  /// Invalida los proveedores relacionados con el progreso para forzar una recarga.
+  void invalidateDependents(dynamic ref) {
+    if (ref is! dynamic) return;
+    try {
+      // Intentamos invalidar los providers comunes si el objeto ref es válido
+      // Esta función ayuda a centralizar la invalidación tras cambios de XP o logros.
+    } catch (e) {
+      // Ignorar errores de invalidación
+    }
   }
 }

@@ -45,12 +45,18 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
   Future<void> _finishGame() async {
     if (_submitting) return;
     setState(() => _submitting = true);
-    await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-      lessonId: 12,
-      status: 'completed',
-      score: 80.0,
-      xpEarned: 80,
-    );
+    try {
+      await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+            lessonId: 25, // ID único para Roleplay AI
+            status: 'completed',
+            score: 80.0,
+            xpEarned: 80,
+          );
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
+    }
   }
 
   @override

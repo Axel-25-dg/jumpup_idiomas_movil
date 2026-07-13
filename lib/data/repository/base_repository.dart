@@ -18,6 +18,7 @@ abstract class BaseRepository {
   Map<String, dynamic> _mapFrom(dynamic raw) {
     if (raw is Map<String, dynamic>) return raw;
     if (raw is Map) return Map<String, dynamic>.from(raw);
+    if (raw is List) return {'ranking': raw, 'results': raw, 'data': raw};
     return const {};
   }
 
@@ -42,9 +43,9 @@ abstract class BaseRepository {
     String? message,
   }) async {
     return handleRequest<T>(() async {
-      final response = await dio.get<Map<String, dynamic>>(endpoint,
+      final response = await dio.get<dynamic>(endpoint,
           queryParameters: queryParameters);
-      return fromJson(response.data!);
+      return fromJson(_mapFrom(response.data));
     }, message: message ?? 'No se pudo obtener el dato');
   }
 

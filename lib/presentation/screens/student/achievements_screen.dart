@@ -73,6 +73,27 @@ class AchievementsScreen extends ConsumerWidget {
               ),
               error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               data: (myAchievements) {
+                if (allAchievements.isEmpty) {
+                  return SliverFillRemaining(
+                    child: Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.emoji_events_outlined, size: 80, color: isDark ? Colors.white24 : Colors.black12),
+                            const SizedBox(height: 20),
+                            Text(
+                              'Aún no hay logros configurados en el sistema.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }
                 final unlockedIds = myAchievements.map((a) => a.achievement.id).toSet();
                 final unlocked = allAchievements.where((a) => unlockedIds.contains(a.id)).toList();
                 final locked = allAchievements.where((a) => !unlockedIds.contains(a.id)).toList();

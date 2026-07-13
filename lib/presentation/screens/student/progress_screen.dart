@@ -76,17 +76,6 @@ class ProgressScreen extends ConsumerWidget {
                           data: (s) => _CourseStatsCard(summary: s),
                         ),
                         const SizedBox(height: 24),
-                        Row(
-                          children: [
-                            const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
-                            const SizedBox(width: 8),
-                            Text('Mis Logros', style: TextStyle(
-                              color: isDark ? Colors.white : Colors.black87, 
-                              fontSize: 20, 
-                              fontWeight: FontWeight.bold
-                            )),
-                          ],
-                        ),
                         const _AchievementsSection(),
                       ]),
                     ),

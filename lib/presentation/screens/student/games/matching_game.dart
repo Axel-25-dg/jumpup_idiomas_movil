@@ -79,16 +79,19 @@ class _MatchingGameState extends ConsumerState<MatchingGame> {
   }
 
   Future<void> _submitScore() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 3, 
+            lessonId: 16, // ID único para Emparejar
             status: 'completed',
             score: _xp.toDouble(),
             xpEarned: _xp,
           );
     } catch (e) {
       debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 

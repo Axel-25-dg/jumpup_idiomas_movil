@@ -81,22 +81,36 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
   }
 
   Future<void> _finishGame() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
-    await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-      lessonId: 10, // ID único para este juego
-      status: 'completed',
-      score: 50.0,
-      xpEarned: 50,
-    );
-    if (mounted) {
-      showDialog(
-        context: context,
-        builder: (c) => AlertDialog(
-          title: const Text('¡Ganaste!'),
-          content: const Text('Has encontrado todas las palabras. +50 XP'),
-          actions: [TextButton(onPressed: () => Navigator.pop(context), child: const Text('OK'))],
-        ),
-      ).then((_) => Navigator.pop(context));
+    try {
+      await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+            lessonId: 22, // ID único para Sopa de Letras
+            status: 'completed',
+            score: 50.0,
+            xpEarned: 50,
+          );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (c) => AlertDialog(
+            title: const Text('¡Ganaste!'),
+            content: const Text('Has encontrado todas las palabras. +50 XP'),
+            actions: [
+              TextButton(
+                  onPressed: () {
+                    Navigator.pop(c);
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'))
+            ],
+          ),
+        );
+      }
+    } catch (e) {
+      debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 

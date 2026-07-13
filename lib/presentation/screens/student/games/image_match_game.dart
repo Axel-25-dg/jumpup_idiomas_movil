@@ -31,6 +31,7 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
   int _score = 0;
   int _round = 0;
   final int _maxRounds = 5;
+  bool _submitting = false;
 
   @override
   void initState() {
@@ -78,15 +79,19 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
   }
 
   Future<void> _finishGame() async {
+    if (_submitting) return;
+    setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 5,
+            lessonId: 21, // ID único para Image Match
             status: 'completed',
             score: _score.toDouble(),
             xpEarned: _score,
           );
     } catch (e) {
       debugPrint('Error: $e');
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 

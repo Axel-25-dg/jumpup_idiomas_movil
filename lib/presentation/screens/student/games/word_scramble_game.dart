@@ -102,7 +102,7 @@ class _WordScrambleGameState extends ConsumerState<WordScrambleGame> {
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 5, // Word Scramble
+            lessonId: 20, // ID único para Word Scramble
             status: 'completed',
             score: _score.toDouble(),
             xpEarned: _score,

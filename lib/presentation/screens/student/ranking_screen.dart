@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
@@ -240,10 +241,13 @@ class RankingScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 20),
-                          if (data.ranking.length >= 3)
+                          if (data.ranking.isNotEmpty)
                             _PodiumWidget(ranking: data.ranking, isDark: isDark)
                           else
-                            const SizedBox(height: 40),
+                            const SizedBox(
+                              height: 200,
+                              child: Center(child: Text('No hay suficientes datos para el podio')),
+                            ),
                         ],
                       ),
                     ),
@@ -341,10 +345,13 @@ class RankingScreen extends ConsumerWidget {
                   sliver: SliverList(
                     delegate: SliverChildBuilderDelegate(
                       (context, i) {
-                        final entry = data.ranking[i + 3];
+                        final listIndex = i + 3;
+                        if (listIndex >= data.ranking.length) return null;
+                        
+                        final entry = data.ranking[listIndex];
                         return _RankingRow(
                           entry: entry,
-                          position: i + 4,
+                          position: listIndex + 1,
                           isDark: isDark,
                         );
                       },
@@ -388,9 +395,9 @@ class RankingScreen extends ConsumerWidget {
     );
   }
 
-  int _calculateTotalXp(List<dynamic> ranking) {
+  int _calculateTotalXp(List<RankingEntryModel> ranking) {
     return ranking.fold<int>(
-        0, (sum, entry) => sum + (entry.totalXp as int? ?? 0));
+        0, (sum, entry) => sum + entry.totalXp);
   }
 }
 
@@ -514,14 +521,14 @@ class _StatCard extends StatelessWidget {
 }
 
 class _PodiumWidget extends StatelessWidget {
-  final List<dynamic> ranking;
+  final List<RankingEntryModel> ranking;
   final bool isDark;
   const _PodiumWidget({required this.ranking, required this.isDark});
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 360, // Increased height to prevent vertical overflow
+      height: 360,
       padding: const EdgeInsets.symmetric(horizontal: 12),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -529,40 +536,46 @@ class _PodiumWidget extends StatelessWidget {
         children: [
           // 2nd place
           Expanded(
-            child: _PodiumItem(
-              entry: ranking[1],
-              position: 2,
-              height: 110,
-              color: Colors.grey.shade300,
-              accentColor: Colors.grey.shade600,
-              isDark: isDark,
-            ),
+            child: ranking.length > 1
+                ? _PodiumItem(
+                    entry: ranking[1],
+                    position: 2,
+                    height: 110,
+                    color: Colors.grey.shade300,
+                    accentColor: Colors.grey.shade600,
+                    isDark: isDark,
+                  )
+                : const SizedBox(),
           ),
           const SizedBox(width: 8),
           // 1st place
           Expanded(
             flex: 1,
-            child: _PodiumItem(
-              entry: ranking[0],
-              position: 1,
-              height: 160,
-              color: Colors.amberAccent,
-              accentColor: Colors.amber.shade700,
-              isFirst: true,
-              isDark: isDark,
-            ),
+            child: ranking.isNotEmpty
+                ? _PodiumItem(
+                    entry: ranking[0],
+                    position: 1,
+                    height: 160,
+                    color: Colors.amberAccent,
+                    accentColor: Colors.amber.shade700,
+                    isFirst: true,
+                    isDark: isDark,
+                  )
+                : const SizedBox(),
           ),
           const SizedBox(width: 8),
           // 3rd place
           Expanded(
-            child: _PodiumItem(
-              entry: ranking[2],
-              position: 3,
-              height: 80,
-              color: Colors.brown.shade300,
-              accentColor: Colors.brown.shade700,
-              isDark: isDark,
-            ),
+            child: ranking.length > 2
+                ? _PodiumItem(
+                    entry: ranking[2],
+                    position: 3,
+                    height: 80,
+                    color: Colors.brown.shade300,
+                    accentColor: Colors.brown.shade700,
+                    isDark: isDark,
+                  )
+                : const SizedBox(),
           ),
         ],
       ),
@@ -571,7 +584,7 @@ class _PodiumWidget extends StatelessWidget {
 }
 
 class _PodiumItem extends StatelessWidget {
-  final dynamic entry;
+  final RankingEntryModel entry;
   final int position;
   final double height;
   final Color color;
@@ -591,11 +604,9 @@ class _PodiumItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final initials = (entry.username != null && entry.username!.isNotEmpty)
-        ? entry.username![0].toUpperCase()
-        : (entry.fullName != null && entry.fullName!.isNotEmpty)
-            ? entry.fullName![0].toUpperCase()
-            : '?';
+    final initials = (entry.username.isNotEmpty)
+        ? entry.username[0].toUpperCase()
+        : '?';
 
     return Column(
       mainAxisAlignment: MainAxisAlignment.end,
@@ -642,7 +653,7 @@ class _PodiumItem extends StatelessWidget {
         const SizedBox(height: 6),
         // Name - Using Flexible/Ellipsis
         Text(
-          entry.username ?? entry.fullName ?? 'Usuario',
+          entry.username,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontSize: isFirst ? 13 : 11,
@@ -661,7 +672,7 @@ class _PodiumItem extends StatelessWidget {
             borderRadius: BorderRadius.circular(10),
           ),
           child: Text(
-            '${entry.totalXp ?? 0} XP',
+            '${entry.totalXp} XP',
             style: TextStyle(
               color: isDark ? color : accentColor,
               fontSize: 10,
@@ -714,7 +725,7 @@ class _PodiumItem extends StatelessWidget {
 }
 
 class _RankingRow extends StatelessWidget {
-  final dynamic entry;
+  final RankingEntryModel entry;
   final int position;
   final bool isDark;
 
@@ -726,8 +737,8 @@ class _RankingRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final level = entry.level ?? 1;
-    final xp = entry.totalXp ?? 0;
+    final level = entry.level;
+    final xp = entry.totalXp;
     final status = _getStatus(position);
     final Color statusColor = _getStatusColor(status);
 
@@ -777,8 +788,8 @@ class _RankingRow extends StatelessWidget {
                   ? const Color(0xFF1A1A2E)
                   : Colors.grey.shade100,
               child: Text(
-                (entry.username != null && entry.username!.isNotEmpty)
-                    ? entry.username![0].toUpperCase()
+                (entry.username.isNotEmpty)
+                    ? entry.username[0].toUpperCase()
                     : 'U',
                 style: TextStyle(
                   color: isDark ? Colors.white : Colors.black87,
@@ -794,7 +805,7 @@ class _RankingRow extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.username ?? 'Usuario',
+                    entry.username,
                     style: TextStyle(
                       color: isDark ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.w700,

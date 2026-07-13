@@ -110,7 +110,7 @@ class _SentenceBuilderGameState extends ConsumerState<SentenceBuilderGame> {
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 6, // Sentence Builder
+            lessonId: 23, // ID único para Sentence Builder
             status: 'completed',
             score: points,
             xpEarned: points.toInt(),

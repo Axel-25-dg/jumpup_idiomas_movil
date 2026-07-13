@@ -35,16 +35,23 @@ class _CrosswordGameState extends ConsumerState<CrosswordGame> {
     }
 
     if (allCorrect) {
+      if (_submitting) return;
       setState(() => _submitting = true);
       HapticFeedback.mediumImpact();
-      await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-        lessonId: 11,
-        status: 'completed',
-        score: 60.0,
-        xpEarned: 60,
-      );
-      if (mounted) {
-        _showWinDialog();
+      try {
+        await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
+              lessonId: 24, // ID único para Crucigrama
+              status: 'completed',
+              score: 60.0,
+              xpEarned: 60,
+            );
+        if (mounted) {
+          _showWinDialog();
+        }
+      } catch (e) {
+        debugPrint('Error: $e');
+      } finally {
+        if (mounted) setState(() => _submitting = false);
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(

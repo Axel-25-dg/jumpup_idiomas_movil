@@ -71,11 +71,12 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
   }
 
   Future<void> _submitResults() async {
+    if (_submitting) return;
     setState(() => _submitting = true);
     final xpEarned = _correct * 5;
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 2, // Placeholder para Flashcards
+            lessonId: 18, // ID único para Flashcards
             status: 'completed',
             score: xpEarned.toDouble(),
             xpEarned: xpEarned,
@@ -83,6 +84,8 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
       _showFlashcardResult(xpEarned);
     } catch (e) {
       _showFlashcardResult(xpEarned);
+    } finally {
+      if (mounted) setState(() => _submitting = false);
     }
   }
 

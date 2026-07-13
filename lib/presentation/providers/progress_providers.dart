@@ -11,37 +11,56 @@ final progressServiceProvider = Provider<ProgressService>((ref) {
 
 // Local cache for user stats to update instantly
 class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> {
-  LocalUserStatsNotifier(this._service) : super(const AsyncValue.loading()) {
+  LocalUserStatsNotifier(this._service, this._ref) : super(const AsyncValue.loading()) {
     _loadStats();
   }
 
   final ProgressService _service;
+  final Ref _ref;
 
   Future<void> _loadStats() async {
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.getUserStats());
+    try {
+      final stats = await _service.getUserStats();
+      state = AsyncValue.data(stats ?? UserStatsModel.empty());
+    } catch (e, s) {
+      debugPrint('Error inicial cargando estadísticas: $e');
+      // Para usuarios nuevos, el backend puede devolver 404 o error si no hay stats.
+      // Retornamos un modelo vacío para que la UI no se rompa y muestre 0 XP.
+      state = AsyncValue.data(UserStatsModel.empty());
+    }
   }
 
   // Update locally (instant feedback)
   void updateXpLocally(int xpChange) {
-    final current = state.valueOrNull;
-    if (current != null) {
-      // Update locally
-      final newTotalXp = current.totalXp + xpChange;
-      // Simple level logic: every 100 XP is a level
-      final newLevel = (newTotalXp ~/ 100) + 1;
-      final newXpProgress = newTotalXp % 100;
+    final current = state.valueOrNull ?? UserStatsModel.empty();
+    
+    // Update locally
+    final newTotalXp = current.totalXp + xpChange;
+      
+      // Resilient level logic matching model logic
+      const xpPerLevel = 100;
+      final newLevel = (newTotalXp ~/ xpPerLevel) + 1;
+      final newXpProgress = newTotalXp % xpPerLevel;
       
       state = AsyncValue.data(UserStatsModel(
         totalXp: newTotalXp,
         level: newLevel,
-        xpForNextLevel: 100,
-        xpProgress: newXpProgress, // Corregido: antes era newTotalXp
+        xpForNextLevel: xpPerLevel,
+        xpProgress: newXpProgress,
         xpProgressInLevel: newXpProgress,
         currentStreak: current.currentStreak,
         longestStreak: current.longestStreak,
         lastActivityDate: DateTime.now(),
       ));
+      
+      // Forzar invalidación inmediata de dependientes
+      _ref.invalidate(progressSummaryProvider);
+      _ref.invalidate(dashboardSummaryProvider);
+      _ref.invalidate(rankingProvider);
+      _ref.invalidate(myAchievementsProvider);
+      
+      debugPrint('Optimistic Update: XP +$xpChange -> New Total: $newTotalXp');
     }
   }
 
@@ -50,12 +69,12 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
     // No ponemos loading aquí para evitar parpadeo si ya tenemos datos optimistas
     try {
       final stats = await _service.getUserStats();
-      state = AsyncValue.data(stats);
+      state = AsyncValue.data(stats ?? UserStatsModel.empty());
     } catch (e, s) {
       debugPrint('Error refrescando estadísticas: $e');
-      // Si falla, mantenemos lo que tenemos o cargamos de cero si estaba vacío
+      // Si falla, nos aseguramos de tener al menos el modelo vacío si no hay nada
       if (state.valueOrNull == null) {
-        state = AsyncValue.error(e, s);
+        state = AsyncValue.data(UserStatsModel.empty());
       }
     }
   }
@@ -64,7 +83,7 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
 final localUserStatsProvider =
     StateNotifierProvider<LocalUserStatsNotifier, AsyncValue<UserStatsModel?>>(
         (ref) {
-      return LocalUserStatsNotifier(ref.watch(progressServiceProvider));
+      return LocalUserStatsNotifier(ref.watch(progressServiceProvider), ref);
     });
 
 final progressSummaryProvider =
@@ -94,30 +113,30 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
     double score = 0.0,
     int xpEarned = 0,
   }) async {
+    // Determine effective XP to show feedback
+    final effectiveXp = xpEarned > 0 ? xpEarned : score.toInt();
+    
+    // 1. Update local cache first (Optimistic Update)
+    if (effectiveXp != 0) {
+      _ref.read(localUserStatsProvider.notifier).updateXpLocally(effectiveXp);
+    }
+
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
-      // 1. Registrar progreso de la lección
+      // 2. Registrar progreso de la lección
       final result = await _service.registerProgress(
         lessonId: lessonId,
         status: status,
         score: score,
       );
       
-      // 2. Sumar XP en el backend específicamente
+      // 3. Sumar XP en el backend específicamente
       if (xpEarned != 0) {
         try {
           await _service.modifyXp(xpChange: xpEarned);
         } catch (e) {
-          // Ignorar error de suma de XP si el progreso ya se guardó, 
-          // pero loguearlo para depuración
           debugPrint('Error sumando XP al backend: $e');
         }
-      }
-      
-      // 3. Actualizar caché local para feedback instantáneo
-      final effectiveXp = xpEarned > 0 ? xpEarned : score.toInt();
-      if (effectiveXp != 0) { // Permitir XP negativo (pérdidas)
-        _ref.read(localUserStatsProvider.notifier).updateXpLocally(effectiveXp);
       }
       
       // 4. Invalidar todos los proveedores para forzar recarga de datos reales
@@ -134,7 +153,9 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
     _ref.invalidate(myAchievementsProvider);
     _ref.invalidate(userProfileProvider);
     _ref.invalidate(dailyChallengesProvider);
-    _ref.read(localUserStatsProvider.notifier).refresh();
+    
+    // Forzar actualización de stats locales desde el servidor
+    Future.microtask(() => _ref.read(localUserStatsProvider.notifier).refresh());
   }
 }
 
@@ -148,11 +169,9 @@ final progressNotifierProvider =
 final userStatsProvider = Provider<AsyncValue<UserStatsModel>>((ref) {
   final local = ref.watch(localUserStatsProvider);
   return local.when(
-    data: (stats) => stats != null 
-        ? AsyncValue.data(stats) 
-        : const AsyncValue.loading(),
+    data: (stats) => AsyncValue.data(stats ?? UserStatsModel.empty()),
     loading: () => const AsyncValue.loading(),
-    error: (e, s) => AsyncValue.error(e, s),
+    error: (e, s) => AsyncValue.data(UserStatsModel.empty()),
   );
 });
 
