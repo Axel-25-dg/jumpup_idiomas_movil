@@ -12,6 +12,7 @@ import 'package:jumpup_app/theme/app_theme.dart';
 
 import 'package:jumpup_app/widgets/glass_container.dart';
 
+
 class ClassroomsScreen extends ConsumerStatefulWidget {
   const ClassroomsScreen({super.key});
 
@@ -125,56 +126,59 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                   ),
                 ],
               ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
-            sliver: classroomsAsync.when(
-              loading: () => const SliverFillRemaining(
-                child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
-              ),
-              error: (error, stack) => SliverFillRemaining(
-                child: _buildErrorView(error, notifier),
-              ),
-              data: (classrooms) {
-                if (classrooms.isEmpty) {
-                  return SliverFillRemaining(
-                    hasScrollBody: false,
-                    child: EmptyState(
-                      title: 'No classrooms created',
-                      subtitle: 'Start by creating your first virtual group',
-                      icon: Icons.class_rounded,
-                      buttonText: 'Create Classroom',
-                      onButtonPressed: () => _showAddEditDialog(context),
-                    ),
-                  );
-                }
-                return SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final classroom = classrooms[index];
-                      return _ClassroomCard(
-                        classroom: classroom,
-                        onEdit: () => _showAddEditDialog(
-                          context,
-                          classroom: classroom,
-                        ),
-                        onDelete: () => _confirmDelete(
-                          context,
-                          classroom.id,
-                          notifier,
-                        ),
-                        onViewStudents: () => _showStudentsDialog(
-                          context,
-                          classroom.id,
-                          classroom.name,
+              SliverPadding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
+                sliver: classroomsAsync.when(
+                  loading: () => const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+                  ),
+                  error: (error, stack) => SliverFillRemaining(
+                    child: _buildErrorView(error, notifier),
+                  ),
+                  data: (classrooms) {
+                    if (classrooms.isEmpty) {
+                      return SliverFillRemaining(
+                        hasScrollBody: false,
+                        child: EmptyState(
+                          title: 'No classrooms created',
+                          subtitle: 'Start by creating your first virtual group',
+                          icon: Icons.class_rounded,
+                          buttonText: 'Create Classroom',
+                          onButtonPressed: () => _showAddEditDialog(context),
                         ),
                       );
-                    },
-                    childCount: classrooms.length,
-                  ),
-                );
-              },
-            ),
-          ),
+                    }
+                    return SliverList(
+                      delegate: SliverChildBuilderDelegate(
+                        (context, index) {
+                          final classroom = classrooms[index];
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 12),
+                            child: _ClassroomCard(
+                              classroom: classroom,
+                              onEdit: () => _showAddEditDialog(
+                                context,
+                                classroom: classroom,
+                              ),
+                              onDelete: () => _confirmDelete(
+                                context,
+                                classroom.id,
+                                notifier,
+                              ),
+                              onViewStudents: () => _showStudentsDialog(
+                                context,
+                                classroom.id,
+                                classroom.name,
+                              ),
+                            ),
+                          );
+                        },
+                        childCount: classrooms.length,
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ],
@@ -228,46 +232,49 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
         title: Text(classroom != null ? 'Edit Classroom' : 'Create Classroom',
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: SingleChildScrollView(
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                BrandedTextField(
-                  controller: _nameController,
-                  label: 'Classroom Name',
-                  prefixIcon: Icons.class_rounded,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Name is required';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _descriptionController,
-                  label: 'Description',
-                  prefixIcon: Icons.description_rounded,
-                  maxLines: 3,
-                ),
-                const SizedBox(height: 16),
-                BrandedTextField(
-                  controller: _courseIdController,
-                  label: 'Course ID',
-                  prefixIcon: Icons.menu_book_rounded,
-                  keyboardType: TextInputType.number,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Course ID is required';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Enter a valid number';
-                    }
-                    return null;
-                  },
-                ),
-              ],
+          child: SizedBox(
+            width: 400,
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  BrandedTextField(
+                    controller: _nameController,
+                    label: 'Classroom Name',
+                    prefixIcon: Icons.class_rounded,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Name is required';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _descriptionController,
+                    label: 'Description',
+                    prefixIcon: Icons.description_rounded,
+                    maxLines: 3,
+                  ),
+                  const SizedBox(height: 16),
+                  BrandedTextField(
+                    controller: _courseIdController,
+                    label: 'Course ID',
+                    prefixIcon: Icons.menu_book_rounded,
+                    keyboardType: TextInputType.number,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Course ID is required';
+                      }
+                      if (int.tryParse(value) == null) {
+                        return 'Enter a valid number';
+                      }
+                      return null;
+                    },
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -288,7 +295,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                     id: classroom.id,
                     name: _nameController.text.trim(),
                     description: _descriptionController.text.trim(),
-                    courseId: int.tryParse(_courseIdController.text.trim()),
+                    courseId: int.tryParse(_courseIdController.text.trim()) ?? 0,
                   );
                 } else {
                   notifier.addClassroom(
@@ -327,7 +334,6 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: 'Delete',
-            color: AppColors.error,
             onPressed: () {
               notifier.deleteClassroom(id);
               Navigator.pop(ctx);
@@ -352,7 +358,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
             style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
         content: SizedBox(
           width: 400,
-          height: 400,
+          height: 350,
           child: enrollmentsAsync.when(
             loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
             error: (error, _) => Center(
@@ -383,7 +389,9 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                 itemBuilder: (context, index) {
                   final enrollment = enrollments[index];
                   return ListTile(
+                    dense: true,
                     leading: CircleAvatar(
+                      radius: 16,
                       backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.1),
                       child: Text(
                         enrollment.studentUsername.isNotEmpty
@@ -392,6 +400,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF7C4DFF),
+                          fontSize: 12,
                         ),
                       ),
                     ),
@@ -400,18 +409,19 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.white,
+                        fontSize: 13,
                       ),
                     ),
                     subtitle: Text(
                       enrollment.studentEmail,
                       style: const TextStyle(
                         color: Colors.white38,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                     trailing: IconButton(
                       icon: const Icon(Icons.remove_circle_rounded,
-                          color: AppColors.error),
+                          color: AppColors.error, size: 20),
                       onPressed: () {
                         final notifier =
                             ref.read(classroomNotifierProvider.notifier);
@@ -459,123 +469,113 @@ class _ClassroomCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final accentColor = const Color(0xFF7C4DFF);
 
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: GlassContainer(
-        borderRadius: BorderRadius.circular(20),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          leading: Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: accentColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              Icons.class_rounded,
-              color: accentColor,
-            ),
+    return GlassContainer(
+      borderRadius: BorderRadius.circular(20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: ListTile(
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        leading: Container(
+          width: 40,
+          height: 40,
+          decoration: BoxDecoration(
+            color: accentColor.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(12),
           ),
-          title: Text(
-            classroom.name,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.white,
-            ),
+          child: Icon(
+            Icons.class_rounded,
+            color: accentColor,
+            size: 22,
           ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              if (classroom.description.isNotEmpty) ...[
-                Text(
-                  classroom.description,
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 12,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+        ),
+        title: Text(
+          classroom.name,
+          style: const TextStyle(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            fontSize: 14,
+          ),
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+        ),
+        subtitle: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (classroom.description.isNotEmpty) ...[
+              Text(
+                classroom.description,
+                style: const TextStyle(
+                  color: Colors.white54,
+                  fontSize: 11,
                 ),
-                const SizedBox(height: 4),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 2),
+            ],
+            Wrap(
+              spacing: 6,
+              runSpacing: 4,
+              children: [
+                _buildBadge(
+                  text: 'Course: ${classroom.courseId}',
+                  color: AppColors.secondary,
+                ),
+                _buildBadge(
+                  text: classroom.isActive ? 'Active' : 'Inactive',
+                  color: classroom.isActive ? Colors.green : Colors.red,
+                ),
+                _buildBadge(
+                  text: 'Code: ${classroom.accessCode}',
+                  color: Colors.blue,
+                ),
               ],
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: AppColors.secondary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Course ID: ${classroom.courseId}',
-                      style: const TextStyle(
-                        color: AppColors.secondary,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: classroom.isActive
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      classroom.isActive ? 'Active' : 'Inactive',
-                      style: TextStyle(
-                        color: classroom.isActive ? Colors.green : Colors.red,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      'Code: ${classroom.accessCode}',
-                      style: const TextStyle(
-                        color: Colors.blue,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: const Icon(Icons.people_rounded, size: 20),
-                onPressed: onViewStudents,
-                color: Colors.blue,
-                tooltip: 'View Students',
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_rounded, size: 20),
-                onPressed: onEdit,
-                color: Colors.white38,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                onPressed: onDelete,
-                color: AppColors.error.withValues(alpha: 0.7),
-              ),
-            ],
-          ),
+            ),
+          ],
+        ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: const Icon(Icons.people_rounded, size: 18),
+              onPressed: onViewStudents,
+              color: Colors.blue,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+              tooltip: 'View Students',
+            ),
+            IconButton(
+              icon: const Icon(Icons.edit_rounded, size: 18),
+              onPressed: onEdit,
+              color: Colors.white38,
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+            IconButton(
+              icon: const Icon(Icons.delete_outline_rounded, size: 18),
+              onPressed: onDelete,
+              color: AppColors.error.withValues(alpha: 0.7),
+              padding: EdgeInsets.zero,
+              constraints: const BoxConstraints(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBadge({required String text, required Color color}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        text,
+        style: TextStyle(
+          color: color,
+          fontSize: 9,
+          fontWeight: FontWeight.w500,
         ),
       ),
     );
