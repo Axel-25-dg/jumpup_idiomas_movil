@@ -17,8 +17,10 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
   int _turnCount = 0;
   bool _submitting = false;
 
+  bool _gameEnded = false;
+
   void _sendMessage() {
-    if (_controller.text.isEmpty) return;
+    if (_controller.text.isEmpty || _submitting || _gameEnded) return;
     setState(() {
       _messages.add({'role': 'user', 'content': _controller.text});
       _turnCount++;
@@ -32,6 +34,7 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
               _messages.add({'role': 'ai', 'content': 'Excellent choice. Would you like anything to drink?'});
             } else if (_turnCount >= 3) {
               _messages.add({'role': 'ai', 'content': 'Perfect! I will bring your order in a moment. You did great! +80 XP'});
+              _gameEnded = true;
               _finishGame();
             } else {
               _messages.add({'role': 'ai', 'content': 'I see. Anything else?'});
@@ -52,11 +55,45 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
             score: 80.0,
             xpEarned: 80,
           );
+      if (mounted) {
+        _showWinDialog();
+      }
     } catch (e) {
       debugPrint('Error: $e');
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
+  }
+
+  void _showWinDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (c) => AlertDialog(
+        backgroundColor: const Color(0xFF1E1E2A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text('¡Excelente!', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        content: const Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 64),
+            SizedBox(height: 16),
+            Text('Conversación completada con éxito.', style: TextStyle(color: Colors.white70, textAlign: TextAlign.center)),
+            SizedBox(height: 8),
+            Text('+80 XP', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 24)),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(c);
+              Navigator.pop(context);
+            }, 
+            child: const Text('CONTINUAR', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold))
+          )
+        ],
+      ),
+    );
   }
 
   @override

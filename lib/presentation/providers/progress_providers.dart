@@ -104,7 +104,11 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
     double score = 0.0,
     int xpEarned = 0,
   }) async {
-    final effectiveXp = xpEarned > 0 ? xpEarned : score.toInt();
+    // Check if the lesson has already been completed to prevent duplicate/infinite XP
+    final progressList = _ref.read(userProgressProvider(null)).valueOrNull ?? [];
+    final alreadyCompleted = progressList.any((p) => p.lesson == lessonId && p.status == 'completed');
+
+    final effectiveXp = (xpEarned > 0 && !alreadyCompleted) ? xpEarned : 0;
     
     if (effectiveXp != 0) {
       _ref.read(localUserStatsProvider.notifier).updateXpLocally(effectiveXp);
@@ -118,9 +122,9 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
         score: score,
       );
       
-      if (xpEarned != 0) {
+      if (effectiveXp != 0) {
         try {
-          await _service.modifyXp(xpChange: xpEarned);
+          await _service.modifyXp(xpChange: effectiveXp);
         } catch (e) {
           debugPrint('Error sumando XP al backend: $e');
         }
@@ -138,6 +142,7 @@ class ProgressNotifier extends StateNotifier<AsyncValue<UserProgressModel?>> {
     _ref.invalidate(myAchievementsProvider);
     _ref.invalidate(userProfileProvider);
     _ref.invalidate(dailyChallengesProvider);
+    _ref.invalidate(userProgressProvider(null));
     
     Future.microtask(() => _ref.read(localUserStatsProvider.notifier).refresh());
   }

@@ -42,12 +42,52 @@ class ClassroomResourcesScreen extends ConsumerWidget {
         error: (err, _) => Center(
             child: Text('Error: $err',
                 style: const TextStyle(color: Colors.redAccent))),
-        data: (folders) {
-          if (folders.isEmpty) {
+        data: (flatResources) {
+          if (flatResources.isEmpty) {
             return const Center(
                 child: Text('No hay recursos disponibles',
                     style: TextStyle(color: AppColors.textSecondary)));
           }
+
+          // Dynamically group flat resources by type
+          final Map<String, List<Map<String, dynamic>>> grouped = {};
+          for (final res in flatResources) {
+            final type = res['resource_type']?.toString() ?? 'document';
+            grouped.putIfAbsent(type, () => []).add(res);
+          }
+
+          // Transform grouped map into folders structure
+          final folders = grouped.entries.map((entry) {
+            final type = entry.key;
+            final resources = entry.value;
+            String folderName;
+            switch (type.toLowerCase()) {
+              case 'pdf':
+                folderName = 'Documentos PDF';
+                break;
+              case 'spreadsheet':
+                folderName = 'Hojas de Cálculo';
+                break;
+              case 'audio':
+                folderName = 'Archivos de Audio';
+                break;
+              case 'video':
+                folderName = 'Videos y Clases Grabadas';
+                break;
+              default:
+                folderName = 'Otros Recursos';
+            }
+            return {
+              'folder': folderName,
+              'files': resources.map((r) => {
+                'name': r['title'] ?? '',
+                'size': r['description'] ?? '',
+                'type': type,
+                'url': r['file_url'] ?? r['file'] ?? '',
+              }).toList(),
+            };
+          }).toList();
+
           return ListView.separated(
             padding: const EdgeInsets.all(16),
             itemCount: folders.length,

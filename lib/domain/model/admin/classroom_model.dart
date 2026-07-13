@@ -49,11 +49,30 @@ class ClassroomModel {
     }
 
     int? courseId;
+    String? courseName;
     final courseVal = classroom['course'] ?? classroom['course_id'] ?? classroom['courseId'];
-    if (courseVal is int) {
+    if (courseVal is Map) {
+      final idVal = courseVal['id'] ?? courseVal['course_id'];
+      if (idVal is int) {
+        courseId = idVal;
+      } else if (idVal != null) {
+        courseId = int.tryParse(idVal.toString());
+      }
+      courseName = courseVal['title']?.toString() ?? courseVal['name']?.toString();
+    } else if (courseVal is int) {
       courseId = courseVal;
     } else if (courseVal != null) {
       courseId = int.tryParse(courseVal.toString());
+    }
+
+    if (courseName == null) {
+      courseName = classroom['course_name']?.toString();
+      if (courseName == null && courseVal != null && courseVal is! Map) {
+        final isNumeric = int.tryParse(courseVal.toString()) != null;
+        if (!isNumeric) {
+          courseName = courseVal.toString();
+        }
+      }
     }
 
     return ClassroomModel(
@@ -72,8 +91,7 @@ class ClassroomModel {
           classroom['students_count'] as int? ??
           classroom['enrolled_count'] as int? ??
           0,
-      courseName: classroom['course_name']?.toString() ??
-          classroom['course']?.toString(),
+      courseName: courseName,
       courseId: courseId,
     );
   }
