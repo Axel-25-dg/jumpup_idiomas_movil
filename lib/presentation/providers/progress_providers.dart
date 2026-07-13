@@ -69,15 +69,40 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
       xpProgressInLevel = newTotalXp - 1000;
     }
     
+    // Manejo de racha (Streak) local
+    int newStreak = current.currentStreak;
+    int newLongestStreak = current.longestStreak;
+    final now = DateTime.now();
+    final lastActivity = current.lastActivityDate;
+
+    if (lastActivity != null) {
+      final difference = now.difference(lastActivity).inDays;
+      
+      if (difference == 1) {
+        // Increment racha if it's the next day
+        newStreak += 1;
+        if (newStreak > newLongestStreak) newLongestStreak = newStreak;
+      } else if (difference > 1) {
+        // Reset racha if more than one day passed
+        newStreak = 1;
+      } else if (newStreak == 0) {
+        // First activity ever or after a long time
+        newStreak = 1;
+      }
+      // If difference is 0 (same day), keep streak as is
+    } else {
+      newStreak = 1;
+    }
+
     final updatedStats = UserStatsModel(
       totalXp: newTotalXp,
       level: newLevel,
       xpForNextLevel: xpForNextLevel,
       xpProgress: newTotalXp, // Total progress
       xpProgressInLevel: xpProgressInLevel,
-      currentStreak: current.currentStreak,
-      longestStreak: current.longestStreak,
-      lastActivityDate: DateTime.now(),
+      currentStreak: newStreak,
+      longestStreak: newLongestStreak,
+      lastActivityDate: now,
     );
     state = AsyncValue.data(updatedStats);
     _service.saveLocalStats(updatedStats);
