@@ -2,13 +2,14 @@ import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
-import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:lottie/lottie.dart';
 import 'exercise_screen.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
+import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 
 class LessonDetailScreen extends ConsumerStatefulWidget {
   const LessonDetailScreen({super.key, required this.lessonId});
@@ -61,7 +62,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
               flexibleSpace: FlexibleSpaceBar(
                 titlePadding: const EdgeInsets.only(left: 60, bottom: 16),
                 title: Text(
-                  lesson.title,
+                  '${lesson.title} (ID: ${lesson.id})',
                   style: AppTextStyles.titleLarge.copyWith(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
@@ -420,15 +421,25 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                       padding: EdgeInsets.zero,
                       child: ListTile(
                         onTap: () {
-                          if (resource.fileUrl != null) {
+                          var fileUrl = resource.fileUrl?.trim() ?? '';
+                          if (fileUrl.isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text('Abriendo ${resource.title}...'),
-                                backgroundColor: const Color(0xFF1E1E2E),
+                              const SnackBar(
+                                content: Text('URL del recurso no disponible'),
+                                backgroundColor: Color(0xFF1E1E2E),
                                 behavior: SnackBarBehavior.floating,
                               ),
                             );
+                            return;
                           }
+                          if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
+                            fileUrl = AppConfig.resolveImageUrl(fileUrl);
+                          }
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => ResourceWebViewScreen(url: fileUrl, title: resource.title),
+                            ),
+                          );
                         },
                         leading: Container(
                           padding: const EdgeInsets.all(10),
@@ -458,7 +469,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodySmall.copyWith(color: Colors.white54),
                         ),
-                        trailing: const Icon(Icons.download_for_offline_rounded, color: Colors.blueAccent),
+                        trailing: const Icon(Icons.open_in_new_rounded, color: Colors.blueAccent),
                       ),
                     ),
                   ),

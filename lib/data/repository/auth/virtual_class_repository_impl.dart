@@ -11,10 +11,28 @@ class VirtualClassRepositoryImpl extends BaseRepository {
 
   Future<VirtualClassRegistrationModel> joinVirtualClass(int classId) async {
     return handleRequest<VirtualClassRegistrationModel>(() async {
-      final response = await dio.post<Map<String, dynamic>>(
+      final response = await dio.post<dynamic>(
         'live-sessions/$classId/join/',
       );
-      return VirtualClassRegistrationModel.fromJson(response.data!);
+      final data = response.data;
+      if (data is Map<String, dynamic>) {
+        return VirtualClassRegistrationModel.fromJson(data);
+      }
+      return VirtualClassRegistrationModel(
+        id: 0,
+        virtualClass: VirtualClassModel(
+          id: classId,
+          title: '',
+          description: '',
+          instructorName: '',
+          scheduledAt: DateTime.now(),
+          durationMinutes: 60,
+          maxParticipants: 50,
+          status: 'scheduled',
+        ),
+        registeredAt: DateTime.now(),
+        status: 'registered',
+      );
     }, message: 'No te pudiste unir a la clase virtual');
   }
 

@@ -3,12 +3,21 @@ import 'package:jumpup_app/domain/model/auth_models.dart';
 import 'package:jumpup_app/core/error/api_exception.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
-import 'package:jumpup_app/data/remote/dto/user_dto.dart';
 import 'package:jumpup_app/domain/repository/auth_repository.dart';
 
-/// Implementación del repositorio de autenticación conectado a la API Django.
-class AuthRepositoryImpl implements AuthRepository {
-  AuthRepositoryImpl() : _dio = DioClient.instance.dio;
+/// Servicio de autenticación conectado a la API Django en Hetzner.
+///
+/// Endpoints:
+///   POST /api/auth/login/                  → obtiene access + refresh tokens
+///   POST /api/auth/register/               → crea cuenta nueva
+///   POST /api/auth/password-reset/         → envía email de recuperación con PIN
+///   POST /api/auth/password-reset-confirm/ → confirma el PIN y cambia password
+///   GET  /api/auth/me/                     → perfil del usuario autenticado
+///   POST /api/auth/token/refresh/          → renueva el access token
+///   POST /api/auth/2fa/verify/             → verifica código 2FA
+///   POST /api/auth/biometric/login/        → login por huella dactilar
+class AuthService implements AuthRepository {
+  AuthService() : _dio = DioClient.instance.dio;
 
   final Dio _dio;
   final _client = DioClient.instance;
@@ -174,31 +183,14 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<UserModel> getProfile() async {
     try {
       final response = await _dio.get<Map<String, dynamic>>('auth/me/');
-      final userDto = UserDto.fromJson(response.data!);
-      
-      // Mapeo de DTO a Model (Dominio)
-      return UserModel(
-        id: userDto.id,
-        username: userDto.username,
-        email: userDto.email,
-        firstName: userDto.firstName,
-        lastName: userDto.lastName,
-        role: _parseRole(userDto.role),
-        isStaff: userDto.isStaff,
-        isSuperuser: userDto.isSuperuser,
-        isActive: userDto.isActive,
-        createdAt: userDto.createdAt != null ? DateTime.tryParse(userDto.createdAt!) : null,
-      );
+      try {
+        // ignore: avoid_print
+        print('AuthService.getProfile: raw=${response.data}');
+      } catch (_) {}
+      return UserModel.fromJson(response.data!);
     } on DioException catch (e) {
       throw _handle(e, 'No se pudo obtener el perfil');
     }
-  }
-
-  UserRole _parseRole(String? roleName) {
-    final str = roleName?.toLowerCase().trim() ?? '';
-    if (str.contains('admin')) return UserRole.admin;
-    if (str.contains('teacher')) return UserRole.teacher;
-    return UserRole.student;
   }
 
   // ── Refrescar token ────────────────────────────────────────────────────────

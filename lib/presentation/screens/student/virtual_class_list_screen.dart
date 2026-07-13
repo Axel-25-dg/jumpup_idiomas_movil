@@ -868,22 +868,26 @@ class _VirtualClassCard extends ConsumerWidget {
       );
       final result =
           await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
-      if (result != null && result.virtualClass.meetingUrl != null) {
-        final uri = Uri.tryParse(result.virtualClass.meetingUrl!);
-        if (uri != null && await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          scaffoldMessenger.showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo abrir el enlace de la clase'),
-            ),
-          );
+      if (result != null) {
+        ref.invalidate(virtualClassesProvider);
+        if (result.virtualClass.meetingUrl != null) {
+          final uri = Uri.tryParse(result.virtualClass.meetingUrl!);
+          if (uri != null && await canLaunchUrl(uri)) {
+            await launchUrl(uri, mode: LaunchMode.externalApplication);
+          } else {
+            scaffoldMessenger.showSnackBar(
+              const SnackBar(
+                content: Text('No se pudo abrir el enlace de la clase'),
+              ),
+            );
+          }
         }
       }
     } else {
       final result =
           await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
       if (result != null) {
+        ref.invalidate(virtualClassesProvider);
         scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('Inscripción exitosa. Te notificaremos.'),

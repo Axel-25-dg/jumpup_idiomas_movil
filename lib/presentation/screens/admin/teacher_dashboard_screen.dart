@@ -8,6 +8,7 @@ import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_classroom_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_exercise_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_module_screen.dart';
@@ -21,6 +22,7 @@ import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/data/remote/websocket_service.dart';
+import 'package:jumpup_app/presentation/screens/social/social_media_shell.dart';
 
 
 class TeacherDashboardScreen extends ConsumerStatefulWidget {
@@ -39,7 +41,7 @@ class _TeacherDashboardScreenState
     _TeacherHomeTab(),
     _TeacherCoursesTab(),
     _TeacherSessionsTab(),
-    TeacherInboxScreen(),
+    SocialMediaShell(),
     TeacherProfileScreen(),
   ];
 
@@ -69,7 +71,7 @@ class _TeacherBottomNav extends StatelessWidget {
       (Icons.home_rounded, Icons.home_outlined, 'Inicio'),
       (Icons.library_books_rounded, Icons.library_books_outlined, 'Cursos'),
       (Icons.videocam_rounded, Icons.videocam_outlined, 'Sesiones'),
-      (Icons.chat_rounded, Icons.chat_outlined, 'Mensajes'),
+      (Icons.forum_rounded, Icons.forum_outlined, 'Social'),
       (Icons.person_rounded, Icons.person_outlined, 'Perfil'),
     ];
 
@@ -975,13 +977,19 @@ class _TeacherQuickBtn extends StatelessWidget {
   }
 }
 
-class _ClassroomTile extends StatelessWidget {
+class _ClassroomTile extends ConsumerWidget {
   const _ClassroomTile({required this.classroom, required this.onTap});
-  final dynamic classroom;
+  final ClassroomModel classroom;
   final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final requestsAsync = ref.watch(classroomJoinRequestsProvider(classroom.id));
+    final pendingCount = requestsAsync.maybeWhen(
+      data: (requests) => requests.where((r) => r.status == 'pending').length,
+      orElse: () => 0,
+    );
+
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
@@ -1023,6 +1031,17 @@ class _ClassroomTile extends StatelessWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
+                      const Icon(Icons.people_alt_rounded, size: 12, color: Colors.white38),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${classroom.studentsCount} ${classroom.studentsCount == 1 ? 'estudiante' : 'estudiantes'}',
+                        style: const TextStyle(
+                          color: Colors.white38,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
                       const Icon(Icons.key_rounded, size: 12, color: Colors.white38),
                       const SizedBox(width: 4),
                       Expanded(
@@ -1033,6 +1052,7 @@ class _ClassroomTile extends StatelessWidget {
                             fontSize: 12,
                             fontWeight: FontWeight.w500,
                           ),
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
                     ],
@@ -1040,6 +1060,25 @@ class _ClassroomTile extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: 8),
+            if (pendingCount > 0) ...[
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: Colors.redAccent,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '$pendingCount ${pendingCount == 1 ? 'solicitud' : 'solicitudes'}',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 8),
+            ],
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(

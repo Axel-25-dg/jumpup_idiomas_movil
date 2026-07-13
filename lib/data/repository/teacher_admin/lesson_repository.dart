@@ -21,7 +21,7 @@ class LessonRepository extends BaseRepository {
     return getList<LessonModel>(
       'lessons/',
       (json) => LessonModel.fromJson(json),
-      queryParameters: {'module_id': moduleId},
+      queryParameters: {'module': moduleId},
       message: 'Error al cargar lecciones',
     );
   }
