@@ -1002,12 +1002,13 @@ class _VirtualClassCard extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          _ActionButton(
-                            canJoin: canJoin,
-                            isFull: isFull,
-                            isLoading: joinStatus == JoinClassStatus.loading,
-                            onPressed: () => _handleJoin(context, ref),
-                          ),
+                          if (vClass.status == 'scheduled' || vClass.status == 'ongoing')
+                            _ActionButton(
+                              canJoin: canJoin,
+                              isFull: isFull,
+                              isLoading: joinStatus == JoinClassStatus.loading,
+                              onPressed: () => _handleJoin(context, ref),
+                            ),
                         ],
                       ),
                     ],

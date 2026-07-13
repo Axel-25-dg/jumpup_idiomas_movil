@@ -5,10 +5,9 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/data/remote/dto/course_dto.dart';
 
 class CourseRepositoryImpl extends BaseRepository {
-  const CourseRepositoryImpl({Dio? dio}) : super(dio);
+  CourseRepositoryImpl({Dio? dio}) : super(dio);
 
-  final Map<String, Future<List<CourseModel>>> _courseListCache =
-      const <String, Future<List<CourseModel>>>{};
+  final Map<String, Future<List<CourseModel>>> _courseListCache = {};
 
   Future<List<LanguageModel>> getLanguages() async {
     return getList('languages/', LanguageModel.fromJson,

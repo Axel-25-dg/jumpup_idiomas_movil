@@ -4,7 +4,7 @@ import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/data/repository/auth/course_repository_impl.dart';
 
 final courseServiceProvider = Provider<CourseRepositoryImpl>((ref) {
-  return const CourseRepositoryImpl();
+  return CourseRepositoryImpl();
 });
 
 class ContentState<T> {
