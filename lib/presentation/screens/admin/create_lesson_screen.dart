@@ -17,6 +17,11 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
   final _descriptionCtrl = TextEditingController();
   final _moduleIdCtrl = TextEditingController();
   final _orderCtrl = TextEditingController(text: '1');
+  final _contentBodyCtrl = TextEditingController();
+  final _audioUrlCtrl = TextEditingController();
+  final _videoUrlCtrl = TextEditingController();
+  final _resourceUrlCtrl = TextEditingController();
+  String _contentType = 'text';
   bool _isLoading = false;
 
   @override
@@ -25,6 +30,10 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
     _descriptionCtrl.dispose();
     _moduleIdCtrl.dispose();
     _orderCtrl.dispose();
+    _contentBodyCtrl.dispose();
+    _audioUrlCtrl.dispose();
+    _videoUrlCtrl.dispose();
+    _resourceUrlCtrl.dispose();
     super.dispose();
   }
 
@@ -51,10 +60,18 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
         'title': title,
         'module': moduleId,
         'order': order,
+        'content_type': _contentType,
       };
-      // Solo incluir descripción si no está vacía
       final desc = _descriptionCtrl.text.trim();
       if (desc.isNotEmpty) data['description'] = desc;
+      final contentBody = _contentBodyCtrl.text.trim();
+      if (contentBody.isNotEmpty) data['content_body'] = contentBody;
+      final audioUrl = _audioUrlCtrl.text.trim();
+      if (audioUrl.isNotEmpty) data['audio_url'] = audioUrl;
+      final videoUrl = _videoUrlCtrl.text.trim();
+      if (videoUrl.isNotEmpty) data['video_url'] = videoUrl;
+      final resourceUrl = _resourceUrlCtrl.text.trim();
+      if (resourceUrl.isNotEmpty) data['resource_url'] = resourceUrl;
 
       await ref.read(adminCoursesProvider.notifier).addLesson(data);
 
@@ -90,6 +107,26 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
               BrandedTextField(controller: _titleCtrl, label: 'Título de la lección'),
               const SizedBox(height: 20),
               BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
+              const SizedBox(height: 20),
+              DropdownButtonFormField<String>(
+                value: _contentType,
+                decoration: const InputDecoration(labelText: 'Tipo de contenido'),
+                items: const [
+                  DropdownMenuItem(value: 'text', child: Text('Texto / lectura')),
+                  DropdownMenuItem(value: 'video', child: Text('Video')),
+                  DropdownMenuItem(value: 'audio', child: Text('Audio')),
+                  DropdownMenuItem(value: 'interactive', child: Text('Interactivo')),
+                ],
+                onChanged: (value) => setState(() => _contentType = value ?? 'text'),
+              ),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _contentBodyCtrl, label: 'Contenido (texto, instrucciones o resumen)', maxLines: 4),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _audioUrlCtrl, label: 'URL de audio (opcional)'),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _videoUrlCtrl, label: 'URL de video (opcional)'),
+              const SizedBox(height: 20),
+              BrandedTextField(controller: _resourceUrlCtrl, label: 'URL de recurso/PDF (opcional)'),
               const SizedBox(height: 20),
               BrandedTextField(controller: _moduleIdCtrl, label: 'ID del Módulo', keyboardType: TextInputType.number),
               const SizedBox(height: 20),

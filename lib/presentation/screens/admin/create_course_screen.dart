@@ -13,6 +13,7 @@ class CreateCourseScreen extends ConsumerStatefulWidget {
 class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
   final _titleCtrl = TextEditingController();
   final _descCtrl = TextEditingController();
+  final _imageUrlCtrl = TextEditingController();
   int? _selectedLanguageId;
   bool _isSaving = false;
 
@@ -20,6 +21,7 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
   void dispose() {
     _titleCtrl.dispose();
     _descCtrl.dispose();
+    _imageUrlCtrl.dispose();
     super.dispose();
   }
 
@@ -39,6 +41,9 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
             TextField(
                 controller: _descCtrl,
                 decoration: const InputDecoration(labelText: 'Descripción')),
+            TextField(
+                controller: _imageUrlCtrl,
+                decoration: const InputDecoration(labelText: 'URL de imagen del curso (opcional)')),
             const SizedBox(height: 16),
             languagesAsync.when(
               data: (langs) => DropdownButtonFormField<int>(
@@ -61,12 +66,17 @@ class _CreateCourseScreenState extends ConsumerState<CreateCourseScreen> {
                   : () async {
                       setState(() => _isSaving = true);
                       try {
-                        await ref.read(adminCoursesProvider.notifier).addCourse({
+                        final payload = {
                           'title': _titleCtrl.text,
                           'description': _descCtrl.text,
                           'language_id': _selectedLanguageId,
                           'difficulty_level': 'A1',
-                        });
+                        };
+                        final imageUrl = _imageUrlCtrl.text.trim();
+                        if (imageUrl.isNotEmpty) {
+                          payload['image_url'] = imageUrl;
+                        }
+                        await ref.read(adminCoursesProvider.notifier).addCourse(payload);
                         if (context.mounted) Navigator.pop(context);
                       } catch (e) {
                         setState(() => _isSaving = false);

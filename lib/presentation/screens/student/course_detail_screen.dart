@@ -9,6 +9,7 @@ import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
+import 'package:jumpup_app/presentation/screens/student/course_visibility_helper.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'dart:ui';
 
@@ -24,7 +25,12 @@ class CourseDetailScreen extends ConsumerWidget {
     final availableClassroomsAsync = ref.watch(classroomsByCourseProvider(courseId));
 
     final isEnrolled = myClassroomsAsync.when(
-      data: (classrooms) => classrooms.any((c) => c.courseId == courseId),
+      data: (classrooms) {
+        if (courseAsync.valueOrNull != null) {
+          return isCourseEnrolled(course: courseAsync.valueOrNull!, classrooms: classrooms);
+        }
+        return classrooms.any((c) => c.courseId == courseId);
+      },
       loading: () => false,
       error: (_, __) => false,
     );

@@ -53,12 +53,57 @@ class CourseRepositoryImpl extends BaseRepository {
           description: dto.description,
           difficultyLevel: dto.difficultyLevel,
           imageUrl: dto.imageUrl,
+          teacherName: dto.teacherName,
+          teacherEmail: dto.teacherEmail,
           modulesCount: dto.modulesCount,
           lessonsCount: dto.lessonsCount,
           totalXpReward: dto.totalXpReward,
         );
       }).toList();
     }, message: 'No se pudieron cargar los cursos');
+  }
+
+  Future<List<CourseModel>> getStudentEnrolledCourses({
+    String? difficultyLevel,
+    String? search,
+  }) async {
+    final params = <String, dynamic>{'enrolled': true};
+    if (difficultyLevel != null) params['difficulty_level'] = difficultyLevel;
+    if (search != null) params['search'] = search;
+    
+    return handleRequest<List<CourseModel>>(() async {
+      final response = await dio.get<dynamic>(
+        'courses/',
+        queryParameters: params,
+      );
+      
+      final List<dynamic> list;
+      if (response.data is List) {
+        list = response.data as List;
+      } else if (response.data is Map && response.data['results'] is List) {
+        list = response.data['results'] as List;
+      } else {
+        list = [];
+      }
+
+      return list.map((json) {
+        final dto = CourseDto.fromJson(json as Map<String, dynamic>);
+        return CourseModel(
+          id: dto.id,
+          language: dto.language,
+          languageName: dto.languageName,
+          title: dto.title,
+          description: dto.description,
+          difficultyLevel: dto.difficultyLevel,
+          imageUrl: dto.imageUrl,
+          teacherName: dto.teacherName,
+          teacherEmail: dto.teacherEmail,
+          modulesCount: dto.modulesCount,
+          lessonsCount: dto.lessonsCount,
+          totalXpReward: dto.totalXpReward,
+        );
+      }).toList();
+    }, message: 'No se pudieron cargar los cursos inscritos');
   }
 
   Future<CourseModel> getCourseById(int courseId) async {

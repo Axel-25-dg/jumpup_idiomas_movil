@@ -8,9 +8,9 @@ import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
 import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
-import 'package:jumpup_app/presentation/navigation/app_router.dart';
+import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/screens/common/live_session_join_screen.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// Tokens de diseño centralizados para el módulo de clases virtuales.
 class _ClassTokens {
@@ -85,6 +85,15 @@ class _VirtualClassListBody extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final myClassroomsAsync = ref.watch(myClassroomsProvider);
     final classesAsync = ref.watch(virtualClassesProvider);
+    final coursesAsync = ref.watch(coursesProvider);
+
+    final enrolledCourseIds = myClassroomsAsync.maybeWhen(
+      data: (classrooms) => classrooms
+          .map((classroom) => classroom.courseId)
+          .whereType<int>()
+          .toSet(),
+      orElse: () => <int>{},
+    );
 
     return Scaffold(
       backgroundColor: _ClassTokens.background(context),
@@ -150,7 +159,61 @@ class _VirtualClassListBody extends ConsumerWidget {
                     }
                   },
                 ),
-                // Show Live Sessions
+                // Show Available Courses Section
+                coursesAsync.when(
+                  loading: () => const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: Center(
+                        child: CircularProgressIndicator(color: _ClassTokens.primary),
+                      ),
+                    ),
+                  ),
+                  error: (err, stack) => const SliverPadding(
+                    padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
+                    sliver: SliverToBoxAdapter(child: SizedBox()),
+                  ),
+                  data: (courses) {
+                    final availableCourses = courses.where((course) => !enrolledCourseIds.contains(course.id)).toList();
+
+                    if (availableCourses.isEmpty) {
+                      return const SliverPadding(
+                        padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
+                        sliver: SliverToBoxAdapter(child: SizedBox()),
+                      );
+                    }
+                    return SliverPadding(
+                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                      sliver: SliverList(
+                        delegate: SliverChildBuilderDelegate(
+                          (context, index) {
+                            if (index == 0) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 12),
+                                child: Text(
+                                  'Cursos Disponibles',
+                                  style: AppTextStyles.headlineSmall.copyWith(
+                                    color: _ClassTokens.textPrimary(context),
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              );
+                            }
+                            final course = availableCourses[index - 1];
+                            return FadeInUp(
+                              duration: Duration(milliseconds: 300 + (index * 60)),
+                              child: _AvailableCourseCard(
+                                course: course,
+                                onRequestAccess: () => _showJoinDialog(context),
+                              ),
+                            );
+                          },
+                          childCount: availableCourses.length + 1,
+                        ),
+                      ),
+                    );
+                  },
+                ),
                 if (myClassroomsAsync.hasValue)
                   classesAsync.when(
                     loading: () => const SliverPadding(
@@ -663,6 +726,109 @@ class _MyClassroomCard extends StatelessWidget {
   }
 }
 
+class _AvailableCourseCard extends StatelessWidget {
+  const _AvailableCourseCard({
+    required this.course,
+    required this.onRequestAccess,
+  });
+
+  final dynamic course; // CourseModel
+  final VoidCallback onRequestAccess;
+
+  @override
+  Widget build(BuildContext context) {
+    final courseTitle = course.title ?? 'Curso sin título';
+    final teacherName = course.teacherName ?? 'Profesor desconocido';
+    final difficultyLevel = course.difficultyLevel ?? 'N/A';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: _ClassTokens.surface(context),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: _ClassTokens.hairline(context),
+          width: 1,
+        ),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        courseTitle,
+                        style: AppTextStyles.titleSmall.copyWith(
+                          color: _ClassTokens.textPrimary(context),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Prof: $teacherName',
+                        style: AppTextStyles.bodySmall.copyWith(
+                          color: _ClassTokens.textSecondary(context),
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: _ClassTokens.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    difficultyLevel,
+                    style: AppTextStyles.labelSmall.copyWith(
+                      color: _ClassTokens.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: onRequestAccess,
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: _ClassTokens.primary),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                ),
+                child: const Text(
+                  'Solicitar Acceso',
+                  style: TextStyle(
+                    color: _ClassTokens.primary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class _VirtualClassCard extends ConsumerWidget {
   const _VirtualClassCard({
     required this.vClass,
@@ -869,13 +1035,13 @@ class _VirtualClassCard extends ConsumerWidget {
       final result =
           await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
       if (result != null && result.virtualClass.meetingUrl != null) {
-        final uri = Uri.tryParse(result.virtualClass.meetingUrl!);
-        if (uri != null && await canLaunchUrl(uri)) {
-          await launchUrl(uri, mode: LaunchMode.externalApplication);
-        } else {
-          scaffoldMessenger.showSnackBar(
-            const SnackBar(
-              content: Text('No se pudo abrir el enlace de la clase'),
+        if (context.mounted) {
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => LiveSessionJoinScreen(
+                title: result.virtualClass.title,
+                meetingUrl: result.virtualClass.meetingUrl ?? '',
+              ),
             ),
           );
         }

@@ -18,20 +18,39 @@ class UploadResourceScreen extends ConsumerStatefulWidget {
 class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
   late final TextEditingController titleCtrl;
   late final TextEditingController urlCtrl;
+  late final TextEditingController descriptionCtrl;
   int? selectedCourseId;
+  String _resourceType = 'document';
+  bool _isPublic = true;
+  bool _isLocalFile = false;
 
   @override
   void initState() {
     super.initState();
     titleCtrl = TextEditingController();
     urlCtrl = TextEditingController();
+    descriptionCtrl = TextEditingController();
   }
 
   @override
   void dispose() {
     titleCtrl.dispose();
     urlCtrl.dispose();
+    descriptionCtrl.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLocalFile() async {
+    setState(() {
+      _isLocalFile = true;
+      urlCtrl.text = 'archivo-local';
+      if (titleCtrl.text.trim().isEmpty) {
+        titleCtrl.text = 'Recurso adjunto';
+      }
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('La subida de archivos locales se dejará como referencia de URL; puedes pegar el enlace real del archivo.')),
+    );
   }
 
   @override
@@ -136,10 +155,48 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                       ),
                       const SizedBox(height: 20),
                       BrandedTextField(
-                        controller: urlCtrl, 
-                        label: 'URL del archivo (PDF, MP3, MP4)',
-                        hint: 'https://ejemplo.com/archivo.pdf',
+                        controller: descriptionCtrl, 
+                        label: 'Descripción breve',
+                        hint: 'Ej: Material de apoyo para la clase',
                       ),
+                      const SizedBox(height: 20),
+                      DropdownButtonFormField<String>(
+                        initialValue: _resourceType,
+                        decoration: const InputDecoration(
+                          filled: true,
+                          fillColor: Color(0xFF122033),
+                          labelText: 'Tipo de recurso',
+                        ),
+                        items: const [
+                          DropdownMenuItem(value: 'document', child: Text('Documento')),
+                          DropdownMenuItem(value: 'pdf', child: Text('PDF')),
+                          DropdownMenuItem(value: 'audio', child: Text('Audio')),
+                          DropdownMenuItem(value: 'video', child: Text('Video')),
+                        ],
+                        onChanged: (value) => setState(() => _resourceType = value ?? 'document'),
+                      ),
+                      const SizedBox(height: 20),
+                      SwitchListTile(
+                        contentPadding: EdgeInsets.zero,
+                        title: const Text('Visible para estudiantes', style: TextStyle(color: Colors.white)),
+                        value: _isPublic,
+                        onChanged: (value) => setState(() => _isPublic = value),
+                      ),
+                      const SizedBox(height: 20),
+                      OutlinedButton.icon(
+                        onPressed: _pickLocalFile,
+                        icon: const Icon(Icons.attach_file_rounded),
+                        label: const Text('Usar referencia de archivo local'),
+                      ),
+                      const SizedBox(height: 12),
+                      if (_isLocalFile)
+                        Text('Se guardará como referencia de archivo local; pega la URL real si quieres abrirlo luego.', style: TextStyle(color: Colors.greenAccent.shade200))
+                      else
+                        BrandedTextField(
+                          controller: urlCtrl, 
+                          label: 'URL del recurso (YouTube, PDF, MP3, MP4)',
+                          hint: 'https://ejemplo.com/archivo.pdf o https://www.youtube.com/watch?v=...',
+                        ),
                     ],
                   ),
                 ),
@@ -148,7 +205,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                   label: 'Publicar Recurso Premium',
                   loading: state.isLoading,
                   onPressed: () {
-                    if (titleCtrl.text.isEmpty || selectedCourseId == null || urlCtrl.text.isEmpty) {
+                    if (titleCtrl.text.isEmpty || selectedCourseId == null || (! _isLocalFile && urlCtrl.text.isEmpty)) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('Por favor, completa todos los campos'), backgroundColor: Colors.orangeAccent)
                       );
@@ -157,7 +214,10 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                     ref.read(resourceUploadProvider.notifier).create(
                           title: titleCtrl.text,
                           courseId: selectedCourseId!,
-                          fileUrl: urlCtrl.text,
+                          fileUrl: _isLocalFile ? 'local-file' : urlCtrl.text,
+                          resourceType: _resourceType,
+                          description: descriptionCtrl.text,
+                          isPublic: _isPublic,
                         );
                   },
                 ),

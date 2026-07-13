@@ -6,6 +6,7 @@ import 'package:jumpup_app/domain/model/live_session.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/widgets/neon_button.dart';
 import 'package:jumpup_app/presentation/screens/admin/create_live_session_screen.dart';
+import 'package:jumpup_app/presentation/screens/common/live_session_join_screen.dart';
 
 class ManageLiveSessionsScreen extends ConsumerWidget {
   const ManageLiveSessionsScreen({super.key, this.embedded = false});
@@ -233,7 +234,7 @@ class _SessionManagementCard extends ConsumerWidget {
               ],
             ),
             const SizedBox(height: 16),
-            if (!isEnded)
+            if (!isEnded) ...[
               SizedBox(
                 width: double.infinity,
                 child: NeonButton(
@@ -242,6 +243,31 @@ class _SessionManagementCard extends ConsumerWidget {
                   onPressed: () => _handleSessionAction(context, ref, isLive),
                 ),
               ),
+              const SizedBox(height: 10),
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => LiveSessionJoinScreen(
+                          meetingUrl: session.meetingUrl ?? '',
+                          title: session.title,
+                        ),
+                      ),
+                    );
+                  },
+                  icon: const Icon(Icons.videocam_rounded, size: 18),
+                  label: const Text('Entrar a la sala'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    side: const BorderSide(color: Color(0xFF7C4DFF)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

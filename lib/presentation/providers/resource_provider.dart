@@ -30,11 +30,17 @@ class ResourceNotifier extends StateNotifier<AsyncValue<TeacherResource?>> {
     required String title,
     required int courseId,
     required String fileUrl,
+    String resourceType = 'document',
+    String description = '',
+    bool isPublic = true,
   }) async {
     await uploadResource({
       'title': title,
       'course_id': courseId,
       'file_url': fileUrl,
+      'resource_type': resourceType,
+      'description': description,
+      'is_public': isPublic,
     });
   }
 
@@ -47,4 +53,55 @@ final resourcesListProvider = FutureProvider<List<TeacherResource>>((ref) async 
   final repository = ref.watch(teacherRepositoryProvider).resources;
   return repository.fetchResources();
 });
+
+final resourceManagerProvider = StateNotifierProvider<ResourceManagerNotifier, AsyncValue<void>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).resources;
+  return ResourceManagerNotifier(repository, ref);
+});
+
+class ResourceManagerNotifier extends StateNotifier<AsyncValue<void>> {
+  ResourceManagerNotifier(this._repository, this._ref) : super(const AsyncValue.data(null));
+
+  final ResourceRepository _repository;
+  final Ref _ref;
+
+  Future<bool> updateResource({
+    required int resourceId,
+    required String title,
+    required String description,
+    required String fileUrl,
+    required String resourceType,
+    required bool isPublic,
+  }) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.updateResource(resourceId, {
+        'title': title,
+        'description': description,
+        'file_url': fileUrl,
+        'resource_type': resourceType,
+        'is_public': isPublic,
+      });
+      _ref.invalidate(resourcesListProvider);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+
+  Future<bool> deleteResource(int resourceId) async {
+    state = const AsyncValue.loading();
+    try {
+      await _repository.deleteResource(resourceId);
+      _ref.invalidate(resourcesListProvider);
+      state = const AsyncValue.data(null);
+      return true;
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+      return false;
+    }
+  }
+}
 
