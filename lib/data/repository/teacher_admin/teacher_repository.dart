@@ -25,6 +25,7 @@ import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
 import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 
 class TeacherRepository {
   final LanguageRepository languages = LanguageRepository();
@@ -349,6 +350,45 @@ class TeacherRepository {
         throw ApiException('Error al cargar estadísticas del profesor',
             e.response?.statusCode, e);
       }
+    }
+  }
+
+  // Solicitudes de ingreso
+  Future<List<ClassroomJoinRequest>> fetchJoinRequests(int classroomId) async {
+    try {
+      final res = await _dio.get<dynamic>('classrooms/$classroomId/requests/');
+      return _listFrom(res.data)
+          .map((i) => ClassroomJoinRequest.fromJson(i as Map<String, dynamic>))
+          .toList();
+    } on DioException catch (e) {
+      throw ApiException('Error al cargar solicitudes de ingreso', e.response?.statusCode, e);
+    }
+  }
+
+  Future<void> approveJoinRequest({required int classroomId, required int requestId}) async {
+    try {
+      await _dio.post('classrooms/$classroomId/approve-request/', data: {'request_id': requestId});
+    } on DioException catch (e) {
+      throw ApiException('Error al aprobar la solicitud de ingreso', e.response?.statusCode, e);
+    }
+  }
+
+  Future<void> rejectJoinRequest({required int classroomId, required int requestId}) async {
+    try {
+      await _dio.post('classrooms/$classroomId/reject-request/', data: {'request_id': requestId});
+    } on DioException catch (e) {
+      throw ApiException('Error al rechazar la solicitud de ingreso', e.response?.statusCode, e);
+    }
+  }
+
+  Future<void> requestJoin({required int classroomId, String? message}) async {
+    try {
+      await _dio.post('classrooms/request-join/', data: {
+        'classroom_id': classroomId,
+        if (message != null) 'message': message,
+      });
+    } on DioException catch (e) {
+      throw ApiException('Error al solicitar el ingreso al aula', e.response?.statusCode, e);
     }
   }
 }

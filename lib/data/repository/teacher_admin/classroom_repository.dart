@@ -2,6 +2,7 @@
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 
 Map<String, dynamic> buildClassroomPayload({
   required String name,
@@ -125,6 +126,60 @@ class ClassroomRepository extends BaseRepository {
         data: {'student_id': studentId},
       ),
       message: 'Error al dar de baja al alumno',
+    );
+  }
+
+  // 📥 Obtener solicitudes de ingreso pendientes
+  Future<List<ClassroomJoinRequest>> fetchJoinRequests(int classroomId) {
+    return getList<ClassroomJoinRequest>(
+      'classrooms/$classroomId/requests/',
+      (json) => ClassroomJoinRequest.fromJson(json),
+      message: 'Error al cargar solicitudes de ingreso',
+    );
+  }
+
+  // ✓ Aprobar solicitud de ingreso
+  Future<void> approveJoinRequest({
+    required int classroomId,
+    required int requestId,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/$classroomId/approve-request/',
+        data: {'request_id': requestId},
+      ),
+      message: 'Error al aprobar la solicitud de ingreso',
+    );
+  }
+
+  // ✗ Rechazar solicitud de ingreso
+  Future<void> rejectJoinRequest({
+    required int classroomId,
+    required int requestId,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/$classroomId/reject-request/',
+        data: {'request_id': requestId},
+      ),
+      message: 'Error al rechazar la solicitud de ingreso',
+    );
+  }
+
+  // ➕ Estudiante solicita ingresar a aula
+  Future<void> requestJoin({
+    required int classroomId,
+    String? message,
+  }) {
+    return executeRequest(
+      () async => await dio.post(
+        'classrooms/request-join/',
+        data: {
+          'classroom_id': classroomId,
+          if (message != null) 'message': message,
+        },
+      ),
+      message: 'Error al solicitar el ingreso al aula',
     );
   }
 }

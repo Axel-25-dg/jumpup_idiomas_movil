@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
@@ -52,4 +53,45 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<ClassroomModel?>> {
 final classroomNotifierProvider =
     StateNotifierProvider<ClassroomNotifier, AsyncValue<ClassroomModel?>>((ref) {
   return ClassroomNotifier(ref.read(teacherRepositoryProvider));
+});
+
+/// Provider de la lista de solicitudes de ingreso para un aula en específico.
+final classroomJoinRequestsProvider = FutureProvider.family<List<ClassroomJoinRequest>, int>((ref, classroomId) async {
+  final repo = ref.read(teacherRepositoryProvider);
+  return await repo.fetchJoinRequests(classroomId);
+});
+
+/// Notificador para Aprobar / Rechazar solicitudes de ingreso a aulas.
+class ClassroomJoinRequestsNotifier extends StateNotifier<AsyncValue<void>> {
+  final TeacherRepository _repo;
+  final Ref _ref;
+
+  ClassroomJoinRequestsNotifier(this._repo, this._ref) : super(const AsyncValue.data(null));
+
+  Future<void> approveRequest(int classroomId, int requestId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.approveJoinRequest(classroomId: classroomId, requestId: requestId);
+      _ref.invalidate(classroomJoinRequestsProvider(classroomId));
+    });
+  }
+
+  Future<void> rejectRequest(int classroomId, int requestId) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.rejectJoinRequest(classroomId: classroomId, requestId: requestId);
+      _ref.invalidate(classroomJoinRequestsProvider(classroomId));
+    });
+  }
+
+  Future<void> requestJoin(int classroomId, String? message) async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      await _repo.requestJoin(classroomId: classroomId, message: message);
+    });
+  }
+}
+
+final classroomJoinRequestsNotifierProvider = StateNotifierProvider<ClassroomJoinRequestsNotifier, AsyncValue<void>>((ref) {
+  return ClassroomJoinRequestsNotifier(ref.read(teacherRepositoryProvider), ref);
 });
