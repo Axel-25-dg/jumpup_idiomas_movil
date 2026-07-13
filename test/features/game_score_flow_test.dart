@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:jumpup_app/data/repository/auth/progress_service.dart';
+import 'package:jumpup_app/data/repository/auth/progress_repository_impl.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 
 class _MockProgressAdapter implements HttpClientAdapter {
@@ -110,8 +110,8 @@ void main() {
 
       // 4. Fetch ranking and verify updated position/score
       final ranking = await service.getRanking();
-      expect(ranking.first.totalXp, 650);
-      expect(ranking.first.username, 'TestUser');
+      expect(ranking.ranking.first.totalXp, 650);
+      expect(ranking.ranking.first.username, 'TestUser');
     });
   });
 }

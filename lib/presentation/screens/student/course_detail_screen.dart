@@ -4,11 +4,13 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
+import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
-
 import 'package:jumpup_app/widgets/glass_container.dart';
+import 'dart:ui';
 
 class CourseDetailScreen extends ConsumerWidget {
   const CourseDetailScreen({super.key, required this.courseId});
@@ -18,13 +20,64 @@ class CourseDetailScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final courseAsync = ref.watch(courseDetailProvider(courseId));
     final modulesAsync = ref.watch(modulesByCourseProvider(courseId));
+    final myClassroomsAsync = ref.watch(myClassroomsProvider);
+    final availableClassroomsAsync = ref.watch(classroomsByCourseProvider(courseId));
+
+    final isEnrolled = myClassroomsAsync.when(
+      data: (classrooms) => classrooms.any((c) => c.courseId == courseId),
+      loading: () => false,
+      error: (_, __) => false,
+    );
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       body: courseAsync.when(
-        data: (course) => _CourseDetailBody(course: course, modulesAsync: modulesAsync),
+        data: (course) => _CourseDetailBody(
+          course: course,
+          modulesAsync: modulesAsync,
+          isEnrolled: isEnrolled,
+          availableClassroomsAsync: availableClassroomsAsync,
+        ),
         loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
         error: (err, _) => _ErrorState(onRetry: () => ref.invalidate(courseDetailProvider(courseId))),
+      ),
+      floatingActionButton: !isEnrolled
+          ? FloatingActionButton.extended(
+              onPressed: () => _showRequestJoinDialog(context, ref, availableClassroomsAsync),
+              label: const Text('Solicitar Acceso'),
+              icon: const Icon(Icons.send_rounded),
+              backgroundColor: Colors.blueAccent,
+            )
+          : null,
+    );
+  }
+
+  void _showRequestJoinDialog(
+    BuildContext context,
+    WidgetRef ref,
+    AsyncValue<List<ClassroomModel>> availableClassroomsAsync,
+  ) {
+    availableClassroomsAsync.when(
+      data: (classrooms) {
+        if (classrooms.isEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('No hay aulas disponibles para este curso actualmente.')),
+          );
+          return;
+        }
+
+        // Si solo hay una, ir directo. Si hay varias, quizás mostrar selector.
+        // Por ahora, asumimos la primera o mostramos un modal simple.
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          backgroundColor: Colors.transparent,
+          builder: (_) => _RequestAccessSheet(classrooms: classrooms),
+        );
+      },
+      loading: () => null,
+      error: (_, __) => ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error al verificar disponibilidad de aulas')),
       ),
     );
   }
@@ -33,8 +86,15 @@ class CourseDetailScreen extends ConsumerWidget {
 class _CourseDetailBody extends StatelessWidget {
   final CourseModel course;
   final AsyncValue<List<ModuleModel>> modulesAsync;
+  final bool isEnrolled;
+  final AsyncValue<List<ClassroomModel>> availableClassroomsAsync;
 
-  const _CourseDetailBody({required this.course, required this.modulesAsync});
+  const _CourseDetailBody({
+    required this.course,
+    required this.modulesAsync,
+    required this.isEnrolled,
+    required this.availableClassroomsAsync,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -286,6 +346,170 @@ class _ErrorState extends StatelessWidget {
             label: const Text('Reintentar'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RequestAccessSheet extends ConsumerStatefulWidget {
+  final List<ClassroomModel> classrooms;
+  const _RequestAccessSheet({required this.classrooms});
+
+  @override
+  ConsumerState<_RequestAccessSheet> createState() => _RequestAccessSheetState();
+}
+
+class _RequestAccessSheetState extends ConsumerState<_RequestAccessSheet> {
+  late ClassroomModel selectedClassroom;
+  final _messageCtrl = TextEditingController();
+  bool _isSending = false;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedClassroom = widget.classrooms.first;
+  }
+
+  @override
+  void dispose() {
+    _messageCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    setState(() => _isSending = true);
+    final success = await ref.read(requestJoinProvider.notifier).requestJoin(
+          selectedClassroom.id,
+          _messageCtrl.text.trim(),
+        );
+    if (!mounted) return;
+    setState(() => _isSending = false);
+
+    if (success) {
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Solicitud enviada a ${selectedClassroom.teacherName}'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } else {
+      final error = ref.read(requestJoinProvider.notifier).errorMessage;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error ?? 'Error al enviar solicitud'),
+          backgroundColor: Colors.redAccent,
+        ),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+        child: Container(
+          padding: EdgeInsets.fromLTRB(24, 12, 24, MediaQuery.of(context).viewInsets.bottom + 32),
+          decoration: BoxDecoration(
+            color: const Color(0xFF16161F).withValues(alpha: 0.9),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2)),
+                ),
+              ),
+              Text(
+                'Solicitar Acceso',
+                style: AppTextStyles.headlineSmall.copyWith(color: Colors.white, fontWeight: FontWeight.w800),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Elige un profesor y envía un mensaje para unirte al curso.',
+                style: AppTextStyles.bodyMedium.copyWith(color: Colors.white70),
+              ),
+              const SizedBox(height: 24),
+              if (widget.classrooms.length > 1) ...[
+                Text('Profesor disponible:', style: AppTextStyles.labelLarge.copyWith(color: Colors.white)),
+                const SizedBox(height: 8),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<ClassroomModel>(
+                      value: selectedClassroom,
+                      dropdownColor: const Color(0xFF16161F),
+                      items: widget.classrooms
+                          .map((c) => DropdownMenuItem(
+                                value: c,
+                                child: Text(c.teacherName, style: const TextStyle(color: Colors.white)),
+                              ))
+                          .toList(),
+                      onChanged: (val) {
+                        if (val != null) setState(() => selectedClassroom = val);
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+              ] else
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: GlassContainer(
+                    child: Row(
+                      children: [
+                        const Icon(Icons.person_outline, color: Colors.blueAccent),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Profesor:', style: AppTextStyles.labelSmall.copyWith(color: Colors.white54)),
+                            Text(selectedClassroom.teacherName, style: AppTextStyles.bodyLarge.copyWith(color: Colors.white, fontWeight: FontWeight.bold)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              TextField(
+                controller: _messageCtrl,
+                maxLines: 3,
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  hintText: 'Hola, me gustaría unirme a tu clase...',
+                  hintStyle: const TextStyle(color: Colors.white30),
+                  filled: true,
+                  fillColor: Colors.white.withValues(alpha: 0.05),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                ),
+              ),
+              const SizedBox(height: 24),
+              FilledButton(
+                onPressed: _isSending ? null : _submit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: _isSending
+                    ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : const Text('Enviar Solicitud', style: TextStyle(fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -6,6 +6,7 @@ import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 
 
 class UserRepository extends BaseRepository {
+  UserRepository({Dio? dio}) : super(dio);
   // ─── STAFF (Admin/Teacher) ──────────────────────────────────────
 
   // Listar Staff

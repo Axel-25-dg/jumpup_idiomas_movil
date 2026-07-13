@@ -5,6 +5,7 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
 class ModuleRepository extends BaseRepository {
+  ModuleRepository({Dio? dio}) : super(dio);
   // Obtener TODOS los modulos
   Future<List<ModuleModel>> getAllModules() {
     return getList<ModuleModel>(

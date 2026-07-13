@@ -5,6 +5,7 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 
 class LanguageRepository extends BaseRepository {
+  LanguageRepository({Dio? dio}) : super(dio);
   Future<List<Language>> fetchLanguages() {
     return getList<Language>(
       'languages/',

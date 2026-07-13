@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:animate_do/animate_do.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
@@ -33,11 +35,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   int _wrongExerciseIndex = 0;
   int _remainingTime = 60; // Default 60 seconds per exercise
   Timer? _timer;
+  late final AudioPlayer _audioPlayer;
   
   // Variables de estado adicionales
   final Map<String, String> _completedMatches = {};
   final List<String> _leftMatchItems = [];
   final List<String> _rightMatchItems = [];
+  String? _selectedLeftMatch;
+  String? _selectedRightMatch;
   List<String>? _availableTranslateWords;
   List<String>? _selectedTranslateWords;
   bool _isPlayingAudioExercise = false;
@@ -45,6 +50,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   @override
   void initState() {
     super.initState();
+    _audioPlayer = AudioPlayer();
     // Start timer when screen initializes
     _startTimer();
   }
@@ -52,6 +58,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   @override
   void dispose() {
     _timer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -451,6 +458,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -467,6 +476,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -482,6 +493,8 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
         _completedMatches.clear();
         _leftMatchItems.clear();
         _rightMatchItems.clear();
+        _selectedLeftMatch = null;
+        _selectedRightMatch = null;
         _availableTranslateWords = null;
         _selectedTranslateWords = null;
         _isPlayingAudioExercise = false;
@@ -804,36 +817,270 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   }
 
   Widget _buildMatch(ExerciseModel exercise) {
-    // Similar to existing logic but styled
-    return const Center(child: Text('Implementación de Match con diseño profesional'));
+    // La respuesta correcta en Match viene en formato "Item1:Match1,Item2:Match2"
+    if (_leftMatchItems.isEmpty && _rightMatchItems.isEmpty) {
+      final pairs = exercise.correctAnswer.split(',');
+      for (var pair in pairs) {
+        final parts = pair.split(':');
+        if (parts.length == 2) {
+          _leftMatchItems.add(parts[0].trim());
+          _rightMatchItems.add(parts[1].trim());
+        }
+      }
+      _leftMatchItems.shuffle();
+      _rightMatchItems.shuffle();
+    }
+
+    return Column(
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Left Column
+            Expanded(
+              child: Column(
+                children: _leftMatchItems.map((item) {
+                  final bool isMatched = _completedMatches.containsKey(item);
+                  final bool isSelected = _selectedLeftMatch == item;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GlassContainer(
+                      onTap: (_hasAnswered || isMatched) ? null : () {
+                        setState(() {
+                          _selectedLeftMatch = item;
+                          _checkMatchPair(exercise);
+                        });
+                      },
+                      opacity: isMatched ? 0.2 : (isSelected ? 0.15 : 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Center(
+                        child: Text(
+                          item,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: isMatched ? Colors.greenAccent : (isSelected ? Colors.blueAccent : Colors.white),
+                            fontWeight: (isMatched || isSelected) ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            const SizedBox(width: 16),
+            // Right Column
+            Expanded(
+              child: Column(
+                children: _rightMatchItems.map((item) {
+                  final bool isMatched = _completedMatches.containsValue(item);
+                  final bool isSelected = _selectedRightMatch == item;
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: GlassContainer(
+                      onTap: (_hasAnswered || isMatched) ? null : () {
+                        setState(() {
+                          _selectedRightMatch = item;
+                          _checkMatchPair(exercise);
+                        });
+                      },
+                      opacity: isMatched ? 0.2 : (isSelected ? 0.15 : 0.05),
+                      borderRadius: BorderRadius.circular(16),
+                      child: Center(
+                        child: Text(
+                          item,
+                          textAlign: TextAlign.center,
+                          style: AppTextStyles.bodyMedium.copyWith(
+                            color: isMatched ? Colors.greenAccent : (isSelected ? Colors.blueAccent : Colors.white),
+                            fontWeight: (isMatched || isSelected) ? FontWeight.bold : FontWeight.normal,
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  void _checkMatchPair(ExerciseModel exercise) {
+    if (_selectedLeftMatch != null && _selectedRightMatch != null) {
+      final pairs = exercise.correctAnswer.split(',');
+      bool found = false;
+      for (var pair in pairs) {
+        final parts = pair.split(':');
+        if (parts.length == 2 && parts[0].trim() == _selectedLeftMatch && parts[1].trim() == _selectedRightMatch) {
+          found = true;
+          break;
+        }
+      }
+
+      if (found) {
+        HapticFeedback.lightImpact();
+        setState(() {
+          _completedMatches[_selectedLeftMatch!] = _selectedRightMatch!;
+          _selectedLeftMatch = null;
+          _selectedRightMatch = null;
+          
+          // Si completó todos, asignamos _selectedAnswer para habilitar el botón de verificar
+          if (_completedMatches.length == _leftMatchItems.length) {
+            _selectedAnswer = exercise.correctAnswer;
+          }
+        });
+      } else {
+        HapticFeedback.vibrate();
+        Future.delayed(const Duration(milliseconds: 300), () {
+          if (mounted) {
+            setState(() {
+              _selectedLeftMatch = null;
+              _selectedRightMatch = null;
+            });
+          }
+        });
+      }
+    }
   }
 
   Widget _buildListen(ExerciseModel exercise) {
     return Center(
       child: Column(
         children: [
-          Container(
-            height: 120,
-            width: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFF2575FC).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
-              ],
-            ),
-            child: IconButton(
-              onPressed: () {
+          _AudioWaveformButton(
+            isPlaying: _isPlayingAudioExercise,
+            onTap: () async {
+              if (exercise.audioUrl != null && exercise.audioUrl!.isNotEmpty) {
+                try {
+                  setState(() => _isPlayingAudioExercise = true);
+                  final url = AppConfig.resolveImageUrl(exercise.audioUrl);
+                  await _audioPlayer.play(UrlSource(url));
+                  
+                  // Escuchar cuando termina
+                  _audioPlayer.onPlayerComplete.first.then((_) {
+                    if (mounted) setState(() => _isPlayingAudioExercise = false);
+                  });
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isPlayingAudioExercise = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al reproducir audio: $e')),
+                    );
+                  }
+                }
+              } else {
+                // Mock behavior if no audioUrl
                 setState(() => _isPlayingAudioExercise = true);
-                Future.delayed(const Duration(seconds: 2), () => setState(() => _isPlayingAudioExercise = false));
-              },
-              icon: Icon(_isPlayingAudioExercise ? Icons.volume_up_rounded : Icons.play_arrow_rounded, size: 56, color: Colors.white),
-            ),
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (mounted) setState(() => _isPlayingAudioExercise = false);
+                });
+              }
+            },
           ),
           const SizedBox(height: 48),
           _buildFillBlank(exercise),
         ],
       ),
+    );
+  }
+}
+
+class _AudioWaveformButton extends StatelessWidget {
+  final bool isPlaying;
+  final VoidCallback onTap;
+
+  const _AudioWaveformButton({
+    required this.isPlaying,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (isPlaying)
+            ...List.generate(3, (index) => _WaveCircle(index: index)),
+          Container(
+            height: 100,
+            width: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2575FC).withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(
+              isPlaying ? Icons.pause_rounded : Icons.volume_up_rounded,
+              size: 40,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaveCircle extends StatefulWidget {
+  final int index;
+  const _WaveCircle({required this.index});
+
+  @override
+  State<_WaveCircle> createState() => _WaveCircleState();
+}
+
+class _WaveCircleState extends State<_WaveCircle> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final progress = (_controller.value + (widget.index * 0.33)) % 1.0;
+        return Container(
+          width: 100 + (100 * progress),
+          height: 100 + (100 * progress),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.blueAccent.withValues(alpha: 1.0 - progress),
+              width: 2,
+            ),
+          ),
+        );
+      },
     );
   }
 }

@@ -200,6 +200,7 @@ class ExerciseModel {
     required this.exerciseType,
     required this.correctAnswer,
     this.options = const [],
+    this.audioUrl,
   });
 
   final int id;
@@ -209,6 +210,7 @@ class ExerciseModel {
   final String exerciseType;
   final String correctAnswer;
   final List<String> options;
+  final String? audioUrl;
 
   factory ExerciseModel.fromJson(Map<String, dynamic> json) {
     final optionsJson = json['options'];
@@ -224,6 +226,7 @@ class ExerciseModel {
       exerciseType: json['exercise_type']?.toString() ?? '',
       correctAnswer: json['correct_answer']?.toString() ?? '',
       options: optionsList,
+      audioUrl: json['audio_url']?.toString(),
     );
   }
 
@@ -235,5 +238,6 @@ class ExerciseModel {
         'exercise_type': exerciseType,
         'correct_answer': correctAnswer,
         'options': options,
+        'audio_url': audioUrl,
       };
 }

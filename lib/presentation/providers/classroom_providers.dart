@@ -14,6 +14,11 @@ final myClassroomsProvider = FutureProvider<List<ClassroomModel>>((ref) async {
   return ref.watch(classroomServiceProvider).getMyClassrooms();
 });
 
+final classroomsByCourseProvider =
+    FutureProvider.family<List<ClassroomModel>, int>((ref, courseId) async {
+  return ref.watch(classroomServiceProvider).getClassroomsByCourse(courseId);
+});
+
 // ── Sesiones en vivo ────────────────────────────────────────────────────────
 
 final classroomLiveSessionsProvider =
@@ -65,4 +70,37 @@ class JoinClassroomNotifier extends StateNotifier<JoinClassroomStatus> {
 final joinClassroomProvider =
     StateNotifierProvider<JoinClassroomNotifier, JoinClassroomStatus>((ref) {
   return JoinClassroomNotifier(ref.watch(classroomServiceProvider));
+});
+
+// ── Notifier: Solicitar ingreso ─────────────────────────────────────────────
+
+class RequestJoinNotifier extends StateNotifier<JoinClassroomStatus> {
+  RequestJoinNotifier(this._service) : super(JoinClassroomStatus.idle);
+
+  final ClassroomRepositoryImpl _service;
+  String? errorMessage;
+
+  Future<bool> requestJoin(int classroomId, String message) async {
+    state = JoinClassroomStatus.loading;
+    errorMessage = null;
+    try {
+      await _service.requestJoin(classroomId, message);
+      state = JoinClassroomStatus.success;
+      return true;
+    } catch (e) {
+      errorMessage = e.toString().replaceAll('Exception: ', '');
+      state = JoinClassroomStatus.failure;
+      return false;
+    }
+  }
+
+  void reset() {
+    state = JoinClassroomStatus.idle;
+    errorMessage = null;
+  }
+}
+
+final requestJoinProvider =
+    StateNotifierProvider<RequestJoinNotifier, JoinClassroomStatus>((ref) {
+  return RequestJoinNotifier(ref.watch(classroomServiceProvider));
 });

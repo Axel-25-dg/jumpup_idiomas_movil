@@ -1,8 +1,10 @@
 // lib/data/repository/teacher_admin/report_repository.dart
+import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/report_model.dart';
 
 class ReportRepository extends BaseRepository {
+  ReportRepository({Dio? dio}) : super(dio);
   Future<List<Report>> fetchReports() {
     return getList<Report>(
       'reports/',

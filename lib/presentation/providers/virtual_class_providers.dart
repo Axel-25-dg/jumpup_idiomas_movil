@@ -54,11 +54,6 @@ final joinClassNotifierProvider =
   return JoinClassNotifier(ref.watch(virtualClassServiceProvider));
 });
 
-final myClassroomsProvider =
-    FutureProvider<List<ClassroomModel>>((ref) async {
-  return ref.watch(classroomServiceProvider).getMyClassrooms();
-});
-
 enum ClassroomEnrollStatus { idle, loading, success, failure }
 
 class ClassroomEnrollNotifier extends StateNotifier<ClassroomEnrollStatus> {
