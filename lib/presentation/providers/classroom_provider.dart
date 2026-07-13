@@ -48,41 +48,21 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
     }
   }
 
+  // ✅ CORREGIDO: Ahora acepta courseId obligatorio como en el antiguo
   Future<void> updateClassroom({
     required int id,
     required String name,
     required String description,
-    int? courseId, // Optional in UI call sometimes, but TeacherRepository might need it
+    required int courseId,
   }) async {
     state = const AsyncValue.loading();
-    // In classrooms_screen.dart, courseId might not be passed if we only edit name/desc
-    // but TeacherRepository.updateClassroom requires it. 
-    // We should probably fetch the current classroom first or change the repo to handle partial updates.
-    // For now, let's assume we need to pass a courseId. 
-    // The UI currently passes it if it can.
     
-    final result = await AsyncValue.guard(() async {
-      // If courseId is null, we might have a problem if repo requires it.
-      // Let's check TeacherRepository.updateClassroom signature.
-      // It says: required int courseId.
-      
-      // We'll try to find the current classroom to get its courseId if not provided.
-      int finalCourseId = courseId ?? 0;
-      if (courseId == null) {
-        final currentClassrooms = state.valueOrNull ?? [];
-        final classroomFound = currentClassrooms.where((c) => c.id == id);
-        if (classroomFound.isNotEmpty) {
-           finalCourseId = classroomFound.first.courseId ?? 0;
-        }
-      }
-
-      return await _repo.updateClassroom(
-        id: id,
-        name: name,
-        description: description,
-        courseId: finalCourseId,
-      );
-    });
+    final result = await AsyncValue.guard(() => _repo.updateClassroom(
+          id: id,
+          name: name,
+          description: description,
+          courseId: courseId,
+        ));
 
     if (result.hasError) {
       state = AsyncValue.error(result.error!, result.stackTrace!);
@@ -102,7 +82,19 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
     }
   }
 
-  Future<void> removeStudent(int classroomId, int studentId) async {
+  // ✅ NUEVO: Método getEnrollments como en el antiguo
+  Future<List<ClassroomEnrollment>> getEnrollments(int classroomId) async {
+    try {
+      return await _repo.fetchEnrollments(classroomId);
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  Future<void> removeStudent({
+    required int classroomId,
+    required int studentId,
+  }) async {
     state = const AsyncValue.loading();
     final result = await AsyncValue.guard(() => _repo.removeStudent(
           classroomId: classroomId,
@@ -120,4 +112,10 @@ class ClassroomNotifier extends StateNotifier<AsyncValue<List<ClassroomModel>>> 
 final classroomNotifierProvider =
     StateNotifierProvider<ClassroomNotifier, AsyncValue<List<ClassroomModel>>>((ref) {
   return ClassroomNotifier(ref.read(teacherRepositoryProvider));
+});
+
+// ✅ NUEVO: Provider para enrollments (como en el antiguo)
+final enrollmentsProvider = FutureProvider.family<List<ClassroomEnrollment>, int>((ref, classroomId) {
+  final notifier = ref.read(classroomNotifierProvider.notifier);
+  return notifier.getEnrollments(classroomId);
 });
