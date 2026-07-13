@@ -461,6 +461,13 @@ class _CreateForumThreadSheetState extends ConsumerState<_CreateForumThreadSheet
           : null;
     }
 
+    if (categoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Por favor, selecciona una categoría')),
+      );
+      return;
+    }
+
     setState(() => _loading = true);
     try {
       await ref.read(socialRepositoryProvider).createForumThread(

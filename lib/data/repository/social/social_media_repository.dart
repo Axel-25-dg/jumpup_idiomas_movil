@@ -31,17 +31,26 @@ class SocialMediaRepository extends BaseRepository {
 
   Future<void> reactToPost(int postId, {String reaction = 'like'}) async {
     await handleRequest<void>(() async {
-      await dio.post<dynamic>('social-posts/$postId/reaccionar/', data: {
-        'tipo_reaccion': reaction,
+      await dio.post<dynamic>('social-reactions/', data: {
+        'post': postId,
+        'reaction': reaction,
       });
     }, message: 'No se pudo reaccionar');
   }
 
   Future<void> removeReaction(int postId) async {
     await handleRequest<void>(() async {
-      await dio.post<dynamic>('social-posts/$postId/reaccionar/', data: {
-        'tipo_reaccion': 'none', // O lo que espere el backend para quitar reaccion
-      });
+      final resp = await dio.get<dynamic>('social-reactions/',
+          queryParameters: {'post': postId});
+      final list = resp.data is List
+          ? resp.data as List
+          : (resp.data is Map && resp.data['results'] is List)
+              ? resp.data['results'] as List
+              : [];
+      if (list.isNotEmpty) {
+        final reactionId = list.first['id'];
+        await dio.delete<dynamic>('social-reactions/$reactionId/');
+      }
     }, message: 'No se pudo quitar la reacción');
   }
 
@@ -104,22 +113,18 @@ class SocialMediaRepository extends BaseRepository {
   }
 
   Future<ForumThread> createForumThread({
-    int? categoryId,
+    required int categoryId,
     required String title,
     required String body,
   }) async {
     return createOne('forum-threads/', ForumThread.fromJson,
-        data: {
-          'category': categoryId,
-          'title': title,
-          'body': body,
-        },
+        data: {'category': categoryId, 'title': title, 'body': body},
         message: 'No se pudo crear el hilo');
   }
 
   Future<List<ForumPost>> fetchForumPosts(int threadId) async {
     return getList('forum-posts/', ForumPost.fromJson,
-        queryParameters: {'thread': threadId, 'ordering': 'created_at'},
+        queryParameters: {'thread': threadId},
         message: 'No se pudieron cargar las respuestas');
   }
 
@@ -148,21 +153,13 @@ class SocialMediaRepository extends BaseRepository {
   Future<LiveSession> createLiveSession({
     required String title,
     required int courseId,
-    required DateTime scheduledAt,
-    String? description,
-    int durationMin = 60,
-    String? meetingUrl,
-    int maxStudents = 25,
+    required DateTime startsAt,
   }) async {
     return createOne('live-sessions/', LiveSession.fromJson,
         data: {
           'title': title,
           'course': courseId,
-          'scheduled_at': scheduledAt.toIso8601String(),
-          if (description != null) 'description': description,
-          'duration_min': durationMin,
-          if (meetingUrl != null) 'meeting_url': meetingUrl,
-          'max_students': maxStudents,
+          'scheduled_at': startsAt.toUtc().toIso8601String(),
         },
         message: 'No se pudo crear la sesión en vivo');
   }

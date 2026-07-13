@@ -9,6 +9,7 @@ import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart' hide enrollmentsProvider;
 import 'package:jumpup_app/widgets/glass_container.dart';
+import 'classroom_join_requests_screen.dart';
 
 class ManageClassroomScreen extends ConsumerStatefulWidget {
   final int classroomId;
@@ -84,7 +85,7 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     if (confirmed != true) return;
 
     try {
-      await ref.read(classroomNotifierProvider.notifier).deleteClassroom(widget.classroomId);
+      await ref.read(classroomNotifierProvider.notifier).delete(widget.classroomId);
       if (!mounted) return;
       ref.invalidate(classroomsListProvider);
       ScaffoldMessenger.of(context).showSnackBar(
@@ -272,6 +273,47 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                                   ),
                                 );
                               },
+                            ),
+                          ],
+                        ),
+                        const Divider(color: Colors.white12, height: 24),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                'Solicitudes pendientes: $pendingCount',
+                                style: const TextStyle(color: Colors.white70, fontSize: 13, fontWeight: FontWeight.w500),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => ClassroomJoinRequestsScreen(classroomId: widget.classroomId),
+                                  ),
+                                );
+                              },
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.blueAccent,
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: const Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(Icons.mark_email_unread_rounded, size: 16, color: Colors.white),
+                                    SizedBox(width: 8),
+                                    Text(
+                                      'Revisar Solicitudes',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           ],
                         ),

@@ -1050,6 +1050,7 @@ class _VirtualClassCard extends ConsumerWidget {
       final result =
           await ref.read(joinClassNotifierProvider.notifier).joinClass(vClass.id);
       if (result != null) {
+        ref.invalidate(virtualClassesProvider);
         scaffoldMessenger.showSnackBar(
           const SnackBar(
             content: Text('Inscripción exitosa. Te notificaremos.'),

@@ -1031,6 +1031,7 @@ class _RecentCourseCard extends ConsumerWidget {
                           top: Radius.circular(30)),
                       child: ProductImage(
                         imageUrl: course.imageUrl,
+                        seed: course.id.toString(),
                         height: 160,
                         width: double.infinity,
                         fit: BoxFit.cover,

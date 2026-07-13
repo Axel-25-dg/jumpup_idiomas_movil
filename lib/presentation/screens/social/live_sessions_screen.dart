@@ -404,12 +404,12 @@ class _PulsingDotState extends State<_PulsingDot>
   }
 }
 
-class _SessionCard extends StatelessWidget {
+class _SessionCard extends ConsumerWidget {
   const _SessionCard({required this.session});
   final LiveSession session;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final textColor = _LiveTokens.textPrimary(isDark);
     final subtextColor = _LiveTokens.textSecondary(isDark);
@@ -560,6 +560,7 @@ class _SessionCard extends StatelessWidget {
                               glow: statusColor,
                               fullWidth: true,
                               onTap: () async {
+                                final scaffoldMessenger = ScaffoldMessenger.of(context);
                                 try {
                                   await const SocialMediaRepository()
                                       .joinLiveSession(session.id);

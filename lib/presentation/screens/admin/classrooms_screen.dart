@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/courses_provider.dart';
+import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
@@ -46,7 +48,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final classroomsAsync = ref.watch(classroomNotifierProvider);
+    final classroomsAsync = ref.watch(classroomsListProvider);
     final notifier = ref.read(classroomNotifierProvider.notifier);
     final coursesAsync = ref.watch(courseNotifierProvider);
 
@@ -147,7 +149,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-                    onPressed: () => notifier.refresh(),
+                    onPressed: () => ref.invalidate(classroomsListProvider),
                     tooltip: 'Refrescar',
                   ),
                 ],
@@ -173,7 +175,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                     child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
                   ),
                   error: (error, stack) => SliverFillRemaining(
-                    child: _buildErrorView(error, notifier),
+                    child: _buildErrorView(error),
                   ),
                   data: (classrooms) {
                     if (classrooms.isEmpty) {
@@ -213,10 +215,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                                 classroom: classroom,
                               ),
                               onDelete: () => _confirmDelete(
-                                context,
-                                classroom.id,
-                                notifier,
-                              ),
+                                  context,
+                                  classroom.id,
+                                  ref.read(classroomNotifierProvider.notifier),
+                                ),
                               onViewStudents: () => _showStudentsDialog(
                                 context,
                                 classroom.id,
@@ -238,7 +240,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
     );
   }
 
-  Widget _buildErrorView(Object error, ClassroomNotifier notifier) {
+  Widget _buildErrorView(Object error) {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -258,7 +260,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           const SizedBox(height: 16),
           PrimaryButton(
             label: 'Reintentar',
-            onPressed: () => notifier.refresh(),
+            onPressed: () => ref.invalidate(classroomsListProvider),
             icon: Icons.refresh_rounded,
           ),
         ],
@@ -410,7 +412,7 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                 ),
                 PrimaryButton(
                   label: classroom != null ? 'Actualizar' : 'Crear',
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate() && 
                         localCourseId != null) {
                       final notifier = ref.read(
@@ -418,20 +420,21 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
                       );
 
                       if (classroom != null) {
-                        notifier.updateClassroom(
+                        await notifier.updateClassroom(
                           id: classroom.id,
                           name: _nameController.text.trim(),
                           description: _descriptionController.text.trim(),
                           courseId: localCourseId!,
                         );
                       } else {
-                        notifier.addClassroom(
+                        await notifier.addClassroom(
                           name: _nameController.text.trim(),
                           description: _descriptionController.text.trim(),
                           courseId: localCourseId!,
                         );
                       }
-                      Navigator.pop(ctx);
+                      ref.invalidate(classroomsListProvider);
+                      if (context.mounted) Navigator.pop(ctx);
                     }
                   },
                 ),
@@ -477,9 +480,10 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
           ),
           PrimaryButton(
             label: 'Eliminar',
-            onPressed: () {
-              notifier.deleteClassroom(id);
-              Navigator.pop(ctx);
+            onPressed: () async {
+              await notifier.deleteClassroom(id);
+              ref.invalidate(classroomsListProvider);
+              if (ctx.mounted) Navigator.pop(ctx);
             },
           ),
         ],
