@@ -1,4 +1,3 @@
-// lib/data/repository/teacher_admin/teacher_repository.dart
 import 'package:jumpup_app/data/repository/teacher_admin/language_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/course_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/module_repository.dart';
@@ -28,19 +27,35 @@ import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 
 class TeacherRepository {
-  final LanguageRepository languages = LanguageRepository();
-  final CourseRepository courses = CourseRepository();
-  final ModuleRepository modules = ModuleRepository();
-  final LessonRepository lessons = LessonRepository();
-  final ExerciseRepository exercises = ExerciseRepository();
-  final UserRepository users = UserRepository();
-  final ReportRepository reports = ReportRepository();
-  final AnnouncementRepository announcements = AnnouncementRepository();
-  final ClassroomRepository classrooms = ClassroomRepository();
-  final StatsRepository stats = StatsRepository();
-  final ResourceRepository resources = ResourceRepository();
+  final LanguageRepository languages;
+  final CourseRepository courses;
+  final ModuleRepository modules;
+  final LessonRepository lessons;
+  final ExerciseRepository exercises;
+  final UserRepository users;
+  final ReportRepository reports;
+  final AnnouncementRepository announcements;
+  final ClassroomRepository classrooms;
+  final StatsRepository stats;
+  final ResourceRepository resources;
 
-  final Dio _dio = DioClient.instance.dio;
+  final Dio? _dio;
+  
+  TeacherRepository({Dio? dio})
+      : _dio = dio,
+        languages = LanguageRepository(dio: dio),
+        courses = CourseRepository(dio: dio),
+        modules = ModuleRepository(dio: dio),
+        lessons = LessonRepository(dio: dio),
+        exercises = ExerciseRepository(dio: dio),
+        users = UserRepository(dio: dio),
+        reports = ReportRepository(dio: dio),
+        announcements = AnnouncementRepository(dio: dio),
+        classrooms = ClassroomRepository(dio: dio),
+        stats = StatsRepository(dio: dio),
+        resources = ResourceRepository(dio: dio);
+
+  Dio get dio => _dio ?? DioClient.instance.dio;
 
   // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -64,7 +79,7 @@ class TeacherRepository {
     required int courseId,
   }) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      final response = await dio.post<Map<String, dynamic>>(
         'classrooms/',
         data: {
           'name': name,
@@ -87,7 +102,7 @@ class TeacherRepository {
     required int courseId,
   }) async {
     try {
-      final response = await _dio.patch<Map<String, dynamic>>(
+      final response = await dio.patch<Map<String, dynamic>>(
         'classrooms/$id/',
         data: {
           'name': name,
@@ -106,7 +121,7 @@ class TeacherRepository {
     try {
       // ignore: avoid_print
       print('TeacherRepository.deleteClassroom: deleting id=$id');
-      final res = await _dio.delete('classrooms/$id/');
+      final res = await dio.delete('classrooms/$id/');
       // ignore: avoid_print
       print('TeacherRepository.deleteClassroom: response status=${res.statusCode}');
     } on DioException catch (e) {
@@ -119,7 +134,7 @@ class TeacherRepository {
 
   Future<List<ClassroomEnrollment>> fetchEnrollments(int classroomId) async {
     try {
-      final response = await _dio.get<dynamic>(
+      final response = await dio.get<dynamic>(
         'classrooms/$classroomId/',
       );
       final data = response.data;
@@ -140,7 +155,7 @@ class TeacherRepository {
     required int studentId,
   }) async {
     try {
-      await _dio.post(
+      await dio.post(
         'classrooms/$classroomId/remove-student/',
         data: {'student_id': studentId},
       );
@@ -153,7 +168,7 @@ class TeacherRepository {
   Future<UserStats> fetchUserStats(String studentId) async {
     try {
       final response =
-          await _dio.get<Map<String, dynamic>>('user-stats/$studentId/');
+          await dio.get<Map<String, dynamic>>('user-stats/$studentId/');
       return UserStats.fromJson(response.data!);
     } on DioException catch (e) {
       throw ApiException('Error al obtener estadísticas del alumno',
@@ -166,7 +181,7 @@ class TeacherRepository {
   Future<TeacherResource> createResource(
       Map<String, dynamic> resourceData) async {
     try {
-      final response = await _dio.post<Map<String, dynamic>>(
+      final response = await dio.post<Map<String, dynamic>>(
         'resources/',
         data: resourceData,
       );
@@ -182,7 +197,7 @@ class TeacherRepository {
 
   Future<List<TeacherResource>> fetchResources() async {
     try {
-      final response = await _dio.get<dynamic>('resources/');
+      final response = await dio.get<dynamic>('resources/');
       return _listFrom(response.data)
           .map((json) => TeacherResource.fromJson(json as Map<String, dynamic>))
           .toList();
@@ -194,7 +209,7 @@ class TeacherRepository {
 
   Future<List<ClassroomModel>> fetchAllClassrooms() async {
     try {
-      final response = await _dio.get<dynamic>('classrooms/');
+      final response = await dio.get<dynamic>('classrooms/');
       return _listFrom(response.data)
           .map((json) => ClassroomModel.fromJson(json as Map<String, dynamic>))
           .toList();
@@ -208,7 +223,7 @@ class TeacherRepository {
 
   Future<void> createExercise(Map<String, dynamic> exerciseData) async {
     try {
-      await _dio.post('exercises/', data: exerciseData);
+      await dio.post('exercises/', data: exerciseData);
     } on DioException catch (e) {
       throw ApiException(
           'Error al crear el ejercicio', e.response?.statusCode, e);
@@ -231,7 +246,7 @@ class TeacherRepository {
       if (languagesTeaching.isNotEmpty) {
         data['languages_teaching'] = languagesTeaching;
       }
-      await _dio.patch('auth/profile/update-languages/', data: data);
+      await dio.patch('auth/profile/update-languages/', data: data);
     } on DioException catch (e) {
       throw ApiException(
           'Error al actualizar perfil', e.response?.statusCode, e);
@@ -242,7 +257,7 @@ class TeacherRepository {
 
   Future<AdminStats> getAdminStats() async {
     try {
-      final response = await _dio.get('dashboard/admin/');
+      final response = await dio.get('dashboard/admin/');
       return AdminStats.fromJson(_mapFrom(response.data));
     } on DioException catch (e) {
       throw ApiException(
@@ -253,28 +268,28 @@ class TeacherRepository {
   // ── Usuarios CRUD ──────────────────────────────────────────────────────────
 
   Future<List<User>> fetchUsers() async {
-    final response = await _dio.get<dynamic>('users/');
+    final response = await dio.get<dynamic>('users/');
     return _listFrom(response.data).map((u) => User.fromJson(u)).toList();
   }
 
   Future<void> updateUser(int id, Map<String, dynamic> data) async {
-    await _dio.patch('users/$id/', data: data);
+    await dio.patch('users/$id/', data: data);
   }
 
   // ── Idiomas ────────────────────────────────────────────────────────────────
 
   Future<List<Language>> fetchLanguages() async {
-    final res = await _dio.get<dynamic>('languages/');
+    final res = await dio.get<dynamic>('languages/');
     return _listFrom(res.data).map((i) => Language.fromJson(i)).toList();
   }
 
   Future<void> createLanguage(Map<String, dynamic> data) async =>
-      await _dio.post('languages/', data: data);
+      await dio.post('languages/', data: data);
 
   // ── Cursos ─────────────────────────────────────────────────────────────────
 
   Future<List<Course>> fetchCourses() async {
-    final res = await _dio.get<dynamic>('courses/');
+    final res = await dio.get<dynamic>('courses/');
     return _listFrom(res.data).map((c) => Course.fromJson(c)).toList();
   }
 
@@ -291,11 +306,11 @@ class TeacherRepository {
       await lessons.createLesson(data);
 
   Future<void> deleteCourse(int id) async =>
-      await _dio.delete('courses/$id/');
+      await dio.delete('courses/$id/');
 
   Future<List<Map<String, dynamic>>> fetchModulesForCourse(int courseId) async {
     try {
-      final res = await _dio.get<dynamic>(
+      final res = await dio.get<dynamic>(
         'modules/',
         queryParameters: {'course': courseId},
       );
@@ -313,18 +328,18 @@ class TeacherRepository {
   // ── Reportes ───────────────────────────────────────────────────────────────
 
   Future<List<Report>> fetchReports() async {
-    final res = await _dio.get<dynamic>('reports/');
+    final res = await dio.get<dynamic>('reports/');
     return _listFrom(res.data).map((i) => Report.fromJson(i)).toList();
   }
 
   Future<void> updateReport(int id, Map<String, dynamic> data) async {
-    await _dio.patch('reports/$id/', data: data);
+    await dio.patch('reports/$id/', data: data);
   }
 
   // ── Anuncios ───────────────────────────────────────────────────────────────
 
   Future<List<Announcement>> fetchAnnouncements() async {
-    final res = await _dio.get<dynamic>('announcements/');
+    final res = await dio.get<dynamic>('announcements/');
     return _listFrom(res.data).map((i) => Announcement.fromJson(i)).toList();
   }
 
@@ -332,12 +347,12 @@ class TeacherRepository {
 
   Future<TeacherStats> fetchTeacherStats() async {
     try {
-      final res = await _dio.get<dynamic>('dashboard/teacher/');
+      final res = await dio.get<dynamic>('dashboard/teacher/');
       return TeacherStats.fromJson(_mapFrom(res.data));
     } on DioException catch (e) {
       // Fallback: calcular desde aulas si el endpoint no existe
       try {
-        final classroomsRes = await _dio.get<dynamic>('classrooms/');
+        final classroomsRes = await dio.get<dynamic>('classrooms/');
         final classrooms = _listFrom(classroomsRes.data)
             .map((i) => ClassroomModel.fromJson(i))
             .toList();
@@ -356,7 +371,7 @@ class TeacherRepository {
   // Solicitudes de ingreso
   Future<List<ClassroomJoinRequest>> fetchJoinRequests(int classroomId) async {
     try {
-      final res = await _dio.get<dynamic>('classrooms/$classroomId/requests/');
+      final res = await dio.get<dynamic>('classrooms/$classroomId/requests/');
       return _listFrom(res.data)
           .map((i) => ClassroomJoinRequest.fromJson(i as Map<String, dynamic>))
           .toList();
@@ -367,7 +382,7 @@ class TeacherRepository {
 
   Future<void> approveJoinRequest({required int classroomId, required int requestId}) async {
     try {
-      await _dio.post('classrooms/$classroomId/approve-request/', data: {'request_id': requestId});
+      await dio.post('classrooms/$classroomId/approve-request/', data: {'request_id': requestId});
     } on DioException catch (e) {
       throw ApiException('Error al aprobar la solicitud de ingreso', e.response?.statusCode, e);
     }
@@ -375,7 +390,7 @@ class TeacherRepository {
 
   Future<void> rejectJoinRequest({required int classroomId, required int requestId}) async {
     try {
-      await _dio.post('classrooms/$classroomId/reject-request/', data: {'request_id': requestId});
+      await dio.post('classrooms/$classroomId/reject-request/', data: {'request_id': requestId});
     } on DioException catch (e) {
       throw ApiException('Error al rechazar la solicitud de ingreso', e.response?.statusCode, e);
     }
@@ -383,7 +398,7 @@ class TeacherRepository {
 
   Future<void> requestJoin({required int classroomId, String? message}) async {
     try {
-      await _dio.post('classrooms/request-join/', data: {
+      await dio.post('classrooms/request-join/', data: {
         'classroom_id': classroomId,
         if (message != null) 'message': message,
       });

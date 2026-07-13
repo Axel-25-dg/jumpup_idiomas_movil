@@ -1,8 +1,10 @@
 // lib/data/repository/teacher_admin/announcement_repository.dart
+import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/announcement_model.dart';
 
 class AnnouncementRepository extends BaseRepository {
+  AnnouncementRepository({Dio? dio}) : super(dio);
   // 📥 Obtener todos los anuncios
   Future<List<Announcement>> fetchAnnouncements() {
     return getList<Announcement>(

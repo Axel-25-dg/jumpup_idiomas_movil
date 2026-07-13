@@ -15,6 +15,7 @@ class AchievementsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final allAsync = ref.watch(achievementsProvider);
     final myAsync = ref.watch(myAchievementsProvider);
+    final statsAsync = ref.watch(userStatsProvider);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
@@ -73,6 +74,8 @@ class AchievementsScreen extends ConsumerWidget {
               ),
               error: (_, __) => const SliverToBoxAdapter(child: SizedBox.shrink()),
               data: (myAchievements) {
+                final currentXp = statsAsync.valueOrNull?.totalXp ?? 0;
+
                 if (allAchievements.isEmpty) {
                   return SliverFillRemaining(
                     child: Center(
@@ -177,6 +180,7 @@ class AchievementsScreen extends ConsumerWidget {
                                   iconUrl: entry.value.iconUrl,
                                   requiredXp: entry.value.requiredXp,
                                   isUnlocked: true,
+                                  currentXp: currentXp,
                                   unlockedAt: myAchievements
                                       .firstWhere((ua) => ua.achievement.id == entry.value.id)
                                       .unlockedAt,
@@ -194,6 +198,7 @@ class AchievementsScreen extends ConsumerWidget {
                                   iconUrl: entry.value.iconUrl,
                                   requiredXp: entry.value.requiredXp,
                                   isUnlocked: false,
+                                  currentXp: currentXp,
                                 ),
                               )),
                         ],

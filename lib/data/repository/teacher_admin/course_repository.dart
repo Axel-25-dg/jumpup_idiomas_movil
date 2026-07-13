@@ -16,6 +16,7 @@ Map<String, dynamic> buildCoursePayload(Map<String, dynamic> data) {
 }
 
 class CourseRepository extends BaseRepository {
+  CourseRepository({Dio? dio}) : super(dio);
   Future<List<Course>> fetchCourses() {
     return getList<Course>(
       'courses/',

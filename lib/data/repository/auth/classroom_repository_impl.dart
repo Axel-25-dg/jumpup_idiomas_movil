@@ -17,6 +17,12 @@ class ClassroomRepositoryImpl extends BaseRepository {
         message: 'No se pudieron cargar tus aulas');
   }
 
+  Future<List<ClassroomModel>> getClassroomsByCourse(int courseId) async {
+    return getList('classrooms/', ClassroomModel.fromJson,
+        queryParameters: {'course': courseId},
+        message: 'No se pudieron cargar las aulas del curso');
+  }
+
   Future<ClassroomModel> joinByCode(String code) async {
     return handleRequest<ClassroomModel>(() async {
       final response = await dio.post<Map<String, dynamic>>(
@@ -30,6 +36,18 @@ class ClassroomRepositoryImpl extends BaseRepository {
           : data;
       return ClassroomModel.fromJson(classroomData);
     }, message: 'No se pudo unir al aula. Verifica el código.');
+  }
+
+  Future<void> requestJoin(int classroomId, String message) async {
+    await handleRequest<void>(() async {
+      await dio.post<dynamic>(
+        'classrooms/request-join/',
+        data: {
+          'classroom_id': classroomId,
+          'message': message,
+        },
+      );
+    }, message: 'No se pudo enviar la solicitud de ingreso');
   }
 
   // ── Sesiones en vivo (LiveSession) ──────────────────────────────────────

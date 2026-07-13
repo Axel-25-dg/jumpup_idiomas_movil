@@ -4,27 +4,27 @@ import 'package:jumpup_app/data/repository/auth/media_progress_repository_impl.d
 
 
 //Error MediaProgressRepositoryImpl cambaido
-final mediaProgressServiceProvider = Provider<MediaProgressRepositoryImpl>((ref) {
-  return const MediaProgressRepositoryImpl();
+final mediaProgressServiceProvider = Provider<MediaProgressService>((ref) {
+  return const MediaProgressService();
 });
 
 final mediaProgressProvider =
     FutureProvider.family<MediaProgressModel?, int>((ref, lessonId) async {
   final service = ref.watch(mediaProgressServiceProvider);
-  return service.getProgress(lessonId);
+  return service.resumeProgress(lessonId);
 });
 
 class MediaProgressNotifier
     extends StateNotifier<AsyncValue<MediaProgressModel?>> {
   MediaProgressNotifier(this._service) : super(const AsyncValue.data(null));
 
-  final MediaProgressRepositoryImpl _service;
+  final MediaProgressService _service;
   int? _currentLessonId;
 
   Future<void> loadProgress(int lessonId) async {
     _currentLessonId = lessonId;
     state = const AsyncValue.loading();
-    state = await AsyncValue.guard(() => _service.getProgress(lessonId));
+    state = await AsyncValue.guard(() => _service.resumeProgress(lessonId));
   }
 
   Future<void> saveProgress({

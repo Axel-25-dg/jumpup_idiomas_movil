@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
-import 'package:jumpup_app/data/repository/auth/course_service.dart';
+import 'package:jumpup_app/data/repository/auth/course_repository_impl.dart';
 
 class _MockDioAdapter implements HttpClientAdapter {
   _MockDioAdapter();
@@ -61,7 +61,7 @@ class _MockDioAdapter implements HttpClientAdapter {
 void main() {
   group('Integration Flow: Teacher Exercise Creation to Student View', () {
     late TeacherRepository teacherRepo;
-    late CourseService courseService;
+    late CourseRepositoryImpl courseService;
     late _MockDioAdapter dioAdapter;
     late Dio dio;
 
@@ -71,7 +71,7 @@ void main() {
       dio.httpClientAdapter = dioAdapter;
       
       teacherRepo = TeacherRepository(dio: dio);
-      courseService = CourseService(dio: dio);
+      courseService = CourseRepositoryImpl(dio: dio);
     });
 
     test('Teacher creates an exercise and it is then visible to students via CourseService', () async {

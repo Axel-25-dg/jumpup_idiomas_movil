@@ -8,6 +8,7 @@ import 'package:jumpup_app/domain/model/admin/stats_teacher_model.dart';
 import 'package:jumpup_app/domain/model/admin/user_stats.dart';
 
 class StatsRepository extends BaseRepository {
+  StatsRepository({Dio? dio}) : super(dio);
   Future<AdminStats> getAdminStats() async {
     try {
       final response = await dio.get<Map<String, dynamic>>('dashboard/admin/');

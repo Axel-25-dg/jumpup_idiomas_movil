@@ -12,6 +12,7 @@ class ModernAchievementCard extends StatelessWidget {
   final bool isUnlocked;
   final DateTime? unlockedAt;
   final bool isCompact;
+  final int currentXp;
 
   const ModernAchievementCard({
     super.key,
@@ -22,6 +23,7 @@ class ModernAchievementCard extends StatelessWidget {
     this.isUnlocked = false,
     this.unlockedAt,
     this.isCompact = false,
+    this.currentXp = 0,
   });
 
   @override
@@ -134,6 +136,31 @@ class ModernAchievementCard extends StatelessWidget {
                       ),
                     ],
                   ),
+                ] else if (!isUnlocked && requiredXp > 0) ...[
+                  const SizedBox(height: 8),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(4),
+                        child: LinearProgressIndicator(
+                          value: (currentXp / requiredXp).clamp(0.0, 1.0),
+                          backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                          color: AppColors.primary.withValues(alpha: 0.5),
+                          minHeight: 4,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Faltan ${requiredXp - currentXp} XP',
+                        style: AppTextStyles.labelSmall.copyWith(
+                          color: isDark ? Colors.white38 : Colors.black38,
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ],
             ),
@@ -176,34 +203,67 @@ class ModernAchievementCard extends StatelessWidget {
   Widget _buildIcon({required double size}) {
     final bool isEmoji = iconUrl == null || iconUrl!.isEmpty || (!iconUrl!.startsWith('http') && !iconUrl!.contains('/'));
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        gradient: isUnlocked ? AppColors.primaryGradient : null,
-        color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(size * 0.3),
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(size * 0.3),
-        child: isEmoji
-            ? Center(
-                child: Icon(
-                  Icons.stars_rounded,
-                  color: isUnlocked ? Colors.white : Colors.grey,
-                  size: size * 0.6,
-                ),
-              )
-            : Padding(
-                padding: EdgeInsets.all(size * 0.15), // Añadimos padding para que no toque los bordes
-                child: CachedNetworkImage(
-                  imageUrl: AppConfig.resolveImageUrl(iconUrl!),
-                  fit: BoxFit.contain, // Cambiado de cover a contain para ver la imagen completa
-                  placeholder: (context, url) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
-                  errorWidget: (context, url, error) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
-                ),
+    return Stack(
+      children: [
+        Container(
+          width: size,
+          height: size,
+          decoration: BoxDecoration(
+            gradient: isUnlocked ? AppColors.primaryGradient : null,
+            color: isUnlocked ? null : Colors.grey.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(size * 0.3),
+          ),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(size * 0.3),
+            child: ColorFiltered(
+              colorFilter: isUnlocked 
+                  ? const ColorFilter.mode(Colors.transparent, BlendMode.multiply)
+                  : const ColorFilter.matrix([
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0.2126, 0.7152, 0.0722, 0, 0,
+                      0,      0,      0,      1, 0,
+                    ]), // Grayscale for locked
+              child: isEmoji
+                  ? Center(
+                      child: Icon(
+                        Icons.stars_rounded,
+                        color: isUnlocked ? Colors.white : Colors.grey.withValues(alpha: 0.5),
+                        size: size * 0.6,
+                      ),
+                    )
+                  : Padding(
+                      padding: EdgeInsets.all(size * 0.15),
+                      child: CachedNetworkImage(
+                        imageUrl: AppConfig.resolveImageUrl(iconUrl!),
+                        fit: BoxFit.contain,
+                        placeholder: (context, url) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
+                        errorWidget: (context, url, error) => Icon(Icons.stars_rounded, color: isUnlocked ? Colors.white : Colors.grey, size: size * 0.6),
+                      ),
+                    ),
+            ),
+          ),
+        ),
+        if (!isUnlocked)
+          Positioned(
+            right: 0,
+            bottom: 0,
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: AppColors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 4,
+                  ),
+                ],
               ),
-      ),
+              child: const Icon(Icons.lock_rounded, size: 10, color: Colors.grey),
+            ),
+          ),
+      ],
     );
   }
 }

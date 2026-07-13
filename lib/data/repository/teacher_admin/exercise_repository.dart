@@ -5,6 +5,7 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
 class ExerciseRepository extends BaseRepository {
+  ExerciseRepository({Dio? dio}) : super(dio);
   // Obtener ejercicios por leccion
   Future<List<ExerciseModel>> getExercisesByLesson(int lessonId) {
     return getList<ExerciseModel>(

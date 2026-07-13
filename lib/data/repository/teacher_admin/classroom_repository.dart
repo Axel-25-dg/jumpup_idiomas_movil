@@ -1,4 +1,5 @@
 // lib/data/repository/teacher_admin/classroom_repository.dart
+import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
@@ -19,6 +20,7 @@ Map<String, dynamic> buildClassroomPayload({
 }
 
 class ClassroomRepository extends BaseRepository {
+  ClassroomRepository({Dio? dio}) : super(dio);
   // 📥 Obtener todas las aulas
   Future<List<ClassroomModel>> fetchAllClassrooms() {
     return getList<ClassroomModel>(

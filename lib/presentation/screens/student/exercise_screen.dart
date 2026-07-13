@@ -1,8 +1,10 @@
 import 'dart:async';
 import 'package:animate_do/animate_do.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
@@ -33,6 +35,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   int _wrongExerciseIndex = 0;
   int _remainingTime = 60; // Default 60 seconds per exercise
   Timer? _timer;
+  late final AudioPlayer _audioPlayer;
   
   // Variables de estado adicionales
   final Map<String, String> _completedMatches = {};
@@ -47,6 +50,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   @override
   void initState() {
     super.initState();
+    _audioPlayer = AudioPlayer();
     // Start timer when screen initializes
     _startTimer();
   }
@@ -54,6 +58,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   @override
   void dispose() {
     _timer?.cancel();
+    _audioPlayer.dispose();
     super.dispose();
   }
 
@@ -442,6 +447,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   }
 
   void _nextExercise(int total) {
+    _audioPlayer.stop(); // Stop any playing audio before moving
     final currentIndex = ref.read(currentExerciseIndexProvider);
     if (!_isRepeatingWrong && currentIndex < total - 1) {
       // Still in main exercises
@@ -997,28 +1003,136 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
     return Center(
       child: Column(
         children: [
-          Container(
-            height: 120,
-            width: 120,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(colors: [Color(0xFF6A11CB), Color(0xFF2575FC)]),
-              boxShadow: [
-                BoxShadow(color: const Color(0xFF2575FC).withValues(alpha: 0.4), blurRadius: 20, offset: const Offset(0, 8)),
-              ],
-            ),
-            child: IconButton(
-              onPressed: () {
+          _AudioWaveformButton(
+            isPlaying: _isPlayingAudioExercise,
+            onTap: () async {
+              if (exercise.audioUrl != null && exercise.audioUrl!.isNotEmpty) {
+                try {
+                  setState(() => _isPlayingAudioExercise = true);
+                  final url = AppConfig.resolveImageUrl(exercise.audioUrl);
+                  await _audioPlayer.play(UrlSource(url));
+                  
+                  // Escuchar cuando termina
+                  _audioPlayer.onPlayerComplete.first.then((_) {
+                    if (mounted) setState(() => _isPlayingAudioExercise = false);
+                  });
+                } catch (e) {
+                  if (mounted) {
+                    setState(() => _isPlayingAudioExercise = false);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error al reproducir audio: $e')),
+                    );
+                  }
+                }
+              } else {
+                // Mock behavior if no audioUrl
                 setState(() => _isPlayingAudioExercise = true);
-                Future.delayed(const Duration(seconds: 2), () => setState(() => _isPlayingAudioExercise = false));
-              },
-              icon: Icon(_isPlayingAudioExercise ? Icons.volume_up_rounded : Icons.play_arrow_rounded, size: 56, color: Colors.white),
-            ),
+                Future.delayed(const Duration(seconds: 2), () {
+                  if (mounted) setState(() => _isPlayingAudioExercise = false);
+                });
+              }
+            },
           ),
           const SizedBox(height: 48),
           _buildFillBlank(exercise),
         ],
       ),
+    );
+  }
+}
+
+class _AudioWaveformButton extends StatelessWidget {
+  final bool isPlaying;
+  final VoidCallback onTap;
+
+  const _AudioWaveformButton({
+    required this.isPlaying,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          if (isPlaying)
+            ...List.generate(3, (index) => _WaveCircle(index: index)),
+          Container(
+            height: 100,
+            width: 100,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF2575FC).withValues(alpha: 0.4),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                ),
+              ],
+            ),
+            child: Icon(
+              isPlaying ? Icons.pause_rounded : Icons.volume_up_rounded,
+              size: 40,
+              color: Colors.white,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _WaveCircle extends StatefulWidget {
+  final int index;
+  const _WaveCircle({required this.index});
+
+  @override
+  State<_WaveCircle> createState() => _WaveCircleState();
+}
+
+class _WaveCircleState extends State<_WaveCircle> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        final progress = (_controller.value + (widget.index * 0.33)) % 1.0;
+        return Container(
+          width: 100 + (100 * progress),
+          height: 100 + (100 * progress),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: Colors.blueAccent.withValues(alpha: 1.0 - progress),
+              width: 2,
+            ),
+          ),
+        );
+      },
     );
   }
 }

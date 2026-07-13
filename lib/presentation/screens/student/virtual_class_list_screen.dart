@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/virtual_class_models.dart';
 import 'package:jumpup_app/domain/model/classroom_model.dart';
 import 'package:jumpup_app/presentation/providers/virtual_class_providers.dart';
+import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -1170,12 +1171,17 @@ class _JoinClassSheet extends ConsumerStatefulWidget {
 
 class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
   final _codeCtrl = TextEditingController();
+  final _messageCtrl = TextEditingController();
+  final _classIdCtrl = TextEditingController();
   final _formKey = GlobalKey<FormState>();
   bool _isProcessing = false;
+  bool _useCode = true;
 
   @override
   void dispose() {
     _codeCtrl.dispose();
+    _messageCtrl.dispose();
+    _classIdCtrl.dispose();
     super.dispose();
   }
 
@@ -1189,6 +1195,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
     if (result != null && result.isNotEmpty) {
       setState(() {
         _codeCtrl.text = result;
+        _useCode = true;
       });
       await _enroll();
     }
@@ -1203,33 +1210,63 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
 
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    final code = _codeCtrl.text.trim();
 
-    try {
-      final notifier = ref.read(classroomEnrollNotifierProvider.notifier);
-      final success = await notifier.enrollByCode(code);
+        try {
+      if (_useCode) {
+        final code = _codeCtrl.text.trim();
+        final notifier = ref.read(joinClassroomProvider.notifier);
+        final success = await notifier.joinByCode(code);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      if (success) {
-        ref.invalidate(virtualClassesProvider);
-        ref.invalidate(myClassroomsProvider);
-        navigator.pop();
-        scaffoldMessenger.showSnackBar(
-          const SnackBar(
-            content: Text('¡Inscrito al aula virtual con éxito!'),
-            backgroundColor: _ClassTokens.live,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        if (success) {
+          ref.invalidate(myClassroomsProvider);
+          ref.invalidate(virtualClassesProvider);
+          navigator.pop();
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(
+              content: Text('¡Inscrito al aula con éxito!'),
+              backgroundColor: _ClassTokens.live,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
+              backgroundColor: _ClassTokens.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       } else {
-        scaffoldMessenger.showSnackBar(
-          SnackBar(
-            content: Text(notifier.errorMessage ?? 'Inscripción fallida'),
-            backgroundColor: _ClassTokens.danger,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
+        final classId = int.tryParse(_classIdCtrl.text.trim()) ?? 0;
+        final message = _messageCtrl.text.trim();
+        final success = await ref
+            .read(requestJoinProvider.notifier)
+            .requestJoin(classId, message);
+
+        if (!mounted) return;
+
+        if (success) {
+          navigator.pop();
+          scaffoldMessenger.showSnackBar(
+            const SnackBar(
+              content: Text('Solicitud enviada al profesor.'),
+              backgroundColor: _ClassTokens.primary,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        } else {
+          final error = ref.read(requestJoinProvider.notifier).errorMessage;
+          scaffoldMessenger.showSnackBar(
+            SnackBar(
+              content: Text(error ?? 'No se pudo enviar la solicitud'),
+              backgroundColor: _ClassTokens.danger,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -1283,97 +1320,203 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  // Ícono superior con gradiente.
-                  Center(
-                    child: Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: _ClassTokens.brandGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: _ClassTokens.brandGlow.withValues(alpha: 0.4),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                  // Selector de modo: Código vs Solicitud
+                  Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: _ClassTokens.surfaceAlt(context),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _useCode = true),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: _useCode
+                                    ? _ClassTokens.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Usar Código',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: _useCode
+                                      ? Colors.white
+                                      : _ClassTokens.textSecondary(context),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
                           ),
-                        ],
-                      ),
-                      child: const Icon(
-                        Icons.meeting_room_rounded,
-                        size: 40,
-                        color: Colors.white,
-                      ),
+                        ),
+                        Expanded(
+                          child: GestureDetector(
+                            onTap: () => setState(() => _useCode = false),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(vertical: 12),
+                              decoration: BoxDecoration(
+                                color: !_useCode
+                                    ? _ClassTokens.primary
+                                    : Colors.transparent,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                'Solicitar Acceso',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: !_useCode
+                                      ? Colors.white
+                                      : _ClassTokens.textSecondary(context),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                   const SizedBox(height: 24),
-                  Text(
-                    'Unirse a un Aula Virtual',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.headlineSmall.copyWith(
-                      fontWeight: FontWeight.w900,
-                      color: _ClassTokens.textPrimary(context),
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Ingresa el código de 8 caracteres proporcionado por tu profesor',
-                    textAlign: TextAlign.center,
-                    style: AppTextStyles.bodyMedium.copyWith(
-                      color: _ClassTokens.textSecondary(context),
-                    ),
-                  ),
-                  const SizedBox(height: 32),
-                  TextFormField(
-                    controller: _codeCtrl,
-                    maxLength: 8,
-                    textAlign: TextAlign.center,
-                    textCapitalization: TextCapitalization.characters,
-                    style: AppTextStyles.headlineMedium.copyWith(
-                      letterSpacing: 16,
-                      fontWeight: FontWeight.w900,
-                      color: _ClassTokens.primary,
-                      fontSize: 32,
-                    ),
-                    validator: (val) {
-                      if (val == null || val.trim().length != 8) {
-                        return 'El código debe tener 8 caracteres';
-                      }
-                      return null;
-                    },
-                    decoration: InputDecoration(
-                      hintText: 'ABCD1234',
-                      hintStyle: AppTextStyles.headlineMedium.copyWith(
-                        color: _ClassTokens.textSecondary(context)
-                            .withValues(alpha: 0.25),
-                        letterSpacing: 16,
-                        fontSize: 32,
-                      ),
-                      counterText: '',
-                      filled: true,
-                      fillColor: _ClassTokens.surfaceAlt(context),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide.none,
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: BorderSide(
-                          color: _ClassTokens.hairline(context),
-                          width: 1.5,
+                  if (_useCode) ...[
+                    // Vista de Código (Existente)
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: _ClassTokens.brandGradient,
+                        ),
+                        child: const Icon(
+                          Icons.vpn_key_rounded,
+                          size: 32,
+                          color: Colors.white,
                         ),
                       ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(24),
-                        borderSide: const BorderSide(
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Unirse con Código',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: _ClassTokens.textPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Ingresa el código de 8 caracteres del aula',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: _ClassTokens.textSecondary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _codeCtrl,
+                      maxLength: 8,
+                      textAlign: TextAlign.center,
+                      textCapitalization: TextCapitalization.characters,
+                      style: AppTextStyles.headlineMedium.copyWith(
+                        letterSpacing: 12,
+                        fontWeight: FontWeight.w900,
+                        color: _ClassTokens.primary,
+                      ),
+                      validator: (val) {
+                        if (_useCode && (val == null || val.trim().length != 8)) {
+                          return 'El código debe tener 8 caracteres';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        hintText: 'ABCD1234',
+                        hintStyle: TextStyle(
+                          color: _ClassTokens.textSecondary(context).withValues(alpha: 0.2),
+                          letterSpacing: 12,
+                        ),
+                        counterText: '',
+                        filled: true,
+                        fillColor: _ClassTokens.surfaceAlt(context),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(20),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ] else ...[
+                    // Vista de Solicitud (Nueva)
+                    Center(
+                      child: Container(
+                        padding: const EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: _ClassTokens.primary.withValues(alpha: 0.1),
+                        ),
+                        child: const Icon(
+                          Icons.send_rounded,
+                          size: 32,
                           color: _ClassTokens.primary,
-                          width: 2.5,
                         ),
                       ),
-                      contentPadding:
-                          const EdgeInsets.symmetric(vertical: 28),
                     ),
-                  ),
+                    const SizedBox(height: 16),
+                    Text(
+                      'Enviar Solicitud',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.headlineSmall.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: _ClassTokens.textPrimary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Indica el ID del aula y un mensaje para el profesor',
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyMedium.copyWith(
+                        color: _ClassTokens.textSecondary(context),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _classIdCtrl,
+                      keyboardType: TextInputType.number,
+                      validator: (val) {
+                        if (!_useCode && (val == null || val.isEmpty)) {
+                          return 'Ingresa el ID del aula';
+                        }
+                        return null;
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'ID del Aula',
+                        prefixIcon: const Icon(Icons.tag_rounded),
+                        filled: true,
+                        fillColor: _ClassTokens.surfaceAlt(context),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _messageCtrl,
+                      maxLines: 3,
+                      decoration: InputDecoration(
+                        labelText: 'Mensaje (opcional)',
+                        hintText: '¿Por qué quieres unirte?',
+                        prefixIcon: const Icon(Icons.chat_bubble_outline_rounded),
+                        filled: true,
+                        fillColor: _ClassTokens.surfaceAlt(context),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                  ],
                   const SizedBox(height: 32),
                   Container(
                     decoration: BoxDecoration(
@@ -1381,8 +1524,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                       gradient: _ClassTokens.brandGradient,
                       boxShadow: [
                         BoxShadow(
-                          color: _ClassTokens.brandGlow
-                              .withValues(alpha: 0.4),
+                          color: _ClassTokens.brandGlow.withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -1399,13 +1541,17 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                                 color: Colors.white,
                               ),
                             )
-                          : const Icon(
-                              Icons.check_circle_rounded,
+                          : Icon(
+                              _useCode
+                                  ? Icons.check_circle_rounded
+                                  : Icons.send_rounded,
                               color: Colors.white,
                               size: 22,
                             ),
                       label: Text(
-                        _isProcessing ? 'Uniendo...' : 'Unirse Ahora',
+                        _isProcessing
+                            ? 'Procesando...'
+                            : (_useCode ? 'Unirse Ahora' : 'Enviar Solicitud'),
                         style: const TextStyle(
                           color: Colors.white,
                           fontWeight: FontWeight.w900,
@@ -1415,8 +1561,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.transparent,
                         shadowColor: Colors.transparent,
-                        padding:
-                            const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 20),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -1425,29 +1570,19 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  OutlinedButton.icon(
-                    onPressed: _isProcessing ? null : _scanQR,
-                    icon: const Icon(
-                      Icons.qr_code_scanner_rounded,
-                      size: 20,
-                    ),
-                    label: const Text(
-                      'Escanear Código QR',
-                      style: TextStyle(fontWeight: FontWeight.w600),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      padding:
-                          const EdgeInsets.symmetric(vertical: 18),
-                      foregroundColor: _ClassTokens.primary,
-                      side: BorderSide(
-                        color: _ClassTokens.primary.withValues(alpha: 0.3),
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
+                  if (_useCode)
+                    OutlinedButton.icon(
+                      onPressed: _isProcessing ? null : _scanQR,
+                      icon: const Icon(Icons.qr_code_scanner_rounded),
+                      label: const Text('Escanear Código QR'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 18),
+                        foregroundColor: _ClassTokens.primary,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -1457,6 +1592,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
     );
   }
 }
+
 
 /// QR Scanner — temporalmente deshabilitado mientras mobile_scanner migra a Kotlin.
 class _QRScannerScreen extends StatelessWidget {

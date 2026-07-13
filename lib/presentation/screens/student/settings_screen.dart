@@ -125,13 +125,16 @@ class SettingsScreen extends ConsumerWidget {
                 borderRadius: BorderRadius.circular(20),
                 border: Border.all(color: Colors.redAccent.withValues(alpha: 0.3)),
               ),
-              child: ListTile(
-                onTap: () => _confirmLogout(context, ref),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                title: Text(
-                  l10n.logout,
-                  style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+              child: Material(
+                color: Colors.transparent,
+                child: ListTile(
+                  onTap: () => _confirmLogout(context, ref),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                  leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
+                  title: Text(
+                    l10n.logout,
+                    style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold),
+                  ),
                 ),
               ),
             ),
@@ -164,33 +167,36 @@ class SettingsScreen extends ConsumerWidget {
 
     return GlassContainer(
       padding: EdgeInsets.zero,
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-        leading: Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.blueAccent.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(12),
+      child: Material(
+        color: Colors.transparent,
+        child: ListTile(
+          onTap: onTap,
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          leading: Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Colors.blueAccent.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, color: Colors.blueAccent),
           ),
-          child: Icon(icon, color: Colors.blueAccent),
-        ),
-        title: Text(
-          title,
-          style: AppTextStyles.labelLarge.copyWith(
-            color: isDark ? Colors.white : Colors.black87,
-            fontWeight: FontWeight.bold,
+          title: Text(
+            title,
+            style: AppTextStyles.labelLarge.copyWith(
+              color: isDark ? Colors.white : Colors.black87,
+              fontWeight: FontWeight.bold,
+            ),
           ),
+          subtitle: subtitle != null
+              ? Text(
+                  subtitle,
+                  style: AppTextStyles.bodySmall.copyWith(
+                    color: isDark ? Colors.white54 : Colors.black54,
+                  ),
+                )
+              : null,
+          trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white24 : Colors.black26),
         ),
-        subtitle: subtitle != null
-            ? Text(
-                subtitle,
-                style: AppTextStyles.bodySmall.copyWith(
-                  color: isDark ? Colors.white54 : Colors.black54,
-                ),
-              )
-            : null,
-        trailing: trailing ?? Icon(Icons.chevron_right_rounded, color: isDark ? Colors.white24 : Colors.black26),
       ),
     );
   }
@@ -210,21 +216,27 @@ class SettingsScreen extends ConsumerWidget {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            ListTile(
-              title: const Text('Español'),
-              trailing: prefs.language == 'es' ? const Icon(Icons.check, color: Colors.blueAccent) : null,
-              onTap: () {
-                ref.read(preferencesProvider.notifier).setLanguage('es');
-                Navigator.pop(context);
-              },
+            Material(
+              color: Colors.transparent,
+              child: ListTile(
+                title: const Text('Español'),
+                trailing: prefs.language == 'es' ? const Icon(Icons.check, color: Colors.blueAccent) : null,
+                onTap: () {
+                  ref.read(preferencesProvider.notifier).setLanguage('es');
+                  Navigator.pop(context);
+                },
+              ),
             ),
-            ListTile(
-              title: const Text('English'),
-              trailing: prefs.language == 'en' ? const Icon(Icons.check, color: Colors.blueAccent) : null,
-              onTap: () {
-                ref.read(preferencesProvider.notifier).setLanguage('en');
-                Navigator.pop(context);
-              },
+            Material(
+              color: Colors.transparent,
+              child: ListTile(
+                title: const Text('English'),
+                trailing: prefs.language == 'en' ? const Icon(Icons.check, color: Colors.blueAccent) : null,
+                onTap: () {
+                  ref.read(preferencesProvider.notifier).setLanguage('en');
+                  Navigator.pop(context);
+                },
+              ),
             ),
           ],
         ),

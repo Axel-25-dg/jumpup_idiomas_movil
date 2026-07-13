@@ -6,6 +6,7 @@ import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
 
 class LessonRepository extends BaseRepository {
+  LessonRepository({Dio? dio}) : super(dio);
   // Obtener TODAS las lecciones
   Future<List<LessonModel>> fetchAllLessons() {
     return getList<LessonModel>(
