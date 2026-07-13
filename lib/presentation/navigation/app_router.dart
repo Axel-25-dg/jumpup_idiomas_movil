@@ -53,10 +53,12 @@ import 'package:jumpup_app/presentation/screens/admin/classrooms_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/courses_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/exercises_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/modules_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
-
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/student_detail_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
+
 
 abstract final class AppRoutes {
   // Auth
@@ -110,6 +112,8 @@ abstract final class AppRoutes {
   static const adminLanguages = '/admin/languages';
   static const adminCourses = '/admin/courses';
   static const adminCreateCourse = '/admin/courses/create';
+  static const adminModules = '/admin/modules';
+  static const adminLessons = '/admin/lessons';
   static const adminAnnouncements = '/admin/announcements';
   static const adminReports = '/admin/reports';
   static const adminClassrooms = '/admin/classrooms';
@@ -380,6 +384,17 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.adminCreateCourse,
         name: 'adminCreateCourse',
         builder: (_, __) => const CreateCourseScreen(),
+      ),
+      // ✅ NUEVAS RUTAS ADMIN
+      GoRoute(
+        path: AppRoutes.adminModules,
+        name: 'adminModules',
+        builder: (_, __) => const ModulesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminLessons,
+        name: 'adminLessons',
+        builder: (_, __) => const LessonsScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminAnnouncements,
