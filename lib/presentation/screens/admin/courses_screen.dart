@@ -1,10 +1,9 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
-import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/courses_provider.dart';
 import 'package:jumpup_app/presentation/providers/language_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
@@ -18,7 +17,8 @@ class CoursesScreen extends ConsumerStatefulWidget {
   ConsumerState<CoursesScreen> createState() => _CoursesScreenState();
 }
 
-class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProviderStateMixin {
+class _CoursesScreenState extends ConsumerState<CoursesScreen>
+    with TickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
@@ -28,9 +28,12 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
   late AnimationController _blobController;
 
   final List<Map<String, String>> _difficultyLevels = [
-    {'value': 'beginner', 'label': 'Principiante'},
-    {'value': 'intermediate', 'label': 'Intermedio'},
-    {'value': 'advanced', 'label': 'Avanzado'},
+    {'value': 'A1', 'label': 'Principiante A1'},
+    {'value': 'A2', 'label': 'Elemental A2'},
+    {'value': 'B1', 'label': 'Intermedio B1'},
+    {'value': 'B2', 'label': 'Intermedio Alto B2'},
+    {'value': 'C1', 'label': 'Avanzado C1'},
+    {'value': 'C2', 'label': 'Maestría C2'},
   ];
 
   @override
@@ -61,13 +64,15 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
       backgroundColor: const Color(0xFF0F111A),
       extendBodyBehindAppBar: true,
       appBar: AppBar(
-        title: const Text('Educational Content',
-            style: TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 22,
-              letterSpacing: -0.5,
-            )),
+        title: const Text(
+          'Cursos',
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 22,
+            letterSpacing: -0.5,
+          ),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
@@ -81,19 +86,13 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
         actions: [
           IconButton(
             icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              _showAddEditDialog(context, languagesAsync);
-            },
-            tooltip: 'Add Course',
+            onPressed: () => _showAddEditDialog(context, languagesAsync),
+            tooltip: 'Agregar curso',
           ),
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
-            onPressed: () {
-              HapticFeedback.lightImpact();
-              notifier.refresh();
-            },
-            tooltip: 'Refresh',
+            onPressed: () => notifier.refresh(),
+            tooltip: 'Refrescar',
           ),
         ],
       ),
@@ -125,7 +124,9 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
             backgroundColor: const Color(0xFF1E1E2A),
             onRefresh: () => notifier.refresh(),
             child: coursesAsync.when(
-              loading: () => const Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
+              loading: () => const Center(
+                child: CircularProgressIndicator(color: Color(0xFF7C4DFF)),
+              ),
               error: (error, stack) => Padding(
                 padding: const EdgeInsets.all(20),
                 child: _buildErrorView(error, notifier),
@@ -133,29 +134,36 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
               data: (courses) {
                 if (courses.isEmpty) {
                   return EmptyState(
-                    title: 'No courses found',
-                    subtitle: 'Create your first course to begin',
+                    title: 'No hay cursos creados',
+                    subtitle: 'Crea tu primer curso para comenzar',
                     icon: Icons.menu_book_rounded,
-                    buttonText: 'Create Course',
-                    onButtonPressed: () => _showAddEditDialog(context, languagesAsync),
+                    buttonText: 'Crear curso',
+                    onButtonPressed: () =>
+                        _showAddEditDialog(context, languagesAsync),
                   );
                 }
                 return ListView.builder(
-                  padding: const EdgeInsets.fromLTRB(20, kToolbarHeight + 60, 20, 100),
-                  physics: const BouncingScrollPhysics(parent: AlwaysScrollableScrollPhysics()),
+                  padding: const EdgeInsets.fromLTRB(
+                    20,
+                    kToolbarHeight + 60,
+                    20,
+                    100,
+                  ),
+                  physics: const BouncingScrollPhysics(
+                    parent: AlwaysScrollableScrollPhysics(),
+                  ),
                   itemCount: courses.length,
                   itemBuilder: (context, index) {
                     final course = courses[index];
                     return _CourseCard(
                       course: course,
-                      onEdit: () {
-                        HapticFeedback.lightImpact();
-                        _showAddEditDialog(context, languagesAsync, course: course);
-                      },
-                      onDelete: () {
-                        HapticFeedback.mediumImpact();
-                        _confirmDelete(context, course.id, notifier);
-                      },
+                      onEdit: () => _showAddEditDialog(
+                        context,
+                        languagesAsync,
+                        course: course,
+                      ),
+                      onDelete: () =>
+                          _confirmDelete(context, course.id, notifier),
                     );
                   },
                 );
@@ -193,15 +201,31 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline_rounded, size: 56, color: Colors.redAccent),
+            const Icon(Icons.error_outline_rounded,
+                size: 56, color: Colors.redAccent),
             const SizedBox(height: 20),
-            const Text('Error loading courses', style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Error al cargar cursos',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 10),
-            Text(error.toString(), style: const TextStyle(color: Colors.white54, fontSize: 13), textAlign: TextAlign.center),
+            Text(
+              error.toString(),
+              style: const TextStyle(color: Colors.white54, fontSize: 13),
+              textAlign: TextAlign.center,
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              child: PrimaryButton(label: 'Retry', onPressed: () => notifier.refresh(), icon: Icons.refresh_rounded),
+              child: PrimaryButton(
+                label: 'Reintentar',
+                onPressed: () => notifier.refresh(),
+                icon: Icons.refresh_rounded,
+              ),
             ),
           ],
         ),
@@ -239,9 +263,16 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
           opacity: a1.value,
           child: AlertDialog(
             backgroundColor: const Color(0xFF1E1E2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: Text(course != null ? 'Edit Course' : 'New Course',
-                style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Text(
+              course != null ? 'Editar curso' : 'Nuevo curso',
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: SizedBox(
               width: 450,
               child: Form(
@@ -250,64 +281,100 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
+                      // Idioma
                       languagesAsync.when(
-                        loading: () => const CircularProgressIndicator(color: Color(0xFF7C4DFF)),
-                        error: (_, __) => const Text('Error loading languages', style: TextStyle(color: Colors.redAccent)),
+                        loading: () => const CircularProgressIndicator(
+                          color: Color(0xFF7C4DFF),
+                        ),
+                        error: (_, __) => const Text(
+                          'Error al cargar idiomas',
+                          style: TextStyle(color: Colors.redAccent),
+                        ),
                         data: (languages) => DropdownButtonFormField<int>(
                           dropdownColor: const Color(0xFF1E1E2A),
                           style: const TextStyle(color: Colors.white),
                           decoration: InputDecoration(
-                            labelText: 'Language',
+                            labelText: 'Idioma',
                             labelStyle: const TextStyle(color: Colors.white70),
-                            prefixIcon: const Icon(Icons.language_rounded, color: Colors.white54),
+                            prefixIcon: const Icon(
+                              Icons.language_rounded,
+                              color: Colors.white54,
+                            ),
                             filled: true,
                             fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
                           ),
-                          initialValue: _selectedLanguageId,
+                          value: _selectedLanguageId,
                           items: languages.map((lang) {
-                            return DropdownMenuItem(value: lang.id, child: Text(lang.name));
+                            return DropdownMenuItem(
+                              value: lang.id,
+                              child: Text(lang.name),
+                            );
                           }).toList(),
                           onChanged: (value) => _selectedLanguageId = value,
-                          validator: (value) => value == null ? 'Select a language' : null,
+                          validator: (value) =>
+                              value == null ? 'Selecciona un idioma' : null,
                         ),
                       ),
                       const SizedBox(height: 16),
+
+                      // Título
                       BrandedTextField(
                         controller: _titleController,
-                        label: 'Course Title',
+                        label: 'Título del curso',
                         prefixIcon: Icons.title_rounded,
-                        validator: (value) => (value == null || value.isEmpty) ? 'Title is required' : null,
+                        validator: (value) =>
+                            (value == null || value.isEmpty)
+                                ? 'El título es obligatorio'
+                                : null,
                       ),
                       const SizedBox(height: 16),
+
+                      // Descripción
                       BrandedTextField(
                         controller: _descriptionController,
-                        label: 'Description',
+                        label: 'Descripción',
                         prefixIcon: Icons.description_rounded,
                         maxLines: 3,
                       ),
                       const SizedBox(height: 16),
+
+                      // Dificultad A1-C2
                       DropdownButtonFormField<String>(
                         dropdownColor: const Color(0xFF1E1E2A),
                         style: const TextStyle(color: Colors.white),
                         decoration: InputDecoration(
-                          labelText: 'Difficulty Level',
+                          labelText: 'Nivel de dificultad',
                           labelStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(Icons.signal_cellular_alt_rounded, color: Colors.white54),
+                          prefixIcon: const Icon(
+                            Icons.signal_cellular_alt_rounded,
+                            color: Colors.white54,
+                          ),
                           filled: true,
                           fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
-                        initialValue: _selectedDifficulty,
+                        value: _selectedDifficulty,
                         items: _difficultyLevels.map((level) {
-                          return DropdownMenuItem(value: level['value'], child: Text(level['label']!));
+                          return DropdownMenuItem(
+                            value: level['value'],
+                            child: Text(level['label']!),
+                          );
                         }).toList(),
                         onChanged: (value) => _selectedDifficulty = value,
                       ),
                       const SizedBox(height: 16),
+
+                      // URL de imagen (opcional)
                       BrandedTextField(
                         controller: _imageUrlController,
-                        label: 'Image URL',
+                        label: 'URL de la imagen (opcional)',
                         prefixIcon: Icons.image_rounded,
                       ),
                     ],
@@ -318,19 +385,28 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
             actions: [
               TextButton(
                 onPressed: () => Navigator.pop(ctx),
-                child: const Text('Cancel', style: TextStyle(color: Colors.white38, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(
+                    color: Colors.white38,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
               const SizedBox(width: 8),
               PrimaryButton(
-                label: course != null ? 'Update' : 'Save',
+                label: course != null ? 'Actualizar' : 'Guardar',
                 onPressed: () {
-                  if (_formKey.currentState!.validate() && _selectedLanguageId != null) {
-                    final notifier = ref.read(courseNotifierProvider.notifier);
+                  if (_formKey.currentState!.validate() &&
+                      _selectedLanguageId != null) {
+                    final notifier = ref.read(
+                      courseNotifierProvider.notifier,
+                    );
                     final data = {
-                      'language_id': _selectedLanguageId!,
+                      'language': _selectedLanguageId!,
                       'title': _titleController.text.trim(),
                       'description': _descriptionController.text.trim(),
-                      'difficulty_level': _selectedDifficulty ?? 'beginner',
+                      'difficulty_level': _selectedDifficulty ?? 'A1',
                       'image_url': _imageUrlController.text.trim(),
                     };
                     if (course != null) {
@@ -361,22 +437,44 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
           opacity: a1.value,
           child: AlertDialog(
             backgroundColor: const Color(0xFF1E1E2A),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-            title: const Text('Delete Course', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: const Text(
+              'Eliminar curso',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             content: const Text(
-              'Are you sure you want to delete this course?\n'
-              'This will remove all associated modules and lessons.',
+              '¿Estás seguro de que deseas eliminar este curso?\n'
+              'Esta acción eliminará todos los módulos y lecciones asociadas.',
               style: TextStyle(color: Colors.white70),
             ),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Cancel', style: TextStyle(color: Colors.white38))),
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text(
+                  'Cancelar',
+                  style: TextStyle(color: Colors.white38),
+                ),
+              ),
               FilledButton(
-                style: FilledButton.styleFrom(backgroundColor: Colors.redAccent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))),
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
                 onPressed: () {
                   notifier.deleteCourse(id);
                   Navigator.pop(ctx);
                 },
-                child: const Text('Delete', style: TextStyle(fontWeight: FontWeight.bold)),
+                child: const Text(
+                  'Eliminar',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ],
           ),
@@ -387,26 +485,51 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen> with TickerProvid
 }
 
 class _CourseCard extends StatelessWidget {
-  const _CourseCard({required this.course, required this.onEdit, required this.onDelete});
+  const _CourseCard({
+    required this.course,
+    required this.onEdit,
+    required this.onDelete,
+  });
+
   final Course course;
   final VoidCallback onEdit;
   final VoidCallback onDelete;
 
   String _getDifficultyLabel(String level) {
-    switch (level) {
-      case 'beginner': return 'Principiante';
-      case 'intermediate': return 'Intermedio';
-      case 'advanced': return 'Avanzado';
-      default: return level;
+    switch (level.toUpperCase()) {
+      case 'A1':
+        return 'Principiante A1';
+      case 'A2':
+        return 'Elemental A2';
+      case 'B1':
+        return 'Intermedio B1';
+      case 'B2':
+        return 'Intermedio Alto B2';
+      case 'C1':
+        return 'Avanzado C1';
+      case 'C2':
+        return 'Maestría C2';
+      default:
+        return level;
     }
   }
 
   Color _getDifficultyColor(String level) {
-    switch (level) {
-      case 'beginner': return Colors.greenAccent;
-      case 'intermediate': return Colors.orangeAccent;
-      case 'advanced': return Colors.redAccent;
-      default: return Colors.grey;
+    switch (level.toUpperCase()) {
+      case 'A1':
+        return Colors.greenAccent;
+      case 'A2':
+        return Colors.lightGreenAccent;
+      case 'B1':
+        return Colors.orangeAccent;
+      case 'B2':
+        return Colors.deepOrangeAccent;
+      case 'C1':
+        return Colors.redAccent;
+      case 'C2':
+        return Colors.deepPurpleAccent;
+      default:
+        return Colors.grey;
     }
   }
 
@@ -421,61 +544,130 @@ class _CourseCard extends StatelessWidget {
         opacity: 0.06,
         borderRadius: BorderRadius.circular(24),
         padding: EdgeInsets.zero,
-        onTap: onEdit,
-        child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          leading: Container(
-            width: 56,
-            height: 56,
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [accentColor.withValues(alpha: 0.2), accentColor.withValues(alpha: 0.05)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: accentColor.withValues(alpha: 0.2)),
-            ),
-            child: course.imageUrl.isNotEmpty
-                ? ClipRRect(
-                    borderRadius: BorderRadius.circular(18),
-                    child: Image.network(
-                      course.imageUrl,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(Icons.menu_book_rounded, color: accentColor, size: 28),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(24),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(24),
+            onTap: onEdit,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  // Leading
+                  Container(
+                    width: 56,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          accentColor.withValues(alpha: 0.2),
+                          accentColor.withValues(alpha: 0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      border: Border.all(
+                        color: accentColor.withValues(alpha: 0.2),
+                      ),
                     ),
-                  )
-                : Icon(Icons.menu_book_rounded, color: accentColor, size: 28),
-          ),
-          title: Text(
-            course.title,
-            style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16, letterSpacing: -0.2),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const SizedBox(height: 4),
-              Text('Language: ${course.languageName}', style: const TextStyle(color: Colors.white38, fontSize: 12)),
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: _getDifficultyColor(course.difficultyLevel).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                child: Text(
-                  _getDifficultyLabel(course.difficultyLevel).toUpperCase(),
-                  style: TextStyle(color: _getDifficultyColor(course.difficultyLevel), fontSize: 9, fontWeight: FontWeight.bold, letterSpacing: 0.5),
-                ),
+                    child: course.imageUrl.isNotEmpty
+                        ? ClipRRect(
+                            borderRadius: BorderRadius.circular(18),
+                            child: Image.network(
+                              course.imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.menu_book_rounded,
+                                color: accentColor,
+                                size: 28,
+                              ),
+                            ),
+                          )
+                        : Icon(
+                            Icons.menu_book_rounded,
+                            color: accentColor,
+                            size: 28,
+                          ),
+                  ),
+                  const SizedBox(width: 16),
+                  // Title + Subtitle
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          course.title,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
+                            fontSize: 16,
+                            letterSpacing: -0.2,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Idioma: ${course.languageName}',
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _getDifficultyColor(course.difficultyLevel)
+                                .withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            _getDifficultyLabel(course.difficultyLevel)
+                                .toUpperCase(),
+                            style: TextStyle(
+                              color: _getDifficultyColor(
+                                course.difficultyLevel,
+                              ),
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  // Trailing buttons
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.edit_rounded,
+                          size: 20,
+                          color: Colors.white38,
+                        ),
+                        onPressed: onEdit,
+                        tooltip: 'Editar',
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 20,
+                          color: Colors.redAccent,
+                        ),
+                        onPressed: onDelete,
+                        tooltip: 'Eliminar',
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            ],
-          ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(icon: const Icon(Icons.edit_rounded, size: 20, color: Colors.white38), onPressed: onEdit),
-              IconButton(icon: const Icon(Icons.delete_outline_rounded, size: 20, color: Colors.redAccent), onPressed: onDelete),
-            ],
+            ),
           ),
         ),
       ),
