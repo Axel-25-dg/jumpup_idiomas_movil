@@ -11,7 +11,7 @@ import 'exercise_screen.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart' hide PlayerState;
 
 class LessonDetailScreen extends ConsumerStatefulWidget {
   const LessonDetailScreen({super.key, required this.lessonId});

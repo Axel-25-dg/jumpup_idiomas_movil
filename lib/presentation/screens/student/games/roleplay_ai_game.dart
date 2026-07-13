@@ -78,7 +78,7 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
           children: [
             Icon(Icons.emoji_events_rounded, color: Colors.amber, size: 64),
             SizedBox(height: 16),
-            Text('Conversación completada con éxito.', style: TextStyle(color: Colors.white70, textAlign: TextAlign.center)),
+            Text('Conversación completada con éxito.', textAlign: TextAlign.center, style: TextStyle(color: Colors.white70)),
             SizedBox(height: 8),
             Text('+80 XP', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 24)),
           ],
