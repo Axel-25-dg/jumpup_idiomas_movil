@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/media_progress_model.dart';
 import 'package:jumpup_app/data/repository/auth/media_progress_repository_impl.dart';
 
+
+//Error MediaProgressRepositoryImpl cambaido
 final mediaProgressServiceProvider = Provider<MediaProgressRepositoryImpl>((ref) {
   return const MediaProgressRepositoryImpl();
 });
