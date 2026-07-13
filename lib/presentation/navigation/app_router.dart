@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/user_model.dart';
 import 'package:jumpup_app/domain/model/classroom_model.dart';
+import 'package:jumpup_app/domain/model/admin/admin_user_model.dart' as admin_user;
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/screens/auth/forgot_password_screen.dart';
 import 'package:jumpup_app/presentation/screens/auth/login_screen.dart';
@@ -55,6 +56,7 @@ import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
 
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/student_detail_screen.dart';
 
 abstract final class AppRoutes {
   // Auth
@@ -104,6 +106,7 @@ abstract final class AppRoutes {
   // RUTAS ADMIN
   static const adminDashboard = '/admin';
   static const adminUsers = '/admin/users';
+  static const adminStudentDetail = '/admin/users/:id';
   static const adminLanguages = '/admin/languages';
   static const adminCourses = '/admin/courses';
   static const adminCreateCourse = '/admin/courses/create';
@@ -305,7 +308,7 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.teacherManageClassroom,
         name: 'teacherManageClassroom',
         builder: (_, state) => ManageClassroomScreen(
-          classroomId: int.parse(state.pathParameters['id']!),
+          classroomId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
         ),
       ),
       GoRoute(
@@ -354,6 +357,14 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.adminUsers,
         name: 'adminUsers',
         builder: (_, __) => const UsersScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminStudentDetail,
+        name: 'adminStudentDetail',
+        builder: (_, state) {
+          final user = state.extra as admin_user.User;
+          return StudentDetailScreen(user: user);
+        },
       ),
       GoRoute(
         path: AppRoutes.adminLanguages,

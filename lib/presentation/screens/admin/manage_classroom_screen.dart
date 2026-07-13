@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
@@ -315,6 +316,18 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                           opacity: 0.05,
                           padding: const EdgeInsets.all(12),
                           borderRadius: BorderRadius.circular(16),
+                          onTap: () {
+                            context.push(AppRoutes.adminStudentDetail, extra: User(
+                              id: student.studentId,
+                              username: student.studentUsername,
+                              email: student.studentEmail,
+                              firstName: '', 
+                              lastName: '',
+                              roleId: 3,
+                              roleName: 'student',
+                              isActive: student.isActive,
+                            ));
+                          },
                           child: ListTile(
                             leading: CircleAvatar(
                               backgroundColor: const Color(0xFF7C4DFF).withValues(alpha: 0.2),

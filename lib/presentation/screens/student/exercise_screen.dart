@@ -500,7 +500,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
       lessonId: widget.lessonId,
       status: 'completed',
       score: (_correctCount / total) * 100,
-      ref: ref,
+      xpEarned: xp,
     );
 
     // Verificar logro Principiante Pro (30 XP)

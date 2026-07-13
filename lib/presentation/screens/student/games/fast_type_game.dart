@@ -60,11 +60,12 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
+      final xp = _score * 5;
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
             lessonId: 3,
             status: 'completed',
-            score: _score.toDouble() * 5,
-            ref: ref,
+            score: xp.toDouble(),
+            xpEarned: xp,
           );
       
       await Future.delayed(const Duration(milliseconds: 500));

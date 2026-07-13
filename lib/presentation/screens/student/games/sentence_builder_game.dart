@@ -113,7 +113,7 @@ class _SentenceBuilderGameState extends ConsumerState<SentenceBuilderGame> {
             lessonId: 6, // Sentence Builder
             status: 'completed',
             score: points,
-            ref: ref,
+            xpEarned: points.toInt(),
           );
     } catch (e) {
       debugPrint('Error: $e');

@@ -126,13 +126,12 @@ class _TriviaGameState extends ConsumerState<TriviaGame> {
     setState(() => _submitting = true);
     try {
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 4, 
+            lessonId: 14, // ID único para Trivia
             status: 'completed',
             score: _xpEarned.toDouble(),
-            ref: ref,
+            xpEarned: _xpEarned,
           );
-      
-      await Future.delayed(const Duration(milliseconds: 500));
+
     } catch (e) {
       debugPrint('[Trivia] Error: $e');
     } finally {

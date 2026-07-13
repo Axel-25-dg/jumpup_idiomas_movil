@@ -85,7 +85,7 @@ class _MatchingGameState extends ConsumerState<MatchingGame> {
             lessonId: 3, 
             status: 'completed',
             score: _xp.toDouble(),
-            ref: ref,
+            xpEarned: _xp,
           );
     } catch (e) {
       debugPrint('Error: $e');

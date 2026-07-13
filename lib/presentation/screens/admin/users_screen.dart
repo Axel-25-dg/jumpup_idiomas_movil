@@ -2,7 +2,9 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
+import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/user_provider.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
@@ -193,6 +195,13 @@ class _UsersScreenState extends ConsumerState<UsersScreen> with TickerProviderSt
                               notifier.toggleUserStatus(user.id, !user.isActive);
                             },
                             onEdit: () => _showEditDialog(context, user, notifier),
+                            onTap: () {
+                              if (user.roleName.toLowerCase() == 'student') {
+                                context.push(AppRoutes.adminStudentDetail, extra: user);
+                              } else {
+                                _showEditDialog(context, user, notifier);
+                              }
+                            },
                           );
                         },
                       );
@@ -426,10 +435,11 @@ class _InfoRow extends StatelessWidget {
 }
 
 class _UserCard extends StatelessWidget {
-  const _UserCard({required this.user, required this.onToggleStatus, required this.onEdit});
+  const _UserCard({required this.user, required this.onToggleStatus, required this.onEdit, required this.onTap});
   final User user;
   final VoidCallback onToggleStatus;
   final VoidCallback onEdit;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -444,7 +454,7 @@ class _UserCard extends StatelessWidget {
         opacity: 0.06,
         borderRadius: BorderRadius.circular(20),
         padding: EdgeInsets.zero,
-        onTap: onEdit,
+        onTap: onTap,
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           leading: Container(

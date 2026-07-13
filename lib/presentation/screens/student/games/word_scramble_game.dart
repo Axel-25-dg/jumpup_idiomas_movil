@@ -105,7 +105,7 @@ class _WordScrambleGameState extends ConsumerState<WordScrambleGame> {
             lessonId: 5, // Word Scramble
             status: 'completed',
             score: _score.toDouble(),
-            ref: ref,
+            xpEarned: _score,
           );
 
       if (mounted) {

@@ -108,12 +108,12 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
-      final xp = (100 - _moves).clamp(40, 90); // Ajuste de XP para que sea más visible
+      final xp = (100 - _moves).clamp(40, 90); 
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
             lessonId: 2,
             status: 'completed',
             score: xp.toDouble(),
-            ref: ref,
+            xpEarned: xp,
           );
       
       await Future.delayed(const Duration(milliseconds: 500));

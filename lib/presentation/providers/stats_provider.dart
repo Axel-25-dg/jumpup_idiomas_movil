@@ -16,7 +16,7 @@ final teacherStatsProvider = FutureProvider<TeacherStats>((ref) {
   return repository.fetchTeacherStats();
 });
 
-final userStatsProvider = FutureProvider.family<UserStats, String>((ref, studentId) {
+final studentStatsByIdProvider = FutureProvider.family<UserStats, String>((ref, studentId) {
   final repository = ref.watch(teacherRepositoryProvider).stats;
   return repository.fetchUserStats(studentId);
 });

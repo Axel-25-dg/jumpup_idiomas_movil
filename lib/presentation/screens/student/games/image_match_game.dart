@@ -83,7 +83,7 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
             lessonId: 5,
             status: 'completed',
             score: _score.toDouble(),
-            ref: ref,
+            xpEarned: _score,
           );
     } catch (e) {
       debugPrint('Error: $e');

@@ -125,30 +125,35 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
           _consecutiveWins = 0;
         }
 
-        _xpEarned = (_currentLevel * 15) + max(5, 20 - _errors * 3);
+        // Reduced XP gain as requested
+        _xpEarned = (_currentLevel * 5) + max(2, 10 - _errors);
         debugPrint('Victoria! XP ganada: $_xpEarned'); // Debug para verificar XP
-        _submitScore();
+        _submitScore(earnXp: true);
+      } else if (_errors >= 6) {
+        // Lose: subtract small XP
+        _xpEarned = -5;
+        debugPrint('Pérdida! XP perdida: $_xpEarned');
+        _submitScore(earnXp: false);
       }
     });
   }
 
-  Future<void> _submitScore() async {
+  Future<void> _submitScore({required bool earnXp}) async {
     if (_submitting) return;
     setState(() => _submitting = true);
     try {
       // Usar lessonId 0 o uno específico para juegos si el backend lo permite. 
-      // Si el backend requiere una lección real, esto sumará XP a esa lección.
+      // If backend doesn't support negative XP, we still refresh stats
       await ref.read(progressNotifierProvider.notifier).registerLessonProgress(
-            lessonId: 1, 
-            status: 'completed',
+            lessonId: 13, // ID único para Ahorcado
+            status: earnXp ? 'completed' : 'failed',
             score: _xpEarned.toDouble(),
-            ref: ref,
+            xpEarned: _xpEarned,
           );
-      
-      // Pequeña pausa para asegurar que el backend procesó antes de refrescar
-      await Future.delayed(const Duration(milliseconds: 500));
     } catch (e) {
-      debugPrint('Error sumando XP: $e');
+      debugPrint('Error modificando XP: $e');
+      // Even if API call fails, refresh stats to show current backend state
+      ref.invalidate(userStatsProvider);
     } finally {
       if (mounted) setState(() => _submitting = false);
     }
@@ -245,15 +250,17 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
         if (l == ' ') return const SizedBox(width: 20);
         final guessed = _guessed.contains(l);
         return Container(
-          width: 35,
-          height: 45,
+          width: 40,
+          height: 55,
           decoration: BoxDecoration(
-            border: Border(bottom: BorderSide(color: textColor.withValues(alpha: 0.3), width: 3)),
+            color: textColor.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(12),
+            border: Border(bottom: BorderSide(color: guessed ? const Color(0xFF2575FC) : textColor.withValues(alpha: 0.2), width: 4)),
           ),
           child: Center(
             child: Text(
               guessed ? l : '',
-              style: TextStyle(color: textColor, fontSize: 32, fontWeight: FontWeight.w900, letterSpacing: 2),
+              style: TextStyle(color: textColor, fontSize: 34, fontWeight: FontWeight.w900, letterSpacing: 2),
             ),
           ),
         );
@@ -267,7 +274,7 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Wrap(
         spacing: 8,
-        runSpacing: 8,
+        runSpacing: 10,
         alignment: WrapAlignment.center,
         children: alphabet.map((l) {
           final guessed = _guessed.contains(l);
@@ -278,28 +285,28 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
             onTap: () => _guess(l),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 200),
-              width: 38,
-              height: 48,
+              width: 42,
+              height: 52,
               decoration: BoxDecoration(
-                color: isCorrect 
-                  ? Colors.greenAccent.withValues(alpha: 0.2)
+                gradient: isCorrect 
+                  ? const LinearGradient(colors: [Color(0xFF00C853), Color(0xFF66BB6A)])
                   : isWrong 
-                    ? Colors.redAccent.withValues(alpha: 0.2)
-                    : isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
-                borderRadius: BorderRadius.circular(10),
+                    ? const LinearGradient(colors: [Color(0xFFD32F2F), Color(0xFFEF5350)])
+                    : isDark ? LinearGradient(colors: [Colors.white.withValues(alpha: 0.1), Colors.white.withValues(alpha: 0.05)]) : const LinearGradient(colors: [Colors.white, Color(0xFFF5F5F5)]),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isCorrect 
                     ? Colors.greenAccent 
                     : isWrong 
                       ? Colors.redAccent 
-                      : isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                      : isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05),
                   width: 1.5,
                 ),
                 boxShadow: guessed ? null : [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.1),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+                    color: isDark ? Colors.black38 : Colors.black.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   )
                 ],
               ),
@@ -307,13 +314,11 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
                 child: Text(
                   l,
                   style: TextStyle(
-                    color: isCorrect 
-                      ? Colors.greenAccent 
-                      : isWrong 
-                        ? Colors.redAccent 
-                        : isDark ? Colors.white : Colors.black87,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
+                    color: (isCorrect || isWrong) 
+                      ? Colors.white
+                      : isDark ? Colors.white : Colors.black87,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 20,
                   ),
                 ),
               ),
@@ -441,38 +446,64 @@ class _HangmanPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = isDark ? Colors.white70 : Colors.black87
-      ..strokeWidth = 4
+      ..strokeWidth = 5
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round;
 
     final cx = size.width / 2;
     final cy = size.height / 2;
 
+    // Horca (Estructura con más detalle)
     // Base
-    canvas.drawLine(Offset(cx - 40, size.height - 30), Offset(cx + 40, size.height - 30), paint);
-    canvas.drawLine(Offset(cx - 20, size.height - 30), Offset(cx - 20, 30), paint);
-    canvas.drawLine(Offset(cx - 20, 30), Offset(cx + 30, 30), paint);
-    canvas.drawLine(Offset(cx + 30, 30), Offset(cx + 30, 50), paint);
+    canvas.drawLine(Offset(cx - 60, size.height - 20), Offset(cx + 20, size.height - 20), paint);
+    // Poste vertical
+    canvas.drawLine(Offset(cx - 40, size.height - 20), Offset(cx - 40, 20), paint);
+    // Brazo superior
+    canvas.drawLine(Offset(cx - 40, 20), Offset(cx + 30, 20), paint);
+    // Cuerda
+    final ropePaint = Paint()
+      ..color = const Color(0xFF8D6E63)
+      ..strokeWidth = 3
+      ..style = PaintingStyle.stroke;
+    canvas.drawLine(Offset(cx + 30, 20), Offset(cx + 30, 50), ropePaint);
 
-    if (errors >= 1) canvas.drawCircle(Offset(cx + 30, 65), 15, paint); // Cabeza
-    if (errors >= 2) canvas.drawLine(Offset(cx + 30, 80), Offset(cx + 30, 130), paint); // Cuerpo
-    if (errors >= 3) canvas.drawLine(Offset(cx + 30, 90), Offset(cx + 10, 115), paint); // Brazo izq
-    if (errors >= 4) canvas.drawLine(Offset(cx + 30, 90), Offset(cx + 50, 115), paint); // Brazo der
-    if (errors >= 5) canvas.drawLine(Offset(cx + 30, 130), Offset(cx + 10, 160), paint); // Pierna izq
+    if (errors >= 1) {
+      // Cabeza
+      canvas.drawCircle(Offset(cx + 30, 65), 15, paint);
+    }
+    if (errors >= 2) {
+      // Cuerpo
+      canvas.drawLine(Offset(cx + 30, 80), Offset(cx + 30, 130), paint);
+    }
+    if (errors >= 3) {
+      // Brazo izq
+      canvas.drawLine(Offset(cx + 30, 95), Offset(cx + 10, 115), paint);
+    }
+    if (errors >= 4) {
+      // Brazo der
+      canvas.drawLine(Offset(cx + 30, 95), Offset(cx + 50, 115), paint);
+    }
+    if (errors >= 5) {
+      // Pierna izq
+      canvas.drawLine(Offset(cx + 30, 130), Offset(cx + 10, 165), paint);
+    }
     if (errors >= 6) {
-      canvas.drawLine(Offset(cx + 30, 130), Offset(cx + 50, 160), paint); // Pierna der
+      // Pierna der
+      canvas.drawLine(Offset(cx + 30, 130), Offset(cx + 50, 165), paint);
       
-      // Ojos X_X
+      // Ojos X_X con color rojo
       final eyePaint = Paint()
-        ..color = isDark ? Colors.redAccent : Colors.red
-        ..strokeWidth = 2
+        ..color = Colors.redAccent
+        ..strokeWidth = 2.5
         ..style = PaintingStyle.stroke;
       
-      canvas.drawLine(Offset(cx + 25, 60), Offset(cx + 29, 64), eyePaint);
-      canvas.drawLine(Offset(cx + 29, 60), Offset(cx + 25, 64), eyePaint);
+      // Ojo 1
+      canvas.drawLine(Offset(cx + 24, 60), Offset(cx + 28, 64), eyePaint);
+      canvas.drawLine(Offset(cx + 28, 60), Offset(cx + 24, 64), eyePaint);
       
-      canvas.drawLine(Offset(cx + 31, 60), Offset(cx + 35, 64), eyePaint);
-      canvas.drawLine(Offset(cx + 35, 60), Offset(cx + 31, 64), eyePaint);
+      // Ojo 2
+      canvas.drawLine(Offset(cx + 32, 60), Offset(cx + 36, 64), eyePaint);
+      canvas.drawLine(Offset(cx + 36, 60), Offset(cx + 32, 64), eyePaint);
     }
   }
 

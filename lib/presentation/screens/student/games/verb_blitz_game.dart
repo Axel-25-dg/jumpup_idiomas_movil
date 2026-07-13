@@ -85,7 +85,7 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
             lessonId: 1,
             status: 'completed',
             score: _score.toDouble(),
-            ref: ref,
+            xpEarned: _score,
           );
     } catch (_) {}
     if (mounted) setState(() => _submitting = false);

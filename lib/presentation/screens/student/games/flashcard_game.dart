@@ -78,7 +78,7 @@ class _FlashcardGameState extends ConsumerState<FlashcardGame> with SingleTicker
             lessonId: 2, // Placeholder para Flashcards
             status: 'completed',
             score: xpEarned.toDouble(),
-            ref: ref,
+            xpEarned: xpEarned,
           );
       _showFlashcardResult(xpEarned);
     } catch (e) {
