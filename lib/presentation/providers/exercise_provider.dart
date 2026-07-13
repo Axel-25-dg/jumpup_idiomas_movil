@@ -12,8 +12,22 @@ final exerciseNotifierProvider = StateNotifierProvider<ExerciseNotifier, AsyncVa
 class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
   final ExerciseRepository _repository;
 
-  ExerciseNotifier(this._repository) : super(const AsyncValue.loading());
+  ExerciseNotifier(this._repository) : super(const AsyncValue.data([])) {
+    fetchAllExercises();
+  }
 
+  // Obtener TODOS los ejercicios
+  Future<void> fetchAllExercises() async {
+    state = const AsyncValue.loading();
+    try {
+      final exercises = await _repository.getAllExercises();
+      state = AsyncValue.data(exercises);
+    } catch (e) {
+      state = AsyncValue.data([]);
+    }
+  }
+
+  // Obtener ejercicios por leccion
   Future<void> getExercisesByLesson(int lessonId) async {
     state = const AsyncValue.loading();
     try {
@@ -24,7 +38,8 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
     }
   }
 
-  Future<void> addExercise(Map<String, dynamic> data) async {
+  // Crear ejercicio
+  Future<void> createExercise(Map<String, dynamic> data) async {
     try {
       await _repository.createExercise(data);
       final lessonId = data['lesson'] as int;
@@ -34,9 +49,18 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
     }
   }
 
-  // Alias para compatibilidad con UI existente
-  Future<void> createExercise(Map<String, dynamic> data) => addExercise(data);
+  // Actualizar ejercicio
+  Future<void> updateExercise(int id, Map<String, dynamic> data) async {
+    try {
+      await _repository.updateExercise(id, data);
+      final lessonId = data['lesson'] as int;
+      await getExercisesByLesson(lessonId);
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
 
+  // Eliminar ejercicio
   Future<void> deleteExercise(int id, int lessonId) async {
     try {
       await _repository.deleteExercise(id);
@@ -45,23 +69,19 @@ class ExerciseNotifier extends StateNotifier<AsyncValue<List<ExerciseModel>>> {
       state = AsyncValue.error(e, stack);
     }
   }
-  Future<void> updateExercise(int id, Map<String, dynamic> data) async {
-  try {
-    await _repository.updateExercise(id, data);
-    final lessonId = data['lesson'] as int;
-    await getExercisesByLesson(lessonId);
-  } catch (e, stack) {
-    state = AsyncValue.error(e, stack);
-  }
-}
 
+  // Refrescar
   Future<void> refresh(int lessonId) async {
     await getExercisesByLesson(lessonId);
   }
 }
 
-// Provider con parámetro
 final exercisesByLessonProvider = FutureProvider.family<List<ExerciseModel>, int>((ref, lessonId) {
   final repository = ref.watch(teacherRepositoryProvider).exercises;
   return repository.getExercisesByLesson(lessonId);
+});
+
+final allExercisesProvider = FutureProvider<List<ExerciseModel>>((ref) {
+  final repository = ref.watch(teacherRepositoryProvider).exercises;
+  return repository.getAllExercises();
 });
