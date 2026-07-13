@@ -10,7 +10,9 @@ Map<String, dynamic> buildCoursePayload(Map<String, dynamic> data) {
     'title': data['title'] ?? '',
     'description': data['description'] ?? '',
     'difficulty_level': data['difficulty_level'] ?? 'A1',
+    'image_url': data['image_url'] ?? '',
     if (languageId != null) 'language': languageId,
+    if (languageId != null) 'language_id': languageId,
   };
   return payload;
 }
@@ -44,7 +46,7 @@ class CourseRepository extends BaseRepository {
 
   Future<void> deleteCourse(int id) async {
     try {
-      final res = await dio.delete('courses/$id/');
+      await dio.delete('courses/$id/');
     } on DioException catch (e) {
       throw ApiException('Error al eliminar curso', e.response?.statusCode, e);
     }

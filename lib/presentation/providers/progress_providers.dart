@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/data/repository/auth/progress_repository_impl.dart';
-import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 
 final progressServiceProvider = Provider<ProgressService>((ref) {
@@ -29,7 +28,7 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
       final finalStats = stats ?? cached ?? UserStatsModel.empty();
       await _service.saveLocalStats(finalStats);
       state = AsyncValue.data(finalStats);
-    } catch (e, s) {
+    } catch (e) {
       debugPrint('Error inicial cargando estadísticas: $e');
       final cached = await _service.loadLocalStats();
       state = AsyncValue.data(cached ?? UserStatsModel.empty());
@@ -41,16 +40,41 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
     final current = state.valueOrNull ?? UserStatsModel.empty();
     
     final newTotalXp = current.totalXp + xpChange;
-    const xpPerLevel = 100;
-    final newLevel = (newTotalXp ~/ xpPerLevel) + 1;
-    final newXpProgress = newTotalXp % xpPerLevel;
+    
+    // Niveles según guía: 
+    // Lvl 1: 0-99, Lvl 2: 100-299, Lvl 3: 300-599, Lvl 4: 600-999, Lvl 5: 1000+
+    int newLevel;
+    int xpForNextLevel;
+    int xpProgressInLevel;
+
+    if (newTotalXp < 100) {
+      newLevel = 1;
+      xpForNextLevel = 100;
+      xpProgressInLevel = newTotalXp;
+    } else if (newTotalXp < 300) {
+      newLevel = 2;
+      xpForNextLevel = 300;
+      xpProgressInLevel = newTotalXp - 100;
+    } else if (newTotalXp < 600) {
+      newLevel = 3;
+      xpForNextLevel = 600;
+      xpProgressInLevel = newTotalXp - 300;
+    } else if (newTotalXp < 1000) {
+      newLevel = 4;
+      xpForNextLevel = 1000;
+      xpProgressInLevel = newTotalXp - 600;
+    } else {
+      newLevel = 5;
+      xpForNextLevel = 1000; // Cap at Lvl 5 or define more levels if needed
+      xpProgressInLevel = newTotalXp - 1000;
+    }
     
     final updatedStats = UserStatsModel(
       totalXp: newTotalXp,
       level: newLevel,
-      xpForNextLevel: xpPerLevel,
-      xpProgress: newXpProgress,
-      xpProgressInLevel: newXpProgress,
+      xpForNextLevel: xpForNextLevel,
+      xpProgress: newTotalXp, // Total progress
+      xpProgressInLevel: xpProgressInLevel,
       currentStreak: current.currentStreak,
       longestStreak: current.longestStreak,
       lastActivityDate: DateTime.now(),

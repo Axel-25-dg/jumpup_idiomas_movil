@@ -199,7 +199,7 @@ class ProgressService extends BaseRepository {
 
   /// Invalida los proveedores relacionados con el progreso para forzar una recarga.
   void invalidateDependents(dynamic ref) {
-    if (ref is! dynamic) return;
+    if (ref == null) return;
     try {
       // Intentamos invalidar los providers comunes si el objeto ref es válido
       // Esta función ayuda a centralizar la invalidación tras cambios de XP o logros.

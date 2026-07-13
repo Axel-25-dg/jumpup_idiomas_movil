@@ -32,9 +32,18 @@ class EcommerceRepositoryImpl extends BaseRepository {
         message: 'No se pudo eliminar del carrito');
   }
 
-  Future<OrdenCompraModel> comprar({List<int>? productoIds}) async {
+  Future<OrdenCompraModel> comprar({
+    List<int>? productoIds,
+    String? paymentMethod,
+    String? cardToken,
+  }) async {
+    final Map<String, dynamic> data = {};
+    if (productoIds != null) data['productos'] = productoIds;
+    if (paymentMethod != null) data['payment_method'] = paymentMethod;
+    if (cardToken != null) data['card_token'] = cardToken;
+
     return createOne('carrito/comprar/', OrdenCompraModel.fromJson,
-        data: productoIds != null ? {'productos': productoIds} : null,
+        data: data.isNotEmpty ? data : null,
         message: 'No se pudo procesar la compra');
   }
 

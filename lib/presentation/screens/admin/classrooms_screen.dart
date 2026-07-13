@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_model.dart';
-import 'package:jumpup_app/domain/model/admin/classroom_enrollment_model.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/courses_provider.dart';
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
@@ -49,7 +48,6 @@ class _ClassroomsScreenState extends ConsumerState<ClassroomsScreen> {
   @override
   Widget build(BuildContext context) {
     final classroomsAsync = ref.watch(classroomsListProvider);
-    final notifier = ref.read(classroomNotifierProvider.notifier);
     final coursesAsync = ref.watch(courseNotifierProvider);
 
     final filteredClassrooms = classroomsAsync.when(
