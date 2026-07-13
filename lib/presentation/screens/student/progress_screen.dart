@@ -280,7 +280,7 @@ class _StreakCard extends StatelessWidget {
                 Text('$current Días Seguidos', 
                   style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w900)),
                 const SizedBox(height: 4),
-                Text('¡Mantén el fuego encendido! 🔥 Mejor racha: $longest', 
+                Text('¡Mantén el fuego encendido! Mejor racha: $longest', 
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 13, fontWeight: FontWeight.w500)),
               ],
             ),
@@ -403,10 +403,17 @@ class _AchievementsSection extends ConsumerWidget {
                 padding: const EdgeInsets.all(24),
                 borderRadius: BorderRadius.circular(24),
                 child: Center(
-                  child: Text(
-                    'Completa cursos y juegos para ganar logros 🏅',
-                    style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
-                    textAlign: TextAlign.center,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.emoji_events_rounded, color: isDark ? Colors.white24 : Colors.black12, size: 48),
+                      const SizedBox(height: 12),
+                      Text(
+                        'Completa cursos y juegos para ganar logros',
+                        style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
                   ),
                 ),
               );

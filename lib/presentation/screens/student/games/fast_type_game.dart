@@ -132,8 +132,8 @@ class _FastTypeGameState extends ConsumerState<FastTypeGame> {
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
           const Text(
-            '⚡ VELOCIDAD',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            'VELOCIDAD',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white),
           ),
           const SizedBox(width: 48),
         ],

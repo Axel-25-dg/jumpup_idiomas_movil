@@ -165,15 +165,15 @@ class DailyChallengesScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  const Text('🎁', style: TextStyle(fontSize: 60)),
+                  const Icon(Icons.card_giftcard_rounded, size: 80, color: Colors.white),
                   const SizedBox(height: 16),
                   const Text('Cofre Diario',
                       style: TextStyle(
-                          color: AppColors.textPrimary,
+                          color: Colors.white,
                           fontWeight: FontWeight.bold,
                           fontSize: 22)),
                   const Text('Completa todos los retos para abrirlo',
-                      style: TextStyle(color: AppColors.textPrimary)),
+                      style: TextStyle(color: Colors.white70)),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: null,

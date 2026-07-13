@@ -103,7 +103,9 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('⚡ Verb Blitz', style: TextStyle(color: Colors.blueAccent, fontSize: 32, fontWeight: FontWeight.bold)),
+              const Icon(Icons.bolt_rounded, color: Colors.blueAccent, size: 64),
+              const SizedBox(height: 12),
+              const Text('Verb Blitz', style: TextStyle(color: Colors.blueAccent, fontSize: 32, fontWeight: FontWeight.bold)),
               const SizedBox(height: 20),
               Text('Puntuación: $_score XP', style: const TextStyle(color: Colors.white, fontSize: 24)),
               const SizedBox(height: 40),
@@ -119,7 +121,7 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
               TextButton.icon(
                 onPressed: () => context.push(AppRoutes.studentRanking),
                 icon: const Icon(Icons.emoji_events_rounded, color: Colors.amber),
-                label: const Text('Ver Ranking Global 🏆', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
+                label: const Text('Ver Ranking Global', style: TextStyle(color: Colors.amber, fontWeight: FontWeight.bold)),
               )
             ],
           ),
@@ -130,7 +132,13 @@ class _VerbBlitzGameState extends ConsumerState<VerbBlitzGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('⚡ Verb Blitz', style: TextStyle(color: Colors.white)),
+        title: Row(
+          children: [
+            const Icon(Icons.bolt_rounded, color: Colors.blueAccent),
+            const SizedBox(width: 8),
+            const Text('Verb Blitz', style: TextStyle(color: Colors.white)),
+          ],
+        ),
         backgroundColor: Colors.transparent,
         iconTheme: const IconThemeData(color: Colors.white),
       ),

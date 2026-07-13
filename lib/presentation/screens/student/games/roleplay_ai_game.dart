@@ -62,38 +62,78 @@ class _RoleplayAIGameState extends ConsumerState<RoleplayAIGame> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('🎭 ROLEPLAY AI')),
+      backgroundColor: const Color(0xFF0F111A),
+      appBar: AppBar(
+        title: const Text('ROLEPLAY AI', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Column(
         children: [
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
               itemCount: _messages.length,
               itemBuilder: (context, i) {
                 final isAi = _messages[i]['role'] == 'ai';
                 return Align(
                   alignment: isAi ? Alignment.centerLeft : Alignment.centerRight,
-                  child: GlassContainer(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    color: isAi ? Colors.blue.withOpacity(0.1) : Colors.purple.withOpacity(0.1),
-                    child: Text(_messages[i]['content']!),
+                  child: Container(
+                    margin: const EdgeInsets.only(bottom: 16),
+                    constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: isAi ? Colors.white.withValues(alpha: 0.05) : Colors.blueAccent.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(20),
+                        topRight: const Radius.circular(20),
+                        bottomLeft: Radius.circular(isAi ? 0 : 20),
+                        bottomRight: Radius.circular(isAi ? 20 : 0),
+                      ),
+                      border: Border.all(
+                        color: isAi ? Colors.white.withValues(alpha: 0.1) : Colors.blueAccent.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Text(
+                      _messages[i]['content']!,
+                      style: const TextStyle(color: Colors.white, fontSize: 16),
+                    ),
                   ),
                 );
               },
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(16.0),
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+            decoration: BoxDecoration(
+              color: const Color(0xFF1A1A2E),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 20, offset: const Offset(0, -5))],
+            ),
             child: Row(
               children: [
                 Expanded(
                   child: TextField(
                     controller: _controller,
-                    decoration: const InputDecoration(hintText: 'Escribe en inglés...'),
+                    style: const TextStyle(color: Colors.white),
+                    decoration: InputDecoration(
+                      hintText: 'ESCRIBE EN INGLÉS...',
+                      hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2), fontSize: 14, letterSpacing: 1),
+                      filled: true,
+                      fillColor: Colors.white.withValues(alpha: 0.05),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(24), borderSide: BorderSide.none),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    ),
+                    onSubmitted: (_) => _sendMessage(),
                   ),
                 ),
-                IconButton(onPressed: _sendMessage, icon: const Icon(Icons.send, color: Colors.blue)),
+                const SizedBox(width: 12),
+                IconButton.filled(
+                  onPressed: _sendMessage,
+                  icon: const Icon(Icons.send_rounded),
+                  style: IconButton.styleFrom(backgroundColor: Colors.blueAccent, foregroundColor: Colors.white),
+                ),
               ],
             ),
           )

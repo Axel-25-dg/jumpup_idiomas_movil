@@ -245,7 +245,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 class _StatsSection extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final progressAsync = ref.watch(progressSummaryProvider);
+    final statsAsync = ref.watch(userStatsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return GlassContainer(
@@ -264,7 +264,7 @@ class _StatsSection extends ConsumerWidget {
               ),
             ),
           ),
-          progressAsync.when(
+          statsAsync.when(
             data: (summary) => Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
               child: Column(
@@ -275,19 +275,22 @@ class _StatsSection extends ConsumerWidget {
                       _StatItem(
                         label: 'Nivel',
                         value: summary.level.toString(),
-                        icon: '⭐',
+                        icon: Icons.star_rounded,
+                        iconColor: Colors.amber,
                         isDark: isDark,
                       ),
                       _StatItem(
                         label: 'XP Total',
                         value: summary.totalXp.toString(),
-                        icon: '💎',
+                        icon: Icons.bolt_rounded,
+                        iconColor: Colors.blueAccent,
                         isDark: isDark,
                       ),
                       _StatItem(
                         label: 'Racha',
                         value: summary.currentStreak.toString(),
-                        icon: '🔥',
+                        icon: Icons.local_fire_department_rounded,
+                        iconColor: Colors.orangeAccent,
                         isDark: isDark,
                       ),
                     ],
@@ -356,13 +359,15 @@ class _StatsSection extends ConsumerWidget {
 class _StatItem extends StatelessWidget {
   final String label;
   final String value;
-  final String icon;
+  final IconData icon;
+  final Color iconColor;
   final bool isDark;
 
   const _StatItem({
     required this.label,
     required this.value,
     required this.icon,
+    required this.iconColor,
     required this.isDark,
   });
 
@@ -374,15 +379,15 @@ class _StatItem extends StatelessWidget {
           width: 56,
           height: 56,
           decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            color: iconColor.withValues(alpha: 0.1),
             shape: BoxShape.circle,
             border: Border.all(
-              color: Colors.blueAccent.withValues(alpha: 0.3),
+              color: iconColor.withValues(alpha: 0.3),
               width: 2,
             ),
           ),
           child: Center(
-            child: Text(icon, style: const TextStyle(fontSize: 28)),
+            child: Icon(icon, size: 28, color: iconColor),
           ),
         ),
         const SizedBox(height: 8),

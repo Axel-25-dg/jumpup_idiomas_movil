@@ -131,6 +131,30 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
 
     return Scaffold(
       backgroundColor: bgColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: IconButton(
+          onPressed: () => Navigator.pop(context),
+          icon: Icon(Icons.close_rounded, color: textColor),
+        ),
+        title: Row(
+          children: [
+            const Icon(Icons.psychology_rounded, color: Color(0xFF2575FC)),
+            const SizedBox(width: 12),
+            const Text(
+              'MEMORIA',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            onPressed: () => _setupLevel(),
+            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2575FC)),
+          ),
+        ],
+      ),
       body: Stack(
         children: [
           if (isDark) ...[
@@ -140,7 +164,6 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
           SafeArea(
             child: Column(
               children: [
-                _buildAppBar(context, textColor),
                 const SizedBox(height: 20),
                 _buildStatsRow(isDark, textColor),
                 const SizedBox(height: 32),
@@ -172,29 +195,6 @@ class _MemoryGameState extends ConsumerState<MemoryGame> {
                 else const SizedBox(height: 100),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildAppBar(BuildContext context, Color textColor) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: Icon(Icons.close_rounded, color: textColor),
-          ),
-          const Text(
-            '🧠 MEMORIA',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2),
-          ),
-          IconButton(
-            onPressed: () => _setupLevel(),
-            icon: const Icon(Icons.refresh_rounded, color: Color(0xFF2575FC)),
           ),
         ],
       ),

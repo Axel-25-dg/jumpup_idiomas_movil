@@ -122,13 +122,15 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('SOPA DE LETRAS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('SOPA DE LETRAS', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
         children: [
+          _buildProgressHeader(),
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Wrap(
@@ -197,6 +199,33 @@ class _WordSearchGameState extends ConsumerState<WordSearchGame> {
               padding: EdgeInsets.all(20.0),
               child: CircularProgressIndicator(color: Colors.blueAccent),
             ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildProgressHeader() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 8),
+      child: Column(
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('${foundWords.length}/${wordsToFind.length} PALABRAS', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('50 XP', style: TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+            ],
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: LinearProgressIndicator(
+              value: foundWords.length / wordsToFind.length,
+              backgroundColor: Colors.white.withValues(alpha: 0.1),
+              valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+              minHeight: 8,
+            ),
+          ),
         ],
       ),
     );

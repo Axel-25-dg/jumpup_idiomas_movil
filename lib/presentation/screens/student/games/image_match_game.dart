@@ -154,11 +154,14 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
             onPressed: () => Navigator.pop(context),
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
-          Text(
-            'SCORE: $_score',
-            style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFF2575FC), fontSize: 18),
+          const Text(
+            'IDENTIFICAR',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900, letterSpacing: 1.2, color: Colors.white),
           ),
-          const SizedBox(width: 48),
+          Text(
+            '$_score XP',
+            style: const TextStyle(fontWeight: FontWeight.w900, color: Color(0xFFFF4081), fontSize: 18),
+          ),
         ],
       ),
     );
@@ -172,7 +175,7 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
         child: LinearProgressIndicator(
           value: _round / _maxRounds,
           backgroundColor: Colors.white.withValues(alpha: 0.1),
-          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF2575FC)),
+          valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFFFF4081)),
           minHeight: 8,
         ),
       ),
@@ -270,9 +273,9 @@ class _ImageMatchGameState extends ConsumerState<ImageMatchGame> {
               Text('Has ganado $_score XP', style: TextStyle(fontSize: 18, color: textColor.withValues(alpha: 0.7))),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed: () => context.pop(),
+                onPressed: () => Navigator.pop(context),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF2575FC),
+                  backgroundColor: const Color(0xFFFF4081),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 56),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

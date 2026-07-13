@@ -236,6 +236,25 @@ class RankingScreen extends ConsumerWidget {
                                               fontSize: 15,
                                             ),
                                           ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.local_fire_department_rounded,
+                                                color: Colors.orangeAccent,
+                                                size: 14,
+                                              ),
+                                              const SizedBox(width: 4),
+                                              Text(
+                                                'Racha: ${stats?.currentStreak ?? 0} días',
+                                                style: TextStyle(
+                                                  color: isDark ? Colors.white70 : Colors.black54,
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
                                         ],
                                       ),
                                     ),
@@ -591,7 +610,7 @@ class _PodiumWidget extends StatelessWidget {
   }
 }
 
-class _PodiumItem extends StatelessWidget {
+class _PodiumItem extends ConsumerWidget {
   final RankingEntryModel entry;
   final int position;
   final double height;
@@ -601,6 +620,7 @@ class _PodiumItem extends StatelessWidget {
   final bool isDark;
 
   const _PodiumItem({
+    super.key,
     required this.entry,
     required this.position,
     required this.height,
@@ -611,7 +631,10 @@ class _PodiumItem extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = entry.isMe ? ref.watch(userStatsProvider).valueOrNull : null;
+    final xp = stats?.totalXp ?? entry.totalXp;
+    
     final initials = (entry.username.isNotEmpty)
         ? entry.username[0].toUpperCase()
         : '?';
@@ -659,9 +682,9 @@ class _PodiumItem extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 6),
-        // Name - Using Flexible/Ellipsis
+        // Name
         Text(
-          entry.username,
+          entry.isMe ? 'Tú' : entry.username,
           style: TextStyle(
             color: isDark ? Colors.white : Colors.black87,
             fontSize: isFirst ? 13 : 11,
@@ -679,13 +702,20 @@ class _PodiumItem extends StatelessWidget {
             color: accentColor.withValues(alpha: isDark ? 0.2 : 0.1),
             borderRadius: BorderRadius.circular(10),
           ),
-          child: Text(
-            '${entry.totalXp} XP',
-            style: TextStyle(
-              color: isDark ? color : accentColor,
-              fontSize: 10,
-              fontWeight: FontWeight.w800,
-            ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.bolt_rounded, size: 10, color: isDark ? color : accentColor),
+              const SizedBox(width: 2),
+              Text(
+                '$xp XP',
+                style: TextStyle(
+                  color: isDark ? color : accentColor,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
@@ -732,21 +762,24 @@ class _PodiumItem extends StatelessWidget {
   }
 }
 
-class _RankingRow extends StatelessWidget {
+class _RankingRow extends ConsumerWidget {
   final RankingEntryModel entry;
   final int position;
   final bool isDark;
 
   const _RankingRow({
+    super.key,
     required this.entry,
     required this.position,
     required this.isDark,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final level = entry.level;
-    final xp = entry.totalXp;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final stats = entry.isMe ? ref.watch(userStatsProvider).valueOrNull : null;
+    final level = stats?.level ?? entry.level;
+    final xp = stats?.totalXp ?? entry.totalXp;
+    
     final status = _getStatus(position);
     final Color statusColor = _getStatusColor(status);
 
@@ -807,13 +840,13 @@ class _RankingRow extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 12),
-            // User info - Flexible to avoid overflow
+            // User info
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    entry.username,
+                    entry.isMe ? '${entry.username} (Tú)' : entry.username,
                     style: TextStyle(
                       color: isDark ? Colors.white : Colors.black87,
                       fontWeight: FontWeight.w700,
@@ -845,9 +878,9 @@ class _RankingRow extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Icon(
-                        Icons.trending_up,
-                        color: isDark ? Colors.white38 : Colors.black38,
-                        size: 10,
+                        Icons.star_rounded,
+                        color: Colors.amber.withValues(alpha: 0.7),
+                        size: 12,
                       ),
                       const SizedBox(width: 2),
                       Flexible(
@@ -880,11 +913,11 @@ class _RankingRow extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
-                    Icons.local_fire_department,
-                    color: Colors.amber,
-                    size: 14,
+                    Icons.bolt_rounded,
+                    color: Colors.blueAccent,
+                    size: 16,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 2),
                   Text(
                     '$xp',
                     style: const TextStyle(

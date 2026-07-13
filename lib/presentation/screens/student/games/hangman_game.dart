@@ -228,9 +228,15 @@ class _HangmanGameState extends ConsumerState<HangmanGame> {
             onPressed: () => Navigator.pop(context),
             icon: Icon(Icons.close_rounded, color: textColor),
           ),
-          const Text(
-            '🪢 AHORCADO',
-            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+          Row(
+            children: [
+              const Icon(Icons.gesture_rounded, color: Color(0xFF2575FC)),
+              const SizedBox(width: 12),
+              const Text(
+                'AHORCADO',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w900, letterSpacing: 1.5),
+              ),
+            ],
           ),
           IconButton(
             onPressed: _newWord,

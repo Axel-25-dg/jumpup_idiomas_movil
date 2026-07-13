@@ -141,50 +141,96 @@ class _WordScrambleGameState extends ConsumerState<WordScrambleGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('🧩 Word Scramble', style: TextStyle(color: Colors.white)),
+        title: const Text('WORD SCRAMBLE', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: _submitting 
-        ? const Center(child: CircularProgressIndicator())
+        ? const Center(child: CircularProgressIndicator(color: Colors.blueAccent))
         : Padding(
-            padding: const EdgeInsets.all(24.0),
+            padding: const EdgeInsets.symmetric(horizontal: 24.0),
             child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Text('Nivel $_currentLevel', style: const TextStyle(color: Colors.blueAccent, fontSize: 20, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 10),
-                Text('XP: $_score', style: const TextStyle(color: Colors.white70)),
-                const SizedBox(height: 40),
+                const SizedBox(height: 20),
+                _buildProgressHeader(),
+                const Spacer(),
                 Text(_scrambledWord, style: const TextStyle(color: Colors.white, fontSize: 42, fontWeight: FontWeight.bold, letterSpacing: 5)),
-                const SizedBox(height: 10),
-                Text('Pista: $_hint', style: const TextStyle(color: Colors.white54, fontStyle: FontStyle.italic)),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.blueAccent.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.blueAccent.withValues(alpha: 0.3)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.lightbulb_outline_rounded, color: Colors.blueAccent, size: 18),
+                      const SizedBox(width: 8),
+                      Flexible(child: Text(_hint, style: const TextStyle(color: Colors.white70, fontStyle: FontStyle.italic))),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 40),
                 TextField(
                   controller: _controller,
-                  style: const TextStyle(color: Colors.white),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
                   decoration: InputDecoration(
-                    hintText: 'Escribe la palabra',
-                    hintStyle: const TextStyle(color: Colors.white24),
+                    hintText: 'ESCRIBE AQUÍ',
+                    hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.2), letterSpacing: 2),
                     filled: true,
                     fillColor: Colors.white.withValues(alpha: 0.05),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: BorderSide.none),
+                    focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(20), borderSide: const BorderSide(color: Colors.blueAccent, width: 2)),
                   ),
                   onSubmitted: (_) => _checkWord(),
                 ),
                 const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: _checkWord,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.blueAccent,
-                    padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 15),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                SizedBox(
+                  width: double.infinity,
+                  height: 60,
+                  child: ElevatedButton(
+                    onPressed: _checkWord,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blueAccent,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      elevation: 0,
+                    ),
+                    child: const Text('COMPROBAR', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
                   ),
-                  child: const Text('Comprobar', style: TextStyle(color: Colors.white)),
                 ),
+                const Spacer(flex: 2),
               ],
             ),
           ),
+    );
+  }
+
+  Widget _buildProgressHeader() {
+    return Column(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text('NIVEL $_currentLevel / 5', style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontWeight: FontWeight.bold, fontSize: 12)),
+            Text('$_score XP', style: const TextStyle(color: Colors.blueAccent, fontWeight: FontWeight.bold, fontSize: 12)),
+          ],
+        ),
+        const SizedBox(height: 8),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(10),
+          child: LinearProgressIndicator(
+            value: _currentLevel / 5,
+            backgroundColor: Colors.white.withValues(alpha: 0.1),
+            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
+            minHeight: 8,
+          ),
+        ),
+      ],
     );
   }
 }

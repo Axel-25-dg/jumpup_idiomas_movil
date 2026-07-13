@@ -98,9 +98,10 @@ class _CrosswordGameState extends ConsumerState<CrosswordGame> {
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
       appBar: AppBar(
-        title: const Text('CRUCIGRAMA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text('CRUCIGRAMA', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
         backgroundColor: Colors.transparent,
         elevation: 0,
+        centerTitle: true,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: Column(
