@@ -39,7 +39,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
     if (!mounted) return;
 
     try {
-      final authRepo = AuthRepositoryImpl();
+      final authRepo = AuthService();
       final user = await authRepo.getProfile();
       if (!mounted) return;
       context.go(routeForRole(user.role));

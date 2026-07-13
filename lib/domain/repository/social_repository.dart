@@ -22,6 +22,7 @@ abstract class SocialRepositoryBase {
     required String title,
     required int courseId,
     required DateTime startsAt,
+    String? meetingUrl,
   });
 
   /// Marca una sesión como iniciada.

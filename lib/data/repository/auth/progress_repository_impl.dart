@@ -1,8 +1,50 @@
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/data/repository/base_repository.dart';
 
 class ProgressService extends BaseRepository {
   const ProgressService();
+
+  static const _prefsKey = 'jumpup_local_stats';
+
+  Future<void> saveLocalStats(UserStatsModel stats) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_prefsKey, _encodeStats(stats));
+  }
+
+  Future<UserStatsModel?> loadLocalStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(_prefsKey);
+    if (raw == null || raw.isEmpty) return null;
+    try {
+      final parts = raw.split('|');
+      return UserStatsModel(
+        totalXp: int.tryParse(parts[0]) ?? 0,
+        level: int.tryParse(parts[1]) ?? 1,
+        xpForNextLevel: int.tryParse(parts[2]) ?? 100,
+        xpProgress: int.tryParse(parts[3]) ?? 0,
+        xpProgressInLevel: int.tryParse(parts[4]) ?? 0,
+        currentStreak: int.tryParse(parts[5]) ?? 0,
+        longestStreak: int.tryParse(parts[6]) ?? 0,
+        lastActivityDate: parts.length > 7 ? DateTime.tryParse(parts[7]) : null,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  String _encodeStats(UserStatsModel stats) {
+    return [
+      stats.totalXp.toString(),
+      stats.level.toString(),
+      stats.xpForNextLevel.toString(),
+      stats.xpProgress.toString(),
+      stats.xpProgressInLevel.toString(),
+      stats.currentStreak.toString(),
+      stats.longestStreak.toString(),
+      stats.lastActivityDate?.toIso8601String() ?? '',
+    ].join('|');
+  }
 
   Future<ProgressSummaryModel> getProgressSummary() async {
     return getOne('progress/summary/', ProgressSummaryModel.fromJson,
@@ -157,7 +199,7 @@ class ProgressService extends BaseRepository {
 
   /// Invalida los proveedores relacionados con el progreso para forzar una recarga.
   void invalidateDependents(dynamic ref) {
-    if (ref is! dynamic) return;
+    if (ref == null) return;
     try {
       // Intentamos invalidar los providers comunes si el objeto ref es válido
       // Esta función ayuda a centralizar la invalidación tras cambios de XP o logros.

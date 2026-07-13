@@ -100,12 +100,16 @@ class CartActions {
     }
   }
 
-  Future<OrdenCompraModel?> checkout() async {
+  Future<OrdenCompraModel?> checkout({String? paymentMethod, String? cardToken}) async {
     try {
       final selectedIds = _ref.read(selectedCartItemsProvider).toList();
       
       // Enviar los IDs seleccionados para procesar solo esos productos
-      final order = await _service.comprar(productoIds: selectedIds);
+      final order = await _service.comprar(
+        productoIds: selectedIds,
+        paymentMethod: paymentMethod,
+        cardToken: cardToken,
+      );
       
       // Limpiar selección tras compra exitosa
       clearSelection();

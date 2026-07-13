@@ -1,7 +1,4 @@
-// Modelos del módulo de E-Commerce (Catálogo, Carrito, Órdenes)
 // Reemplaza al antiguo módulo de suscripciones
-
-import 'package:jumpup_app/domain/model/admin/course_models.dart';
 
 class CatalogoModel {
   const CatalogoModel({

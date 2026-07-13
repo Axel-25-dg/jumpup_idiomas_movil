@@ -113,5 +113,17 @@ ThemeData _buildDarkTheme() {
       indicatorColor: AppColors.primaryLight.withValues(alpha: 0.2),
       elevation: 0,
     ),
+    listTileTheme: ListTileThemeData(
+      tileColor: const Color(0xFF1A1828),
+      selectedTileColor: Colors.white.withValues(alpha: 0.10),
+      selectedColor: Colors.white.withValues(alpha: 0.10),
+      iconColor: Colors.white70,
+      textColor: Colors.white,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      dense: false,
+    ),
+    splashColor: Colors.white.withValues(alpha: 0.12),
+    highlightColor: Colors.white.withValues(alpha: 0.06),
   );
 }

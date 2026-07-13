@@ -22,6 +22,8 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
   late final TextEditingController urlCtrl;
   late final TextEditingController descriptionCtrl;
   int? selectedCourseId;
+  int? selectedModuleId;
+  int? selectedLessonId;
   String _resourceType = 'document';
   bool _isPublic = true;
   bool _isLocalFile = false;
@@ -143,7 +145,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                               filled: true,
                               fillColor: Color(0xFF122033),
                             ),
-                            value: selectedCourseId,
+                            initialValue: selectedCourseId,
                             items: courses.map((c) {
                               return DropdownMenuItem<int>(
                                 value: c.id,
@@ -189,7 +191,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                                     filled: true,
                                     fillColor: Color(0xFF122033),
                                   ),
-                                  value: selectedModuleId,
+                                  initialValue: selectedModuleId,
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,
@@ -247,7 +249,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                                     filled: true,
                                     fillColor: Color(0xFF122033),
                                   ),
-                                  value: selectedLessonId,
+                                  initialValue: selectedLessonId,
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,

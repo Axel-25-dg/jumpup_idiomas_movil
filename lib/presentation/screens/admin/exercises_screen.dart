@@ -8,7 +8,6 @@ import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/empty_state.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
-import 'package:jumpup_app/theme/app_theme.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ExercisesScreen extends ConsumerStatefulWidget {
@@ -27,7 +26,6 @@ class _ExercisesScreenState extends ConsumerState<ExercisesScreen> {
   final _optionsController = TextEditingController();
   String _searchQuery = '';
   String _selectedType = 'multiple_choice';
-  int? _currentLessonId;
   int? _selectedLessonId;
   ExerciseModel? _editingExercise;
 

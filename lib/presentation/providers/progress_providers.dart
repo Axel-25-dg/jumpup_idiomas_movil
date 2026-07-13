@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
 import 'package:jumpup_app/data/repository/auth/progress_repository_impl.dart';
-import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 
 final progressServiceProvider = Provider<ProgressService>((ref) {
@@ -21,11 +20,18 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
   Future<void> _loadStats() async {
     state = const AsyncValue.loading();
     try {
+      final cached = await _service.loadLocalStats();
+      if (cached != null) {
+        state = AsyncValue.data(cached);
+      }
       final stats = await _service.getUserStats();
-      state = AsyncValue.data(stats ?? UserStatsModel.empty());
-    } catch (e, s) {
+      final finalStats = stats ?? cached ?? UserStatsModel.empty();
+      await _service.saveLocalStats(finalStats);
+      state = AsyncValue.data(finalStats);
+    } catch (e) {
       debugPrint('Error inicial cargando estadísticas: $e');
-      state = AsyncValue.data(UserStatsModel.empty());
+      final cached = await _service.loadLocalStats();
+      state = AsyncValue.data(cached ?? UserStatsModel.empty());
     }
   }
 
@@ -34,20 +40,72 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
     final current = state.valueOrNull ?? UserStatsModel.empty();
     
     final newTotalXp = current.totalXp + xpChange;
-    const xpPerLevel = 100;
-    final newLevel = (newTotalXp ~/ xpPerLevel) + 1;
-    final newXpProgress = newTotalXp % xpPerLevel;
     
-    state = AsyncValue.data(UserStatsModel(
+    // Niveles según guía: 
+    // Lvl 1: 0-99, Lvl 2: 100-299, Lvl 3: 300-599, Lvl 4: 600-999, Lvl 5: 1000+
+    int newLevel;
+    int xpForNextLevel;
+    int xpProgressInLevel;
+
+    if (newTotalXp < 100) {
+      newLevel = 1;
+      xpForNextLevel = 100;
+      xpProgressInLevel = newTotalXp;
+    } else if (newTotalXp < 300) {
+      newLevel = 2;
+      xpForNextLevel = 300;
+      xpProgressInLevel = newTotalXp - 100;
+    } else if (newTotalXp < 600) {
+      newLevel = 3;
+      xpForNextLevel = 600;
+      xpProgressInLevel = newTotalXp - 300;
+    } else if (newTotalXp < 1000) {
+      newLevel = 4;
+      xpForNextLevel = 1000;
+      xpProgressInLevel = newTotalXp - 600;
+    } else {
+      newLevel = 5;
+      xpForNextLevel = 1000; // Cap at Lvl 5 or define more levels if needed
+      xpProgressInLevel = newTotalXp - 1000;
+    }
+    
+    // Manejo de racha (Streak) local
+    int newStreak = current.currentStreak;
+    int newLongestStreak = current.longestStreak;
+    final now = DateTime.now();
+    final lastActivity = current.lastActivityDate;
+
+    if (lastActivity != null) {
+      final difference = now.difference(lastActivity).inDays;
+      
+      if (difference == 1) {
+        // Increment racha if it's the next day
+        newStreak += 1;
+        if (newStreak > newLongestStreak) newLongestStreak = newStreak;
+      } else if (difference > 1) {
+        // Reset racha if more than one day passed
+        newStreak = 1;
+      } else if (newStreak == 0) {
+        // First activity ever or after a long time
+        newStreak = 1;
+      }
+      // If difference is 0 (same day), keep streak as is
+    } else {
+      newStreak = 1;
+    }
+
+    final updatedStats = UserStatsModel(
       totalXp: newTotalXp,
       level: newLevel,
-      xpForNextLevel: xpPerLevel,
-      xpProgress: newXpProgress,
-      xpProgressInLevel: newXpProgress,
-      currentStreak: current.currentStreak,
-      longestStreak: current.longestStreak,
-      lastActivityDate: DateTime.now(),
-    ));
+      xpForNextLevel: xpForNextLevel,
+      xpProgress: newTotalXp, // Total progress
+      xpProgressInLevel: xpProgressInLevel,
+      currentStreak: newStreak,
+      longestStreak: newLongestStreak,
+      lastActivityDate: now,
+    );
+    state = AsyncValue.data(updatedStats);
+    _service.saveLocalStats(updatedStats);
     
     // Invalidate dependents
     _ref.invalidate(progressSummaryProvider);
@@ -62,7 +120,9 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
   Future<void> refresh() async {
     try {
       final stats = await _service.getUserStats();
-      state = AsyncValue.data(stats ?? UserStatsModel.empty());
+      final finalStats = stats ?? UserStatsModel.empty();
+      await _service.saveLocalStats(finalStats);
+      state = AsyncValue.data(finalStats);
     } catch (e) {
       debugPrint('Error refrescando estadísticas: $e');
       if (state.valueOrNull == null) {
