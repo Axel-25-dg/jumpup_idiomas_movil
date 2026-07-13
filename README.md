@@ -116,35 +116,6 @@ Todos los endpoints están documentados en el informe completo del proyecto. A c
 
 ---
 
-## Métodos de pago
-
-### Pago con monedas de la app
-- Los usuarios reciben **50 monedas gratis al registrarse**
-- Las monedas se pueden usar para comprar productos del catálogo
-- El backend se encarga de validar y deducir las monedas del usuario
-
-### Pago con tarjeta (integración)
-Para implementar pagos con tarjeta, se recomienda usar uno de los siguientes proveedores:
-
-1. **Stripe**
-   - Paquete Flutter: `flutter_stripe`
-   - Documentación: https://pub.dev/packages/flutter_stripe
-   - Flujo recomendado:
-     1. El usuario selecciona "Pagar con tarjeta"
-     2. El app crea un PaymentIntent en el backend
-     3. El usuario completa el pago usando el sheet de Stripe
-     4. El backend confirma el pago y marca la orden como pagada
-
-2. **PayPal**
-   - Paquete Flutter: `paypal_payment` o `flutter_paypal`
-   - Documentación: https://developer.paypal.com/docs/checkout/
-
-3. **Mercado Pago** (para LATAM)
-   - Paquete Flutter: `mercado_pago_mobile_checkout`
-   - Documentación: https://www.mercadopago.com.ar/developers/es/docs
-
----
-
 ## Comandos útiles
 
 ```bash

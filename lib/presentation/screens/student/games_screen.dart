@@ -13,6 +13,9 @@ import 'package:jumpup_app/presentation/screens/student/games/fast_type_game.dar
 import 'package:jumpup_app/presentation/screens/student/games/sentence_builder_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/verb_blitz_game.dart';
 import 'package:jumpup_app/presentation/screens/student/games/image_match_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/word_search_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/crossword_game.dart';
+import 'package:jumpup_app/presentation/screens/student/games/roleplay_ai_game.dart';
 
 import '../../navigation/app_router.dart';
 
@@ -24,8 +27,12 @@ class GamesScreen extends ConsumerWidget {
     final statsAsync = ref.watch(userStatsProvider);
     final rankingPositionAsync = ref.watch(myRankingPositionProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    // En el nuevo sistema, los juegos se desbloquean por nivel o XP
-    const isPro = true; // Desbloqueado por petición del usuario
+    
+    // Todos los juegos desbloqueados por petición del usuario
+    const isPro = true;
+
+    // Force refresh stats on build to ensure they are up to date
+    ref.listen(userStatsProvider, (_, __) {});
 
     // Theme-aware colors
     final bgColor = Theme.of(context).scaffoldBackgroundColor;
@@ -104,9 +111,9 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Adivina palabras en inglés',
                       description: 'Pon a prueba tu vocabulario antes de agotar tus intentos',
                       gradient: const [Color(0xFF1565C0), Color(0xFF42A5F5)],
-                      xp: 50,
+                      xp: 10,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HangmanGame())),
+                      onTap: () => _handleGameTap(context, isPro, const HangmanGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -114,9 +121,9 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Encuentra las parejas',
                       description: 'Entrena tu retentiva visual con emojis coloridos',
                       gradient: const [Color(0xFF6A11CB), Color(0xFFAB47BC)],
-                      xp: 40,
+                      xp: 8,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MemoryGame())),
+                      onTap: () => _handleGameTap(context, isPro, const MemoryGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -124,9 +131,9 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Escribe rápido y sin errores',
                       description: '¿Qué tan rápido puedes teclear estas palabras?',
                       gradient: const [Color(0xFF00C853), Color(0xFFB2FF59)],
-                      xp: 75,
+                      xp: 15,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FastTypeGame())),
+                      onTap: () => _handleGameTap(context, isPro, const FastTypeGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -134,9 +141,9 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Relaciona palabras con su traducción',
                       description: 'Encuentra todos los pares antes que se acabe el tiempo',
                       gradient: const [Color(0xFFE65100), Color(0xFFFFA726)],
-                      xp: 60,
+                      xp: 12,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchingGame())),
+                      onTap: () => _handleGameTap(context, isPro, const MatchingGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -144,9 +151,8 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Quiz de gramática y vocabulario',
                       description: 'Demuestra tus conocimientos respondiendo preguntas',
                       gradient: const [Color(0xFF1B5E20), Color(0xFF66BB6A)],
-                      xp: 100,
+                      xp: 20,
                       difficulty: 'Difícil',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const TriviaGame()),
                     ),
                     const SizedBox(height: 16),
@@ -155,9 +161,9 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Desordena y reordena',
                       description: 'Ordena las letras para formar la palabra correcta',
                       gradient: const [Color(0xFFC62828), Color(0xFFEF5350)],
-                      xp: 90,
+                      xp: 18,
                       difficulty: 'Medio',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const WordScrambleGame())),
+                      onTap: () => _handleGameTap(context, isPro, const WordScrambleGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
@@ -165,9 +171,8 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Forma oraciones correctas',
                       description: 'Arrastra las palabras para construir la frase',
                       gradient: const [Color(0xFF00B0FF), Color(0xFF00E5FF)],
-                      xp: 120,
+                      xp: 25,
                       difficulty: 'Avanzado',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const SentenceBuilderGame()),
                     ),
                     const SizedBox(height: 16),
@@ -176,9 +181,8 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Pasados y participios',
                       description: 'Domina los verbos irregulares a toda velocidad',
                       gradient: const [Color(0xFF6200EA), Color(0xFFD500F9)],
-                      xp: 150,
+                      xp: 30,
                       difficulty: 'Difícil',
-                      isLocked: !isPro,
                       onTap: () => _handleGameTap(context, isPro, const VerbBlitzGame()),
                     ),
                     const SizedBox(height: 16),
@@ -187,47 +191,81 @@ class GamesScreen extends ConsumerWidget {
                       subtitle: 'Vocabulario visual',
                       description: 'Selecciona el nombre correcto del objeto mostrado',
                       gradient: const [Color(0xFFFF4081), Color(0xFFFF80AB)],
-                      xp: 45,
+                      xp: 9,
                       difficulty: 'Fácil',
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ImageMatchGame())),
+                      onTap: () => _handleGameTap(context, isPro, const ImageMatchGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
                       title: '🔠 Sopa de Letras',
-                      subtitle: 'Próximamente',
-                      description: 'Encuentra las palabras ocultas en la cuadrícula',
+                      subtitle: 'Encuentra las palabras',
+                      description: 'Busca las palabras ocultas en la cuadrícula',
                       gradient: const [Color(0xFF455A64), Color(0xFF78909C)],
-                      xp: 50,
+                      xp: 10,
                       difficulty: 'Medio',
-                      isLocked: true,
-                      onTap: () {},
+                      onTap: () => _handleGameTap(context, isPro, const WordSearchGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
                       title: '🧩 Crucigrama',
-                      subtitle: 'Próximamente',
+                      subtitle: 'Resuelve el tablero',
                       description: 'Completa las palabras cruzadas con pistas',
                       gradient: const [Color(0xFF3E2723), Color(0xFF5D4037)],
-                      xp: 60,
+                      xp: 12,
                       difficulty: 'Medio',
-                      isLocked: true,
-                      onTap: () {},
+                      onTap: () => _handleGameTap(context, isPro, const CrosswordGame()),
                     ),
                     const SizedBox(height: 16),
                     _GameCard(
                       title: '🎭 Roleplay AI',
-                      subtitle: 'En proceso',
-                      description: 'Practica situaciones reales con inteligencia artificial (No disponible)',
+                      subtitle: 'Conversación fluida',
+                      description: 'Practica situaciones reales con inteligencia artificial',
                       gradient: const [Color(0xFF37474F), Color(0xFF546E7A)],
-                      xp: 150,
+                      xp: 30,
                       difficulty: 'Difícil',
-                      isLocked: true,
-                      onTap: () {},
+                      onTap: () => _handleGameTap(context, isPro, const RoleplayAIGame()),
                     ),
                   ]),
                 ),
               ),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showComingSoon(BuildContext context, String gameName) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? const Color(0xFF1E1E2E)
+            : Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('🚀 $gameName', textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(Icons.construction_rounded, size: 64, color: Colors.blueAccent),
+            const SizedBox(height: 16),
+            const Text(
+              'Estamos trabajando duro para traerte este juego muy pronto.',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 16),
+            ),
+          ],
+        ),
+        actions: [
+          Center(
+            child: ElevatedButton(
+              onPressed: () => Navigator.pop(context),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blueAccent,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text('Entendido', style: TextStyle(color: Colors.white)),
+            ),
           ),
         ],
       ),

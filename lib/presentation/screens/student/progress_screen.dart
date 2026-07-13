@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 import 'package:jumpup_app/domain/model/progress_models.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 
 class ProgressScreen extends ConsumerWidget {
@@ -85,8 +87,7 @@ class ProgressScreen extends ConsumerWidget {
                             )),
                           ],
                         ),
-                        const SizedBox(height: 16),
-                        const _AchievementsGrid(),
+                        const _AchievementsSection(),
                       ]),
                     ),
                   ),
@@ -358,60 +359,92 @@ class _StatRow extends StatelessWidget {
   }
 }
 
-class _AchievementsGrid extends ConsumerWidget {
-  const _AchievementsGrid();
+class _AchievementsSection extends ConsumerWidget {
+  const _AchievementsSection();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final achAsync = ref.watch(myAchievementsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return achAsync.when(
-      loading: () => const _SkeletonCard(height: 120),
-      error: (_, __) => const SizedBox.shrink(),
-      data: (achievements) {
-        if (achievements.isEmpty) {
-          return GlassContainer(
-            borderRadius: BorderRadius.circular(20),
-            padding: const EdgeInsets.all(24),
-            child: Center(
-              child: Text('Completa cursos y juegos para ganar logros 🏅', 
-                style: TextStyle(color: isDark ? Colors.white54 : Colors.black54), 
-                textAlign: TextAlign.center
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                const Icon(Icons.emoji_events_rounded, color: Colors.amberAccent),
+                const SizedBox(width: 8),
+                Text(
+                  'Mis Logros',
+                  style: TextStyle(
+                    color: isDark ? Colors.white : Colors.black87,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
+            TextButton(
+              onPressed: () => context.push('/student/achievements'),
+              style: TextButton.styleFrom(
+                visualDensity: VisualDensity.compact,
+                padding: EdgeInsets.zero,
+              ),
+              child: const Text(
+                'Ver todos',
+                style: TextStyle(
+                  color: Colors.blueAccent,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
-          );
-        }
-        return GridView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 3, mainAxisSpacing: 12, crossAxisSpacing: 12),
-          itemCount: achievements.length,
-          itemBuilder: (context, i) {
-            final a = achievements[i];
-            return GlassContainer(
-              borderRadius: BorderRadius.circular(16),
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text(a.achievement.iconUrl ?? '🏅', style: const TextStyle(fontSize: 28)),
-                  const SizedBox(height: 6),
-                  Text(a.achievement.name, 
-                    style: TextStyle(
-                      color: isDark ? Colors.white : Colors.black87, 
-                      fontSize: 10, 
-                      fontWeight: FontWeight.w600
-                    ), 
-                    textAlign: TextAlign.center, 
-                    maxLines: 2, 
-                    overflow: TextOverflow.ellipsis
+          ],
+        ),
+        const SizedBox(height: 12),
+        achAsync.when(
+          loading: () => const _SkeletonCard(height: 100),
+          error: (_, __) => const SizedBox.shrink(),
+          data: (achievements) {
+            if (achievements.isEmpty) {
+              return GlassContainer(
+                width: double.infinity,
+                padding: const EdgeInsets.all(24),
+                borderRadius: BorderRadius.circular(24),
+                child: Center(
+                  child: Text(
+                    'Completa cursos y juegos para ganar logros 🏅',
+                    style: TextStyle(color: isDark ? Colors.white54 : Colors.black54),
+                    textAlign: TextAlign.center,
                   ),
-                ],
+                ),
+              );
+            }
+            return ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 100),
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: achievements.length,
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, i) {
+                  final a = achievements[i];
+                  return ModernAchievementCard(
+                    name: a.achievement.name,
+                    description: a.achievement.description,
+                    iconUrl: a.achievement.iconUrl,
+                    requiredXp: a.achievement.requiredXp,
+                    isUnlocked: true,
+                    isCompact: true,
+                  );
+                },
               ),
             );
           },
-        );
-      },
+        ),
+      ],
     );
   }
 }

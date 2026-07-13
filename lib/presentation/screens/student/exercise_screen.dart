@@ -6,6 +6,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/domain/model/admin/course_models.dart';
 import 'package:jumpup_app/presentation/providers/course_providers.dart';
 import 'package:jumpup_app/presentation/providers/progress_providers.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
+import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:lottie/lottie.dart';
@@ -498,6 +500,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
       lessonId: widget.lessonId,
       status: 'completed',
       score: (_correctCount / total) * 100,
+      xpEarned: xp,
     );
 
     // Verificar logro Principiante Pro (30 XP)
@@ -597,42 +600,12 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
           child: Material(
             color: Colors.transparent,
             child: FadeInDown(
-              child: GlassContainer(
-                padding: const EdgeInsets.all(16),
-                borderRadius: BorderRadius.circular(20),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(10),
-                      decoration: const BoxDecoration(
-                        color: Colors.amberAccent,
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(Icons.emoji_events_rounded, color: Colors.white),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(l10n.achievementPrincipiantePro, 
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: Colors.white)),
-                          Text(l10n.achievementPrincipianteProDesc, 
-                            style: const TextStyle(fontSize: 13, color: Colors.white70)),
-                        ],
-                      ),
-                    ),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: Colors.purpleAccent.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: const Text('+30 XP', style: TextStyle(color: Colors.purpleAccent, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
+              child: ModernAchievementCard(
+                name: l10n.achievementPrincipiantePro,
+                description: l10n.achievementPrincipianteProDesc,
+                requiredXp: 30,
+                isUnlocked: true,
+                unlockedAt: DateTime.now(),
               ),
             ),
           ),

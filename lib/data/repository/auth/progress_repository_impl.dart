@@ -144,4 +144,14 @@ class ProgressService extends BaseRepository {
       return lessonIds;
     }, message: 'No se pudo descargar el paquete offline');
   }
+
+  Future<UserStatsModel> modifyXp({required int xpChange}) async {
+    return handleRequest<UserStatsModel>(() async {
+      final response = await dio.post<Map<String, dynamic>>(
+        'stats/add_xp/',
+        data: {'xp_to_add': xpChange},
+      );
+      return UserStatsModel.fromJson(response.data!);
+    }, message: 'No se pudo sumar el XP');
+  }
 }

@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:animate_do/animate_do.dart';
 import 'package:flutter/material.dart';
+import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
@@ -148,8 +150,11 @@ class AchievementsScreen extends ConsumerWidget {
                           const SectionHeader(title: 'Desbloqueados'),
                           ...unlocked.asMap().entries.map((entry) => FadeInLeft(
                                 delay: Duration(milliseconds: entry.key * 100),
-                                child: _AchievementCard(
-                                  achievement: entry.value,
+                                child: ModernAchievementCard(
+                                  name: entry.value.name,
+                                  description: entry.value.description,
+                                  iconUrl: entry.value.iconUrl,
+                                  requiredXp: entry.value.requiredXp,
                                   isUnlocked: true,
                                   unlockedAt: myAchievements
                                       .firstWhere((ua) => ua.achievement.id == entry.value.id)
@@ -162,8 +167,11 @@ class AchievementsScreen extends ConsumerWidget {
                           const SectionHeader(title: 'Pendientes'),
                           ...locked.asMap().entries.map((entry) => FadeInUp(
                                 delay: Duration(milliseconds: entry.key * 50),
-                                child: _AchievementCard(
-                                  achievement: entry.value,
+                                child: ModernAchievementCard(
+                                  name: entry.value.name,
+                                  description: entry.value.description,
+                                  iconUrl: entry.value.iconUrl,
+                                  requiredXp: entry.value.requiredXp,
                                   isUnlocked: false,
                                 ),
                               )),
@@ -180,139 +188,5 @@ class AchievementsScreen extends ConsumerWidget {
       ),
     );
   }
-}
-
-class _AchievementCard extends StatelessWidget {
-  const _AchievementCard({
-    required this.achievement,
-    required this.isUnlocked,
-    this.unlockedAt,
-  });
-
-  final dynamic achievement;
-  final bool isUnlocked;
-  final DateTime? unlockedAt;
-
-  @override
-  Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return StudentCard(
-      padding: EdgeInsets.zero,
-      color: isUnlocked 
-          ? (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.white)
-          : (isDark ? Colors.white.withValues(alpha: 0.02) : AppColors.white.withValues(alpha: 0.6)),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    gradient: isUnlocked
-                        ? AppColors.primaryGradient
-                        : LinearGradient(colors: [
-                            isDark ? Colors.white10 : AppColors.textHint.withValues(alpha: 0.2),
-                            isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.textHint.withValues(alpha: 0.1),
-                          ]),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Icon(
-                    isUnlocked ? Icons.emoji_events_rounded : Icons.lock_rounded,
-                    color: isUnlocked ? Colors.white : (isDark ? Colors.white24 : AppColors.textHint),
-                    size: 30,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        achievement.name,
-                        style: AppTextStyles.titleMedium.copyWith(
-                          color: isUnlocked 
-                              ? (isDark ? Colors.white : AppColors.textPrimary) 
-                              : (isDark ? Colors.white54 : AppColors.textSecondary),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        achievement.description,
-                        style: AppTextStyles.bodySmall.copyWith(
-                          color: isDark ? Colors.white38 : AppColors.textSecondary,
-                        ),
-                      ),
-                      if (isUnlocked && unlockedAt != null) ...[
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            const Icon(Icons.check_circle_rounded,
-                                color: AppColors.success, size: 14),
-                            const SizedBox(width: 4),
-                            Text(
-                              'Conseguido el ${_formatDate(unlockedAt!)}',
-                              style: AppTextStyles.labelSmall.copyWith(
-                                color: AppColors.success,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: isUnlocked
-                        ? AppColors.primary.withValues(alpha: 0.1)
-                        : (isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.divider.withValues(alpha: 0.5)),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Column(
-                    children: [
-                      Text(
-                        '${achievement.requiredXp}',
-                        style: AppTextStyles.labelLarge.copyWith(
-                          color: isUnlocked ? AppColors.primary : (isDark ? Colors.white24 : AppColors.textHint),
-                          fontWeight: FontWeight.w800,
-                        ),
-                      ),
-                      Text(
-                        'XP',
-                        style: AppTextStyles.labelSmall.copyWith(
-                          color: isUnlocked ? AppColors.primary : (isDark ? Colors.white24 : AppColors.textHint),
-                          fontSize: 10,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          if (!isUnlocked)
-            Positioned.fill(
-              child: Container(
-                decoration: BoxDecoration(
-                  color: isDark ? Colors.black.withValues(alpha: 0.1) : Colors.white.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-              ),
-            ),
-        ],
-      ),
-    );
-  }
-
-  String _formatDate(DateTime date) =>
-      '${date.day.toString().padLeft(2, '0')}/${date.month.toString().padLeft(2, '0')}/${date.year}';
 }
 

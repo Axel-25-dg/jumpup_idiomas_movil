@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,6 +16,7 @@ import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/data/local/secure_storage.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
+import 'package:jumpup_app/presentation/screens/student/widgets/student_shared_widgets.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
@@ -217,8 +219,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       const SizedBox(height: 24),
                       _AchievementsSection(),
                       const SizedBox(height: 24),
-                      _ProgressByLanguageSection(),
-                      const SizedBox(height: 24),
                       _DangerZone(onLogout: _confirmLogout),
                     ],
                   ),
@@ -414,196 +414,81 @@ class _AchievementsSection extends ConsumerWidget {
     final achievementsAsync = ref.watch(myAchievementsProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(24),
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 12),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Mis Logros',
-                  style: AppTextStyles.titleMedium.copyWith(
-                    fontWeight: FontWeight.w700,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => context.push('/student/achievements'),
-                  child: Text(
-                    'Ver todos',
-                    style: TextStyle(
-                      color: Colors.blueAccent,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          achievementsAsync.when(
-            data: (list) {
-              if (list.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text('¡Aún no tienes logros! Sigue practicando.',
-                      style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 13)),
-                );
-              }
-              // Mostrar solo los últimos 3 logros obtenidos
-              final displayList = list.take(3).toList();
-              return Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: displayList.map((userAch) => _AchievementItem(
-                    icon: userAch.achievement.iconUrl ?? '🏆',
-                    name: userAch.achievement.name,
-                    isDark: isDark,
-                  )).toList(),
-                ),
-              );
-            },
-            loading: () => const Center(child: Padding(
-              padding: EdgeInsets.all(20.0),
-              child: CircularProgressIndicator(strokeWidth: 2),
-            )),
-            error: (e, __) => const SizedBox(),
-          ),
-          const SizedBox(height: 8),
-        ],
-      ),
-    );
-  }
-}
-
-class _AchievementItem extends StatelessWidget {
-  final String icon;
-  final String name;
-  final bool isDark;
-
-  const _AchievementItem({required this.icon, required this.name, required this.isDark});
-
-  @override
-  Widget build(BuildContext context) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Container(
-          width: 56,
-          height: 56,
-          decoration: BoxDecoration(
-            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.amber.withValues(alpha: 0.3), width: 2),
-          ),
-          child: Center(
-            child: Text(icon, style: const TextStyle(fontSize: 28)),
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Mis Logros',
+                style: AppTextStyles.titleMedium.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white : Colors.black87,
+                ),
+              ),
+              TextButton(
+                onPressed: () => context.push('/student/achievements'),
+                child: const Text(
+                  'Ver todos',
+                  style: TextStyle(
+                    color: Colors.blueAccent,
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+            ],
           ),
         ),
         const SizedBox(height: 8),
-        SizedBox(
-          width: 80,
-          child: Text(
-            name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w600,
-              color: isDark ? Colors.white70 : Colors.black54,
+        achievementsAsync.when(
+          data: (list) {
+            if (list.isEmpty) {
+              return StudentCard(
+                child: Center(
+                  child: Text(
+                    '¡Aún no tienes logros! Sigue practicando.',
+                    style: TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontSize: 13),
+                  ),
+                ),
+              );
+            }
+            return SizedBox(
+              height: 100,
+              child: ListView.builder(
+                scrollDirection: Axis.horizontal,
+                physics: const BouncingScrollPhysics(),
+                itemCount: list.length,
+                itemBuilder: (context, index) {
+                  final userAch = list[index];
+                  return ModernAchievementCard(
+                    name: userAch.achievement.name,
+                    description: userAch.achievement.description,
+                    iconUrl: userAch.achievement.iconUrl,
+                    requiredXp: userAch.achievement.requiredXp,
+                    isUnlocked: true,
+                    isCompact: true,
+                  );
+                },
+              ),
+            );
+          },
+          loading: () => const Center(
+            child: Padding(
+              padding: EdgeInsets.all(20.0),
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
           ),
+          error: (e, __) => const SizedBox(),
         ),
       ],
     );
   }
 }
 
-class _ProgressByLanguageSection extends ConsumerWidget {
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final progressAsync = ref.watch(progressByLanguageProvider);
-    final l10n = AppLocalizations.of(context)!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return GlassContainer(
-      borderRadius: BorderRadius.circular(24),
-      padding: const EdgeInsets.all(8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
-            child: Text(
-              'Progreso por Idioma',
-              style: AppTextStyles.titleMedium.copyWith(
-                fontWeight: FontWeight.w700,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-          ),
-          progressAsync.when(
-            data: (list) {
-              if (list.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Text('No has iniciado ningún curso aún.',
-                      style: TextStyle(color: isDark ? Colors.white70 : Colors.black54)),
-                );
-              }
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: list.length,
-                separatorBuilder: (_, __) => const Divider(height: 1, indent: 20, endIndent: 20, color: Colors.white10),
-                itemBuilder: (context, index) {
-                  final p = list[index];
-                  return ListTile(
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                    leading: Text(p.languageCode.toUpperCase(), style: const TextStyle(fontSize: 24)),
-                    title: Text(p.languageName, style: const TextStyle(fontWeight: FontWeight.bold)),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 8),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: p.percentage / 100,
-                            backgroundColor: Colors.white10,
-                            valueColor: const AlwaysStoppedAnimation<Color>(Colors.blueAccent),
-                            minHeight: 6,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text('${p.completed} / ${p.totalLessons} lecciones (${p.percentage.toInt()}%)', 
-                          style: const TextStyle(fontSize: 12)),
-                      ],
-                    ),
-                  );
-                },
-              );
-            },
-            loading: () => const Center(child: Padding(
-              padding: EdgeInsets.all(20.0),
-              child: CircularProgressIndicator(),
-            )),
-            error: (e, __) => Padding(
-              padding: const EdgeInsets.all(20),
-              child: Text('Error al cargar progreso: $e'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // ─── Header con avatar, nombre y acciones ─────────────────────────────────────
 

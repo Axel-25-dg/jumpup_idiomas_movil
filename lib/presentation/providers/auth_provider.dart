@@ -15,6 +15,7 @@ import 'package:jumpup_app/presentation/providers/language_provider.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
 import 'package:jumpup_app/presentation/providers/dashboard_providers.dart';
 import 'package:jumpup_app/presentation/providers/course_provider.dart';
+import 'package:jumpup_app/presentation/providers/progress_providers.dart';
 
 enum AuthStatus { initial, loading, authenticated, unauthenticated, error }
 
@@ -87,6 +88,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> login(String email, String password) async {
     state = const AuthState(status: AuthStatus.loading);
     try {
+      // Invalida datos previos antes de intentar un nuevo login 
+      // para asegurar un estado limpio si hubo una sesión mal cerrada
+      _invalidateAllDataProviders();
+
       final result = await _authService.login(
         LoginRequest(email: email, password: password),
       );
@@ -281,15 +286,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
   /// Invalida globalmente los proveedores que almacenan datos específicos
   /// del usuario para evitar persistencia de datos al cambiar de cuenta.
   void _invalidateAllDataProviders() {
-    // Lista de proveedores a invalidar
+    // Lista exhaustiva de proveedores a invalidar
     final List<dynamic> providersToInvalidate = [
-      usersProvider,
+      // Perfil y Dashboard
+      userProfileProvider,
       dashboardSummaryProvider,
+      
+      // Progreso y XP (Crucial para el sistema de retos)
+      localUserStatsProvider,
+      userStatsProvider,
+      progressSummaryProvider,
+      dailyChallengesProvider,
+      rankingProvider,
+      achievementsProvider,
+      myAchievementsProvider,
+      progressByLanguageProvider,
+      myRankingPositionProvider,
+
+      // Admin/Teacher
+      usersProvider,
       classroomsListProvider,
       adminCoursesProvider,
       teacherStatsProvider,
+      adminStatsProvider,
+      
+      // Social y Contenido
       socialFeedProvider,
-      // chatThreadsProvider, // Eliminado si no existe
       notificationsProvider,
       unreadNotificationsProvider,
       adminLanguagesProvider,
@@ -297,9 +319,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     ];
 
     for (final provider in providersToInvalidate) {
-      if (provider is ProviderOrFamily) {
-        _ref.invalidate(provider);
-      }
+      _ref.invalidate(provider);
     }
   }
 
