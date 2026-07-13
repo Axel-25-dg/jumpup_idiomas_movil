@@ -74,6 +74,30 @@ class _MockGamificationAdapter implements HttpClientAdapter {
       );
     }
 
+    if (options.method == 'GET' && options.path == 'ranking/') {
+      return ResponseBody.fromString(
+        jsonEncode({
+          'my_position': 1,
+          'my_xp': currentXp,
+          'my_level': (currentXp ~/ 100) + 1,
+          'ranking': [
+            {
+              'position': 1,
+              'user_id': 1,
+              'username': 'Test User',
+              'total_xp': currentXp,
+              'level': (currentXp ~/ 100) + 1,
+              'is_me': true
+            }
+          ]
+        }),
+        200,
+        headers: {
+          Headers.contentTypeHeader: ['application/json']
+        },
+      );
+    }
+
     return ResponseBody.fromString('[]', 404);
   }
 
@@ -124,6 +148,19 @@ void main() {
       // Verificar que se hizo el POST correcto
       final postReq = dioAdapter.requests.firstWhere((r) => r.path == 'stats/add_xp/');
       expect(postReq.data['xp_to_add'], xpEarned);
+    });
+
+    test('Ranking should reflect updated XP after game', () async {
+      // 1. Ganar XP
+      await service.modifyXp(xpChange: 150);
+      
+      // 2. Obtener ranking
+      dioAdapter.currentXp = 150; 
+      final ranking = await service.getRanking();
+      
+      expect(ranking.myXp, 150);
+      expect(ranking.myPosition, 1);
+      expect(ranking.ranking.first.totalXp, 150);
     });
   });
 }

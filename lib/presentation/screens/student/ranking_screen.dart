@@ -178,67 +178,75 @@ class RankingScreen extends ConsumerWidget {
                             ),
                           ),
                           const SizedBox(height: 16),
-                          // My position - Compact
-                          Container(
-                            margin: const EdgeInsets.symmetric(horizontal: 24),
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              gradient: LinearGradient(
-                                colors: [
-                                  Colors.blueAccent.withValues(alpha: 0.15),
-                                  Colors.purpleAccent.withValues(alpha: 0.1),
-                                ],
-                              ),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: Colors.blueAccent.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  width: 40,
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: Colors.blueAccent.withValues(alpha: 0.2),
-                                  ),
-                                  child: Center(
-                                    child: Text(
-                                      '#${data.myPosition}',
-                                      style: const TextStyle(
-                                        color: Colors.blueAccent,
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 16,
+                          // My position - Compact & Reactive
+                          Consumer(
+                            builder: (context, ref, _) {
+                              final stats = ref.watch(userStatsProvider).valueOrNull;
+                              return GlassContainer(
+                                margin: const EdgeInsets.symmetric(horizontal: 24),
+                                padding: const EdgeInsets.all(12),
+                                borderRadius: BorderRadius.circular(16),
+                                opacity: isDark ? 0.15 : 0.08,
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 44,
+                                      height: 44,
+                                      decoration: BoxDecoration(
+                                        shape: BoxShape.circle,
+                                        gradient: const LinearGradient(
+                                          colors: [Colors.blueAccent, Colors.purpleAccent],
+                                        ),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.blueAccent.withValues(alpha: 0.3),
+                                            blurRadius: 8,
+                                          )
+                                        ],
+                                      ),
+                                      child: Center(
+                                        child: Text(
+                                          '#${data.myPosition}',
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w900,
+                                            fontSize: 16,
+                                          ),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Tu posición actual',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white54 : Colors.black54,
-                                          fontSize: 11,
-                                        ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Tu posición actual',
+                                            style: TextStyle(
+                                              color: isDark ? Colors.white54 : Colors.black54,
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                          Text(
+                                            'Nivel ${stats?.level ?? data.myLevel} • ${stats?.totalXp ?? data.myXp} XP',
+                                            style: TextStyle(
+                                              color: isDark ? Colors.white : Colors.black87,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 15,
+                                            ),
+                                          ),
+                                        ],
                                       ),
-                                      Text(
-                                        'Nivel ${data.myLevel} • ${data.myXp} XP',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white : Colors.black87,
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 14,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                                    ),
+                                    Icon(
+                                      Icons.auto_graph_rounded,
+                                      color: Colors.blueAccent.withValues(alpha: 0.5),
+                                    ),
+                                  ],
                                 ),
-                              ],
-                            ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 20),
                           if (data.ranking.isNotEmpty)
