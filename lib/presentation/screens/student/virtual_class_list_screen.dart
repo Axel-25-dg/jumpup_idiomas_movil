@@ -1207,11 +1207,11 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
     final navigator = Navigator.of(context);
     final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-    try {
+        try {
       if (_useCode) {
         final code = _codeCtrl.text.trim();
-        final notifier = ref.read(classroomEnrollNotifierProvider.notifier);
-        final success = await notifier.enrollByCode(code);
+        final notifier = ref.read(joinClassroomProvider.notifier);
+        final success = await notifier.joinByCode(code);
 
         if (!mounted) return;
 

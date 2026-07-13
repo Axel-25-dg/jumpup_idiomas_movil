@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "319674960930",
+    "project_id": "jumpup-ff2f6",
+    "storage_bucket": "jumpup-ff2f6.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:319674960930:android:57f5792f7c6acd880f0e7b",
+        "android_client_info": {
+          "package_name": "com.jumpup.app.jumpup_idiomas_movil"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBa9XrZSvF3n5Vi59_RXptzZt5uzjm_m8Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -447,6 +447,7 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
   }
 
   void _nextExercise(int total) {
+    _audioPlayer.stop(); // Stop any playing audio before moving
     final currentIndex = ref.read(currentExerciseIndexProvider);
     if (!_isRepeatingWrong && currentIndex < total - 1) {
       // Still in main exercises

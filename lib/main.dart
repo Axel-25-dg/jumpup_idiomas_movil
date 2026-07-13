@@ -15,6 +15,7 @@ import 'package:jumpup_app/presentation/providers/preferences_provider.dart';
 import 'package:jumpup_app/services/notification_service.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:jumpup_app/presentation/widgets/gamification/gamification_overlay.dart';
+import 'package:jumpup_app/firebase_options.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,7 +29,9 @@ Future<void> main() async {
 
   // Inicializar Firebase
   try {
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     await FirebaseAnalytics.instance.logAppOpen();
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
   } catch (e) {
