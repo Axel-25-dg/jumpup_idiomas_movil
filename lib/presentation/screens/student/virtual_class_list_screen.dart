@@ -1217,6 +1217,7 @@ class _JoinClassSheetState extends ConsumerState<_JoinClassSheet> {
 
         if (success) {
           ref.invalidate(myClassroomsProvider);
+          ref.invalidate(virtualClassesProvider);
           navigator.pop();
           scaffoldMessenger.showSnackBar(
             const SnackBar(
