@@ -39,14 +39,9 @@ class UserModel {
   }
 
   factory UserModel.fromJson(Map<String, dynamic> json) {
-    // Parse role
-    UserRole role = UserRole.student;
-    if (json['role'] is Map<String, dynamic>) {
-      final roleName = json['role']['name']?.toString().toLowerCase() ?? '';
-      role = _parseRole(roleName);
-    } else {
-      role = _parseRole(json['role']?.toString() ?? '');
-    }
+    final role = parseRole(json['role'] is Map<String, dynamic>
+        ? json['role']['name']?.toString() ?? ''
+        : json['role']?.toString() ?? '');
 
     // Parse profile
     UserProfile? profile;
@@ -75,6 +70,23 @@ class UserModel {
     );
   }
 
+  factory UserModel.fromJwtPayload(Map<String, dynamic> payload) {
+    return UserModel(
+      id: payload['user_id']?.toString() ?? payload['id']?.toString() ?? '',
+      username: payload['username']?.toString() ?? payload['email']?.toString() ?? '',
+      email: payload['email']?.toString() ?? '',
+      firstName: payload['first_name']?.toString() ?? '',
+      lastName: payload['last_name']?.toString() ?? '',
+      role: parseRole(payload['role']?.toString() ?? payload['roles']?.toString() ?? ''),
+      isStaff: payload['is_staff'] is bool
+          ? payload['is_staff'] as bool
+          : payload['is_staff']?.toString().toLowerCase() == 'true',
+      isSuperuser: payload['is_superuser'] is bool
+          ? payload['is_superuser'] as bool
+          : payload['is_superuser']?.toString().toLowerCase() == 'true',
+    );
+  }
+
   Map<String, dynamic> toJson() {
     return {
       'id': id,
@@ -91,7 +103,7 @@ class UserModel {
     };
   }
 
-  static UserRole _parseRole(Object? raw) {
+  static UserRole parseRole(Object? raw) {
     final str = raw?.toString().toLowerCase().trim() ?? '';
     if (str.isEmpty) return UserRole.student;
 

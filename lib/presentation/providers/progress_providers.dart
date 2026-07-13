@@ -21,11 +21,18 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
   Future<void> _loadStats() async {
     state = const AsyncValue.loading();
     try {
+      final cached = await _service.loadLocalStats();
+      if (cached != null) {
+        state = AsyncValue.data(cached);
+      }
       final stats = await _service.getUserStats();
-      state = AsyncValue.data(stats ?? UserStatsModel.empty());
+      final finalStats = stats ?? cached ?? UserStatsModel.empty();
+      await _service.saveLocalStats(finalStats);
+      state = AsyncValue.data(finalStats);
     } catch (e, s) {
       debugPrint('Error inicial cargando estadísticas: $e');
-      state = AsyncValue.data(UserStatsModel.empty());
+      final cached = await _service.loadLocalStats();
+      state = AsyncValue.data(cached ?? UserStatsModel.empty());
     }
   }
 
@@ -38,7 +45,7 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
     final newLevel = (newTotalXp ~/ xpPerLevel) + 1;
     final newXpProgress = newTotalXp % xpPerLevel;
     
-    state = AsyncValue.data(UserStatsModel(
+    final updatedStats = UserStatsModel(
       totalXp: newTotalXp,
       level: newLevel,
       xpForNextLevel: xpPerLevel,
@@ -47,7 +54,9 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
       currentStreak: current.currentStreak,
       longestStreak: current.longestStreak,
       lastActivityDate: DateTime.now(),
-    ));
+    );
+    state = AsyncValue.data(updatedStats);
+    _service.saveLocalStats(updatedStats);
     
     // Invalidate dependents
     _ref.invalidate(progressSummaryProvider);
@@ -62,7 +71,9 @@ class LocalUserStatsNotifier extends StateNotifier<AsyncValue<UserStatsModel?>> 
   Future<void> refresh() async {
     try {
       final stats = await _service.getUserStats();
-      state = AsyncValue.data(stats ?? UserStatsModel.empty());
+      final finalStats = stats ?? UserStatsModel.empty();
+      await _service.saveLocalStats(finalStats);
+      state = AsyncValue.data(finalStats);
     } catch (e) {
       debugPrint('Error refrescando estadísticas: $e');
       if (state.valueOrNull == null) {

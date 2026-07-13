@@ -95,7 +95,7 @@ class _CreateLiveSessionScreenState
       await repo.createLiveSession(
         title: title,
         courseId: _selectedCourseId!,
-        scheduledAt: startsAt,
+        startsAt: startsAt,
         meetingUrl: _meetingUrlCtrl.text.trim().isNotEmpty
             ? _meetingUrlCtrl.text.trim()
             : null,
@@ -150,7 +150,7 @@ class _CreateLiveSessionScreenState
                     fillColor: Colors.white12,
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
                   ),
-                  value: _selectedCourseId,
+                  initialValue: _selectedCourseId,
                   hint: const Text('Seleccionar curso...', style: TextStyle(color: Colors.white54)),
                   items: courses.map((c) => DropdownMenuItem(value: c.id, child: Text(c.title))).toList(),
                   onChanged: (val) => setState(() => _selectedCourseId = val),

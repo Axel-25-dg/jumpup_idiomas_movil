@@ -184,6 +184,19 @@ ThemeData _buildLightTheme() {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       side: const BorderSide(color: AppColors.divider),
     ),
+    listTileTheme: ListTileThemeData(
+      tileColor: AppColors.white,
+      selectedTileColor: AppColors.primaryLight.withValues(alpha: 0.14),
+      selectedColor: AppColors.primaryLight.withValues(alpha: 0.14),
+      iconColor: AppColors.textSecondary,
+      textColor: AppColors.textPrimary,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      dense: false,
+    ),
+
+    splashColor: AppColors.primaryLight.withValues(alpha: 0.12),
+    highlightColor: AppColors.primaryLight.withValues(alpha: 0.08),
 
     // ── Divider ───────────────────────────────────────────────────────────────
     dividerTheme: const DividerThemeData(
@@ -214,7 +227,5 @@ ThemeData _buildLightTheme() {
 
     // ── Misc ──────────────────────────────────────────────────────────────────
     scaffoldBackgroundColor: AppColors.background,
-    splashColor: AppColors.primaryLight.withValues(alpha: 0.1),
-    highlightColor: AppColors.primaryLight.withValues(alpha: 0.05),
   );
 }

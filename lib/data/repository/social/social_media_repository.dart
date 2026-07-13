@@ -154,13 +154,19 @@ class SocialMediaRepository extends BaseRepository {
     required String title,
     required int courseId,
     required DateTime startsAt,
+    String? meetingUrl,
   }) async {
+    final payload = <String, dynamic>{
+      'title': title,
+      'course': courseId,
+      'scheduled_at': startsAt.toUtc().toIso8601String(),
+    };
+    if (meetingUrl != null && meetingUrl.trim().isNotEmpty) {
+      payload['meeting_url'] = meetingUrl.trim();
+    }
+
     return createOne('live-sessions/', LiveSession.fromJson,
-        data: {
-          'title': title,
-          'course': courseId,
-          'scheduled_at': startsAt.toUtc().toIso8601String(),
-        },
+        data: payload,
         message: 'No se pudo crear la sesión en vivo');
   }
 
