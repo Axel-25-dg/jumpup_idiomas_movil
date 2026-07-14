@@ -1,77 +1,61 @@
-<![CDATA[<p align="center">
-  <img src="assets/readme/banner.png" alt="JumpUp Idiomas Banner" width="100%"/>
-</p>
+# 🚀 JumpUp Idiomas — App Móvil
 
-<h1 align="center">JumpUp Idiomas — App Móvil</h1>
+> Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
 
 <p align="center">
-  Aplicación móvil de aprendizaje de idiomas desarrollada con <strong>Flutter</strong>, conectada a un backend <strong>Django REST Framework</strong>.
-</p>
-
-<p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.10+-02569B?logo=flutter&logoColor=white" />
-  <img src="https://img.shields.io/badge/Dart-3.0+-0175C2?logo=dart&logoColor=white" />
-  <img src="https://img.shields.io/badge/Django-REST-092E20?logo=django&logoColor=white" />
-  <img src="https://img.shields.io/badge/Estado-Activo-brightgreen" />
+  <img src="https://img.shields.io/badge/Flutter-3.10+-02569B?style=for-the-badge&logo=flutter&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Django-REST-092E20?style=for-the-badge&logo=django&logoColor=white"/>
+  <img src="https://img.shields.io/badge/Estado-Activo-4CAF50?style=for-the-badge"/>
 </p>
 
 ---
 
-## 📱 Capturas de pantalla
+## 📸 Capturas de pantalla
 
-<p align="center">
-  <img src="assets/readme/screens.png" alt="Pantallas de la app" width="100%"/>
-</p>
+> *Las imágenes serán agregadas próximamente.*
 
 ---
 
-## ✨ Características principales
+## ✨ Funcionalidades
 
-### 👩‍🎓 Módulo Estudiante
-| Funcionalidad | Descripción |
-|---|---|
-| 📚 Cursos y lecciones | Acceso a cursos inscritos, módulos y lecciones por aula |
-| 🎯 Ejercicios interactivos | Ejercicios con repetición de errores, temporizador y feedback inmediato |
-| 🏆 Gamificación completa | XP, niveles, rachas diarias y logros desbloqueables |
-| 🎮 Minijuegos | Flashcards, Ahorcado, Trivia, Sopa de letras, Memory, Roleplay IA y más |
-| 📺 Clases virtuales | Ingreso a sesiones en vivo desde el aula asignada |
-| 📂 Recursos por lección | Visualización de documentos, videos y links por lección |
-| 🤖 Tutor IA | Chat con inteligencia artificial para practicar idiomas |
-| 🛒 E-commerce | Catálogo de cursos, carrito de compras y pagos |
-| 🏅 Ranking | Tabla de clasificación global y por curso |
-| 🔐 Recuperación de contraseña | Flujo por correo con código OTP, validación de requisitos y mensajes de error reales |
+### 👩‍🎓 Estudiante
+- 📚 Acceso a cursos inscritos, módulos y lecciones por aula
+- 🎯 Ejercicios interactivos con repetición de errores y temporizador
+- 🏆 Gamificación: XP, niveles, rachas diarias y logros desbloqueables
+- 🎮 Minijuegos: Flashcards, Ahorcado, Trivia, Memory, Sopa de letras, Roleplay IA y más
+- 📺 Ingreso a clases virtuales desde el aula asignada
+- 📂 Recursos por lección: documentos, videos y links
+- 🤖 Tutor IA para practicar conversación
+- 🛒 Catálogo de cursos con carrito de compras e historial de pagos
+- 🏅 Ranking global y por curso
 
-### 👨‍🏫 Módulo Profesor / Admin
-| Funcionalidad | Descripción |
-|---|---|
-| 📋 Gestión de cursos | Crear, editar y eliminar cursos con imagen desde galería |
-| 🏫 Gestión de aulas | Crear aulas, inscribir estudiantes y gestionar solicitudes |
-| 📝 Módulos y lecciones | Creación y edición de contenido educativo jerárquico |
-| 📁 Recursos | Subida de archivos (video/imagen/PDF) desde galería del dispositivo o URL |
-| 🔴 Sesiones en vivo | Programar y gestionar clases virtuales con código de acceso |
-| 📊 Reportes | Visualización de progreso y estadísticas por aula |
-| 📨 Bandeja de entrada | Mensajes y notificaciones del sistema |
+### 👨‍🏫 Profesor / Admin
+- 📋 Crear, editar y eliminar cursos con imagen desde galería
+- 🏫 Gestión de aulas: inscripción de estudiantes y solicitudes
+- 📝 Creación y edición de módulos y lecciones
+- 📁 Subida de recursos (video, imagen, PDF) desde galería o URL
+- 🔴 Programar y gestionar sesiones en vivo con código de acceso
+- 📊 Reportes de progreso por aula
 
 ### 🌐 Social
-| Funcionalidad | Descripción |
-|---|---|
-| 💬 Chat en tiempo real | Mensajería vía WebSocket por aula |
-| 📢 Feed comunitario | Publicaciones y comentarios entre usuarios |
-| 🔔 Notificaciones | Push y en tiempo real |
-| 🔍 Búsqueda | Búsqueda de cursos, usuarios y contenido |
+- 💬 Chat en tiempo real por WebSocket
+- 📢 Feed comunitario con publicaciones y comentarios
+- 🔔 Notificaciones push y en tiempo real
+- 🔍 Búsqueda de cursos, usuarios y contenido
 
 ---
 
-## 🆕 Cambios recientes (v2.x)
+## 🆕 Últimas actualizaciones
 
-- ✅ **Subida de imágenes de cursos desde galería** (reemplaza el campo URL)
-- ✅ **Subida de recursos multimedia desde galería** (video e imagen con FormData)
-- ✅ **Clases virtuales**: ahora muestra solo las aulas en que está inscrito el estudiante
-- ✅ **Recuperación de contraseña**: muestra errores reales del servidor, valida longitud y coincidencia
-- ✅ **Mensaje de requisitos de contraseña** en la pantalla de recuperación
-- ✅ **Fix del filtrado de recursos** por lección con `classroomId`
-- ✅ **Parsers defensivos** en modelos de aulas y recursos para evitar crashes
-- ✅ **Manejo de errores Lottie** con `errorBuilder` en pantallas de ejercicios
+- ✅ Subida de imágenes de cursos desde galería del dispositivo
+- ✅ Subida de recursos multimedia (video/imagen) con FormData
+- ✅ Clases virtuales: muestra solo aulas en las que el estudiante está inscrito
+- ✅ Recuperación de contraseña: errores reales del servidor, validación de longitud y coincidencia
+- ✅ Mensaje de requisitos de contraseña en pantalla de recuperación
+- ✅ Fix del filtrado de recursos por lección con `classroomId`
+- ✅ Parsers defensivos en modelos de aulas y recursos
+- ✅ Manejo de errores Lottie con `errorBuilder` en pantallas de ejercicios
 
 ---
 
@@ -105,17 +89,14 @@ flutter run
 
 ## ⚙️ Configuración
 
-### URL de la API
 La app se conecta al backend en:
 ```
 https://guaman-idiomas-ute.online/api/
 ```
-Configurada en `lib/services/api_service.dart`.
 
-### Firebase (opcional)
-Para notificaciones push configura:
-- Android: `android/app/google-services.json`
-- iOS: `ios/Runner/GoogleService-Info.plist`
+Para notificaciones push (opcional), configura:
+- Android → `android/app/google-services.json`
+- iOS → `ios/Runner/GoogleService-Info.plist`
 
 ---
 
@@ -131,9 +112,11 @@ Para notificaciones push configura:
 
 ---
 
-## 🔌 Endpoints principales de la API
+## 🔌 API — Endpoints principales
 
-### Autenticación
+<details>
+<summary><strong>🔐 Autenticación</strong></summary>
+
 | Método | Endpoint | Descripción |
 |---|---|---|
 | POST | `/api/auth/register/` | Registro de usuario |
@@ -143,7 +126,11 @@ Para notificaciones push configura:
 | POST | `/api/auth/password-reset/` | Solicitar código de recuperación |
 | POST | `/api/auth/password-reset-confirm/` | Confirmar código y nueva contraseña |
 
-### Contenido educativo
+</details>
+
+<details>
+<summary><strong>📚 Contenido educativo</strong></summary>
+
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/languages/` | Idiomas disponibles |
@@ -152,18 +139,26 @@ Para notificaciones push configura:
 | GET | `/api/exercises/?lesson=<id>` | Ejercicios de una lección |
 | POST | `/api/exercises/<id>/validar/` | Validar respuesta |
 | POST | `/api/progress/` | Registrar progreso |
-| GET | `/api/resources/?lesson=<id>&classroom=<id>` | Recursos de lección |
+| GET | `/api/resources/?lesson=<id>&classroom=<id>` | Recursos por lección |
 
-### Gamificación
+</details>
+
+<details>
+<summary><strong>🏆 Gamificación</strong></summary>
+
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/progress/summary/` | Resumen de progreso |
-| GET | `/api/stats/` | XP, rachas, nivel |
+| GET | `/api/stats/` | XP, rachas y nivel |
 | GET | `/api/achievements/` | Logros disponibles |
 | GET | `/api/my-achievements/` | Mis logros |
 | GET | `/api/ranking/` | Tabla de clasificación |
 
-### E-commerce
+</details>
+
+<details>
+<summary><strong>🛒 E-commerce</strong></summary>
+
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/catalogo/` | Catálogo de productos |
@@ -172,13 +167,18 @@ Para notificaciones push configura:
 | POST | `/api/carrito/comprar/` | Realizar compra |
 | GET | `/api/ordenes-compra/` | Historial de compras |
 
-### Aulas y sesiones
+</details>
+
+<details>
+<summary><strong>🏫 Aulas y sesiones</strong></summary>
+
 | Método | Endpoint | Descripción |
 |---|---|---|
 | GET | `/api/classrooms/` | Mis aulas |
 | POST | `/api/classrooms/join/` | Unirse con código |
 | GET | `/api/live-sessions/` | Sesiones en vivo |
-| GET | `/api/resources/` | Recursos del aula |
+
+</details>
 
 ---
 
@@ -186,23 +186,23 @@ Para notificaciones push configura:
 
 ```
 lib/
-├── core/                    # Constantes, helpers, excepciones
+├── core/                 # Constantes, helpers, excepciones
 ├── data/
-│   ├── model/               # DTOs y mappers de la API
-│   └── repository/          # Implementaciones de repositorios
+│   ├── model/            # DTOs y mappers de la API
+│   └── repository/       # Implementaciones de repositorios
 ├── domain/
-│   └── model/               # Modelos de dominio
+│   └── model/            # Modelos de dominio
 ├── presentation/
-│   ├── providers/           # Estado global con Riverpod
+│   ├── providers/        # Estado global con Riverpod
 │   ├── screens/
-│   │   ├── auth/            # Login, registro, recuperar contraseña
-│   │   ├── student/         # Dashboard, cursos, ejercicios, juegos
-│   │   ├── admin/           # Panel profesor/admin
-│   │   ├── social/          # Chat, feed, sesiones en vivo
-│   │   └── catalog/         # Catálogo y e-commerce
-│   └── widgets/             # Componentes reutilizables
-├── services/                # Auth, API, WebSocket, IA
-├── theme/                   # Temas claro/oscuro, estilos
+│   │   ├── auth/         # Login, registro, recuperar contraseña
+│   │   ├── student/      # Dashboard, cursos, ejercicios, juegos
+│   │   ├── admin/        # Panel profesor/admin
+│   │   ├── social/       # Chat, feed, sesiones en vivo
+│   │   └── catalog/      # Catálogo y e-commerce
+│   └── widgets/          # Componentes reutilizables
+├── services/             # Auth, API, WebSocket, IA
+├── theme/                # Temas claro/oscuro y estilos
 └── main.dart
 ```
 
@@ -211,31 +211,21 @@ lib/
 ## 🧪 Comandos útiles
 
 ```bash
-# Analizar código
-flutter analyze
-
-# Ejecutar tests
-flutter test
-
-# Generar archivos de traducción
-flutter gen-l10n
-
-# Build Android release
-flutter build apk --release
-
-# Build iOS release
-flutter build ios --release
+flutter analyze          # Analizar código
+flutter test             # Ejecutar tests
+flutter gen-l10n         # Generar archivos de traducción
+flutter build apk --release    # Build Android
+flutter build ios --release    # Build iOS
 ```
 
 ---
 
-## 👥 Equipo de desarrollo
+## 👥 Equipo
 
-Proyecto desarrollado como parte de la asignatura de Programación de Aplicaciones Móviles — **Universidad UTE**.
+Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaciones Móviles** — Universidad UTE.
 
 ---
 
 ## 📬 Soporte
 
-Para consultas o problemas, abre un [Issue](https://github.com/Axel-25-dg/jumpup_idiomas_movil/issues) en el repositorio.
-]]>
+¿Problemas o sugerencias? Abre un [Issue](https://github.com/Axel-25-dg/jumpup_idiomas_movil/issues).
