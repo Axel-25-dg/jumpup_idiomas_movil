@@ -173,9 +173,13 @@ class CourseRepositoryImpl extends BaseRepository {
         message: 'No se pudo obtener la lección');
   }
 
-  Future<List<TeacherResource>> getLessonResources(int lessonId) async {
+  Future<List<TeacherResource>> getLessonResources(int lessonId, int? classroomId) async {
+    final params = <String, dynamic>{'lesson': lessonId};
+    if (classroomId != null) {
+      params['classroom'] = classroomId;
+    }
     return getList('resources/', TeacherResource.fromJson,
-        queryParameters: {'lesson': lessonId},
+        queryParameters: params,
         message: 'No se pudieron cargar los recursos de la lección');
   }
 

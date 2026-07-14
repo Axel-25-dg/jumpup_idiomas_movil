@@ -14,9 +14,14 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:youtube_player_flutter/youtube_player_flutter.dart' hide PlayerState;
 
 class LessonDetailScreen extends ConsumerStatefulWidget {
-  const LessonDetailScreen({super.key, required this.lessonId});
+  const LessonDetailScreen({
+    super.key,
+    required this.lessonId,
+    this.classroomId,
+  });
 
   final int lessonId;
+  final int? classroomId;
 
   @override
   ConsumerState<LessonDetailScreen> createState() => _LessonDetailScreenState();
@@ -426,7 +431,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
   Widget _buildMaterialTab(int lessonId) {
     return Consumer(
       builder: (context, ref, child) {
-        final resourcesAsync = ref.watch(lessonResourcesProvider(lessonId));
+        final resourcesAsync = ref.watch(lessonResourcesProvider((lessonId: lessonId, classroomId: widget.classroomId)));
 
         return resourcesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),

@@ -141,9 +141,9 @@ final lessonDetailsProvider =
 });
 
 final lessonResourcesProvider =
-    FutureProvider.family<List<TeacherResource>, int>((ref, lessonId) async {
+    FutureProvider.family<List<TeacherResource>, ({int lessonId, int? classroomId})>((ref, arg) async {
   final service = ref.watch(courseServiceProvider);
-  return service.getLessonResources(lessonId);
+  return service.getLessonResources(arg.lessonId, arg.classroomId);
 });
 
 final teacherResourcesProvider =

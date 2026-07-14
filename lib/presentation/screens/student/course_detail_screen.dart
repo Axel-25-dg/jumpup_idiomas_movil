@@ -134,7 +134,7 @@ class _CourseDetailBody extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 20),
             sliver: SliverList(
               delegate: SliverChildBuilderDelegate(
-                (context, index) => _ModuleItem(module: modules[index]),
+                (context, index) => _ModuleItem(module: modules[index], courseId: course.id),
                 childCount: modules.length,
               ),
             ),
@@ -231,7 +231,8 @@ class _HeaderStat extends StatelessWidget {
 
 class _ModuleItem extends ConsumerWidget {
   final ModuleModel module;
-  const _ModuleItem({required this.module});
+  final int courseId;
+  const _ModuleItem({required this.module, required this.courseId});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -270,7 +271,7 @@ class _ModuleItem extends ConsumerWidget {
             children: [
               lessonsAsync.when(
                 data: (lessons) => Column(
-                  children: lessons.map((l) => _LessonTile(lesson: l)).toList(),
+                  children: lessons.map((l) => _LessonTile(lesson: l, courseId: courseId)).toList(),
                 ),
                 loading: () => const Padding(padding: EdgeInsets.all(16), child: CircularProgressIndicator(color: Colors.blueAccent)),
                 error: (_, __) => const Text('Error al cargar lecciones', style: TextStyle(color: Colors.redAccent)),
@@ -284,12 +285,20 @@ class _ModuleItem extends ConsumerWidget {
   }
 }
 
-class _LessonTile extends StatelessWidget {
+class _LessonTile extends ConsumerWidget {
   final LessonModel lesson;
-  const _LessonTile({required this.lesson});
+  final int courseId;
+  const _LessonTile({required this.lesson, required this.courseId});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final myClassrooms = ref.watch(myClassroomsProvider).valueOrNull ?? [];
+    final classroom = myClassrooms.firstWhere(
+      (c) => c.courseId == courseId,
+      orElse: () => myClassrooms.firstWhere((c) => c.courseName == lesson.moduleTitle, orElse: () => null as dynamic),
+    );
+    final classroomId = classroom?.id;
+
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
       leading: Container(
@@ -319,7 +328,10 @@ class _LessonTile extends StatelessWidget {
           const Icon(Icons.arrow_forward_ios_rounded, size: 14, color: Colors.white24),
         ],
       ),
-      onTap: () => context.push(AppRoutes.studentLessonDetail.replaceAll(':id', lesson.id.toString())),
+      onTap: () {
+        final classroomQuery = classroomId != null ? '?classroomId=$classroomId' : '';
+        context.push('${AppRoutes.studentLessonDetail.replaceAll(':id', lesson.id.toString())}$classroomQuery');
+      },
     );
   }
 
