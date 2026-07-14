@@ -7,6 +7,33 @@ class ResourceRepository extends BaseRepository {
   ResourceRepository({Dio? dio}) : super(dio);
 
   Future<TeacherResource> createResource(Map<String, dynamic> resourceData) {
+    if (resourceData['file_path'] != null) {
+      return handleRequest<TeacherResource>(() async {
+        final filePath = resourceData['file_path'] as String;
+        final formDataMap = Map<String, dynamic>.from(resourceData);
+        formDataMap.remove('file_path');
+        
+        if (formDataMap['file_url'] == 'local-file') {
+          formDataMap.remove('file_url');
+        }
+
+        final file = await MultipartFile.fromFile(
+          filePath,
+          filename: filePath.split('/').last,
+        );
+        formDataMap['file'] = file;
+        
+        final file2 = await MultipartFile.fromFile(
+          filePath,
+          filename: filePath.split('/').last,
+        );
+        formDataMap['image'] = file2;
+
+        final formData = FormData.fromMap(formDataMap);
+        final response = await dio.post<dynamic>('resources/', data: formData);
+        return TeacherResource.fromJson(response.data as Map<String, dynamic>);
+      }, message: 'Error al subir el recurso');
+    }
     return createOne<TeacherResource>(
       'resources/',
       (json) => TeacherResource.fromJson(json),

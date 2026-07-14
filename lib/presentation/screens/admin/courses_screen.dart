@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
 import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 import 'package:jumpup_app/presentation/providers/courses_provider.dart';
@@ -25,7 +26,27 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
   final _imageUrlController = TextEditingController();
   int? _selectedLanguageId;
   String? _selectedDifficulty;
+  String? _selectedImagePath;
   late AnimationController _blobController;
+
+  Future<void> _pickCourseImage() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+      if (image != null) {
+        setState(() {
+          _selectedImagePath = image.path;
+          _imageUrlController.text = 'imagen-galeria';
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al seleccionar imagen: $e')),
+        );
+      }
+    }
+  }
 
   final List<Map<String, String>> _difficultyLevels = [
     {'value': 'A1', 'label': 'Principiante A1'},
@@ -244,12 +265,14 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
       _imageUrlController.text = course.imageUrl;
       _selectedLanguageId = course.languageId;
       _selectedDifficulty = course.difficultyLevel;
+      _selectedImagePath = null;
     } else {
       _titleController.clear();
       _descriptionController.clear();
       _imageUrlController.clear();
       _selectedLanguageId = null;
       _selectedDifficulty = null;
+      _selectedImagePath = null;
     }
 
     showGeneralDialog(
@@ -273,114 +296,203 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                 fontWeight: FontWeight.bold,
               ),
             ),
-            content: SizedBox(
-              width: 450,
-              child: Form(
-                key: _formKey,
-                child: SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Idioma
-                      languagesAsync.when(
-                        loading: () => const CircularProgressIndicator(
-                          color: Color(0xFF7C4DFF),
-                        ),
-                        error: (_, __) => const Text(
-                          'Error al cargar idiomas',
-                          style: TextStyle(color: Colors.redAccent),
-                        ),
-                        data: (languages) => DropdownButtonFormField<int>(
-                          dropdownColor: const Color(0xFF1E1E2A),
-                          style: const TextStyle(color: Colors.white),
-                          decoration: InputDecoration(
-                            labelText: 'Idioma',
-                            labelStyle: const TextStyle(color: Colors.white70),
-                            prefixIcon: const Icon(
-                              Icons.language_rounded,
-                              color: Colors.white54,
+            content: StatefulBuilder(
+              builder: (ctx, dialogSetState) {
+                return SizedBox(
+                  width: 450,
+                  child: Form(
+                    key: _formKey,
+                    child: SingleChildScrollView(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          // Idioma
+                          languagesAsync.when(
+                            loading: () => const CircularProgressIndicator(
+                              color: Color(0xFF7C4DFF),
                             ),
-                            filled: true,
-                            fillColor: Colors.white.withValues(alpha: 0.05),
-                            border: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(16),
-                              borderSide: BorderSide.none,
+                            error: (_, __) => const Text(
+                              'Error al cargar idiomas',
+                              style: TextStyle(color: Colors.redAccent),
+                            ),
+                            data: (languages) => DropdownButtonFormField<int>(
+                              dropdownColor: const Color(0xFF1E1E2A),
+                              style: const TextStyle(color: Colors.white),
+                              decoration: InputDecoration(
+                                labelText: 'Idioma',
+                                labelStyle: const TextStyle(color: Colors.white70),
+                                prefixIcon: const Icon(
+                                  Icons.language_rounded,
+                                  color: Colors.white54,
+                                ),
+                                filled: true,
+                                fillColor: Colors.white.withValues(alpha: 0.05),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                              value: _selectedLanguageId,
+                              items: languages.map((lang) {
+                                return DropdownMenuItem(
+                                  value: lang.id,
+                                  child: Text(lang.name),
+                                );
+                              }).toList(),
+                              onChanged: (value) => _selectedLanguageId = value,
+                              validator: (value) =>
+                                  value == null ? 'Selecciona un idioma' : null,
                             ),
                           ),
-                          value: _selectedLanguageId,
-                          items: languages.map((lang) {
-                            return DropdownMenuItem(
-                              value: lang.id,
-                              child: Text(lang.name),
-                            );
-                          }).toList(),
-                          onChanged: (value) => _selectedLanguageId = value,
-                          validator: (value) =>
-                              value == null ? 'Selecciona un idioma' : null,
-                        ),
-                      ),
-                      const SizedBox(height: 16),
+                          const SizedBox(height: 16),
 
-                      // Título
-                      BrandedTextField(
-                        controller: _titleController,
-                        label: 'Título del curso',
-                        prefixIcon: Icons.title_rounded,
-                        validator: (value) =>
-                            (value == null || value.isEmpty)
-                                ? 'El título es obligatorio'
-                                : null,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Descripción
-                      BrandedTextField(
-                        controller: _descriptionController,
-                        label: 'Descripción',
-                        prefixIcon: Icons.description_rounded,
-                        maxLines: 3,
-                      ),
-                      const SizedBox(height: 16),
-
-                      // Dificultad A1-C2
-                      DropdownButtonFormField<String>(
-                        dropdownColor: const Color(0xFF1E1E2A),
-                        style: const TextStyle(color: Colors.white),
-                        decoration: InputDecoration(
-                          labelText: 'Nivel de dificultad',
-                          labelStyle: const TextStyle(color: Colors.white70),
-                          prefixIcon: const Icon(
-                            Icons.signal_cellular_alt_rounded,
-                            color: Colors.white54,
+                          // Título
+                          BrandedTextField(
+                            controller: _titleController,
+                            label: 'Título del curso',
+                            prefixIcon: Icons.title_rounded,
+                            validator: (value) =>
+                                (value == null || value.isEmpty)
+                                    ? 'El título es obligatorio'
+                                    : null,
                           ),
-                          filled: true,
-                          fillColor: Colors.white.withValues(alpha: 0.05),
-                          border: OutlineInputBorder(
+                          const SizedBox(height: 16),
+
+                          // Descripción
+                          BrandedTextField(
+                            controller: _descriptionController,
+                            label: 'Descripción',
+                            prefixIcon: Icons.description_rounded,
+                            maxLines: 3,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Dificultad A1-C2
+                          DropdownButtonFormField<String>(
+                            dropdownColor: const Color(0xFF1E1E2A),
+                            style: const TextStyle(color: Colors.white),
+                            decoration: InputDecoration(
+                              labelText: 'Nivel de dificultad',
+                              labelStyle: const TextStyle(color: Colors.white70),
+                              prefixIcon: const Icon(
+                                Icons.signal_cellular_alt_rounded,
+                                color: Colors.white54,
+                              ),
+                              filled: true,
+                              fillColor: Colors.white.withValues(alpha: 0.05),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
+                            value: _selectedDifficulty,
+                            items: _difficultyLevels.map((level) {
+                              return DropdownMenuItem(
+                                value: level['value'],
+                                child: Text(level['label']!),
+                              );
+                            }).toList(),
+                            onChanged: (value) => _selectedDifficulty = value,
+                          ),
+                          const SizedBox(height: 16),
+
+                          // Selector de imagen de la galería
+                          const Text('Imagen del curso', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () async {
+                              try {
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                                if (image != null) {
+                                  dialogSetState(() {
+                                    _selectedImagePath = image.path;
+                                    _imageUrlController.text = 'imagen-galeria';
+                                  });
+                                  setState(() {}); // outer rebuild
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al seleccionar imagen: $e')),
+                                );
+                              }
+                            },
                             borderRadius: BorderRadius.circular(16),
-                            borderSide: BorderSide.none,
+                            child: Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white24),
+                              ),
+                              child: _selectedImagePath != null
+                                  ? Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(15),
+                                          child: Image.network(
+                                            'file://$_selectedImagePath',
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Center(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Text(
+                                                  _selectedImagePath!.split('/').last,
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: CircleAvatar(
+                                            backgroundColor: Colors.black54,
+                                            radius: 14,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              icon: const Icon(Icons.close, color: Colors.redAccent, size: 16),
+                                              onPressed: () {
+                                                dialogSetState(() {
+                                                  _selectedImagePath = null;
+                                                  _imageUrlController.clear();
+                                                });
+                                                setState(() {}); // outer rebuild
+                                              },
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  : (course != null && course.imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(15),
+                                          child: Image.network(
+                                            course.imageUrl,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.add_photo_alternate_rounded, color: Color(0xFF00E5FF), size: 32),
+                                              SizedBox(height: 4),
+                                              Text('Seleccionar de galería', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                                            ],
+                                          ),
+                                        )),
+                            ),
                           ),
-                        ),
-                        value: _selectedDifficulty,
-                        items: _difficultyLevels.map((level) {
-                          return DropdownMenuItem(
-                            value: level['value'],
-                            child: Text(level['label']!),
-                          );
-                        }).toList(),
-                        onChanged: (value) => _selectedDifficulty = value,
+                        ],
                       ),
-                      const SizedBox(height: 16),
-
-                      // URL de imagen (opcional)
-                      BrandedTextField(
-                        controller: _imageUrlController,
-                        label: 'URL de la imagen (opcional)',
-                        prefixIcon: Icons.image_rounded,
-                      ),
-                    ],
+                    ),
                   ),
-                ),
-              ),
+                );
+              },
             ),
             actions: [
               TextButton(
@@ -408,6 +520,7 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                       'description': _descriptionController.text.trim(),
                       'difficulty_level': _selectedDifficulty ?? 'A1',
                       'image_url': _imageUrlController.text.trim(),
+                      'image_path': _selectedImagePath,
                     };
                     if (course != null) {
                       notifier.editCourse(course.id, data);

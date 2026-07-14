@@ -17,7 +17,6 @@ import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/certificates_screen.dart';
 
 import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
 
 /// Tokens de diseño para el panel de Admin (Premium Dark)

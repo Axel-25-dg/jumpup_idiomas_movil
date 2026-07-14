@@ -84,16 +84,6 @@ class _VirtualClassListBody extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final myClassroomsAsync = ref.watch(myClassroomsProvider);
-    final classesAsync = ref.watch(virtualClassesProvider);
-    final coursesAsync = ref.watch(coursesProvider);
-
-    final enrolledCourseIds = myClassroomsAsync.maybeWhen(
-      data: (classrooms) => classrooms
-          .map((classroom) => classroom.courseId)
-          .whereType<int>()
-          .toSet(),
-      orElse: () => <int>{},
-    );
 
     return Scaffold(
       backgroundColor: _ClassTokens.background(context),
@@ -104,11 +94,7 @@ class _VirtualClassListBody extends ConsumerWidget {
           RefreshIndicator(
             onRefresh: () async {
               ref.invalidate(myClassroomsProvider);
-              ref.invalidate(virtualClassesProvider);
-              await Future.wait([
-                ref.read(myClassroomsProvider.future),
-                ref.read(virtualClassesProvider.future),
-              ]);
+              await ref.read(myClassroomsProvider.future);
             },
             backgroundColor: _ClassTokens.surface(context),
             color: _ClassTokens.primary,
@@ -120,7 +106,7 @@ class _VirtualClassListBody extends ConsumerWidget {
                 _ClassesSliverAppBar(
                   onAdd: () => _showJoinDialog(context),
                 ),
-                // Show My Classrooms first
+                // Show My Classrooms only
                 myClassroomsAsync.when(
                   loading: () => const SliverPadding(
                     padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
@@ -130,14 +116,18 @@ class _VirtualClassListBody extends ConsumerWidget {
                       ),
                     ),
                   ),
-                  error: (err, stack) => const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
-                    sliver: SliverToBoxAdapter(child: SizedBox()),
+                  error: (err, stack) => SliverPadding(
+                    padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                    sliver: SliverToBoxAdapter(
+                      child: _ErrorState(
+                        onRetry: () => ref.invalidate(myClassroomsProvider),
+                      ),
+                    ),
                   ),
                   data: (classrooms) {
                     if (classrooms.isNotEmpty) {
                       return SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 8),
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
                         sliver: SliverList(
                           delegate: SliverChildBuilderDelegate(
                             (context, index) {
@@ -152,118 +142,18 @@ class _VirtualClassListBody extends ConsumerWidget {
                         ),
                       );
                     } else {
-                      return const SliverPadding(
-                        padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
-                        sliver: SliverToBoxAdapter(child: SizedBox()),
-                      );
-                    }
-                  },
-                ),
-                // Show Available Courses Section
-                coursesAsync.when(
-                  loading: () => const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    sliver: SliverToBoxAdapter(
-                      child: Center(
-                        child: CircularProgressIndicator(color: _ClassTokens.primary),
-                      ),
-                    ),
-                  ),
-                  error: (err, stack) => const SliverPadding(
-                    padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
-                    sliver: SliverToBoxAdapter(child: SizedBox()),
-                  ),
-                  data: (courses) {
-                    final availableCourses = courses.where((course) => !enrolledCourseIds.contains(course.id)).toList();
-
-                    if (availableCourses.isEmpty) {
-                      return const SliverPadding(
-                        padding: EdgeInsets.fromLTRB(20, 8, 20, 8),
-                        sliver: SliverToBoxAdapter(child: SizedBox()),
-                      );
-                    }
-                    return SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
-                      sliver: SliverList(
-                        delegate: SliverChildBuilderDelegate(
-                          (context, index) {
-                            if (index == 0) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 12),
-                                child: Text(
-                                  'Cursos Disponibles',
-                                  style: AppTextStyles.headlineSmall.copyWith(
-                                    color: _ClassTokens.textPrimary(context),
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              );
-                            }
-                            final course = availableCourses[index - 1];
-                            return FadeInUp(
-                              duration: Duration(milliseconds: 300 + (index * 60)),
-                              child: _AvailableCourseCard(
-                                course: course,
-                                onRequestAccess: () => _showJoinDialog(context),
-                              ),
-                            );
-                          },
-                          childCount: availableCourses.length + 1,
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                if (myClassroomsAsync.hasValue)
-                  classesAsync.when(
-                    loading: () => const SliverPadding(
-                      padding: EdgeInsets.fromLTRB(20, 8, 20, 120),
-                      sliver: SliverToBoxAdapter(
-                        child: Center(
-                          child: CircularProgressIndicator(color: _ClassTokens.primary),
-                        ),
-                      ),
-                    ),
-                    error: (err, stack) => SliverPadding(
-                      padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-                      sliver: SliverToBoxAdapter(
-                        child: _ErrorState(
-                          onRetry: () => ref.invalidate(virtualClassesProvider),
-                        ),
-                      ),
-                    ),
-                    data: (classes) {
-                      if (classes.isEmpty) {
-                        return SliverPadding(
-                          padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-                          sliver: SliverFillRemaining(
-                            hasScrollBody: false,
-                            child: _EmptyState(
-                              onJoin: () => _showJoinDialog(context),
-                            ),
-                          ),
-                        );
-                      }
                       return SliverPadding(
-                        padding: const EdgeInsets.fromLTRB(20, 8, 20, 120),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final vClass = classes[index];
-                              return FadeInUp(
-                                duration: Duration(milliseconds: 400 + (index * 90)),
-                                child: _VirtualClassCard(
-                                  vClass: vClass,
-                                  onJoinPressed: () => _showJoinDialog(context),
-                                ),
-                              );
-                            },
-                            childCount: classes.length,
+                        padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+                        sliver: SliverFillRemaining(
+                          hasScrollBody: false,
+                          child: _EmptyState(
+                            onJoin: () => _showJoinDialog(context),
                           ),
                         ),
                       );
-                    },
-                  ),
+                    }
+                  },
+                ),
               ],
             ),
           ),
@@ -1002,12 +892,13 @@ class _VirtualClassCard extends ConsumerWidget {
                               ],
                             ),
                           ),
-                          _ActionButton(
-                            canJoin: canJoin,
-                            isFull: isFull,
-                            isLoading: joinStatus == JoinClassStatus.loading,
-                            onPressed: () => _handleJoin(context, ref),
-                          ),
+                          if (vClass.status == 'scheduled' || vClass.status == 'ongoing')
+                            _ActionButton(
+                              canJoin: canJoin,
+                              isFull: isFull,
+                              isLoading: joinStatus == JoinClassStatus.loading,
+                              onPressed: () => _handleJoin(context, ref),
+                            ),
                         ],
                       ),
                     ],

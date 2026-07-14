@@ -5,7 +5,9 @@ import 'package:jumpup_app/data/repository/base_repository.dart';
 import 'package:jumpup_app/data/remote/dto/course_dto.dart';
 
 class CourseRepositoryImpl extends BaseRepository {
-  const CourseRepositoryImpl({Dio? dio}) : super(dio);
+  CourseRepositoryImpl({Dio? dio}) : super(dio);
+
+  final Map<String, Future<List<CourseModel>>> _courseListCache = {};
 
   Future<List<LanguageModel>> getLanguages() async {
     return getList('languages/', LanguageModel.fromJson,
@@ -26,14 +28,19 @@ class CourseRepositoryImpl extends BaseRepository {
     if (difficultyLevel != null) params['difficulty_level'] = difficultyLevel;
     if (languageId != null) params['language'] = languageId;
     if (search != null) params['search'] = search;
-    
-    // Usando DTO para la capa de datos
-    return handleRequest<List<CourseModel>>(() async {
+
+    final cacheKey = 'all:${params.toString()}';
+    final existing = _courseListCache[cacheKey];
+    if (existing != null) {
+      return existing;
+    }
+
+    final request = handleRequest<List<CourseModel>>(() async {
       final response = await dio.get<dynamic>(
         'courses/',
         queryParameters: params.isNotEmpty ? params : null,
       );
-      
+
       final List<dynamic> list;
       if (response.data is List) {
         list = response.data as List;
@@ -60,7 +67,14 @@ class CourseRepositoryImpl extends BaseRepository {
           totalXpReward: dto.totalXpReward,
         );
       }).toList();
-    }, message: 'No se pudieron cargar los cursos');
+    }, message: 'No se pudieron cargar los cursos').whenComplete(() {
+      if (_courseListCache[cacheKey] != null) {
+        _courseListCache.remove(cacheKey);
+      }
+    });
+
+    _courseListCache[cacheKey] = request;
+    return request;
   }
 
   Future<List<CourseModel>> getStudentEnrolledCourses({
@@ -70,13 +84,19 @@ class CourseRepositoryImpl extends BaseRepository {
     final params = <String, dynamic>{'enrolled': true};
     if (difficultyLevel != null) params['difficulty_level'] = difficultyLevel;
     if (search != null) params['search'] = search;
-    
-    return handleRequest<List<CourseModel>>(() async {
+
+    final cacheKey = 'enrolled:${params.toString()}';
+    final existing = _courseListCache[cacheKey];
+    if (existing != null) {
+      return existing;
+    }
+
+    final request = handleRequest<List<CourseModel>>(() async {
       final response = await dio.get<dynamic>(
         'courses/',
         queryParameters: params,
       );
-      
+
       final List<dynamic> list;
       if (response.data is List) {
         list = response.data as List;
@@ -103,7 +123,14 @@ class CourseRepositoryImpl extends BaseRepository {
           totalXpReward: dto.totalXpReward,
         );
       }).toList();
-    }, message: 'No se pudieron cargar los cursos inscritos');
+    }, message: 'No se pudieron cargar los cursos inscritos').whenComplete(() {
+      if (_courseListCache[cacheKey] != null) {
+        _courseListCache.remove(cacheKey);
+      }
+    });
+
+    _courseListCache[cacheKey] = request;
+    return request;
   }
 
   Future<CourseModel> getCourseById(int courseId) async {
@@ -146,9 +173,13 @@ class CourseRepositoryImpl extends BaseRepository {
         message: 'No se pudo obtener la lección');
   }
 
-  Future<List<TeacherResource>> getLessonResources(int lessonId) async {
+  Future<List<TeacherResource>> getLessonResources(int lessonId, int? classroomId) async {
+    final params = <String, dynamic>{'lesson': lessonId};
+    if (classroomId != null) {
+      params['classroom'] = classroomId;
+    }
     return getList('resources/', TeacherResource.fromJson,
-        queryParameters: {'lesson': lessonId},
+        queryParameters: params,
         message: 'No se pudieron cargar los recursos de la lección');
   }
 

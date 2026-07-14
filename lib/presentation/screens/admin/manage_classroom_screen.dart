@@ -5,9 +5,9 @@ import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
 import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
-import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/classroom_provider.dart' hide classroomJoinRequestsProvider;
 import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
-import 'package:jumpup_app/presentation/providers/enrollment_provider.dart' hide enrollmentsProvider;
+import 'package:jumpup_app/presentation/providers/enrollment_provider.dart';
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'classroom_join_requests_screen.dart';
 
@@ -133,6 +133,10 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     final enrollments = ref.watch(enrollmentsProvider(widget.classroomId));
     final actionState = ref.watch(enrollmentNotifierProvider);
     final requestsAsync = ref.watch(classroomJoinRequestsProvider(widget.classroomId));
+    final pendingCount = requestsAsync.valueOrNull
+            ?.where((request) => request.status.toLowerCase() == 'pending')
+            .length ??
+        0;
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),

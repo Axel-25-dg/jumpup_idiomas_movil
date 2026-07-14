@@ -1,15 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:jumpup_app/presentation/screens/social/chat_screen.dart';
-import 'package:jumpup_app/presentation/screens/social/community_screen.dart';
-import 'package:jumpup_app/presentation/screens/social/live_sessions_screen.dart';
-import 'package:jumpup_app/presentation/screens/social/notifications_screen.dart';
-import 'package:jumpup_app/presentation/screens/social/search_screen.dart';
-import 'package:jumpup_app/presentation/screens/social/social_feed_screen.dart';
-import 'package:jumpup_app/presentation/providers/social_providers.dart';
-import 'package:jumpup_app/theme/colors.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
-
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +10,6 @@ import 'package:jumpup_app/presentation/screens/social/social_feed_screen.dart';
 import 'package:jumpup_app/presentation/providers/social_providers.dart';
 import 'package:jumpup_app/theme/colors.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
-import 'package:jumpup_app/widgets/glass_container.dart';
 
 class SocialMediaShell extends ConsumerStatefulWidget {
   const SocialMediaShell({super.key});

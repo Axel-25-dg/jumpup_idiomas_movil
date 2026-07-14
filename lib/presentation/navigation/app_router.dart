@@ -203,9 +203,14 @@ GoRouter buildAppRouter(WidgetRef ref) {
       GoRoute(
         path: AppRoutes.studentLessonDetail,
         name: 'studentLessonDetail',
-        builder: (_, state) => LessonDetailScreen(
-          lessonId: int.tryParse(state.pathParameters['id'] ?? '') ?? 0,
-        ),
+        builder: (_, state) {
+          final lessonId = int.tryParse(state.pathParameters['id'] ?? '') ?? 0;
+          final classroomId = int.tryParse(state.uri.queryParameters['classroomId'] ?? '') ?? 0;
+          return LessonDetailScreen(
+            lessonId: lessonId,
+            classroomId: classroomId > 0 ? classroomId : null,
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.studentExercise,

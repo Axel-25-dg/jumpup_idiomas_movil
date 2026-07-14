@@ -68,6 +68,8 @@ dependencies:
   url_launcher: ^6.3.0
   webview_flutter: ^4.2.1
   flutter_stripe: 13.1.0   # <--- cambia ^13.1.0 por 13.1.0
+  jwt_decoder: ^2.0.1
+  youtube_player_flutter: ^9.1.0
   
   # ─────────────────────────────────────────────
   # Tipografía premium

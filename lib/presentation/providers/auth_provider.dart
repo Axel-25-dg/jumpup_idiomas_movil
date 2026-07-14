@@ -68,18 +68,25 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return;
       }
 
-      // We have a token — try to verify it with the server.
-      // Timeout so the splash never hangs indefinitely.
-      final user = await _authService
-          .getProfile()
-          .timeout(const Duration(seconds: 8), onTimeout: () {
-        throw Exception('timeout');
-      });
-
+      final user = await _getProfileOrFallback();
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } catch (_) {
       await _secureStorage.clearTokens();
       state = const AuthState(status: AuthStatus.unauthenticated);
+    }
+  }
+
+  Future<UserModel?> _getProfileOrFallback() async {
+    try {
+      return await _authService.getProfile().timeout(const Duration(seconds: 8), onTimeout: () {
+        throw Exception('timeout');
+      });
+    } catch (_) {
+      final decoded = await _secureStorage.decodeAccessToken();
+      if (decoded.isEmpty) {
+        return null;
+      }
+      return UserModel.fromJwtPayload(decoded);
     }
   }
 
@@ -97,8 +104,8 @@ class AuthNotifier extends StateNotifier<AuthState> {
       );
 
       // Si el login ya trajo el perfil del usuario, lo usamos directamente
-      // sin hacer una segunda llamada a /auth/me/
-      final user = result.user ?? await _authService.getProfile();
+      // sin hacer una segunda llamada a /auth/me/ si no es necesario.
+      final user = result.user ?? await _getProfileOrFallback();
       
       // Intentar registrar biometría automáticamente tras un login exitoso por password
       // para que esté disponible la próxima vez.
@@ -129,7 +136,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
         return;
       }
       final result = await _authService.loginWithGoogle(idToken);
-      final user = result.user ?? await _authService.getProfile();
+      final user = result.user ?? await _getProfileOrFallback();
       
       // Intentar registrar biometría automáticamente tras un login exitoso por password
       // para que esté disponible la próxima vez.
@@ -174,13 +181,13 @@ class AuthNotifier extends StateNotifier<AuthState> {
           deviceId: deviceId,
           biometricToken: biometricToken,
         );
-        final user = result.user ?? await _authService.getProfile();
+        final user = result.user ?? await _getProfileOrFallback();
         state = AuthState(status: AuthStatus.authenticated, user: user);
       } else {
         // Fallback: Si no hay token biométrico pero hay token normal (sesión no cerrada)
         final hasToken = await _secureStorage.hasToken();
         if (hasToken) {
-          final user = await _authService.getProfile();
+          final user = await _getProfileOrFallback();
           state = AuthState(status: AuthStatus.authenticated, user: user);
         } else {
           state = const AuthState(
@@ -238,10 +245,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
         ),
       );
       // Forzar la obtención del perfil real del usuario con su token recién emitido
-      final user = await _authService.getProfile();
+      final user = await _getProfileOrFallback();
       try {
         // ignore: avoid_print
-        print('AuthNotifier.register: fetched_user_id=${user.id}, email=${user.email}');
+        print('AuthNotifier.register: fetched_user_id=${user?.id}, email=${user?.email}');
       } catch (_) {}
       state = AuthState(status: AuthStatus.authenticated, user: user);
     } on ApiException catch (e) {
