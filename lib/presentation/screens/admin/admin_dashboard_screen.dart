@@ -13,14 +13,12 @@ import 'package:jumpup_app/presentation/screens/admin/languages_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/modules_screen.dart';
-
-
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/certificates_screen.dart';
+
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
-
-
 
 /// Tokens de diseño para el panel de Admin (Premium Dark)
 class _AdminTokens {
@@ -40,15 +38,18 @@ class _AdminTokens {
     end: Alignment.bottomRight,
   );
 
-  static Color glassFill(BuildContext context) => Colors.white.withValues(alpha: 0.06);
-  static Color glassStroke(BuildContext context) => Colors.white.withValues(alpha: 0.12);
+  static Color glassFill(BuildContext context) =>
+      Colors.white.withValues(alpha: 0.06);
+  static Color glassStroke(BuildContext context) =>
+      Colors.white.withValues(alpha: 0.12);
 }
 
 class AdminDashboardScreen extends ConsumerStatefulWidget {
   const AdminDashboardScreen({super.key});
 
   @override
-  ConsumerState<AdminDashboardScreen> createState() => _AdminDashboardScreenState();
+  ConsumerState<AdminDashboardScreen> createState() =>
+      _AdminDashboardScreenState();
 }
 
 class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
@@ -67,10 +68,7 @@ class _AdminDashboardScreenState extends ConsumerState<AdminDashboardScreen> {
     return Scaffold(
       backgroundColor: _AdminTokens.background,
       extendBody: true,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: _tabs,
-      ),
+      body: IndexedStack(index: _currentIndex, children: _tabs),
       bottomNavigationBar: _AdminBottomNav(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -136,7 +134,9 @@ class _AdminBottomNav extends StatelessWidget {
                               borderRadius: BorderRadius.circular(24),
                               boxShadow: [
                                 BoxShadow(
-                                  color: _AdminTokens.primary.withValues(alpha: 0.4),
+                                  color: _AdminTokens.primary.withValues(
+                                    alpha: 0.4,
+                                  ),
                                   blurRadius: 12,
                                   offset: const Offset(0, 4),
                                 ),
@@ -157,7 +157,10 @@ class _AdminBottomNav extends StatelessWidget {
                                   children: [
                                     Icon(
                                       items[i].$1,
-                                      color: i == currentIndex ? Colors.white : Colors.white54,
+                                      color:
+                                          i == currentIndex
+                                              ? Colors.white
+                                              : Colors.white54,
                                       size: 24,
                                     ),
                                     if (i == currentIndex)
@@ -194,7 +197,8 @@ class _AdminHomeTab extends ConsumerStatefulWidget {
   ConsumerState<_AdminHomeTab> createState() => _AdminHomeTabState();
 }
 
-class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProviderStateMixin {
+class _AdminHomeTabState extends ConsumerState<_AdminHomeTab>
+    with TickerProviderStateMixin {
   late AnimationController _blobController;
 
   @override
@@ -214,7 +218,9 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
 
   @override
   Widget build(BuildContext context) {
-    final statsAsync = ref.watch(adminStatsProvider);
+    // ✅ Cambiar a adminStatsNotifierProvider
+    final statsAsync = ref.watch(adminStatsNotifierProvider);
+    final statsNotifier = ref.read(adminStatsNotifierProvider.notifier);
     final authState = ref.watch(authProvider);
     final l10n = AppLocalizations.of(context)!;
 
@@ -234,11 +240,20 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                     children: [
                       Text(
                         l10n.platformOverview,
-                        style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                       IconButton(
-                        onPressed: () => ref.invalidate(adminStatsProvider),
-                        icon: const Icon(Icons.refresh_rounded, color: _AdminTokens.secondary),
+                        onPressed: () {
+                          statsNotifier.refresh(); //  Refrescar estadísticas
+                        },
+                        icon: const Icon(
+                          Icons.refresh_rounded,
+                          color: _AdminTokens.secondary,
+                        ),
                       ),
                     ],
                   ),
@@ -246,45 +261,50 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                   statsAsync.when(
                     loading: () => const _LoadingMetrics(),
                     error: (e, _) => _ErrorCard(message: e.toString()),
-                    data: (stats) => GridView.count(
-                      crossAxisCount: 2,
-                      mainAxisSpacing: 12,
-                      crossAxisSpacing: 12,
-                      childAspectRatio: 1.6,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      children: [
-                        _MetricCard(
-                          title: l10n.totalUsers,
-                          value: stats.totalUsers,
-                          icon: Icons.people_alt_rounded,
-                          color: _AdminTokens.primary,
+                    data:
+                        (stats) => GridView.count(
+                          crossAxisCount: 2,
+                          mainAxisSpacing: 12,
+                          crossAxisSpacing: 12,
+                          childAspectRatio: 1.6,
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          children: [
+                            _MetricCard(
+                              title: l10n.totalUsers,
+                              value: stats.totalUsers,
+                              icon: Icons.people_alt_rounded,
+                              color: _AdminTokens.primary,
+                            ),
+                            _MetricCard(
+                              title: l10n.studentCourses,
+                              value: stats.courses,
+                              icon: Icons.menu_book_rounded,
+                              color: _AdminTokens.success,
+                            ),
+                            _MetricCard(
+                              title: l10n.studentCertificates,
+                              value: stats.certificates,
+                              icon: Icons.verified_rounded,
+                              color: _AdminTokens.accent,
+                            ),
+                            _MetricCard(
+                              title: l10n.classrooms,
+                              value: stats.classrooms ?? 0,
+                              icon: Icons.class_rounded,
+                              color: _AdminTokens.info,
+                            ),
+                          ],
                         ),
-                        _MetricCard(
-                          title: l10n.studentCourses,
-                          value: stats.courses,
-                          icon: Icons.menu_book_rounded,
-                          color: _AdminTokens.success,
-                        ),
-                        _MetricCard(
-                          title: l10n.studentCertificates,
-                          value: stats.certificates,
-                          icon: Icons.verified_rounded,
-                          color: _AdminTokens.accent,
-                        ),
-                        _MetricCard(
-                          title: l10n.classrooms,
-                          value: stats.classrooms ?? 0,
-                          icon: Icons.class_rounded,
-                          color: _AdminTokens.info,
-                        ),
-                      ],
-                    ),
                   ),
                   const SizedBox(height: 24),
                   Text(
                     l10n.recentActivity,
-                    style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _ActionCard(
@@ -292,7 +312,13 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab> with TickerProvide
                     title: l10n.systemAnnouncements,
                     subtitle: l10n.manageAnnouncementsSubtitle,
                     color: _AdminTokens.warning,
-                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AnnouncementsScreen())),
+                    onTap:
+                        () => Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const AnnouncementsScreen(),
+                          ),
+                        ),
                   ),
                 ]),
               ),
@@ -318,21 +344,33 @@ class _AdminPeopleTab extends StatelessWidget {
           title: l10n.usersAndRoles,
           subtitle: l10n.manageUsersSubtitle,
           color: _AdminTokens.primary,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const UsersScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const UsersScreen()),
+              ),
         ),
         _ActionCard(
           icon: Icons.class_rounded,
           title: l10n.classrooms,
           subtitle: l10n.monitorClassroomsSubtitle,
           color: _AdminTokens.warning,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ClassroomsScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ClassroomsScreen()),
+              ),
         ),
         _ActionCard(
           icon: Icons.translate_rounded,
           title: l10n.languageExperts,
           subtitle: l10n.manageLanguagesSubtitle,
           color: _AdminTokens.secondary,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LanguagesScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LanguagesScreen()),
+              ),
         ),
       ],
     );
@@ -353,30 +391,44 @@ class _AdminContentTab extends StatelessWidget {
           title: l10n.courseCatalog,
           subtitle: l10n.editCoursesSubtitle,
           color: _AdminTokens.success,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const CoursesScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const CoursesScreen()),
+              ),
         ),
-        // ✅ NUEVO: Tarjeta para Modulos
         _ActionCard(
           icon: Icons.view_module_rounded,
           title: 'Modulos',
           subtitle: 'Gestiona los modulos de los cursos',
           color: _AdminTokens.info,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ModulesScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ModulesScreen()),
+              ),
         ),
-        // ✅ NUEVO: Tarjeta para Lecciones
         _ActionCard(
           icon: Icons.menu_book_rounded,
           title: 'Lecciones',
           subtitle: 'Gestiona las lecciones de los cursos',
           color: _AdminTokens.primary,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const LessonsScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const LessonsScreen()),
+              ),
         ),
         _ActionCard(
           icon: Icons.quiz_rounded,
           title: l10n.exerciseBank,
           subtitle: l10n.manageExercisesSubtitle,
           color: _AdminTokens.accent,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ExercisesScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ExercisesScreen()),
+              ),
         ),
       ],
     );
@@ -392,12 +444,30 @@ class _AdminOpsTab extends StatelessWidget {
     return _BaseTab(
       title: l10n.adminOps,
       children: [
+        // ✅ NUEVO: Certificados (arriba de Reportes)
+        _ActionCard(
+          icon: Icons.verified_rounded,
+          title: 'Certificados',
+          subtitle: 'Gestiona certificados de estudiantes',
+          color: _AdminTokens.accent,
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => const CertificatesAdminScreen(),
+                ),
+              ),
+        ),
         _ActionCard(
           icon: Icons.flag_rounded,
           title: l10n.contentReports,
           subtitle: l10n.moderateReportsSubtitle,
           color: Colors.redAccent,
-          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ReportsScreen())),
+          onTap:
+              () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ReportsScreen()),
+              ),
         ),
       ],
     );
@@ -423,29 +493,58 @@ class _AdminProfileTab extends ConsumerWidget {
               const CircleAvatar(
                 radius: 40,
                 backgroundColor: _AdminTokens.primary,
-                child: Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 40),
+                child: Icon(
+                  Icons.admin_panel_settings_rounded,
+                  color: Colors.white,
+                  size: 40,
+                ),
               ),
               const SizedBox(height: 16),
               Text(
                 user?.email ?? l10n.administrator,
-                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               Text(
                 l10n.superAdminAccess,
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 14),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.5),
+                  fontSize: 14,
+                ),
               ),
               const SizedBox(height: 24),
               const Divider(color: Colors.white10),
               const SizedBox(height: 12),
               ListTile(
-                leading: const Icon(Icons.security_rounded, color: _AdminTokens.secondary),
-                title: Text(l10n.securitySettings, style: const TextStyle(color: Colors.white)),
-                trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white24),
+                leading: const Icon(
+                  Icons.security_rounded,
+                  color: _AdminTokens.secondary,
+                ),
+                title: Text(
+                  l10n.securitySettings,
+                  style: const TextStyle(color: Colors.white),
+                ),
+                trailing: const Icon(
+                  Icons.chevron_right_rounded,
+                  color: Colors.white24,
+                ),
                 onTap: () {},
               ),
               ListTile(
-                leading: const Icon(Icons.logout_rounded, color: Colors.redAccent),
-                title: Text(l10n.logout, style: const TextStyle(color: Colors.redAccent, fontWeight: FontWeight.bold)),
+                leading: const Icon(
+                  Icons.logout_rounded,
+                  color: Colors.redAccent,
+                ),
+                title: Text(
+                  l10n.logout,
+                  style: const TextStyle(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 onTap: () => _confirmLogout(context, ref),
               ),
             ],
@@ -459,24 +558,41 @@ class _AdminProfileTab extends ConsumerWidget {
     final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFF1E1E2A),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(l10n.logout, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        content: Text(l10n.logoutAdminConfirm, style: const TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: Text(l10n.cancel)),
-          FilledButton(
-            style: FilledButton.styleFrom(backgroundColor: Colors.redAccent),
-            onPressed: () async {
-              Navigator.pop(ctx);
-              await ref.read(authProvider.notifier).logout();
-              if (context.mounted) context.go(AppRoutes.login);
-            },
-            child: Text(l10n.logout),
+      builder:
+          (ctx) => AlertDialog(
+            backgroundColor: const Color(0xFF1E1E2A),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            title: Text(
+              l10n.logout,
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            content: Text(
+              l10n.logoutAdminConfirm,
+              style: const TextStyle(color: Colors.white70),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: Text(l10n.cancel),
+              ),
+              FilledButton(
+                style: FilledButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                ),
+                onPressed: () async {
+                  Navigator.pop(ctx);
+                  await ref.read(authProvider.notifier).logout();
+                  if (context.mounted) context.go(AppRoutes.login);
+                },
+                child: Text(l10n.logout),
+              ),
+            ],
           ),
-        ],
-      ),
     );
   }
 }
@@ -499,7 +615,13 @@ class _BaseTab extends StatelessWidget {
               pinned: true,
               backgroundColor: _AdminTokens.background.withValues(alpha: 0.8),
               flexibleSpace: FlexibleSpaceBar(
-                title: Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+                title: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
                 centerTitle: true,
               ),
             ),
@@ -548,7 +670,15 @@ class _AnimatedBackground extends StatelessWidget {
 }
 
 class _BackgroundBlob extends StatelessWidget {
-  const _BackgroundBlob({required this.size, required this.color, this.top, this.bottom, this.left, this.right, required this.opacity});
+  const _BackgroundBlob({
+    required this.size,
+    required this.color,
+    this.top,
+    this.bottom,
+    this.left,
+    this.right,
+    required this.opacity,
+  });
   final double size;
   final Color color;
   final double? top, bottom, left, right;
@@ -557,10 +687,17 @@ class _BackgroundBlob extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: top, bottom: bottom, left: left, right: right,
+      top: top,
+      bottom: bottom,
+      left: left,
+      right: right,
       child: Container(
-        width: size, height: size,
-        decoration: BoxDecoration(shape: BoxShape.circle, color: color.withValues(alpha: opacity)),
+        width: size,
+        height: size,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: color.withValues(alpha: opacity),
+        ),
       ),
     );
   }
@@ -595,7 +732,11 @@ class _AdminSliverHeader extends StatelessWidget {
                       child: const CircleAvatar(
                         radius: 24,
                         backgroundColor: Color(0xFF1E1E2A),
-                        child: Icon(Icons.admin_panel_settings_rounded, color: Colors.white, size: 24),
+                        child: Icon(
+                          Icons.admin_panel_settings_rounded,
+                          color: Colors.white,
+                          size: 24,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -604,10 +745,21 @@ class _AdminSliverHeader extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text('Admin Dashboard',
-                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 20)),
-                          Text(email ?? 'admin@jumpup.com',
-                              style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
+                          const Text(
+                            'Admin Dashboard',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 20,
+                            ),
+                          ),
+                          Text(
+                            email ?? 'admin@jumpup.com',
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.5),
+                              fontSize: 12,
+                            ),
+                          ),
                         ],
                       ),
                     ),
@@ -623,7 +775,12 @@ class _AdminSliverHeader extends StatelessWidget {
 }
 
 class _MetricCard extends StatelessWidget {
-  const _MetricCard({required this.title, required this.value, required this.icon, required this.color});
+  const _MetricCard({
+    required this.title,
+    required this.value,
+    required this.icon,
+    required this.color,
+  });
   final String title;
   final int value;
   final IconData icon;
@@ -660,13 +817,23 @@ class _MetricCard extends StatelessWidget {
             fit: BoxFit.scaleDown,
             child: Text(
               value.toString(),
-              style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.w900, height: 1),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                height: 1,
+              ),
             ),
           ),
           const SizedBox(height: 2),
           Text(
             title.toUpperCase(),
-            style: TextStyle(color: Colors.white54, fontSize: 9, fontWeight: FontWeight.w800, letterSpacing: 0.5),
+            style: TextStyle(
+              color: Colors.white54,
+              fontSize: 9,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 0.5,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -677,7 +844,13 @@ class _MetricCard extends StatelessWidget {
 }
 
 class _ActionCard extends StatelessWidget {
-  const _ActionCard({required this.icon, required this.title, required this.subtitle, required this.color, required this.onTap});
+  const _ActionCard({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.color,
+    required this.onTap,
+  });
   final IconData icon;
   final String title, subtitle;
   final Color color;
@@ -693,7 +866,10 @@ class _ActionCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         child: ListTile(
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 8,
+          ),
           leading: Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
@@ -703,9 +879,24 @@ class _ActionCard extends StatelessWidget {
             ),
             child: Icon(icon, color: color, size: 24),
           ),
-          title: Text(title, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          subtitle: Text(subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.5), fontSize: 12)),
-          trailing: const Icon(Icons.chevron_right_rounded, color: Colors.white24),
+          title: Text(
+            title,
+            style: const TextStyle(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          subtitle: Text(
+            subtitle,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.5),
+              fontSize: 12,
+            ),
+          ),
+          trailing: const Icon(
+            Icons.chevron_right_rounded,
+            color: Colors.white24,
+          ),
         ),
       ),
     );
@@ -718,9 +909,17 @@ class _LoadingMetrics extends StatelessWidget {
   Widget build(BuildContext context) {
     return GridView.count(
       crossAxisCount: 2,
-      mainAxisSpacing: 16, crossAxisSpacing: 16,
-      childAspectRatio: 1.5, shrinkWrap: true,
-      children: List.generate(4, (index) => GlassContainer(borderRadius: BorderRadius.circular(28), child: const Center(child: CircularProgressIndicator(strokeWidth: 2)))),
+      mainAxisSpacing: 16,
+      crossAxisSpacing: 16,
+      childAspectRatio: 1.5,
+      shrinkWrap: true,
+      children: List.generate(
+        4,
+        (index) => GlassContainer(
+          borderRadius: BorderRadius.circular(28),
+          child: const Center(child: CircularProgressIndicator(strokeWidth: 2)),
+        ),
+      ),
     );
   }
 }
@@ -732,12 +931,20 @@ class _ErrorCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(color: Colors.redAccent.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+      decoration: BoxDecoration(
+        color: Colors.redAccent.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: Row(
         children: [
           const Icon(Icons.error_outline, color: Colors.redAccent),
           const SizedBox(width: 12),
-          Expanded(child: Text(message, style: const TextStyle(color: Colors.white70, fontSize: 12))),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Colors.white70, fontSize: 12),
+            ),
+          ),
         ],
       ),
     );
