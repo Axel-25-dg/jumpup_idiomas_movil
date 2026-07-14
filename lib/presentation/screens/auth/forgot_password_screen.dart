@@ -47,9 +47,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
     if (_emailCtrl.text.isEmpty) return;
     setState(() => _isLoading = true);
     try {
-      final ok = await _authService.requestPasswordReset(_emailCtrl.text);
-      if (ok) {
-        setState(() { _email = _emailCtrl.text; _step = 2; });
+      final result = await _authService.requestPasswordReset(_emailCtrl.text.trim());
+      if (result['ok'] == true) {
+        setState(() { _email = _emailCtrl.text.trim(); _step = 2; });
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error']?.toString() ?? 'Error al enviar el correo'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } finally {
       setState(() => _isLoading = false);
@@ -58,16 +68,46 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
 
   Future<void> _confirmPin() async {
     if (_codeCtrl.text.isEmpty || _passCtrl.text.isEmpty) return;
+    if (_passCtrl.text != _pass2Ctrl.text) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Las contraseñas no coinciden'),
+          backgroundColor: Colors.redAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+    if (_passCtrl.text.length < 8) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('La contraseña debe tener al menos 8 caracteres'),
+          backgroundColor: Colors.orangeAccent,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
     setState(() => _isLoading = true);
     try {
-      final ok = await _authService.confirmPasswordReset(
-        email: _email, 
-        code: _codeCtrl.text,
-        password: _passCtrl.text, 
+      final result = await _authService.confirmPasswordReset(
+        email: _email,
+        code: _codeCtrl.text.trim(),
+        password: _passCtrl.text,
         password2: _pass2Ctrl.text,
       );
-      if (ok) {
+      if (result['ok'] == true) {
         setState(() => _step = 3);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error']?.toString() ?? 'Código o contraseña incorrectos'),
+              backgroundColor: Colors.redAccent,
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+        }
       }
     } finally {
       setState(() => _isLoading = false);
@@ -185,7 +225,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
                               icon: Icons.lock_outline,
                               obscureText: true,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.info_outline_rounded, size: 14, color: isDark ? Colors.white38 : Colors.black38),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Mínimo 8 caracteres: letras, números y signos (ej. !, @, #)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark ? Colors.white38 : Colors.black38,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
                             _CustomTextField(
                               controller: _pass2Ctrl,
                               hint: l10n.confirmPassword,
