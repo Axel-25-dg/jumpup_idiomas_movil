@@ -104,7 +104,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                   ),
                   error: (err, _) => SliverFillRemaining(
                     hasScrollBody: false,
-                    child: _ErrorState(onRetry: () => ref.invalidate(coursesProvider)),
+                    child: _ErrorState(onRetry: () => ref.invalidate(studentEnrolledCoursesProvider)),
                   ),
                 ),
               ),

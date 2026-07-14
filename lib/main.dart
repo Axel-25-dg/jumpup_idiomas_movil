@@ -152,6 +152,19 @@ class JumpUpApp extends ConsumerWidget {
         theme: lightTheme,
         darkTheme: darkTheme,
         themeMode: prefs.darkMode ? ThemeMode.dark : ThemeMode.light,
+        builder: (context, child) {
+          final mediaQuery = MediaQuery.of(context);
+          return MediaQuery(
+            data: mediaQuery.copyWith(
+              viewInsets: mediaQuery.viewInsets,
+              viewPadding: mediaQuery.viewPadding,
+            ),
+            child: Scaffold(
+              resizeToAvoidBottomInset: true,
+              body: child,
+            ),
+          );
+        },
 
         // ─── go_router ────────────────────────────────────────────────────
         routerConfig: buildAppRouter(ref),

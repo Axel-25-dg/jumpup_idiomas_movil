@@ -23,6 +23,8 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
   final _audioUrlCtrl = TextEditingController();
   final _videoUrlCtrl = TextEditingController();
   final _resourceUrlCtrl = TextEditingController();
+  int? _selectedCourseId;
+  int? _selectedModuleId;
   String _contentType = 'text';
   bool _isLoading = false;
 
@@ -116,27 +118,7 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
               BrandedTextField(controller: _descriptionCtrl, label: 'Descripción (Opcional)', maxLines: 3),
               const SizedBox(height: 20),
               DropdownButtonFormField<String>(
-                value: _contentType,
-                decoration: const InputDecoration(labelText: 'Tipo de contenido'),
-                items: const [
-                  DropdownMenuItem(value: 'text', child: Text('Texto / lectura')),
-                  DropdownMenuItem(value: 'video', child: Text('Video')),
-                  DropdownMenuItem(value: 'audio', child: Text('Audio')),
-                  DropdownMenuItem(value: 'interactive', child: Text('Interactivo')),
-                ],
-                onChanged: (value) => setState(() => _contentType = value ?? 'text'),
-              ),
-              const SizedBox(height: 20),
-              BrandedTextField(controller: _contentBodyCtrl, label: 'Contenido (texto, instrucciones o resumen)', maxLines: 4),
-              const SizedBox(height: 20),
-              BrandedTextField(controller: _audioUrlCtrl, label: 'URL de audio (opcional)'),
-              const SizedBox(height: 20),
-              BrandedTextField(controller: _videoUrlCtrl, label: 'URL de video (opcional)'),
-              const SizedBox(height: 20),
-              BrandedTextField(controller: _resourceUrlCtrl, label: 'URL de recurso/PDF (opcional)'),
-              const SizedBox(height: 20),
-              DropdownButtonFormField<String>(
-                value: _contentType,
+                initialValue: _contentType,
                 decoration: const InputDecoration(labelText: 'Tipo de contenido'),
                 items: const [
                   DropdownMenuItem(value: 'text', child: Text('Texto / lectura')),
@@ -175,7 +157,7 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
                       filled: true,
                       fillColor: Color(0xFF122033),
                     ),
-                    value: _selectedCourseId,
+                    initialValue: _selectedCourseId,
                     items: courses.map((c) {
                       return DropdownMenuItem<int>(
                         value: c.id,
@@ -217,7 +199,7 @@ class _CreateLessonScreenState extends ConsumerState<CreateLessonScreen> {
                             filled: true,
                             fillColor: Color(0xFF122033),
                           ),
-                          value: _selectedModuleId,
+                          initialValue: _selectedModuleId,
                           items: modules.map((m) {
                             final id = m['id'] as int;
                             final title = m['title'] as String;

@@ -10,11 +10,18 @@ import 'package:lottie/lottie.dart';
 import 'exercise_screen.dart';
 import 'package:jumpup_app/core/config/app_config.dart';
 import 'package:jumpup_app/presentation/screens/student/resource_webview_screen.dart';
+import 'package:audioplayers/audioplayers.dart';
+import 'package:youtube_player_flutter/youtube_player_flutter.dart' hide PlayerState;
 
 class LessonDetailScreen extends ConsumerStatefulWidget {
-  const LessonDetailScreen({super.key, required this.lessonId});
+  const LessonDetailScreen({
+    super.key,
+    required this.lessonId,
+    this.classroomId,
+  });
 
   final int lessonId;
+  final int? classroomId;
 
   @override
   ConsumerState<LessonDetailScreen> createState() => _LessonDetailScreenState();
@@ -23,18 +30,47 @@ class LessonDetailScreen extends ConsumerStatefulWidget {
 class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
+  final AudioPlayer _audioPlayer = AudioPlayer();
   bool _isPlayingAudio = false;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlayingAudio = state == PlayerState.playing;
+        });
+      }
+    });
   }
 
   @override
   void dispose() {
     _tabController.dispose();
+    _audioPlayer.dispose();
     super.dispose();
+  }
+
+  Future<void> _toggleAudio(String? url) async {
+    if (url == null || url.isEmpty) return;
+
+    if (_isPlayingAudio) {
+      await _audioPlayer.pause();
+    } else {
+      final source = url.startsWith('http') ? UrlSource(url) : DeviceFileSource(url);
+      await _audioPlayer.play(source);
+    }
+  }
+
+  void _showVideoPlayer(BuildContext context, String videoId, String title) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.black,
+      builder: (context) => _YouTubePlayerModal(videoId: videoId, title: title),
+    );
   }
 
   @override
@@ -316,9 +352,20 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                       'https://assets5.lottiefiles.com/packages/lf20_tiviyv33.json', // Audio wave animation
                       width: 300,
                       height: 300,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox(
+                        width: 300,
+                        height: 300,
+                        child: Center(
+                          child: Icon(
+                            Icons.graphic_eq_rounded,
+                            color: Colors.blueAccent,
+                            size: 80,
+                          ),
+                        ),
+                      ),
                     ),
                   GestureDetector(
-                    onTap: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
+                    onTap: () => _toggleAudio(lesson.audioUrl),
                     child: Container(
                       width: 140,
                       height: 140,
@@ -362,7 +409,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                 padding: EdgeInsets.zero,
                 borderRadius: BorderRadius.circular(30),
                 child: FilledButton(
-                  onPressed: () => setState(() => _isPlayingAudio = !_isPlayingAudio),
+                  onPressed: () => _toggleAudio(lesson.audioUrl),
                   style: FilledButton.styleFrom(
                     backgroundColor: _isPlayingAudio ? Colors.redAccent.withValues(alpha: 0.2) : Colors.transparent,
                     padding: const EdgeInsets.symmetric(vertical: 16),
@@ -384,7 +431,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
   Widget _buildMaterialTab(int lessonId) {
     return Consumer(
       builder: (context, ref, child) {
-        final resourcesAsync = ref.watch(lessonResourcesProvider(lessonId));
+        final resourcesAsync = ref.watch(lessonResourcesProvider((lessonId: lessonId, classroomId: widget.classroomId)));
 
         return resourcesAsync.when(
           loading: () => const Center(child: CircularProgressIndicator(color: Colors.blueAccent)),
@@ -413,6 +460,11 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
               itemCount: resources.length,
               itemBuilder: (context, i) {
                 final resource = resources[i];
+                final type = resource.resourceType.toLowerCase();
+                final isVideo = type == 'video' || (resource.fileUrl?.contains('youtube.com') ?? false) || (resource.fileUrl?.contains('youtu.be') ?? false);
+                final isAudio = type == 'audio' || (resource.fileUrl?.endsWith('.mp3') ?? false);
+                final isPdf = type == 'pdf' || (resource.fileUrl?.endsWith('.pdf') ?? false);
+
                 return FadeInRight(
                   delay: Duration(milliseconds: i * 100),
                   child: Padding(
@@ -432,9 +484,19 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                             );
                             return;
                           }
+                          
+                          if (isVideo) {
+                            final videoId = YoutubePlayer.convertUrlToId(fileUrl);
+                            if (videoId != null) {
+                              _showVideoPlayer(context, videoId, resource.title);
+                              return;
+                            }
+                          }
+
                           if (!fileUrl.startsWith('http://') && !fileUrl.startsWith('https://')) {
                             fileUrl = AppConfig.resolveImageUrl(fileUrl);
                           }
+                          
                           Navigator.of(context).push(
                             MaterialPageRoute(
                               builder: (_) => ResourceWebViewScreen(url: fileUrl, title: resource.title),
@@ -444,18 +506,12 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                         leading: Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color: (resource.resourceType.toLowerCase() == 'pdf' 
-                                ? Colors.redAccent 
-                                : Colors.blueAccent).withValues(alpha: 0.1),
+                            color: (isPdf ? Colors.redAccent : isVideo ? Colors.orangeAccent : isAudio ? Colors.greenAccent : Colors.blueAccent).withValues(alpha: 0.1),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Icon(
-                            resource.resourceType.toLowerCase() == 'pdf' 
-                                ? Icons.picture_as_pdf_rounded 
-                                : Icons.insert_drive_file_rounded, 
-                            color: resource.resourceType.toLowerCase() == 'pdf' 
-                                ? Colors.redAccent 
-                                : Colors.blueAccent, 
+                            isPdf ? Icons.picture_as_pdf_rounded : isVideo ? Icons.play_circle_fill_rounded : isAudio ? Icons.audiotrack_rounded : Icons.insert_drive_file_rounded, 
+                            color: isPdf ? Colors.redAccent : isVideo ? Colors.orangeAccent : isAudio ? Colors.greenAccent : Colors.blueAccent, 
                             size: 24
                           ),
                         ),
@@ -469,7 +525,7 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                           overflow: TextOverflow.ellipsis,
                           style: AppTextStyles.bodySmall.copyWith(color: Colors.white54),
                         ),
-                        trailing: const Icon(Icons.open_in_new_rounded, color: Colors.blueAccent),
+                        trailing: Icon(isVideo ? Icons.play_arrow_rounded : Icons.open_in_new_rounded, color: Colors.blueAccent),
                       ),
                     ),
                   ),
@@ -518,6 +574,85 @@ class _ErrorState extends StatelessWidget {
           const SizedBox(height: 16),
           Text('Error al cargar la lección', style: AppTextStyles.titleMedium),
           TextButton(onPressed: onRetry, child: const Text('Reintentar')),
+        ],
+      ),
+    );
+  }
+}
+
+class _YouTubePlayerModal extends StatefulWidget {
+  final String videoId;
+  final String title;
+  const _YouTubePlayerModal({required this.videoId, required this.title});
+
+  @override
+  State<_YouTubePlayerModal> createState() => _YouTubePlayerModalState();
+}
+
+class _YouTubePlayerModalState extends State<_YouTubePlayerModal> {
+  late YoutubePlayerController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = YoutubePlayerController(
+      initialVideoId: widget.videoId,
+      flags: const YoutubePlayerFlags(
+        autoPlay: true,
+        mute: false,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.8,
+      decoration: const BoxDecoration(
+        color: Color(0xFF0F111A),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    widget.title,
+                    style: AppTextStyles.titleMedium.copyWith(color: Colors.white),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: YoutubePlayer(
+                controller: _controller,
+                showVideoProgressIndicator: true,
+                progressIndicatorColor: Colors.blueAccent,
+                onReady: () {
+                  // _controller.addListener(listener);
+                },
+              ),
+            ),
+          ),
+          const SizedBox(height: 40),
         ],
       ),
     );

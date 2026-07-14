@@ -15,7 +15,7 @@ class _CrosswordGameState extends ConsumerState<CrosswordGame> {
   final List<Map<String, dynamic>> _words = [
     {'word': 'HELLO', 'clue': 'Saludo básico en inglés', 'row': 0, 'col': 0, 'dir': 'H'},
     {'word': 'HOUSE', 'clue': 'Lugar donde vives', 'row': 0, 'col': 0, 'dir': 'V'},
-    {'word': 'DOG', 'clue': 'Mascota que ladra', 'row': 2, 'col': 0, 'dir': 'H'},
+    {'word': 'USE', 'clue': 'Usar o emplear algo (utilizar)', 'row': 2, 'col': 0, 'dir': 'H'},
   ];
 
   final Map<String, String> _userAnswers = {};

@@ -1,4 +1,5 @@
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
 
 /// Almacena y recupera el JWT de forma segura en el Keychain / Keystore del SO.
 class SecureStorage {
@@ -38,6 +39,16 @@ class SecureStorage {
   Future<String?> getBiometricToken() => _storage.read(key: _keyBiometricToken);
 
   Future<String?> getDeviceId() => _storage.read(key: _keyDeviceId);
+
+  Future<Map<String, dynamic>> decodeAccessToken() async {
+    final token = await getAccessToken();
+    if (token == null || token.isEmpty) return {};
+    try {
+      return JwtDecoder.decode(token);
+    } catch (_) {
+      return {};
+    }
+  }
 
   Future<void> clearTokens() async {
     await Future.wait([

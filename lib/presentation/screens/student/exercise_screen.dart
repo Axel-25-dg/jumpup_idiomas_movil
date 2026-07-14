@@ -543,6 +543,14 @@ class _ExerciseScreenState extends ConsumerState<ExerciseScreen> with SingleTick
                 width: 200,
                 height: 200,
                 repeat: false,
+                errorBuilder: (context, error, stackTrace) => const Padding(
+                  padding: EdgeInsets.all(20.0),
+                  child: Icon(
+                    Icons.emoji_events_rounded,
+                    color: Colors.amber,
+                    size: 100,
+                  ),
+                ),
               ),
               Text(
                 '¡Lección Superada!',

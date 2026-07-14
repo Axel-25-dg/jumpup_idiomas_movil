@@ -10,7 +10,9 @@ Map<String, dynamic> buildCoursePayload(Map<String, dynamic> data) {
     'title': data['title'] ?? '',
     'description': data['description'] ?? '',
     'difficulty_level': data['difficulty_level'] ?? 'A1',
+    'image_url': data['image_url'] ?? '',
     if (languageId != null) 'language': languageId,
+    if (languageId != null) 'language_id': languageId,
   };
   return payload;
 }
@@ -28,7 +30,28 @@ class CourseRepository extends BaseRepository {
   Future<void> createCourse(Map<String, dynamic> data) async {
     try {
       final payload = buildCoursePayload(data);
-      await dio.post('courses/', data: payload);
+      if (data['image_path'] != null) {
+        final imagePath = data['image_path'] as String;
+        final formDataMap = Map<String, dynamic>.from(payload);
+        formDataMap.remove('image_url');
+        
+        final file = await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        );
+        formDataMap['image'] = file;
+        
+        final file2 = await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        );
+        formDataMap['image_file'] = file2;
+
+        final formData = FormData.fromMap(formDataMap);
+        await dio.post('courses/', data: formData);
+      } else {
+        await dio.post('courses/', data: payload);
+      }
     } on DioException catch (e) {
       throw ApiException('Error al crear curso', e.response?.statusCode, e);
     }
@@ -36,7 +59,29 @@ class CourseRepository extends BaseRepository {
 
   Future<void> updateCourse(int id, Map<String, dynamic> data) async {
     try {
-      await dio.patch('courses/$id/', data: buildCoursePayload(data));
+      final payload = buildCoursePayload(data);
+      if (data['image_path'] != null) {
+        final imagePath = data['image_path'] as String;
+        final formDataMap = Map<String, dynamic>.from(payload);
+        formDataMap.remove('image_url');
+        
+        final file = await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        );
+        formDataMap['image'] = file;
+        
+        final file2 = await MultipartFile.fromFile(
+          imagePath,
+          filename: imagePath.split('/').last,
+        );
+        formDataMap['image_file'] = file2;
+
+        final formData = FormData.fromMap(formDataMap);
+        await dio.patch('courses/$id/', data: formData);
+      } else {
+        await dio.patch('courses/$id/', data: payload);
+      }
     } on DioException catch (e) {
       throw ApiException('Error al actualizar curso', e.response?.statusCode, e);
     }
@@ -44,7 +89,7 @@ class CourseRepository extends BaseRepository {
 
   Future<void> deleteCourse(int id) async {
     try {
-      final res = await dio.delete('courses/$id/');
+      await dio.delete('courses/$id/');
     } on DioException catch (e) {
       throw ApiException('Error al eliminar curso', e.response?.statusCode, e);
     }

@@ -4,7 +4,7 @@ import 'package:jumpup_app/domain/model/admin/resource_model.dart';
 import 'package:jumpup_app/data/repository/auth/course_repository_impl.dart';
 
 final courseServiceProvider = Provider<CourseRepositoryImpl>((ref) {
-  return const CourseRepositoryImpl();
+  return CourseRepositoryImpl();
 });
 
 class ContentState<T> {
@@ -141,9 +141,9 @@ final lessonDetailsProvider =
 });
 
 final lessonResourcesProvider =
-    FutureProvider.family<List<TeacherResource>, int>((ref, lessonId) async {
+    FutureProvider.family<List<TeacherResource>, ({int lessonId, int? classroomId})>((ref, arg) async {
   final service = ref.watch(courseServiceProvider);
-  return service.getLessonResources(lessonId);
+  return service.getLessonResources(arg.lessonId, arg.classroomId);
 });
 
 final teacherResourcesProvider =

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:jumpup_app/presentation/widgets/branded_text_field.dart';
 import 'package:jumpup_app/presentation/widgets/primary_button.dart';
 import 'package:jumpup_app/presentation/providers/resource_provider.dart';
@@ -22,9 +23,12 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
   late final TextEditingController urlCtrl;
   late final TextEditingController descriptionCtrl;
   int? selectedCourseId;
+  int? selectedModuleId;
+  int? selectedLessonId;
   String _resourceType = 'document';
   bool _isPublic = true;
   bool _isLocalFile = false;
+  String? _selectedResourceFilePath;
 
   @override
   void initState() {
@@ -42,17 +46,33 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
     super.dispose();
   }
 
-  Future<void> _pickLocalFile() async {
-    setState(() {
-      _isLocalFile = true;
-      urlCtrl.text = 'archivo-local';
-      if (titleCtrl.text.trim().isEmpty) {
-        titleCtrl.text = 'Recurso adjunto';
+  Future<void> _pickGalleryFile() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+      final XFile? file;
+      if (_resourceType == 'video') {
+        file = await picker.pickVideo(source: ImageSource.gallery);
+      } else {
+        file = await picker.pickImage(source: ImageSource.gallery);
       }
-    });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('La subida de archivos locales se dejará como referencia de URL; puedes pegar el enlace real del archivo.')),
-    );
+
+      if (file != null) {
+        setState(() {
+          _selectedResourceFilePath = file!.path;
+          _isLocalFile = true;
+          urlCtrl.text = 'archivo-local';
+          if (titleCtrl.text.trim().isEmpty) {
+            titleCtrl.text = file.name;
+          }
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error al seleccionar archivo: $e')),
+        );
+      }
+    }
   }
 
   @override
@@ -64,9 +84,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(next.error.toString()), backgroundColor: Colors.redAccent));
       } else if (next.hasValue && prev?.isLoading == true) {
-        if (selectedLessonId != null) {
-          ref.invalidate(lessonResourcesProvider(selectedLessonId!));
-        }
+          ref.invalidate(lessonResourcesProvider);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Recurso publicado correctamente'), backgroundColor: Colors.greenAccent));
         Navigator.pop(context);
@@ -143,7 +161,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                               filled: true,
                               fillColor: Color(0xFF122033),
                             ),
-                            value: selectedCourseId,
+                            initialValue: selectedCourseId,
                             items: courses.map((c) {
                               return DropdownMenuItem<int>(
                                 value: c.id,
@@ -189,7 +207,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                                     filled: true,
                                     fillColor: Color(0xFF122033),
                                   ),
-                                  value: selectedModuleId,
+                                  initialValue: selectedModuleId,
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,
@@ -247,7 +265,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                                     filled: true,
                                     fillColor: Color(0xFF122033),
                                   ),
-                                  value: selectedLessonId,
+                                  initialValue: selectedLessonId,
                                   items: [
                                     const DropdownMenuItem<int?>(
                                       value: null,
@@ -303,14 +321,38 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                       ),
                       const SizedBox(height: 20),
                       OutlinedButton.icon(
-                        onPressed: _pickLocalFile,
+                        onPressed: _pickGalleryFile,
                         icon: const Icon(Icons.attach_file_rounded),
-                        label: const Text('Usar referencia de archivo local'),
+                        label: Text(_selectedResourceFilePath != null 
+                            ? 'Archivo: ${_selectedResourceFilePath!.split('/').last}' 
+                            : 'Seleccionar archivo de la galería'),
                       ),
                       const SizedBox(height: 12),
-                      if (_isLocalFile)
-                        Text('Se guardará como referencia de archivo local; pega la URL real si quieres abrirlo luego.', style: TextStyle(color: Colors.greenAccent.shade200))
-                      else
+                      if (_selectedResourceFilePath != null) ...[
+                        Row(
+                          children: [
+                            const Icon(Icons.check_circle_outline, color: Colors.greenAccent, size: 16),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Listo para subir: ${_selectedResourceFilePath!.split('/').last}',
+                                style: const TextStyle(color: Colors.greenAccent, fontSize: 13),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            IconButton(
+                              icon: const Icon(Icons.close, color: Colors.redAccent, size: 18),
+                              onPressed: () => setState(() {
+                                _selectedResourceFilePath = null;
+                                _isLocalFile = false;
+                                urlCtrl.clear();
+                              }),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      if (!_isLocalFile)
                         BrandedTextField(
                           controller: urlCtrl, 
                           label: 'URL del recurso (YouTube, PDF, MP3, MP4)',
@@ -337,6 +379,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
                           resourceType: _resourceType,
                           description: descriptionCtrl.text,
                           isPublic: _isPublic,
+                          filePath: _selectedResourceFilePath,
                         );
                   },
                 ),

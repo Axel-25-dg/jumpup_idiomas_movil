@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/teacher_repository.dart';
 import 'package:jumpup_app/domain/model/admin/admin_course_model.dart';
-import 'package:jumpup_app/domain/model/admin/admin_language_model.dart';
 import 'package:jumpup_app/presentation/providers/teacher_repository_provider.dart';
 
 
