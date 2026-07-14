@@ -161,7 +161,6 @@ class _VirtualClassListBody extends ConsumerWidget {
       ),
     );
   }
-  }
 }
 
 class _ClassesSliverAppBar extends StatelessWidget {
