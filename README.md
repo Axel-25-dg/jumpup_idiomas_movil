@@ -290,6 +290,11 @@ flutter build ios --release   # Build iOS
 
 Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaciones Móviles** — Universidad UTE.
 
+**Presentado por:**
+- Danny Guamán
+- Alex Macias
+- Ariel Paucar
+
 ---
 
 ## 📬 Soporte
