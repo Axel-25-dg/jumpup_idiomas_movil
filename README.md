@@ -3,7 +3,7 @@
   <b>Escuela de Tecnologías</b><br>
   <b>Carrera de Desarrollo de Software</b><br>
   <br>
-  <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Logo-ute_%282%29.png" width="150" alt="Logo UTE"/>
+  <img src="assets/readme/logo_ute.jpg" width="150" alt="Logo UTE"/>
 </p>
 
 # JumpUp Idiomas — App Móvil
