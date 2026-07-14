@@ -396,64 +396,96 @@ class _CoursesScreenState extends ConsumerState<CoursesScreen>
                           ),
                           const SizedBox(height: 16),
 
-                          // URL de imagen (opcional)
-                          BrandedTextField(
-                            controller: _imageUrlController,
-                            label: 'URL de la imagen (opcional)',
-                            prefixIcon: Icons.image_rounded,
-                            enabled: _selectedImagePath == null,
-                          ),
-                          const SizedBox(height: 16),
-
                           // Selector de imagen de la galería
-                          Row(
-                            children: [
-                              Expanded(
-                                child: OutlinedButton.icon(
-                                  onPressed: () async {
-                                    try {
-                                      final ImagePicker picker = ImagePicker();
-                                      final XFile? image = await picker.pickImage(source: ImageSource.gallery);
-                                      if (image != null) {
-                                        dialogSetState(() {
-                                          _selectedImagePath = image.path;
-                                          _imageUrlController.text = 'imagen-galeria';
-                                        });
-                                        setState(() {}); // outer rebuild
-                                      }
-                                    } catch (e) {
-                                      ScaffoldMessenger.of(context).showSnackBar(
-                                        SnackBar(content: Text('Error al seleccionar imagen: $e')),
-                                      );
-                                    }
-                                  },
-                                  icon: const Icon(Icons.photo_library_rounded, color: Color(0xFF00E5FF)),
-                                  label: Text(_selectedImagePath != null
-                                      ? 'Imagen seleccionada'
-                                      : 'Seleccionar de galería'),
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: Colors.white,
-                                    side: const BorderSide(color: Colors.white24),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                  ),
-                                ),
+                          const Text('Imagen del curso', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+                          const SizedBox(height: 8),
+                          InkWell(
+                            onTap: () async {
+                              try {
+                                final ImagePicker picker = ImagePicker();
+                                final XFile? image = await picker.pickImage(source: ImageSource.gallery);
+                                if (image != null) {
+                                  dialogSetState(() {
+                                    _selectedImagePath = image.path;
+                                    _imageUrlController.text = 'imagen-galeria';
+                                  });
+                                  setState(() {}); // outer rebuild
+                                }
+                              } catch (e) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Error al seleccionar imagen: $e')),
+                                );
+                              }
+                            },
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              height: 120,
+                              decoration: BoxDecoration(
+                                color: Colors.white.withValues(alpha: 0.05),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(color: Colors.white24),
                               ),
-                              if (_selectedImagePath != null) ...[
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  icon: const Icon(Icons.close, color: Colors.redAccent),
-                                  onPressed: () {
-                                    dialogSetState(() {
-                                      _selectedImagePath = null;
-                                      _imageUrlController.clear();
-                                    });
-                                    setState(() {}); // outer rebuild
-                                  },
-                                ),
-                              ],
-                            ],
+                              child: _selectedImagePath != null
+                                  ? Stack(
+                                      fit: StackFit.expand,
+                                      children: [
+                                        ClipRRect(
+                                          borderRadius: BorderRadius.circular(15),
+                                          child: Image.network(
+                                            'file://$_selectedImagePath',
+                                            fit: BoxFit.cover,
+                                            errorBuilder: (context, error, stackTrace) => Center(
+                                              child: Padding(
+                                                padding: const EdgeInsets.all(8.0),
+                                                child: Text(
+                                                  _selectedImagePath!.split('/').last,
+                                                  style: const TextStyle(color: Colors.white70, fontSize: 12),
+                                                  textAlign: TextAlign.center,
+                                                ),
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        Positioned(
+                                          top: 8,
+                                          right: 8,
+                                          child: CircleAvatar(
+                                            backgroundColor: Colors.black54,
+                                            radius: 14,
+                                            child: IconButton(
+                                              padding: EdgeInsets.zero,
+                                              icon: const Icon(Icons.close, color: Colors.redAccent, size: 16),
+                                              onPressed: () {
+                                                dialogSetState(() {
+                                                  _selectedImagePath = null;
+                                                  _imageUrlController.clear();
+                                                });
+                                                setState(() {}); // outer rebuild
+                                              },
+                                            ),
+                                          ),
+                                        )
+                                      ],
+                                    )
+                                  : (course != null && course.imageUrl.isNotEmpty
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(15),
+                                          child: Image.network(
+                                            course.imageUrl,
+                                            fit: BoxFit.cover,
+                                          ),
+                                        )
+                                      : const Center(
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.center,
+                                            children: [
+                                              Icon(Icons.add_photo_alternate_rounded, color: Color(0xFF00E5FF), size: 32),
+                                              SizedBox(height: 4),
+                                              Text('Seleccionar de galería', style: TextStyle(color: Colors.white70, fontSize: 13)),
+                                            ],
+                                          ),
+                                        )),
+                            ),
                           ),
                         ],
                       ),
