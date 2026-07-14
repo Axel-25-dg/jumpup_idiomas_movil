@@ -1,9 +1,9 @@
+<h1 align="center">Universidad Tecnológica Equinoccial</h1>
+<h2 align="center">Escuela de Tecnologías</h2>
+<h3 align="center">Carrera de Desarrollo de Software</h3>
 <p align="center">
-  <b>Universidad Tecnológica Equinoccial</b><br>
-  <b>Escuela de Tecnologías</b><br>
-  <b>Carrera de Desarrollo de Software</b><br>
   <br>
-  <img src="assets/readme/logo_ute.jpg" width="150" alt="Logo UTE"/>
+  <img src="assets/readme/logo_ute.jpg" width="180" alt="Logo UTE"/>
 </p>
 
 # JumpUp Idiomas — App Móvil
