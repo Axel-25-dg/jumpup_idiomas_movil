@@ -10,12 +10,35 @@
 
 Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Flutter-3.10+-02569B?style=for-the-badge&logo=flutter&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Dart-3.0+-0175C2?style=for-the-badge&logo=dart&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Django-REST-092E20?style=for-the-badge&logo=django&logoColor=white"/>
-  <img src="https://img.shields.io/badge/Estado-Activo-4CAF50?style=for-the-badge"/>
-</p>
+---
+
+## Información del Proyecto
+
+### Integrantes (Desarrolladores)
+- **Danny Guamán**
+- **Alex Macias**
+- **Ariel Paucar**
+
+### ¿Para qué sirve?
+**JumpUp Idiomas** es una plataforma educativa móvil diseñada para facilitar y enriquecer el proceso de aprendizaje de idiomas extranjeros de forma interactiva y dinámica. 
+
+El proyecto sirve para:
+- Proporcionar a los estudiantes un entorno de aprendizaje adaptativo, donde pueden completar módulos y lecciones asignados por sus docentes de manera autónoma.
+- Consolidar conocimientos mediante ejercicios evaluados en tiempo real (lectura, audio y materiales adicionales) y divertidos minijuegos educativos como Flashcards, Ahorcado, Trivia, Memory y Sopa de letras.
+- Reforzar la expresión oral y la conversación con un Tutor de Inteligencia Artificial disponible las 24 horas del día.
+- Gamificar la educación, motivando a los alumnos a través del seguimiento de niveles, recolección de puntos de experiencia (XP), mantenimiento de rachas diarias y obtención de logros para escalar en la tabla de clasificación.
+- Facilitar a los docentes herramientas efectivas de creación de contenido, subida de recursos (videos, imágenes, PDF), administración de solicitudes en aulas y visualización de reportes de progreso.
+
+### ¿Cómo funciona?
+El ecosistema de la plataforma se compone de dos partes integradas:
+
+1. **Frontend (Aplicación Móvil)**: Desarrollada en **Flutter**, ofrece una experiencia de usuario híbrida (Android e iOS) fluida y reactiva. Gestiona los estados locales y globales mediante **Riverpod** y realiza llamadas HTTP eficientes hacia la API usando **Dio**.
+2. **Backend (API de Datos)**: Desarrollado bajo **Django REST Framework**, procesa la persistencia de datos (usuarios, progreso, rankings, cursos), la seguridad mediante autenticación basada en tokens JWT y las funcionalidades asíncronas.
+3. **Flujos de Trabajo Principales**:
+   - **Registro e Ingreso**: Los usuarios ingresan con sus credenciales y el sistema valida su rol (Estudiante, Profesor o Administrador).
+   - **Flujo Estudiante**: Visualizan sus aulas inscritas. Al ingresar a una, progresan resolviendo lecciones y cuestionarios. Si cometen errores, el motor de repetición prioriza esas preguntas.
+   - **Flujo Profesor/Admin**: Crean cursos, programan sesiones virtuales, aprueban las solicitudes de inscripción de nuevos estudiantes y suben materiales digitales que sirven como recursos didácticos de clase.
+   - **Comunicación en Tiempo Real**: Incorpora un chat comunitario y notificaciones instantáneas mediante WebSockets.
 
 ---
 
@@ -85,45 +108,45 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
 
 ---
 
-## Funcionalidades
+## Funcionalidades Detalladas
 
-### Estudiante
-- Acceso a cursos inscritos, módulos y lecciones por aula
-- Ejercicios interactivos con repetición de errores y temporizador
-- Gamificación: XP, niveles, rachas diarias y logros desbloqueables
-- Minijuegos: Flashcards, Ahorcado, Trivia, Memory, Sopa de letras, Roleplay IA y más
-- Ingreso a clases virtuales desde el aula asignada
-- Recursos por lección: documentos, videos y links
-- Tutor IA para practicar conversación
-- Catálogo de cursos con carrito de compras e historial de pagos
-- Ranking global y por curso
+### Módulo de Estudiante
+- Acceso a cursos inscritos, módulos y lecciones por aula.
+- Cuestionarios interactivos con repetición de errores y temporizador.
+- Gamificación: XP, niveles, rachas diarias y logros desbloqueables.
+- Minijuegos: Flashcards, Ahorcado, Trivia, Memory, Sopa de letras y Roleplay IA.
+- Ingreso a clases virtuales desde el aula asignada.
+- Descarga y visualización de recursos por lección: documentos, videos y links.
+- Tutor IA para practicar conversación.
+- Catálogo de cursos con carrito de compras e historial de pagos.
+- Ranking global y clasificaciones por curso.
 
-### Profesor / Admin
-- Crear, editar y eliminar cursos con imagen desde galería
-- Gestión de aulas: inscripción de estudiantes y solicitudes
-- Creación y edición de módulos y lecciones
-- Subida de recursos (video, imagen, PDF) desde galería o URL
-- Programar y gestionar sesiones en vivo con código de acceso
-- Reportes de progreso por aula
+### Módulo de Profesor / Admin
+- Crear, editar y eliminar cursos con imagen desde galería.
+- Gestión de aulas: inscripción de estudiantes y solicitudes.
+- Creación y edición de módulos y lecciones del currículo.
+- Subida de recursos (video, imagen, PDF) desde galería o URL del servidor.
+- Programar y gestionar sesiones en vivo con código de acceso.
+- Reportes de progreso por aula.
 
-### Social
-- Chat en tiempo real por WebSocket
-- Feed comunitario con publicaciones y comentarios
-- Notificaciones push y en tiempo real
-- Búsqueda de cursos, usuarios y contenido
+### Módulo Social
+- Chat en tiempo real por WebSocket.
+- Feed comunitario con publicaciones y comentarios.
+- Notificaciones push y en tiempo real.
+- Búsqueda de cursos, usuarios y contenido.
 
 ---
 
 ## Últimas actualizaciones
 
-- Subida de imágenes de cursos desde galería del dispositivo
-- Subida de recursos multimedia (video/imagen) con FormData
-- Clases virtuales: muestra solo aulas en las que el estudiante está inscrito
-- Recuperación de contraseña: errores reales del servidor, validación de longitud y coincidencia
-- Mensaje de requisitos de contraseña en pantalla de recuperación
-- Fix del filtrado de recursos por lección con `classroomId`
-- Parsers defensivos en modelos de aulas y recursos
-- Manejo de errores Lottie con `errorBuilder` en pantallas de ejercicios
+- Subida de imágenes de cursos desde la galería del dispositivo.
+- Subida de recursos multimedia (video/imagen) mediante FormData.
+- Clases virtuales: muestra únicamente las aulas en las que el estudiante está inscrito.
+- Recuperación de contraseña: visualización de errores reales del servidor, validación de longitud y coincidencia de clave.
+- Mensaje detallado de requisitos de contraseña en la pantalla de recuperación.
+- Solución al filtrado de recursos por lección con `classroomId`.
+- Parsers defensivos en modelos de aulas y recursos para evitar cierres inesperados.
+- Manejo de errores de animación Lottie con `errorBuilder` en pantallas de ejercicios.
 
 ---
 
@@ -131,7 +154,7 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
 
 - Flutter SDK `>= 3.10.0`
 - Dart SDK `>= 3.0.0`
-- Android Studio / Xcode
+- Android Studio (para emulador de Android) / Xcode (para emulador de iOS)
 - Git
 
 ---
@@ -146,10 +169,10 @@ cd jumpup_idiomas_movil
 # 2. Instalar dependencias
 flutter pub get
 
-# 3. Generar archivos de localización
+# 3. Generar archivos de localización (traducciones)
 flutter gen-l10n
 
-# 4. Ejecutar la app
+# 4. Ejecutar la app en un dispositivo o emulador conectado
 flutter run
 ```
 
@@ -297,17 +320,6 @@ flutter gen-l10n              # Generar archivos de traducción
 flutter build apk --release   # Build Android
 flutter build ios --release   # Build iOS
 ```
-
----
-
-## Equipo
-
-Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaciones Móviles** — Universidad UTE.
-
-**Presentado por:**
-- Danny Guamán
-- Alex Macias
-- Ariel Paucar
 
 ---
 
