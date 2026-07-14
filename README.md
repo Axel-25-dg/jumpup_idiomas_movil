@@ -1,6 +1,6 @@
-<![CDATA[# 🚀 JumpUp Idiomas — App Móvil
+# 🚀 JumpUp Idiomas — App Móvil
 
-> Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
+Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
 
 <p align="center">
   <img src="https://img.shields.io/badge/Flutter-3.10+-02569B?style=for-the-badge&logo=flutter&logoColor=white"/>
@@ -15,27 +15,65 @@
 
 ### 🔐 Autenticación
 
-| Login | Recuperar contraseña | Nuevo código | Éxito |
-|:---:|:---:|:---:|:---:|
-| ![Login](assets/readme/01_login.jpeg) | ![Código](assets/readme/02_recuperar_codigo.jpeg) | ![Formulario](assets/readme/03_recuperar_formulario.jpeg) | ![Éxito](assets/readme/04_recuperar_exito.jpeg) |
+<table>
+  <tr>
+    <td align="center"><b>Login</b></td>
+    <td align="center"><b>Recuperar contraseña</b></td>
+    <td align="center"><b>Ingresar código</b></td>
+    <td align="center"><b>Contraseña actualizada</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/01_login.jpeg" width="180"/></td>
+    <td><img src="assets/readme/02_recuperar_codigo.jpeg" width="180"/></td>
+    <td><img src="assets/readme/03_recuperar_formulario.jpeg" width="180"/></td>
+    <td><img src="assets/readme/04_recuperar_exito.jpeg" width="180"/></td>
+  </tr>
+</table>
 
 ### 👩‍🎓 Estudiante
 
-| Explorar cursos | Perfil | Carrito | Detalle lección |
-|:---:|:---:|:---:|:---:|
-| ![Cursos](assets/readme/05_explorar_cursos.jpeg) | ![Perfil](assets/readme/06_perfil_estudiante.jpeg) | ![Carrito](assets/readme/07_carrito.jpeg) | ![Lección](assets/readme/08_leccion_detalle.jpeg) |
+<table>
+  <tr>
+    <td align="center"><b>Explorar cursos</b></td>
+    <td align="center"><b>Perfil</b></td>
+    <td align="center"><b>Carrito</b></td>
+    <td align="center"><b>Detalle lección</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/05_explorar_cursos.jpeg" width="180"/></td>
+    <td><img src="assets/readme/06_perfil_estudiante.jpeg" width="180"/></td>
+    <td><img src="assets/readme/07_carrito.jpeg" width="180"/></td>
+    <td><img src="assets/readme/08_leccion_detalle.jpeg" width="180"/></td>
+  </tr>
+</table>
 
 ### 👨‍🏫 Profesor / Admin
 
-| Crear aula | Crear lección | Perfil teacher |
-|:---:|:---:|:---:|
-| ![Aula](assets/readme/09_admin_crear_aula.jpeg) | ![Lección](assets/readme/10_admin_crear_leccion.jpeg) | ![Teacher](assets/readme/11_teacher_perfil.jpeg) |
+<table>
+  <tr>
+    <td align="center"><b>Crear aula</b></td>
+    <td align="center"><b>Crear lección</b></td>
+    <td align="center"><b>Perfil teacher</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/09_admin_crear_aula.jpeg" width="180"/></td>
+    <td><img src="assets/readme/10_admin_crear_leccion.jpeg" width="180"/></td>
+    <td><img src="assets/readme/11_teacher_perfil.jpeg" width="180"/></td>
+  </tr>
+</table>
 
-### 📧 Notificaciones por correo
+### 📧 Correos del sistema
 
-| Código de recuperación | Certificado obtenido |
-|:---:|:---:|
-| ![Email código](assets/readme/12_email_codigo.jpeg) | ![Email certificado](assets/readme/13_email_certificado.jpeg) |
+<table>
+  <tr>
+    <td align="center"><b>Código de recuperación</b></td>
+    <td align="center"><b>Certificado obtenido</b></td>
+  </tr>
+  <tr>
+    <td><img src="assets/readme/12_email_codigo.jpeg" width="180"/></td>
+    <td><img src="assets/readme/13_email_certificado.jpeg" width="180"/></td>
+  </tr>
+</table>
 
 ---
 
@@ -112,6 +150,7 @@ flutter run
 ## ⚙️ Configuración
 
 La app se conecta al backend en:
+
 ```
 https://guaman-idiomas-ute.online/api/
 ```
@@ -138,6 +177,7 @@ Para notificaciones push (opcional), configura:
 
 <details>
 <summary><strong>🔐 Autenticación</strong></summary>
+<br>
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -152,6 +192,7 @@ Para notificaciones push (opcional), configura:
 
 <details>
 <summary><strong>📚 Contenido educativo</strong></summary>
+<br>
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -167,6 +208,7 @@ Para notificaciones push (opcional), configura:
 
 <details>
 <summary><strong>🏆 Gamificación</strong></summary>
+<br>
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -180,6 +222,7 @@ Para notificaciones push (opcional), configura:
 
 <details>
 <summary><strong>🛒 E-commerce</strong></summary>
+<br>
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -193,6 +236,7 @@ Para notificaciones push (opcional), configura:
 
 <details>
 <summary><strong>🏫 Aulas y sesiones</strong></summary>
+<br>
 
 | Método | Endpoint | Descripción |
 |---|---|---|
@@ -233,11 +277,11 @@ lib/
 ## 🧪 Comandos útiles
 
 ```bash
-flutter analyze          # Analizar código
-flutter test             # Ejecutar tests
-flutter gen-l10n         # Generar archivos de traducción
-flutter build apk --release    # Build Android
-flutter build ios --release    # Build iOS
+flutter analyze               # Analizar código
+flutter test                  # Ejecutar tests
+flutter gen-l10n              # Generar archivos de traducción
+flutter build apk --release   # Build Android
+flutter build ios --release   # Build iOS
 ```
 
 ---
@@ -251,4 +295,3 @@ Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaci
 ## 📬 Soporte
 
 ¿Problemas o sugerencias? Abre un [Issue](https://github.com/Axel-25-dg/jumpup_idiomas_movil/issues).
-]]>
