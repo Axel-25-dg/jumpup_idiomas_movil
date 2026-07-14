@@ -1,8 +1,7 @@
+// lib/presentation/screens/admin/admin_dashboard_screen.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
-import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/auth_provider.dart';
 import 'package:jumpup_app/presentation/providers/stats_provider.dart';
 import 'package:jumpup_app/presentation/screens/admin/announcements_screen.dart';
@@ -15,9 +14,9 @@ import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/modules_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/certificates_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/admin_profile_screen.dart'; // ✅ NUEVO IMPORT
 
 import 'package:jumpup_app/widgets/glass_container.dart';
-import 'package:jumpup_app/theme/text_styles.dart';
 import 'package:jumpup_app/l10n/app_localizations.dart';
 
 /// Tokens de diseño para el panel de Admin (Premium Dark)
@@ -218,7 +217,6 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab>
 
   @override
   Widget build(BuildContext context) {
-    // ✅ Cambiar a adminStatsNotifierProvider
     final statsAsync = ref.watch(adminStatsNotifierProvider);
     final statsNotifier = ref.read(adminStatsNotifierProvider.notifier);
     final authState = ref.watch(authProvider);
@@ -248,7 +246,7 @@ class _AdminHomeTabState extends ConsumerState<_AdminHomeTab>
                       ),
                       IconButton(
                         onPressed: () {
-                          statsNotifier.refresh(); //  Refrescar estadísticas
+                          statsNotifier.refresh();
                         },
                         icon: const Icon(
                           Icons.refresh_rounded,
@@ -444,7 +442,6 @@ class _AdminOpsTab extends StatelessWidget {
     return _BaseTab(
       title: l10n.adminOps,
       children: [
-        // ✅ NUEVO: Certificados (arriba de Reportes)
         _ActionCard(
           icon: Icons.verified_rounded,
           title: 'Certificados',
@@ -474,128 +471,19 @@ class _AdminOpsTab extends StatelessWidget {
   }
 }
 
-class _AdminProfileTab extends ConsumerWidget {
+// ─── PERFIL DE ADMIN (ACTUALIZADO) ────────────────────────────────────
+
+class _AdminProfileTab extends StatelessWidget {
   const _AdminProfileTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).user;
-    final l10n = AppLocalizations.of(context)!;
-
-    return _BaseTab(
-      title: l10n.adminProfile,
-      children: [
-        GlassContainer(
-          borderRadius: BorderRadius.circular(24),
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              const CircleAvatar(
-                radius: 40,
-                backgroundColor: _AdminTokens.primary,
-                child: Icon(
-                  Icons.admin_panel_settings_rounded,
-                  color: Colors.white,
-                  size: 40,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Text(
-                user?.email ?? l10n.administrator,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              Text(
-                l10n.superAdminAccess,
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.5),
-                  fontSize: 14,
-                ),
-              ),
-              const SizedBox(height: 24),
-              const Divider(color: Colors.white10),
-              const SizedBox(height: 12),
-              ListTile(
-                leading: const Icon(
-                  Icons.security_rounded,
-                  color: _AdminTokens.secondary,
-                ),
-                title: Text(
-                  l10n.securitySettings,
-                  style: const TextStyle(color: Colors.white),
-                ),
-                trailing: const Icon(
-                  Icons.chevron_right_rounded,
-                  color: Colors.white24,
-                ),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: const Icon(
-                  Icons.logout_rounded,
-                  color: Colors.redAccent,
-                ),
-                title: Text(
-                  l10n.logout,
-                  style: const TextStyle(
-                    color: Colors.redAccent,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                onTap: () => _confirmLogout(context, ref),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _confirmLogout(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context)!;
-    showDialog(
-      context: context,
-      builder:
-          (ctx) => AlertDialog(
-            backgroundColor: const Color(0xFF1E1E2A),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(24),
-            ),
-            title: Text(
-              l10n.logout,
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            content: Text(
-              l10n.logoutAdminConfirm,
-              style: const TextStyle(color: Colors.white70),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(ctx),
-                child: Text(l10n.cancel),
-              ),
-              FilledButton(
-                style: FilledButton.styleFrom(
-                  backgroundColor: Colors.redAccent,
-                ),
-                onPressed: () async {
-                  Navigator.pop(ctx);
-                  await ref.read(authProvider.notifier).logout();
-                  if (context.mounted) context.go(AppRoutes.login);
-                },
-                child: Text(l10n.logout),
-              ),
-            ],
-          ),
-    );
+  Widget build(BuildContext context) {
+    // ✅ Ahora usa el AdminProfileScreen completo
+    return const AdminProfileScreen();
   }
 }
+
+// ─── WIDGETS REUTILIZABLES ────────────────────────────────────────────
 
 class _BaseTab extends StatelessWidget {
   const _BaseTab({required this.title, required this.children});
