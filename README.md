@@ -1,4 +1,4 @@
-# 🚀 JumpUp Idiomas — App Móvil
+# JumpUp Idiomas — App Móvil
 
 Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
 
@@ -11,9 +11,9 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
 
 ---
 
-## 📸 Capturas de pantalla
+## Capturas de pantalla
 
-### 🔐 Autenticación
+### Autenticación
 
 <table>
   <tr>
@@ -30,7 +30,7 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
   </tr>
 </table>
 
-### 👩‍🎓 Estudiante
+### Estudiante
 
 <table>
   <tr>
@@ -47,7 +47,7 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
   </tr>
 </table>
 
-### 👨‍🏫 Profesor / Admin
+### Profesor / Admin
 
 <table>
   <tr>
@@ -62,7 +62,7 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
   </tr>
 </table>
 
-### 📧 Correos del sistema
+### Correos del sistema
 
 <table>
   <tr>
@@ -77,49 +77,49 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
 
 ---
 
-## ✨ Funcionalidades
+## Funcionalidades
 
-### 👩‍🎓 Estudiante
-- 📚 Acceso a cursos inscritos, módulos y lecciones por aula
-- 🎯 Ejercicios interactivos con repetición de errores y temporizador
-- 🏆 Gamificación: XP, niveles, rachas diarias y logros desbloqueables
-- 🎮 Minijuegos: Flashcards, Ahorcado, Trivia, Memory, Sopa de letras, Roleplay IA y más
-- 📺 Ingreso a clases virtuales desde el aula asignada
-- 📂 Recursos por lección: documentos, videos y links
-- 🤖 Tutor IA para practicar conversación
-- 🛒 Catálogo de cursos con carrito de compras e historial de pagos
-- 🏅 Ranking global y por curso
+### Estudiante
+- Acceso a cursos inscritos, módulos y lecciones por aula
+- Ejercicios interactivos con repetición de errores y temporizador
+- Gamificación: XP, niveles, rachas diarias y logros desbloqueables
+- Minijuegos: Flashcards, Ahorcado, Trivia, Memory, Sopa de letras, Roleplay IA y más
+- Ingreso a clases virtuales desde el aula asignada
+- Recursos por lección: documentos, videos y links
+- Tutor IA para practicar conversación
+- Catálogo de cursos con carrito de compras e historial de pagos
+- Ranking global y por curso
 
-### 👨‍🏫 Profesor / Admin
-- 📋 Crear, editar y eliminar cursos con imagen desde galería
-- 🏫 Gestión de aulas: inscripción de estudiantes y solicitudes
-- 📝 Creación y edición de módulos y lecciones
-- 📁 Subida de recursos (video, imagen, PDF) desde galería o URL
-- 🔴 Programar y gestionar sesiones en vivo con código de acceso
-- 📊 Reportes de progreso por aula
+### Profesor / Admin
+- Crear, editar y eliminar cursos con imagen desde galería
+- Gestión de aulas: inscripción de estudiantes y solicitudes
+- Creación y edición de módulos y lecciones
+- Subida de recursos (video, imagen, PDF) desde galería o URL
+- Programar y gestionar sesiones en vivo con código de acceso
+- Reportes de progreso por aula
 
-### 🌐 Social
-- 💬 Chat en tiempo real por WebSocket
-- 📢 Feed comunitario con publicaciones y comentarios
-- 🔔 Notificaciones push y en tiempo real
-- 🔍 Búsqueda de cursos, usuarios y contenido
-
----
-
-## 🆕 Últimas actualizaciones
-
-- ✅ Subida de imágenes de cursos desde galería del dispositivo
-- ✅ Subida de recursos multimedia (video/imagen) con FormData
-- ✅ Clases virtuales: muestra solo aulas en las que el estudiante está inscrito
-- ✅ Recuperación de contraseña: errores reales del servidor, validación de longitud y coincidencia
-- ✅ Mensaje de requisitos de contraseña en pantalla de recuperación
-- ✅ Fix del filtrado de recursos por lección con `classroomId`
-- ✅ Parsers defensivos en modelos de aulas y recursos
-- ✅ Manejo de errores Lottie con `errorBuilder` en pantallas de ejercicios
+### Social
+- Chat en tiempo real por WebSocket
+- Feed comunitario con publicaciones y comentarios
+- Notificaciones push y en tiempo real
+- Búsqueda de cursos, usuarios y contenido
 
 ---
 
-## 🛠️ Requisitos previos
+## Últimas actualizaciones
+
+- Subida de imágenes de cursos desde galería del dispositivo
+- Subida de recursos multimedia (video/imagen) con FormData
+- Clases virtuales: muestra solo aulas en las que el estudiante está inscrito
+- Recuperación de contraseña: errores reales del servidor, validación de longitud y coincidencia
+- Mensaje de requisitos de contraseña en pantalla de recuperación
+- Fix del filtrado de recursos por lección con `classroomId`
+- Parsers defensivos en modelos de aulas y recursos
+- Manejo de errores Lottie con `errorBuilder` en pantallas de ejercicios
+
+---
+
+## Requisitos previos
 
 - Flutter SDK `>= 3.10.0`
 - Dart SDK `>= 3.0.0`
@@ -128,7 +128,7 @@ Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conec
 
 ---
 
-## 🚀 Instalación
+## Instalación
 
 ```bash
 # 1. Clonar el repositorio
@@ -147,21 +147,25 @@ flutter run
 
 ---
 
-## ⚙️ Configuración
+## Configuración y Variables de Entorno
 
-La app se conecta al backend en:
+La aplicación móvil está configurada para conectarse al backend mediante la siguiente URL base de la API:
 
 ```
 https://guaman-idiomas-ute.online/api/
 ```
 
-Para notificaciones push (opcional), configura:
-- Android → `android/app/google-services.json`
-- iOS → `ios/Runner/GoogleService-Info.plist`
+Para cambiar la configuración del servidor, localice el archivo de configuración correspondiente en la app (usualmente en la capa de servicios o variables globales del entorno de desarrollo).
+
+### Notificaciones push (Opcional)
+
+Para configurar notificaciones push mediante Firebase:
+- Android: ubique el archivo en `android/app/google-services.json`
+- iOS: ubique el archivo en `ios/Runner/GoogleService-Info.plist`
 
 ---
 
-## 🔑 Credenciales de prueba
+## Credenciales de prueba
 
 | Rol | Email | Contraseña |
 |---|---|---|
@@ -169,14 +173,16 @@ Para notificaciones push (opcional), configura:
 | Profesor | test@teacher.com | Clave1234! |
 | Administrador | admin@jumpup.com | Clave1234! |
 
-> *Las credenciales reales deben ser proporcionadas por el equipo de desarrollo.*
+*Las credenciales reales deben ser proporcionadas por el equipo de desarrollo.*
 
 ---
 
-## 🔌 API — Endpoints principales
+## Conexión a la API y Endpoints principales
+
+La aplicación consume servicios RESTful utilizando la biblioteca Dio en Flutter. A continuación, se detallan los endpoints agrupados por su respectiva funcionalidad:
 
 <details>
-<summary><strong>🔐 Autenticación</strong></summary>
+<summary><strong>Autenticación</strong></summary>
 <br>
 
 | Método | Endpoint | Descripción |
@@ -191,7 +197,7 @@ Para notificaciones push (opcional), configura:
 </details>
 
 <details>
-<summary><strong>📚 Contenido educativo</strong></summary>
+<summary><strong>Contenido educativo</strong></summary>
 <br>
 
 | Método | Endpoint | Descripción |
@@ -207,7 +213,7 @@ Para notificaciones push (opcional), configura:
 </details>
 
 <details>
-<summary><strong>🏆 Gamificación</strong></summary>
+<summary><strong>Gamificación</strong></summary>
 <br>
 
 | Método | Endpoint | Descripción |
@@ -221,7 +227,7 @@ Para notificaciones push (opcional), configura:
 </details>
 
 <details>
-<summary><strong>🛒 E-commerce</strong></summary>
+<summary><strong>E-commerce</strong></summary>
 <br>
 
 | Método | Endpoint | Descripción |
@@ -235,7 +241,7 @@ Para notificaciones push (opcional), configura:
 </details>
 
 <details>
-<summary><strong>🏫 Aulas y sesiones</strong></summary>
+<summary><strong>Aulas y sesiones</strong></summary>
 <br>
 
 | Método | Endpoint | Descripción |
@@ -248,7 +254,7 @@ Para notificaciones push (opcional), configura:
 
 ---
 
-## 📁 Estructura del proyecto
+## Estructura del proyecto
 
 ```
 lib/
@@ -274,7 +280,7 @@ lib/
 
 ---
 
-## 🧪 Comandos útiles
+## Comandos útiles
 
 ```bash
 flutter analyze               # Analizar código
@@ -286,7 +292,7 @@ flutter build ios --release   # Build iOS
 
 ---
 
-## 👥 Equipo
+## Equipo
 
 Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaciones Móviles** — Universidad UTE.
 
@@ -297,6 +303,6 @@ Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaci
 
 ---
 
-## 📬 Soporte
+## Soporte
 
 ¿Problemas o sugerencias? Abre un [Issue](https://github.com/Axel-25-dg/jumpup_idiomas_movil/issues).
