@@ -347,6 +347,17 @@ class _LessonDetailScreenState extends ConsumerState<LessonDetailScreen>
                       'https://assets5.lottiefiles.com/packages/lf20_tiviyv33.json', // Audio wave animation
                       width: 300,
                       height: 300,
+                      errorBuilder: (context, error, stackTrace) => const SizedBox(
+                        width: 300,
+                        height: 300,
+                        child: Center(
+                          child: Icon(
+                            Icons.graphic_eq_rounded,
+                            color: Colors.blueAccent,
+                            size: 80,
+                          ),
+                        ),
+                      ),
                     ),
                   GestureDetector(
                     onTap: () => _toggleAudio(lesson.audioUrl),

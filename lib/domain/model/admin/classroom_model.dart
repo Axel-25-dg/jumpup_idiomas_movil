@@ -28,6 +28,13 @@ class ClassroomModel {
   final int? courseId;
 
   factory ClassroomModel.fromJson(Map<String, dynamic> json) {
+    int toInt(dynamic val, [int def = 0]) {
+      if (val == null) return def;
+      if (val is num) return val.toInt();
+      if (val is String) return double.tryParse(val)?.toInt() ?? def;
+      return def;
+    }
+
     // Soporte para respuesta plana o con enrollment anidado
     final classroom = json['classroom'] is Map<String, dynamic>
         ? json['classroom'] as Map<String, dynamic>
@@ -53,16 +60,10 @@ class ClassroomModel {
     final courseVal = classroom['course'] ?? classroom['course_id'] ?? classroom['courseId'];
     if (courseVal is Map) {
       final idVal = courseVal['id'] ?? courseVal['course_id'];
-      if (idVal is int) {
-        courseId = idVal;
-      } else if (idVal != null) {
-        courseId = int.tryParse(idVal.toString());
-      }
+      courseId = toInt(idVal);
       courseName = courseVal['title']?.toString() ?? courseVal['name']?.toString();
-    } else if (courseVal is int) {
-      courseId = courseVal;
     } else if (courseVal != null) {
-      courseId = int.tryParse(courseVal.toString());
+      courseId = toInt(courseVal);
     }
 
     if (courseName == null) {
@@ -76,21 +77,20 @@ class ClassroomModel {
     }
 
     return ClassroomModel(
-      id: (classroom['id'] ?? 0) as int,
+      id: toInt(classroom['id']),
       name: classroom['name']?.toString() ?? '',
       description: classroom['description']?.toString() ?? '',
       accessCode: classroom['access_code']?.toString() ?? '',
       teacherName: teacherName,
-      isActive: classroom['is_active'] as bool? ?? true,
+      isActive: classroom['is_active'] == true || classroom['is_active'] == 1 || classroom['is_active'] == 'true',
       createdAt: DateTime.tryParse(
               classroom['created_at']?.toString() ??
                   classroom['date_joined']?.toString() ??
                   '') ??
           DateTime.now(),
-      studentsCount: classroom['total_students'] as int? ??
-          classroom['students_count'] as int? ??
-          classroom['enrolled_count'] as int? ??
-          0,
+      studentsCount: toInt(classroom['total_students'] ??
+          classroom['students_count'] ??
+          classroom['enrolled_count']),
       courseName: courseName,
       courseId: courseId,
     );
