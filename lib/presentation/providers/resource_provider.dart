@@ -34,6 +34,7 @@ class ResourceNotifier extends StateNotifier<AsyncValue<TeacherResource?>> {
     String resourceType = 'document',
     String description = '',
     bool isPublic = true,
+    String? filePath,
   }) async {
     await uploadResource({
       'title': title,
@@ -43,6 +44,7 @@ class ResourceNotifier extends StateNotifier<AsyncValue<TeacherResource?>> {
       'resource_type': resourceType,
       'description': description,
       'is_public': isPublic,
+      if (filePath != null) 'file_path': filePath,
     });
   }
 
