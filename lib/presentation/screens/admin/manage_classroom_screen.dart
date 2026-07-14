@@ -3,8 +3,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:jumpup_app/domain/model/admin/admin_user_model.dart';
+import 'package:jumpup_app/domain/model/admin/classroom_join_request_model.dart';
 import 'package:jumpup_app/presentation/navigation/app_router.dart';
 import 'package:jumpup_app/presentation/providers/classroom_provider.dart';
+import 'package:jumpup_app/presentation/providers/classroom_providers.dart';
 import 'package:jumpup_app/presentation/providers/enrollment_provider.dart' hide enrollmentsProvider;
 import 'package:jumpup_app/widgets/glass_container.dart';
 import 'classroom_join_requests_screen.dart';
@@ -98,6 +100,28 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     }
   }
 
+  Future<void> _handleRequestAction({required int requestId, required bool approve}) async {
+    final notifier = ref.read(classroomJoinRequestsProvider(widget.classroomId).notifier);
+    final success = approve
+        ? await notifier.approve(widget.classroomId, requestId)
+        : await notifier.reject(widget.classroomId, requestId);
+    if (!mounted) return;
+    if (success) {
+      ref.invalidate(enrollmentsProvider(widget.classroomId));
+      ref.invalidate(classroomsListProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(approve ? 'Solicitud aprobada' : 'Solicitud rechazada'),
+          backgroundColor: approve ? Colors.green : Colors.orange,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo procesar la solicitud')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final classroomsAsync = ref.watch(classroomsListProvider);
@@ -109,10 +133,6 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
     final enrollments = ref.watch(enrollmentsProvider(widget.classroomId));
     final actionState = ref.watch(enrollmentNotifierProvider);
     final requestsAsync = ref.watch(classroomJoinRequestsProvider(widget.classroomId));
-    final pendingCount = requestsAsync.maybeWhen(
-      data: (requests) => requests.where((r) => r.status == 'pending').length,
-      orElse: () => 0,
-    );
 
     return Scaffold(
       backgroundColor: const Color(0xFF0F111A),
@@ -324,6 +344,36 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
                 ),
               ),
               Padding(
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 8),
+                child: requestsAsync.when(
+                  loading: () => const SizedBox.shrink(),
+                  error: (_, __) => const SizedBox.shrink(),
+                  data: (requests) {
+                    if (requests.isEmpty) return const SizedBox.shrink();
+                    return GlassContainer(
+                      opacity: 0.08,
+                      padding: const EdgeInsets.all(12),
+                      borderRadius: BorderRadius.circular(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Solicitudes pendientes (${requests.length})',
+                            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          ...requests.map((request) => _JoinRequestTile(
+                                request: request,
+                                onApprove: () => _handleRequestAction(requestId: request.id, approve: true),
+                                onReject: () => _handleRequestAction(requestId: request.id, approve: false),
+                              )),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              Padding(
                 padding: const EdgeInsets.fromLTRB(20, 16, 20, 10),
                 child: Text('Lista de Estudiantes Inscritos', 
                   style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 14, fontWeight: FontWeight.w600)),
@@ -405,6 +455,47 @@ class _ManageClassroomScreenState extends ConsumerState<ManageClassroomScreen> {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _JoinRequestTile extends StatelessWidget {
+  const _JoinRequestTile({required this.request, required this.onApprove, required this.onReject});
+  final ClassroomJoinRequest request;
+  final VoidCallback onApprove;
+  final VoidCallback onReject;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.04),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(request.studentEmail, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700)),
+                  if ((request.message ?? '').isNotEmpty)
+                    Text(request.message!, style: const TextStyle(color: Colors.white54, fontSize: 12)),
+                  Text(
+                    'Solicitado: ${request.createdAt.toLocal().toString().split('.').first}',
+                    style: const TextStyle(color: Colors.white38, fontSize: 11),
+                  ),
+                ],
+              ),
+            ),
+            TextButton(onPressed: onReject, child: const Text('Rechazar', style: TextStyle(color: Colors.orangeAccent))),
+            TextButton(onPressed: onApprove, child: const Text('Aprobar', style: TextStyle(color: Colors.greenAccent))),
+          ],
+        ),
       ),
     );
   }

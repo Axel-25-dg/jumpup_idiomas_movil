@@ -85,15 +85,16 @@ class CartActions {
   Future<void> removeItem(int productId) async {
     try {
       await _service.eliminarDelCarrito(productId);
-      
-      // Remover de la selección si estaba seleccionado
+
       final selected = _ref.read(selectedCartItemsProvider);
       if (selected.contains(productId)) {
         final newSelected = Set<int>.from(selected)..remove(productId);
         _ref.read(selectedCartItemsProvider.notifier).state = newSelected;
       }
-      
+
       _ref.invalidate(cartProvider);
+      _ref.invalidate(ordersProvider);
+      await _ref.read(cartProvider.future);
     } catch (e) {
       // Ignore errors or show snackbar if needed
     }

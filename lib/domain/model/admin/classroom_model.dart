@@ -49,7 +49,7 @@ class ClassroomModel {
     }
 
     int? courseId;
-    final courseVal = classroom['course'];
+    final courseVal = classroom['course'] ?? classroom['course_id'] ?? classroom['courseId'];
     if (courseVal is int) {
       courseId = courseVal;
     } else if (courseVal != null) {

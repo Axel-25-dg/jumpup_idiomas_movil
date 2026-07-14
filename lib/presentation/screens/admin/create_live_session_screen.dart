@@ -17,6 +17,7 @@ class CreateLiveSessionScreen extends ConsumerStatefulWidget {
 class _CreateLiveSessionScreenState
     extends ConsumerState<CreateLiveSessionScreen> {
   final _titleCtrl = TextEditingController();
+  final _meetingUrlCtrl = TextEditingController();
   int? _selectedCourseId;
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
@@ -25,6 +26,7 @@ class _CreateLiveSessionScreenState
   @override
   void dispose() {
     _titleCtrl.dispose();
+    _meetingUrlCtrl.dispose();
     super.dispose();
   }
 
@@ -93,7 +95,10 @@ class _CreateLiveSessionScreenState
       await repo.createLiveSession(
         title: title,
         courseId: _selectedCourseId!,
-        startsAt: startsAt,
+        scheduledAt: startsAt,
+        meetingUrl: _meetingUrlCtrl.text.trim().isNotEmpty
+            ? _meetingUrlCtrl.text.trim()
+            : null,
       );
       ref.invalidate(liveSessionsProvider);
       if (mounted) {
@@ -151,6 +156,13 @@ class _CreateLiveSessionScreenState
                   onChanged: (val) => setState(() => _selectedCourseId = val),
                 );
               },
+            ),
+            const SizedBox(height: 16),
+            BrandedTextField(
+              controller: _meetingUrlCtrl,
+              label: 'Enlace de reunión (opcional)',
+              hint: 'https://meet.jit.si/tu-sala',
+              prefixIcon: Icons.link_rounded,
             ),
             const SizedBox(height: 24),
             Row(

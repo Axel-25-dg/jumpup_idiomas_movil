@@ -40,7 +40,7 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final coursesAsync = ref.watch(coursesProvider);
+    final coursesAsync = ref.watch(studentEnrolledCoursesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final user = ref.watch(authProvider).user;
     final canCreate = user?.role == UserRole.admin || user?.role == UserRole.teacher;
@@ -84,7 +84,9 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 sliver: coursesAsync.when(
                   data: (courses) {
-                    if (courses.isEmpty) {
+                    final visibleCourses = courses;
+
+                    if (visibleCourses.isEmpty) {
                       return const SliverFillRemaining(
                         hasScrollBody: false,
                         child: _EmptyCoursesState(),
@@ -92,8 +94,8 @@ class _CourseListScreenState extends ConsumerState<CourseListScreen> {
                     }
                     return SliverList(
                       delegate: SliverChildBuilderDelegate(
-                        (context, index) => _CourseListItem(course: courses[index]),
-                        childCount: courses.length,
+                        (context, index) => _CourseListItem(course: visibleCourses[index]),
+                        childCount: visibleCourses.length,
                       ),
                     );
                   },
@@ -371,6 +373,23 @@ class _CourseListItem extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
+                  const SizedBox(height: 12),
+                  if (course.teacherName != null)
+                    Row(
+                      children: [
+                        Icon(Icons.person_outline, size: 16, color: Colors.blueAccent.withValues(alpha: 0.7)),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Profesor: ${course.teacherName}',
+                          style: AppTextStyles.bodySmall.copyWith(
+                            color: isDark ? Colors.white60 : Colors.black54,
+                            fontStyle: FontStyle.italic,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
                   const SizedBox(height: 16),
                   Row(
                     children: [
