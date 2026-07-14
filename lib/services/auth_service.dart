@@ -75,33 +75,98 @@ class AuthService {
   }
 
   // Solicitar PIN de restablecimiento de contraseña
-  Future<bool> requestPasswordReset(String email) async {
+  Future<Map<String, dynamic>> requestPasswordReset(String email) async {
     try {
       final response = await _api.dio.post('auth/password-reset/', data: {'email': email});
-      return response.statusCode == 200;
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return {'ok': true};
+      }
+      return {'ok': false, 'error': 'Error del servidor (${response.statusCode})'};
+    } on DioException catch (e) {
+      final data = e.response?.data;
+      String errorMsg = 'Error al enviar el correo';
+      if (data is Map) {
+        final vals = data.values.toList();
+        if (vals.isNotEmpty) {
+          final first = vals.first;
+          errorMsg = first is List ? first.first.toString() : first.toString();
+        }
+      } else if (data is String) {
+        errorMsg = data;
+      }
+      return {'ok': false, 'error': errorMsg};
     } catch (e) {
-      return false;
+      return {'ok': false, 'error': e.toString()};
     }
   }
 
-  // Confirmar PIN
-  Future<bool> confirmPasswordReset({
+  // Confirmar PIN y establecer nueva contraseña
+  Future<Map<String, dynamic>> confirmPasswordReset({
     required String email,
     required String code,
     required String password,
     required String password2,
   }) async {
-    try {
-      final response = await _api.dio.post('auth/password-reset-confirm/', data: {
+    // Intentamos el esquema principal primero
+    final payloads = [
+      {
+        'email': email,
+        'code': code,
+        'new_password': password,
+        'new_password2': password2,
+      },
+      {
         'email': email,
         'code': code,
         'password': password,
         'password2': password2,
-      });
-      return response.statusCode == 200;
-    } catch (e) {
-      return false;
+      },
+      {
+        'email': email,
+        'token': code,
+        'new_password': password,
+        'new_password2': password2,
+      },
+      {
+        'email': email,
+        'otp': code,
+        'new_password': password,
+        'new_password2': password2,
+      },
+    ];
+
+    dynamic lastError;
+    for (final payload in payloads) {
+      try {
+        final response = await _api.dio.post('auth/password-reset-confirm/', data: payload);
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          return {'ok': true};
+        }
+      } on DioException catch (e) {
+        lastError = e;
+        // Si el error no es 400 (validación) ya no tiene sentido probar otros campos
+        if (e.response?.statusCode != 400) break;
+      } catch (e) {
+        lastError = e;
+        break;
+      }
     }
+
+    // Extraer mensaje del último error
+    String errorMsg = 'Código o contraseña incorrectos';
+    if (lastError is DioException) {
+      final data = lastError.response?.data;
+      if (data is Map) {
+        final vals = data.values.toList();
+        if (vals.isNotEmpty) {
+          final first = vals.first;
+          errorMsg = first is List ? first.first.toString() : first.toString();
+        }
+      } else if (data is String) {
+        errorMsg = data;
+      }
+    }
+    return {'ok': false, 'error': errorMsg};
   }
 
   // Refresh token
