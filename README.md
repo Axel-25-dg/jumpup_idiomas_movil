@@ -1,3 +1,11 @@
+<p align="center">
+  <b>Universidad Tecnológica Equinoccial</b><br>
+  <b>Escuela de Tecnologías</b><br>
+  <b>Carrera de Desarrollo de Software</b><br>
+  <br>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/e/ec/Logo-ute_%282%29.png" width="150" alt="Logo UTE"/>
+</p>
+
 # JumpUp Idiomas — App Móvil
 
 Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
