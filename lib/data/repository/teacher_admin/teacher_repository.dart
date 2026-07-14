@@ -11,6 +11,8 @@ import 'package:jumpup_app/data/repository/teacher_admin/announcement_repository
 import 'package:jumpup_app/data/repository/teacher_admin/classroom_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/stats_repository.dart';
 import 'package:jumpup_app/data/repository/teacher_admin/resource_repository.dart';
+import 'package:jumpup_app/data/repository/teacher_admin/email_repository.dart';
+
 
 import 'package:dio/dio.dart';
 import 'package:jumpup_app/data/remote/dio_client.dart';
@@ -40,7 +42,10 @@ class TeacherRepository {
   final ClassroomRepository classrooms;
   final StatsRepository stats;
   final ResourceRepository resources;
-  final CertificateRepository certificates; 
+  final CertificateRepository certificates;
+  final EmailRepository emailRepository;
+
+ 
 
   final Dio? _dio;
   
@@ -57,7 +62,10 @@ class TeacherRepository {
         classrooms = ClassroomRepository(dio: dio),
         stats = StatsRepository(dio: dio),
         resources = ResourceRepository(dio: dio),
-        certificates = CertificateRepository(dio: dio); 
+        certificates = CertificateRepository(dio: dio),
+        emailRepository = EmailRepository(dio: dio);
+
+ 
 
   Dio get dio => _dio ?? DioClient.instance.dio;
 
