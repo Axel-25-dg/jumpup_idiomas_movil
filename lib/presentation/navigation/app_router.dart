@@ -58,6 +58,7 @@ import 'package:jumpup_app/presentation/screens/admin/reports_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/users_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/student_detail_screen.dart';
 import 'package:jumpup_app/presentation/screens/admin/lesson_screen.dart';
+import 'package:jumpup_app/presentation/screens/admin/certificates_screen.dart'; 
 
 
 abstract final class AppRoutes {
@@ -118,6 +119,8 @@ abstract final class AppRoutes {
   static const adminReports = '/admin/reports';
   static const adminClassrooms = '/admin/classrooms';
   static const adminExercises = '/admin/exercises';
+  static const adminCertificates = '/admin/certificates'; 
+
 }
 
 GoRouter buildAppRouter(WidgetRef ref) {
@@ -415,6 +418,11 @@ GoRouter buildAppRouter(WidgetRef ref) {
         path: AppRoutes.adminExercises,
         name: 'adminExercises',
         builder: (_, __) => const ExercisesScreen(),
+      ),
+      GoRoute(
+      path: AppRoutes.adminCertificates,
+      name: 'adminCertificates',
+      builder: (_, __) => const CertificatesAdminScreen(),
       ),
     ],
   );

@@ -40,7 +40,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
       backgroundColor: const Color(0xFF0F0E1A),
       body: Stack(
         children: [
-          // Background Blobs
           Positioned(
             top: -100,
             left: -100,
@@ -77,7 +76,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
               ),
             ),
           ),
-
           CustomScrollView(
             slivers: [
               SliverAppBar(
@@ -90,7 +88,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                   centerTitle: false,
                   titlePadding: const EdgeInsets.only(left: 20, bottom: 16),
                   title: const Text(
-                    'Announcements',
+                    'Anuncios',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -115,18 +113,17 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                   IconButton(
                     icon: const Icon(Icons.add_rounded, color: Color(0xFF00E5FF)),
                     onPressed: () => _showAddEditDialog(context),
-                    tooltip: 'Create Announcement',
+                    tooltip: 'Crear Anuncio',
                   ),
                   IconButton(
                     icon: const Icon(Icons.refresh_rounded, color: Colors.white70),
                     onPressed: () => notifier.refresh(),
-                    tooltip: 'Refresh',
+                    tooltip: 'Refrescar',
                   ),
                 ],
               ),
-              
               SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 10, 20, 100),
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 100),
                 sliver: announcementsAsync.when(
                   loading: () => const SliverFillRemaining(
                     child: Center(child: CircularProgressIndicator(color: Color(0xFF7C4DFF))),
@@ -139,10 +136,10 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                       return SliverFillRemaining(
                         hasScrollBody: false,
                         child: EmptyState(
-                          title: 'No announcements found',
-                          subtitle: 'Create your first announcement to reach your students',
+                          title: 'No hay anuncios',
+                          subtitle: 'Crea tu primer anuncio para llegar a tus estudiantes',
                           icon: Icons.campaign_rounded,
-                          buttonText: 'Create Announcement',
+                          buttonText: 'Crear Anuncio',
                           onButtonPressed: () => _showAddEditDialog(context),
                         ),
                       );
@@ -202,7 +199,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         children: [
           const Icon(Icons.error_outline, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          const Text('Error loading announcements',
+          const Text('Error al cargar anuncios',
               style: TextStyle(color: Colors.white, fontSize: 18)),
           const SizedBox(height: 8),
           Text(
@@ -212,7 +209,7 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
           ),
           const SizedBox(height: 16),
           PrimaryButton(
-            label: 'Retry',
+            label: 'Reintentar',
             onPressed: () => notifier.refresh(),
             icon: Icons.refresh_rounded,
           ),
@@ -242,10 +239,12 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         backgroundColor: const Color(0xFF1E1E2A),
         surfaceTintColor: Colors.transparent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text(announcement != null ? 'Edit Announcement' : 'Create Announcement',
-            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: Text(
+          announcement != null ? 'Editar Anuncio' : 'Crear Anuncio',
+          style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: SizedBox(
-          width: 450,
+          width: MediaQuery.of(context).size.width * 0.9,
           child: SingleChildScrollView(
             child: Form(
               key: _formKey,
@@ -255,11 +254,11 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                 children: [
                   BrandedTextField(
                     controller: _titleController,
-                    label: 'Announcement Title',
+                    label: 'Título del Anuncio',
                     prefixIcon: Icons.title_rounded,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Title is required';
+                        return 'El título es obligatorio';
                       }
                       return null;
                     },
@@ -267,33 +266,35 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                   const SizedBox(height: 16),
                   BrandedTextField(
                     controller: _contentController,
-                    label: 'Content',
+                    label: 'Contenido',
                     prefixIcon: Icons.description_rounded,
                     maxLines: 4,
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Content is required';
+                        return 'El contenido es obligatorio';
                       }
                       return null;
                     },
                   ),
                   const SizedBox(height: 20),
-                  const Text('Scheduling', style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600)),
+                  const Text(
+                    'Programación',
+                    style: TextStyle(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600),
+                  ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
                       Expanded(
                         child: _DatePickerField(
-                          label: 'Start Date',
+                          label: 'Fecha de Inicio',
                           date: _startDate,
-                          onChanged: (date) =>
-                              setState(() => _startDate = date),
+                          onChanged: (date) => setState(() => _startDate = date),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _DatePickerField(
-                          label: 'End Date',
+                          label: 'Fecha de Fin',
                           date: _endDate,
                           onChanged: (date) => setState(() => _endDate = date),
                         ),
@@ -312,15 +313,17 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                             value: _isActive,
                             activeColor: const Color(0xFF7C4DFF),
                             checkColor: Colors.white,
-                            onChanged: (value) =>
-                                setState(() => _isActive = value ?? true),
+                            onChanged: (value) => setState(() => _isActive = value ?? true),
                           ),
-                          const Text('Publish Immediately',
-                              style: TextStyle(color: Colors.white70)),
+                          const Text(
+                            'Publicar inmediatamente',
+                            style: TextStyle(color: Colors.white70),
+                          ),
                         ],
                       ),
                     ),
                   ),
+                  const SizedBox(height: 8),
                 ],
               ),
             ),
@@ -329,17 +332,15 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white38)),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: announcement != null ? 'Update' : 'Publish',
-            onPressed: () async { // Hacer asíncrono
+            label: announcement != null ? 'Actualizar' : 'Publicar',
+            onPressed: () async {
               if (_formKey.currentState!.validate() &&
                   _startDate != null &&
                   _endDate != null) {
-                final notifier =
-                    ref.read(announcementNotifierProvider.notifier);
+                final notifier = ref.read(announcementNotifierProvider.notifier);
 
                 try {
                   if (announcement != null) {
@@ -363,7 +364,6 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
                   
                   if (mounted) Navigator.pop(ctx);
                 } catch (e) {
-                  // Mostrar error si falla
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(content: Text('Error: ${e.toString()}')),
@@ -378,28 +378,28 @@ class _AnnouncementsScreenState extends ConsumerState<AnnouncementsScreen> {
     );
   }
 
-  void _confirmDelete(
-      BuildContext context, int id, AnnouncementNotifier notifier) {
+  void _confirmDelete(BuildContext context, int id, AnnouncementNotifier notifier) {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1E2A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Delete Announcement',
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        title: const Text(
+          'Eliminar Anuncio',
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
         content: const Text(
-          'Are you sure you want to delete this announcement?\n'
-          'This action cannot be undone.',
+          '¿Estás seguro de que quieres eliminar este anuncio?\n'
+          'Esta acción no se puede deshacer.',
           style: TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child:
-                const Text('Cancel', style: TextStyle(color: Colors.white38)),
+            child: const Text('Cancelar', style: TextStyle(color: Colors.white38)),
           ),
           PrimaryButton(
-            label: 'Delete',
+            label: 'Eliminar',
             color: AppColors.error,
             onPressed: () async {
               try {
@@ -461,11 +461,11 @@ class _DatePickerField extends StatelessWidget {
                       onPrimary: Colors.white,
                       surface: Color(0xFF1E1E2A),
                       onSurface: Colors.white,
+                    ),
+                    dialogTheme: const DialogThemeData(
+                      backgroundColor: Color(0xFF1E1E2A),
+                    ),
                   ),
-                  dialogTheme: const DialogThemeData(
-                    backgroundColor: Color(0xFF1E1E2A),
-                  ),
-                ),
                   child: child!,
                 );
               },
@@ -490,7 +490,7 @@ class _DatePickerField extends StatelessWidget {
                   child: Text(
                     date != null
                         ? '${date!.day}/${date!.month}/${date!.year}'
-                        : 'Select',
+                        : 'Seleccionar',
                     style: TextStyle(
                       fontSize: 13,
                       color: date != null ? Colors.white : Colors.white38,
@@ -538,113 +538,154 @@ class _AnnouncementCard extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 12),
       child: GlassContainer(
         borderRadius: BorderRadius.circular(20),
-        child: ListTile(
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          leading: Container(
-            width: 52,
-            height: 52,
-            decoration: BoxDecoration(
-              color: currentlyActive
-                  ? const Color(0xFF7C4DFF).withValues(alpha: 0.1)
-                  : Colors.white.withValues(alpha: 0.05),
-              borderRadius: BorderRadius.circular(15),
-              border: Border.all(
-                color: currentlyActive 
-                  ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
-                  : Colors.white10
-              ),
-            ),
-            child: Icon(
-              Icons.campaign_rounded,
-              color: currentlyActive ? const Color(0xFF7C4DFF) : Colors.white38,
-              size: 24,
-            ),
-          ),
-          title: Text(
-            announcement.title,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-              fontSize: 15,
-            ),
-          ),
-          subtitle: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        padding: EdgeInsets.zero,
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 10),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              const SizedBox(height: 6),
-              Text(
-                announcement.content,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: currentlyActive
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.red.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      currentlyActive ? 'ACTIVE' : 'INACTIVE',
-                      style: TextStyle(
-                        color: currentlyActive ? Colors.green : Colors.red,
-                        fontSize: 9,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+              Container(
+                width: 34,
+                height: 34,
+                decoration: BoxDecoration(
+                  color: currentlyActive
+                      ? const Color(0xFF7C4DFF).withValues(alpha: 0.1)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: currentlyActive 
+                        ? const Color(0xFF7C4DFF).withValues(alpha: 0.2)
+                        : Colors.white10
                   ),
-                  const SizedBox(width: 10),
-                  const Icon(Icons.access_time_rounded, size: 12, color: Colors.white24),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${_formatDate(announcement.startDate)} - ${_formatDate(announcement.endDate)}',
-                    style: const TextStyle(
-                      color: Colors.white38,
-                      fontSize: 10,
+                ),
+                child: Icon(
+                  Icons.campaign_rounded,
+                  color: currentlyActive ? const Color(0xFF7C4DFF) : Colors.white38,
+                  size: 16,
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      announcement.title,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                        fontSize: 13,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
+                    const SizedBox(height: 2),
+                    Text(
+                      announcement.content,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontSize: 11,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 3),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: currentlyActive
+                                ? Colors.green.withValues(alpha: 0.12)
+                                : Colors.red.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(4),
+                          ),
+                          child: Text(
+                            currentlyActive ? 'ACTIVO' : 'INACTIVO',
+                            style: TextStyle(
+                              color: currentlyActive ? Colors.green : Colors.red,
+                              fontSize: 7,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(Icons.access_time_rounded, size: 8, color: Colors.white24),
+                        const SizedBox(width: 2),
+                        Text(
+                          '${_formatDate(announcement.startDate)} - ${_formatDate(announcement.endDate)}',
+                          style: const TextStyle(
+                            color: Colors.white38,
+                            fontSize: 7,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  _UltraCompactActionButton(
+                    icon: announcement.isActive
+                        ? Icons.visibility_rounded
+                        : Icons.visibility_off_rounded,
+                    color: announcement.isActive ? const Color(0xFF00E5FF) : Colors.white24,
+                    onPressed: onToggleStatus,
+                    tooltip: announcement.isActive ? 'Ocultar' : 'Mostrar',
+                  ),
+                  _UltraCompactActionButton(
+                    icon: Icons.edit_rounded,
+                    color: Colors.white38,
+                    onPressed: onEdit,
+                    tooltip: 'Editar',
+                  ),
+                  _UltraCompactActionButton(
+                    icon: Icons.delete_outline_rounded,
+                    color: AppColors.error.withValues(alpha: 0.7),
+                    onPressed: onDelete,
+                    tooltip: 'Eliminar',
                   ),
                 ],
               ),
             ],
           ),
-          trailing: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              IconButton(
-                icon: Icon(
-                  announcement.isActive
-                      ? Icons.visibility_rounded
-                      : Icons.visibility_off_rounded,
-                  color: announcement.isActive ? const Color(0xFF00E5FF) : Colors.white24,
-                  size: 20,
-                ),
-                onPressed: onToggleStatus,
-                tooltip: announcement.isActive ? 'Hide' : 'Show',
-              ),
-              IconButton(
-                icon: const Icon(Icons.edit_rounded, size: 20),
-                onPressed: onEdit,
-                color: Colors.white38,
-              ),
-              IconButton(
-                icon: const Icon(Icons.delete_outline_rounded, size: 20),
-                onPressed: onDelete,
-                color: AppColors.error.withValues(alpha: 0.7),
-              ),
-            ],
-          ),
         ),
+      ),
+    );
+  }
+}
+
+class _UltraCompactActionButton extends StatelessWidget {
+  const _UltraCompactActionButton({
+    required this.icon,
+    required this.color,
+    required this.onPressed,
+    required this.tooltip,
+  });
+
+  final IconData icon;
+  final Color color;
+  final VoidCallback onPressed;
+  final String tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 24,
+      height: 24,
+      margin: const EdgeInsets.only(left: 1),
+      child: IconButton(
+        icon: Icon(icon, size: 14),
+        color: color,
+        onPressed: onPressed,
+        tooltip: tooltip,
+        padding: EdgeInsets.zero,
+        constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+        splashRadius: 12,
       ),
     );
   }
