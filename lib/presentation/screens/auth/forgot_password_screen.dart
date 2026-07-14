@@ -225,7 +225,23 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> with Ticker
                               icon: Icons.lock_outline,
                               obscureText: true,
                             ),
-                            const SizedBox(height: 16),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(Icons.info_outline_rounded, size: 14, color: isDark ? Colors.white38 : Colors.black38),
+                                const SizedBox(width: 6),
+                                Expanded(
+                                  child: Text(
+                                    'Mínimo 8 caracteres: letras, números y signos (ej. !, @, #)',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: isDark ? Colors.white38 : Colors.black38,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 12),
                             _CustomTextField(
                               controller: _pass2Ctrl,
                               hint: l10n.confirmPassword,
