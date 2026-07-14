@@ -120,3 +120,6 @@ coverage/
 Thumbs.db
 .DS_Store
 
+
+# Carpeta de imagenes locales del proyecto
+imgs_p/

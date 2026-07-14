@@ -1,4 +1,4 @@
-# 🚀 JumpUp Idiomas — App Móvil
+<![CDATA[# 🚀 JumpUp Idiomas — App Móvil
 
 > Aplicación móvil de aprendizaje de idiomas desarrollada con **Flutter**, conectada a un backend **Django REST Framework**.
 
@@ -13,7 +13,29 @@
 
 ## 📸 Capturas de pantalla
 
-> *Las imágenes serán agregadas próximamente.*
+### 🔐 Autenticación
+
+| Login | Recuperar contraseña | Nuevo código | Éxito |
+|:---:|:---:|:---:|:---:|
+| ![Login](assets/readme/01_login.jpeg) | ![Código](assets/readme/02_recuperar_codigo.jpeg) | ![Formulario](assets/readme/03_recuperar_formulario.jpeg) | ![Éxito](assets/readme/04_recuperar_exito.jpeg) |
+
+### 👩‍🎓 Estudiante
+
+| Explorar cursos | Perfil | Carrito | Detalle lección |
+|:---:|:---:|:---:|:---:|
+| ![Cursos](assets/readme/05_explorar_cursos.jpeg) | ![Perfil](assets/readme/06_perfil_estudiante.jpeg) | ![Carrito](assets/readme/07_carrito.jpeg) | ![Lección](assets/readme/08_leccion_detalle.jpeg) |
+
+### 👨‍🏫 Profesor / Admin
+
+| Crear aula | Crear lección | Perfil teacher |
+|:---:|:---:|:---:|
+| ![Aula](assets/readme/09_admin_crear_aula.jpeg) | ![Lección](assets/readme/10_admin_crear_leccion.jpeg) | ![Teacher](assets/readme/11_teacher_perfil.jpeg) |
+
+### 📧 Notificaciones por correo
+
+| Código de recuperación | Certificado obtenido |
+|:---:|:---:|
+| ![Email código](assets/readme/12_email_codigo.jpeg) | ![Email certificado](assets/readme/13_email_certificado.jpeg) |
 
 ---
 
@@ -229,3 +251,4 @@ Proyecto desarrollado como parte de la asignatura de **Programación de Aplicaci
 ## 📬 Soporte
 
 ¿Problemas o sugerencias? Abre un [Issue](https://github.com/Axel-25-dg/jumpup_idiomas_movil/issues).
+]]>
