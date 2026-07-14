@@ -84,9 +84,7 @@ class _UploadResourceScreenState extends ConsumerState<UploadResourceScreen> {
         ScaffoldMessenger.of(context)
             .showSnackBar(SnackBar(content: Text(next.error.toString()), backgroundColor: Colors.redAccent));
       } else if (next.hasValue && prev?.isLoading == true) {
-        if (selectedLessonId != null) {
-          ref.invalidate(lessonResourcesProvider(selectedLessonId!));
-        }
+          ref.invalidate(lessonResourcesProvider);
         ScaffoldMessenger.of(context)
             .showSnackBar(const SnackBar(content: Text('Recurso publicado correctamente'), backgroundColor: Colors.greenAccent));
         Navigator.pop(context);
