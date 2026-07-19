@@ -9,7 +9,7 @@
                 - Desactivación de logs de depuración para mejor rendimiento.
                 - Optimización general del sistema.
             </description>
-            <enclosure url="https://github.com/Axel-25-dg/jumpup_idiomas_movil/releases/download/v1.0.1/app-release.apk"
+            <enclosure url="https://github.com/Axel-25-dg/jumpup_idiomas_movil/releases/latest/download/app-release.apk"
                        sparkle:version="1.0.1+3"
                        sparkle:os="android" />
         </item>
