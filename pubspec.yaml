@@ -143,6 +143,14 @@ dev_dependencies:
   riverpod_generator: ^2.4.3
   custom_lint: ^0.7.0
   riverpod_lint: ^2.3.13
+  flutter_launcher_icons: ^0.13.1
+
+flutter_launcher_icons:
+  android: "launcher_icon"
+  ios: true
+  image_path: "assets/images/JumpUp_Logo.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/JumpUp_Logo.png"
 
 flutter:
   generate: true
@@ -151,6 +159,7 @@ flutter:
   assets:
     - .env
     - assets/fonts/
+    - assets/images/
 
   fonts:
     - family: Poppins

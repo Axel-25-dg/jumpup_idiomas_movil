@@ -20,16 +20,24 @@ class AuthHeader extends StatelessWidget {
       children: [
         if (showLogo) ...[
           Container(
-            width: 72,
-            height: 72,
+            width: 80,
+            height: 80,
             decoration: const BoxDecoration(
-              gradient: AppColors.primaryGradient,
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.translate_rounded,
               color: Colors.white,
-              size: 36,
+              shape: BoxShape.circle,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 10,
+                  offset: Offset(0, 4),
+                )
+              ],
+            ),
+            child: ClipOval(
+              child: Image.asset(
+                'assets/images/JumpUp_Logo.png',
+                fit: BoxFit.cover,
+              ),
             ),
           ),
           const SizedBox(height: 20),

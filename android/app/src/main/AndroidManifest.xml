@@ -34,9 +34,9 @@
         </intent>
     </queries>
     <application
-        android:label="jumpup_idiomas_movil"
+        android:label="JumpUp"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -98,9 +98,7 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                           height: 120,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            gradient: const LinearGradient(
-                              colors: [Colors.purpleAccent, Colors.blueAccent],
-                            ),
+                            color: Colors.white,
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.purpleAccent.withValues(alpha: 0.5),
@@ -109,10 +107,11 @@ class _LoadingScreenState extends ConsumerState<LoadingScreen>
                               ),
                             ],
                           ),
-                          child: const Icon(
-                            Icons.translate_rounded,
-                            color: Colors.white,
-                            size: 60,
+                          child: ClipOval(
+                            child: Image.asset(
+                              'assets/images/JumpUp_Logo.png',
+                              fit: BoxFit.cover,
+                            ),
                           ),
                         ),
                       );

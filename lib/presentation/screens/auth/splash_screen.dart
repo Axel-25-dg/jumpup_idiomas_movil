@@ -263,11 +263,7 @@ class _LogoWidget extends StatelessWidget {
       height: 140,
       decoration: BoxDecoration(
         shape: BoxShape.circle,
-        gradient: const LinearGradient(
-          colors: [Color(0xFF6A11CB), Color(0xFF2575FC)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF2575FC).withValues(alpha: 0.3),
@@ -284,10 +280,13 @@ class _LogoWidget extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const Icon(
-            Icons.translate_rounded,
-            size: 70,
-            color: Colors.white,
+          ClipOval(
+            child: Image.asset(
+              'assets/images/JumpUp_Logo.png',
+              width: 140,
+              height: 140,
+              fit: BoxFit.cover,
+            ),
           ),
           // Shimmer Effect
           Positioned.fill(
