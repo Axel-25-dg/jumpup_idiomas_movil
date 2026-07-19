@@ -1,7 +1,7 @@
 name: jumpup_app
 description: JumpUp - Plataforma móvil para aprendizaje de idiomas
 publish_to: none
-version: 1.0.1+3
+version: 1.0.1+4
 
 environment:
   sdk: ">=3.7.0 <4.0.0"
