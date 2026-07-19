@@ -3,14 +3,14 @@
     <channel>
         <title>JumpUp Updates</title>
         <item>
-            <title>Versión 1.0.1+4</title>
+            <title>Versión 1.0.1+5</title>
             <description>
                 - Mejoras de estabilidad en el cierre de sesión.
                 - Desactivación de logs de depuración para mejor rendimiento.
-                - Corrección de compatibilidad en el sistema de compilación automática.
+                - Corrección del error de archivos faltantes (.env) en la compilación automática.
             </description>
             <enclosure url="https://github.com/Axel-25-dg/jumpup_idiomas_movil/releases/latest/download/app-release.apk"
-                       sparkle:version="1.0.1+4"
+                       sparkle:version="1.0.1+5"
                        sparkle:os="android" />
         </item>
     </channel>
