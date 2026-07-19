@@ -62,11 +62,14 @@ class LogoutDialog extends ConsumerWidget {
           Expanded(
             child: ElevatedButton(
               onPressed: () async {
+                // Primero cerramos el diálogo
                 Navigator.pop(context);
+                
+                // Ejecutamos el logout
                 await ref.read(authProvider.notifier).logout();
-                if (context.mounted) {
-                  context.go(AppRoutes.login);
-                }
+                
+                // NO forzamos context.go aquí, dejamos que el router (buildAppRouter)
+                // reaccione automáticamente al cambio de estado en authProvider.
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.redAccent.withValues(alpha: 0.1),

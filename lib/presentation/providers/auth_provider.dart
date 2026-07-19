@@ -267,32 +267,32 @@ class AuthNotifier extends StateNotifier<AuthState> {
   // ── Logout ─────────────────────────────────────────────────────────────────
 
   Future<void> logout() async {
+    // 1. Notificar al servidor primero (opcional, con timeout corto)
+    // Lo hacemos antes de borrar tokens locales para que la petición lleve el Bearer token
     try {
-      // 1. Notificar al servidor primero (opcional, con timeout corto)
-      // Lo hacemos antes de borrar tokens locales para que la petición lleve el Bearer token
       await _authService.logout().timeout(const Duration(seconds: 1)).catchError((_) {});
     } catch (_) {}
 
-    // 2. Limpiar tokens locales inmediatamente
-    await _secureStorage.clearTokens();
-    
     try {
-      // 3. Cerrar sesión en Google si aplica
+      // 2. Cerrar sesión en Google si aplica
       if (await GoogleAuthService.instance.isSignedIn()) {
         await GoogleAuthService.instance.signOut();
       }
     } catch (_) {}
 
-    // 4. Actualizar el estado a no autenticado PRIMERO
-    // Esto dispara el redireccionamiento del router antes de invalidar datos
+    // 3. Limpiar tokens locales
+    await _secureStorage.clearTokens();
+
+    // 4. Invalida todos los proveedores de datos ANTES de cambiar el estado de la UI
+    // Esto asegura que cualquier listener de estos proveedores se limpie o resetee
+    _invalidateAllDataProviders();
+
+    // 5. Actualizar el estado a no autenticado al FINAL
+    // Esto dispara la redirección del router a la pantalla de login
     state = const AuthState(
       status: AuthStatus.unauthenticated,
       user: null,
     );
-
-    // 5. Invalida todos los proveedores de datos después de cambiar el estado
-    // De esta forma, las pantallas que dependían de estos datos ya no están activas
-    _invalidateAllDataProviders();
   }
 
   /// Invalida globalmente los proveedores que almacenan datos específicos
