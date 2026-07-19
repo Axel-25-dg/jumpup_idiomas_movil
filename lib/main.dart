@@ -145,7 +145,7 @@ class JumpUpApp extends ConsumerWidget {
               osVersion: '0.0.0',
             ),
           ),
-          debugLogging: true, // Cambiar a false en producción
+          debugLogging: false, // Cambiado a false para producción
           durationUntilAlertAgain: const Duration(days: 0), // Mostrar siempre si hay actualización
         ),
         child: MaterialApp.router(

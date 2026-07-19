@@ -3,14 +3,14 @@
     <channel>
         <title>JumpUp Updates</title>
         <item>
-            <title>Versión 1.0.1+2</title>
+            <title>Versión 1.0.1+3</title>
             <description>
-                - Fix logout crash by reordering state update and provider invalidation.
-                - Support for Upgrader 13.5.0 with AppcastStore.
-                - Optimization of admin dashboard and progress providers.
+                - Mejoras de estabilidad en el cierre de sesión.
+                - Desactivación de logs de depuración para mejor rendimiento.
+                - Optimización general del sistema.
             </description>
             <enclosure url="https://github.com/Axel-25-dg/jumpup_idiomas_movil/releases/download/v1.0.1/app-release.apk"
-                       sparkle:version="1.0.1+2"
+                       sparkle:version="1.0.1+3"
                        sparkle:os="android" />
         </item>
     </channel>
