@@ -28,4 +28,9 @@ class GoogleAuthService {
       await _googleSignIn.signOut();
     } catch (_) {}
   }
+
+  /// Verifica si hay un usuario firmado con Google.
+  Future<bool> isSignedIn() async {
+    return await _googleSignIn.isSignedIn();
+  }
 }

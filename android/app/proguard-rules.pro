@@ -16,3 +16,7 @@
 -keep class io.flutter.embedding.** { *; }
 -keep class io.flutter.plugins.** { *; }
 -keep class com.google.firebase.** { *; }
+
+# Google Play Core (Fixes R8 missing classes)
+-dontwarn com.google.android.play.core.**
+-keep class com.google.android.play.core.** { *; }

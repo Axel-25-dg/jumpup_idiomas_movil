@@ -132,16 +132,19 @@ class JumpUpApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(preferencesProvider);
+    // Configuración para actualizaciones fuera de Play Store
+    final appcastConfig = AppcastConfiguration(
+      url: 'https://tu-usuario.github.io/tu-repo/appcast.xml', // URL de donde subas el XML
+      supportedOS: ['android'],
+    );
 
     return GamificationOverlay(
       child: UpgradeAlert(
         upgrader: Upgrader(
-          languageCode: prefs.language,
-          messages: UpgraderMessages(code: prefs.language),
-          dialogStyle: UpgradeDialogStyle.cupertino,
+          appcastConfig: appcastConfig,
+          debugLogging: true, // Cambiar a false en producción
+          canDismissDialog: false, // Obliga a actualizar si quieres
           showIgnore: false,
-          showLater: true,
-          durationUntilAlertAgain: const Duration(days: 1),
         ),
         child: MaterialApp.router(
           title: 'JumpUp',
