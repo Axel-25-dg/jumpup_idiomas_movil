@@ -15,6 +15,7 @@ import 'package:jumpup_app/presentation/providers/preferences_provider.dart';
 import 'package:jumpup_app/services/notification_service.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:jumpup_app/presentation/widgets/gamification/gamification_overlay.dart';
+import 'package:upgrader/upgrader.dart';
 import 'package:jumpup_app/firebase_options.dart';
 
 Future<void> main() async {
@@ -133,8 +134,17 @@ class JumpUpApp extends ConsumerWidget {
     final prefs = ref.watch(preferencesProvider);
 
     return GamificationOverlay(
-      child: MaterialApp.router(
-        title: 'JumpUp',
+      child: UpgradeAlert(
+        upgrader: Upgrader(
+          languageCode: prefs.language,
+          messages: UpgraderMessages(code: prefs.language),
+          dialogStyle: UpgradeDialogStyle.cupertino,
+          showIgnore: false,
+          showLater: true,
+          durationUntilAlertAgain: const Duration(days: 1),
+        ),
+        child: MaterialApp.router(
+          title: 'JumpUp',
         debugShowCheckedModeBanner: false,
         
         // Avoid initial white screen
@@ -169,6 +179,6 @@ class JumpUpApp extends ConsumerWidget {
         // ─── go_router ────────────────────────────────────────────────────
         routerConfig: buildAppRouter(ref),
       ),
-    );
+    ));
   }
 }

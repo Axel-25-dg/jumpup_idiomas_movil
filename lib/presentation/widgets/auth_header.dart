@@ -34,9 +34,12 @@ class AuthHeader extends StatelessWidget {
               ],
             ),
             child: ClipOval(
-              child: Image.asset(
-                'assets/images/JumpUp_Logo.png',
-                fit: BoxFit.cover,
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Image.asset(
+                  'assets/images/JumpUp_Logo.png',
+                  fit: BoxFit.contain,
+                ),
               ),
             ),
           ),

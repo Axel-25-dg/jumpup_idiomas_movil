@@ -61,6 +61,7 @@ dependencies:
   intl: ^0.20.2
   flutter_localizations:
     sdk: flutter
+  cupertino_icons: ^1.0.8
  
   # ─────────────────────────────────────────────
   # Pagos y enlaces externos (Stripe)
@@ -130,6 +131,7 @@ dependencies:
   flutter_webrtc: ^0.12.0
   sentry_flutter: ^9.2.0
   audioplayers: ^6.1.0
+  upgrader: ^13.5.0
 
 dev_dependencies:
   flutter_test:

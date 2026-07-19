@@ -168,8 +168,15 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with TickerProviderSt
                                     ),
                                   ],
                                 ),
-                                child: const Icon(Icons.auto_awesome_rounded,
-                                    size: 40, color: Colors.white),
+                                child: ClipOval(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(10.0),
+                                    child: Image.asset(
+                                      'assets/images/JumpUp_Logo.png',
+                                      fit: BoxFit.contain,
+                                    ),
+                                  ),
+                                ),
                               ),
                             );
                           },

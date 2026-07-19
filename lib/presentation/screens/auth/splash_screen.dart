@@ -281,11 +281,14 @@ class _LogoWidget extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           ClipOval(
-            child: Image.asset(
-              'assets/images/JumpUp_Logo.png',
-              width: 140,
-              height: 140,
-              fit: BoxFit.cover,
+            child: Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Image.asset(
+                'assets/images/JumpUp_Logo.png',
+                width: 140,
+                height: 140,
+                fit: BoxFit.contain,
+              ),
             ),
           ),
           // Shimmer Effect
