@@ -16,6 +16,7 @@ import 'package:jumpup_app/services/notification_service.dart';
 import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:jumpup_app/presentation/widgets/gamification/gamification_overlay.dart';
 import 'package:upgrader/upgrader.dart';
+import 'package:pub_semver/pub_semver.dart' as semver;
 import 'package:jumpup_app/firebase_options.dart';
 
 Future<void> main() async {
@@ -132,19 +133,20 @@ class JumpUpApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(preferencesProvider);
-    // Configuración para actualizaciones fuera de Play Store
-    final appcastConfig = AppcastConfiguration(
-      url: 'https://tu-usuario.github.io/tu-repo/appcast.xml', // URL de donde subas el XML
-      supportedOS: ['android'],
-    );
+    // Configuración para actualizaciones fuera de Play Store (Upgrader 13.5.0)
+    const appcastURL = 'https://raw.githubusercontent.com/Axel-25-dg/jumpup_idiomas_movil/main/appcast.xml';
 
     return GamificationOverlay(
       child: UpgradeAlert(
         upgrader: Upgrader(
-          appcastConfig: appcastConfig,
+          storeController: UpgraderStoreController(
+            onAndroid: () => UpgraderAppcastStore(
+              appcastURL: appcastURL,
+              osVersion: '0.0.0',
+            ),
+          ),
           debugLogging: true, // Cambiar a false en producción
-          canDismissDialog: false, // Obliga a actualizar si quieres
-          showIgnore: false,
+          durationUntilAlertAgain: const Duration(days: 0), // Mostrar siempre si hay actualización
         ),
         child: MaterialApp.router(
           title: 'JumpUp',

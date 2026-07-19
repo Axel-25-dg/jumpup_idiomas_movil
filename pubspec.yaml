@@ -132,6 +132,7 @@ dependencies:
   sentry_flutter: ^9.2.0
   audioplayers: ^6.1.0
   upgrader: ^13.5.0
+  pub_semver: ^2.1.5
 
 dev_dependencies:
   flutter_test:

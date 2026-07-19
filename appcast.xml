@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<rss version="2.0" xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle">
+    <channel>
+        <title>JumpUp Updates</title>
+        <item>
+            <title>Versión 1.0.1+2</title>
+            <description>
+                - Fix logout crash by reordering state update and provider invalidation.
+                - Support for Upgrader 13.5.0 with AppcastStore.
+                - Optimization of admin dashboard and progress providers.
+            </description>
+            <enclosure url="https://github.com/Axel-25-dg/jumpup_idiomas_movil/releases/download/v1.0.1/app-release.apk"
+                       sparkle:version="1.0.1+2"
+                       sparkle:os="android" />
+        </item>
+    </channel>
+</rss>
